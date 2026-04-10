@@ -89,8 +89,8 @@ const OphthalmologyExamQueue = () => {
     <DashboardLayout
       role="doctor"
       title="Oftalmologia"
-      subtitle="Fila de exames oftalmológicos"
-      navItems={getDoctorNav("ophthalmology")}
+      
+      nav={getDoctorNav("ophthalmology")}
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}

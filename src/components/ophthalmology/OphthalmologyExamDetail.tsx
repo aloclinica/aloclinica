@@ -64,7 +64,7 @@ const OphthalmologyExamDetail = () => {
 
   if (isLoading) {
     return (
-      <DashboardLayout role="doctor" title="Carregando..." navItems={getDoctorNav("ophthalmology")}>
+      <DashboardLayout role="doctor" title="Carregando..." nav={getDoctorNav("ophthalmology")}>
         <div className="space-y-4 max-w-4xl mx-auto">
           {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
         </div>
@@ -74,7 +74,7 @@ const OphthalmologyExamDetail = () => {
 
   if (!exam) {
     return (
-      <DashboardLayout role="doctor" title="Exame não encontrado" navItems={getDoctorNav("ophthalmology")}>
+      <DashboardLayout role="doctor" title="Exame não encontrado" nav={getDoctorNav("ophthalmology")}>
         <div className="text-center py-12">
           <p className="text-muted-foreground">Exame não encontrado.</p>
           <Button variant="outline" className="mt-4" onClick={() => navigate(-1)}>Voltar</Button>
@@ -87,8 +87,8 @@ const OphthalmologyExamDetail = () => {
     <DashboardLayout
       role="doctor"
       title={`Exame — ${exam.patient_name}`}
-      subtitle={exam.exam_type}
-      navItems={getDoctorNav("ophthalmology")}
+      
+      nav={getDoctorNav("ophthalmology")}
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}

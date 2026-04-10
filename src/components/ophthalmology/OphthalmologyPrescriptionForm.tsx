@@ -108,7 +108,7 @@ const OphthalmologyPrescriptionForm = () => {
 
   if (examLoading) {
     return (
-      <DashboardLayout role="doctor" title="Carregando..." navItems={getDoctorNav("ophthalmology")}>
+      <DashboardLayout role="doctor" title="Carregando..." nav={getDoctorNav("ophthalmology")}>
         <div className="max-w-4xl mx-auto space-y-4">
           {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-40 w-full" />)}
         </div>
@@ -120,8 +120,8 @@ const OphthalmologyPrescriptionForm = () => {
     <DashboardLayout
       role="doctor"
       title="Receita Oftalmológica"
-      subtitle={exam?.patient_name}
-      navItems={getDoctorNav("ophthalmology")}
+      
+      nav={getDoctorNav("ophthalmology")}
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}

@@ -85,8 +85,8 @@ const OphthalmologyExamForm = () => {
     <DashboardLayout
       role="doctor"
       title="Novo Exame Oftalmológico"
-      subtitle="Registre os dados do exame"
-      navItems={getDoctorNav("ophthalmology")}
+      
+      nav={getDoctorNav("ophthalmology")}
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
