@@ -4,6 +4,9 @@ import { ShieldCheck, Lightning, Devices, Receipt, UsersFour, FirstAid } from "@
 
 import familyImg from "@/assets/section-family-telehealth.jpg";
 import doctorAppImg from "@/assets/section-doctor-app.jpg";
+import multiplatformImg from "@/assets/benefit-multiplatform.jpg";
+import familyPlanImg from "@/assets/benefit-family-plan.jpg";
+import medicalRecordsImg from "@/assets/benefit-medical-records.jpg";
 
 const benefits = [
   {
