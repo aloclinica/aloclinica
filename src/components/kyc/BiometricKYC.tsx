@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { verificarFace, detectarFace, dataUrlToFile } from "@/lib/compreface";
 
 type Step = "intro" | "document" | "selfie" | "analyzing" | "result";
 
@@ -14,6 +13,8 @@ interface KYCResult {
   match: boolean;
   score: number;
   status: string;
+  nome?: string | null;
+  cpf?: string | null;
 }
 
 interface BiometricKYCProps {
@@ -21,6 +22,40 @@ interface BiometricKYCProps {
   variant?: "full" | "compact";
   className?: string;
   tipo?: "medico" | "paciente";
+}
+
+/**
+ * Calls the didit-kyc edge function which uses DeepSeek Vision API
+ * for real biometric face matching and document data extraction.
+ */
+async function verifyViaDeepSeek(
+  documentDataUrl: string,
+  selfieDataUrl: string
+): Promise<{ match: boolean; score: number; nome: string | null; cpf: string | null; status: string }> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData?.session?.access_token;
+
+  if (!token) throw new Error("Sessão expirada. Faça login novamente.");
+
+  const res = await supabase.functions.invoke("didit-kyc", {
+    body: {
+      document_image: documentDataUrl,
+      selfie_image: selfieDataUrl,
+    },
+  });
+
+  if (res.error) {
+    throw new Error(res.error.message || "Erro na verificação biométrica");
+  }
+
+  const data = res.data as any;
+  return {
+    match: data.match === true,
+    score: typeof data.score === "number" ? data.score : 0,
+    nome: data.nome ?? null,
+    cpf: data.cpf ?? null,
+    status: data.status || (data.match ? "approved" : "rejected"),
+  };
 }
 
 const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "paciente" }: BiometricKYCProps) => {
@@ -101,51 +136,51 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
     setStep("analyzing");
 
     try {
-      const selfieFile = dataUrlToFile(selfieImage, "selfie.jpg");
-      const docFile = dataUrlToFile(documentImage, "documento.jpg");
+      // Call DeepSeek Vision API via edge function for real biometric verification
+      const verification = await verifyViaDeepSeek(documentImage, selfieImage);
 
-      // Step 1: detect face in selfie
-      const detection = await detectarFace(selfieFile);
-      if (!detection.faceDetected) {
-        toast.error("Nenhum rosto detectado na selfie", { description: "Tente novamente com uma foto mais nítida." });
-        setStep("selfie");
-        return;
-      }
+      const isApproved = verification.match && verification.score >= 60;
+      const status = isApproved ? "aprovado" : "reprovado";
+      const score = verification.score;
 
-      // Step 2: verify face match
-      const verification = await verificarFace(selfieFile, docFile);
-
-      const status = verification.aprovado ? "aprovado" : "reprovado";
-      const score = Math.round(verification.similarity * 100);
-
-      // Save to Supabase
+      // Save to kyc_verificacoes
       await supabase.from("kyc_verificacoes" as any).insert({
         user_id: user.id,
-        status,
-        similarity: verification.similarity,
+        status: isApproved ? "approved" : "rejected",
+        similarity: score / 100,
         tipo,
       });
 
       // Update doctor_profiles kyc_status if doctor
-      if (tipo === "medico" && verification.aprovado) {
+      if (tipo === "medico" && isApproved) {
         await supabase
           .from("doctor_profiles")
-          .update({ kyc_status: "verified" } as any)
+          .update({
+            kyc_status: "verified",
+            kyc_verified_at: new Date().toISOString(),
+            kyc_face_match_score: score,
+          } as any)
           .eq("user_id", user.id);
       }
 
-      const kycResult: KYCResult = { match: verification.aprovado, score, status };
+      const kycResult: KYCResult = {
+        match: isApproved,
+        score,
+        status,
+        nome: verification.nome,
+        cpf: verification.cpf,
+      };
       setResult(kycResult);
       setStep("result");
       onComplete?.(kycResult);
 
-      if (verification.aprovado) {
+      if (isApproved) {
         toast.success("Identidade verificada!", { description: `Similaridade: ${score}%` });
       } else {
-        toast.error("Verificação não aprovada", { description: `Similaridade: ${score}% (mínimo 85%)` });
+        toast.error("Verificação não aprovada", { description: `Similaridade: ${score}% (mínimo 60%)` });
       }
     } catch (err: any) {
-      console.error("[BiometricKYC] CompreFace error:", err);
+      console.error("[BiometricKYC] Verification error:", err);
       toast.error("Erro na verificação", { description: err.message || "Tente novamente." });
       setStep("selfie");
     }
@@ -188,7 +223,7 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
               </div>
               <h3 className="text-lg font-bold text-foreground">Verificação Biométrica</h3>
               <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
-                Verificação facial inteligente — tire uma foto do seu documento e uma selfie em poucos segundos.
+                Verificação facial inteligente com IA — tire uma foto do seu documento e uma selfie em poucos segundos.
               </p>
             </div>
 
@@ -208,7 +243,7 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-foreground">Selfie ao vivo</p>
-                  <p className="text-xs text-muted-foreground">Comparação facial automática</p>
+                  <p className="text-xs text-muted-foreground">Comparação facial por IA (DeepSeek Vision)</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -216,8 +251,8 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
                   <CheckCircle2 className="w-4 h-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Resultado instantâneo</p>
-                  <p className="text-xs text-muted-foreground">Análise biométrica em segundos</p>
+                  <p className="text-sm font-semibold text-foreground">Extração de dados</p>
+                  <p className="text-xs text-muted-foreground">Nome e CPF extraídos automaticamente do documento</p>
                 </div>
               </div>
             </div>
@@ -227,7 +262,7 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
             </Button>
 
             <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
-              🔒 Verificação segura. Seus dados são protegidos por criptografia e conformidade com LGPD.
+              🔒 Verificação segura com IA. Seus dados são protegidos por criptografia e conformidade com LGPD.
             </p>
           </motion.div>
         )}
@@ -325,8 +360,8 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
             <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
               <Loader2 className="w-8 h-8 text-primary animate-spin" />
             </div>
-            <h3 className="text-lg font-bold text-foreground">Verificando identidade...</h3>
-            <p className="text-xs text-muted-foreground">Comparação facial em andamento</p>
+            <h3 className="text-lg font-bold text-foreground">Verificando identidade com IA...</h3>
+            <p className="text-xs text-muted-foreground">Analisando documento e comparando rosto</p>
             <Progress value={50} className="h-1.5 max-w-xs mx-auto animate-pulse" />
           </motion.div>
         )}
@@ -349,12 +384,24 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
                   <span className="text-muted-foreground">Similaridade</span>
                   <span className="font-bold text-foreground">{result.score}%</span>
                 </div>
+                {result.nome && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Nome</span>
+                    <span className="font-bold text-foreground">{result.nome}</span>
+                  </div>
+                )}
+                {result.cpf && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">CPF</span>
+                    <span className="font-bold text-foreground">{result.cpf}</span>
+                  </div>
+                )}
               </div>
             )}
 
             {result.status !== "aprovado" && (
               <div className="space-y-2">
-                <p className="text-xs text-muted-foreground">Similaridade: {result.score}% (mínimo 85%)</p>
+                <p className="text-xs text-muted-foreground">Similaridade: {result.score}% (mínimo 60%)</p>
                 <Button onClick={reset} variant="outline" className="rounded-xl gap-2">
                   <RotateCcw className="w-4 h-4" /> Tentar novamente
                 </Button>
