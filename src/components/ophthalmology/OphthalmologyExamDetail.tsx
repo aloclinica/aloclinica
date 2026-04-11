@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Eye, ArrowLeft, FileText, CheckCircle, Printer } from "lucide-react";
+import { Eye, ArrowLeft, FileText, CheckCircle, Printer, Pencil, Download } from "lucide-react";
+import { generateOphthalmologyPrescriptionPDF } from "@/lib/ophthalmology-pdf";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -100,16 +101,25 @@ const OphthalmologyExamDetail = () => {
           <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
             <ArrowLeft className="w-4 h-4" /> Voltar
           </Button>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {exam.status !== "completed" && (
-              <Button
-                variant="default"
-                onClick={() => completeMutation.mutate()}
-                disabled={completeMutation.isPending}
-                className="gap-2"
-              >
-                <CheckCircle className="w-4 h-4" /> Concluir Exame
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate(`/dashboard/ophthalmology/edit/${exam.id}?role=doctor`)}
+                  className="gap-2"
+                >
+                  <Pencil className="w-4 h-4" /> Editar
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => completeMutation.mutate()}
+                  disabled={completeMutation.isPending}
+                  className="gap-2"
+                >
+                  <CheckCircle className="w-4 h-4" /> Concluir Exame
+                </Button>
+              </>
             )}
             <Button
               variant="outline"
@@ -214,13 +224,23 @@ const OphthalmologyExamDetail = () => {
                       {rx.signed_at && ` · Assinada em ${format(new Date(rx.signed_at), "dd/MM/yyyy")}`}
                     </p>
                   </div>
-                  {rx.pdf_url && (
-                    <Button size="sm" variant="ghost" asChild>
-                      <a href={rx.pdf_url} target="_blank" rel="noopener noreferrer">
-                        <Printer className="w-4 h-4" />
-                      </a>
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      title="Baixar PDF"
+                      onClick={() => generateOphthalmologyPrescriptionPDF(rx, "Dr(a). Médico", "000000")}
+                    >
+                      <Download className="w-4 h-4" />
                     </Button>
-                  )}
+                    {rx.pdf_url && (
+                      <Button size="sm" variant="ghost" asChild>
+                        <a href={rx.pdf_url} target="_blank" rel="noopener noreferrer">
+                          <Printer className="w-4 h-4" />
+                        </a>
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </CardContent>

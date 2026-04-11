@@ -21,6 +21,7 @@ export const getDoctorNav = (active: string) => [
   { label: "Receituário", href: "/dashboard/doctor/simple-prescription?role=doctor", icon: <NavIcon icon={<Pill size={16} weight="fill" />} color="rose" />, active: active === "simple-prescription", group: "Documentos" },
   { label: "Atestados", href: "/dashboard/certificates?role=doctor", icon: <NavIcon icon={<Certificate size={16} weight="fill" />} color="blue" />, active: active === "certificates", group: "Documentos" },
   { label: "Oftalmologia", href: "/dashboard/ophthalmology/queue?role=doctor", icon: <NavIcon icon={<Eye size={16} weight="fill" />} color="emerald" />, active: active === "ophthalmology", group: "Documentos" },
+  { label: "Meus Exames Oftalmo", href: "/dashboard/ophthalmology/my-exams?role=doctor", icon: <NavIcon icon={<Eye size={16} weight="fill" />} color="cyan" />, active: active === "ophthalmology-my", group: "Documentos" },
 
   { label: "Ganhos", href: "/dashboard/earnings?role=doctor", icon: <NavIcon icon={<Money size={16} weight="fill" />} color="green" />, active: active === "earnings", group: "Financeiro" },
   { label: "Carteira", href: "/dashboard/doctor/wallet?role=doctor", icon: <NavIcon icon={<Wallet size={16} weight="fill" />} color="emerald" />, active: active === "wallet", group: "Financeiro" },
