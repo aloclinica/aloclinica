@@ -3,7 +3,7 @@ import { ophthalmologyService } from "@/lib/services/ophthalmology-service";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
-import { getDoctorNav } from "@/components/doctor/doctorNav";
+import { getOphthalmologyNav } from "@/components/ophthalmology/ophthalmologyNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -51,7 +51,7 @@ const OphthalmologyMyExams = () => {
   const completedExams = exams?.filter((e) => e.status === "completed") ?? [];
 
   return (
-    <DashboardLayout role="doctor" title="Meus Exames Oftalmológicos" nav={getDoctorNav("ophthalmology-my")}>
+    <DashboardLayout role="doctor" title="Meus Exames Oftalmológicos" nav={getOphthalmologyNav("my-exams")}>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="space-y-6">
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">

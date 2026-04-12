@@ -6,7 +6,7 @@ import { z } from "zod";
 import { ophthalmologyService } from "@/lib/services/ophthalmology-service";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
-import { getDoctorNav } from "@/components/doctor/doctorNav";
+import { getOphthalmologyNav } from "@/components/ophthalmology/ophthalmologyNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -100,7 +100,7 @@ const OphthalmologyEditExam = () => {
 
   if (isLoading) {
     return (
-      <DashboardLayout role="doctor" title="Carregando..." nav={getDoctorNav("ophthalmology")}>
+      <DashboardLayout role="doctor" title="Carregando..." nav={getOphthalmologyNav("queue")}>
         <div className="max-w-4xl mx-auto space-y-4">
           {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-40 w-full" />)}
         </div>
@@ -109,7 +109,7 @@ const OphthalmologyEditExam = () => {
   }
 
   return (
-    <DashboardLayout role="doctor" title="Editar Exame Oftalmológico" nav={getDoctorNav("ophthalmology")}>
+    <DashboardLayout role="doctor" title="Editar Exame Oftalmológico" nav={getOphthalmologyNav("queue")}>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="max-w-4xl mx-auto space-y-6">
         <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2"><ArrowLeft className="w-4 h-4" /> Voltar</Button>
 

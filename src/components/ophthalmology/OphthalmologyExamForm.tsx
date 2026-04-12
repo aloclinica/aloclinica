@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ophthalmologyService } from "@/lib/services/ophthalmology-service";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
-import { getDoctorNav } from "@/components/doctor/doctorNav";
+import { getOphthalmologyNav } from "@/components/ophthalmology/ophthalmologyNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,7 +86,7 @@ const OphthalmologyExamForm = () => {
       role="doctor"
       title="Novo Exame Oftalmológico"
       
-      nav={getDoctorNav("ophthalmology")}
+      nav={getOphthalmologyNav("queue")}
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
