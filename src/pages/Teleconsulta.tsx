@@ -51,11 +51,6 @@ const faqItems = [
     answer: "Sim! Regulamentada pela Lei nº 13.989/2020 e autorizada pelo CFM. O uso da telemedicina foi ampliado, permitindo atendimento completo sem necessidade de consulta presencial prévia. O médico deve informar sobre limitações, como a impossibilidade de exame físico.",
   },
   {
-    icon: <FileText className="w-5 h-5" />,
-    question: "Posso usar meu convênio?",
-    answer: "Na plataforma de telemedicina, não há interferência de convênios — tudo é entre paciente e médico. A vantagem: valores muito menores que consultas particulares, com acesso a médicos de grandes centros que nem atendem por convênio.",
-  },
-  {
     icon: <MonitorSmartphone className="w-5 h-5" />,
     question: "O que preciso para participar?",
     answer: "Apenas um celular, tablet ou computador com webcam. No dia marcado, você e o médico entram numa sala virtual segura e criptografada para o atendimento.",
