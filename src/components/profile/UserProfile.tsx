@@ -116,11 +116,15 @@ const UserProfile = () => {
   const fetchDoctorProfile = async () => {
     const { data } = await supabase.from("doctor_profiles").select("id, bio, education, experience_years, consultation_price").eq("user_id", user!.id).single();
     if (data) {
+      setDoctorProfileId(data.id);
       setBio(data.bio || ""); setEducation(data.education || "");
       setExperienceYears(data.experience_years || 0); setConsultationPrice(Number(data.consultation_price) || 89);
-      const { data: specData } = await supabase.from("doctor_specialties").select("specialty_id").eq("doctor_id", data.id);
-      if (specData?.length) {
-        const specIds = specData.map((s: any) => s.specialty_id);
+      const [specRes, careRes] = await Promise.all([
+        supabase.from("doctor_specialties").select("specialty_id").eq("doctor_id", data.id),
+        supabase.from("doctor_care_areas" as any).select("area_name").eq("doctor_id", data.id),
+      ]);
+      if (specRes.data?.length) {
+        const specIds = specRes.data.map((s: any) => s.specialty_id);
         const { data: specs } = await supabase.from("specialties").select("price_min, price_max").in("id", specIds);
         if (specs?.length) {
           const mins = (specs as any[]).map(s => s.price_min).filter((v: any) => v != null);
@@ -129,6 +133,7 @@ const UserProfile = () => {
           setPriceMax(maxs.length > 0 ? Math.max(...maxs) : null);
         }
       }
+      setDoctorCareAreas((careRes.data as any[])?.map((c: any) => c.area_name) ?? []);
     }
   };
 
