@@ -58,7 +58,7 @@ const DoctorPublicProfilePage = () => {
         });
         const doc = rows?.[0] as any;
         if (doc) {
-          const name = `Dr(a). ${doc.first_name} ${doc.last_name}`;
+          const name = doc.display_name || `Dr(a). ${doc.first_name} ${doc.last_name}`;
           const specialty = doc.specialties?.[0] ?? "Clínica Geral";
           setDoctorMeta({ name, specialty });
         }
