@@ -31,6 +31,7 @@ interface DoctorResult {
   available_now_since?: string | null;
   profile: { first_name: string; last_name: string; avatar_url: string | null } | null;
   specialties: string[];
+  careAreas: string[];
 }
 
 const fadeUp = {
@@ -131,10 +132,11 @@ const DoctorSearch = () => {
     const doctorIds = doctorData.map(d => d.id);
     const userIds = doctorData.map(d => d.user_id);
 
-    const [profilesRes, specRes, slotsRes] = await Promise.all([
+    const [profilesRes, specRes, slotsRes, careAreasRes] = await Promise.all([
       supabase.from("profiles").select("user_id, first_name, last_name, avatar_url").in("user_id", userIds),
       supabase.from("doctor_specialties").select("doctor_id, specialty_id, specialties(name)").in("doctor_id", doctorIds),
       supabase.from("availability_slots").select("doctor_id, day_of_week, start_time, end_time").eq("is_active", true).in("doctor_id", doctorIds),
+      supabase.from("doctor_care_areas" as any).select("doctor_id, area_name").in("doctor_id", doctorIds),
     ]);
 
     const now = new Date();
@@ -156,12 +158,20 @@ const DoctorSearch = () => {
       specsMap.set(s.doctor_id, arr);
     });
 
+    const careAreasMap = new Map<string, string[]>();
+    (careAreasRes.data as any[])?.forEach((c: { doctor_id: string; area_name: string }) => {
+      const arr = careAreasMap.get(c.doctor_id) ?? [];
+      arr.push(c.area_name);
+      careAreasMap.set(c.doctor_id, arr);
+    });
+
     const results: DoctorResult[] = doctorData.map(d => ({
       ...d,
       consultation_price: Number(d.consultation_price),
       rating: Number(d.rating),
       profile: profilesMap.get(d.user_id) ?? null,
       specialties: specsMap.get(d.id) ?? [],
+      careAreas: careAreasMap.get(d.id) ?? [],
     }));
 
     const maxPrice = Math.max(...results.map(d => d.consultation_price), 500);
@@ -172,9 +182,11 @@ const DoctorSearch = () => {
 
   const filtered = doctors
     .filter(d => {
+      const searchLower = search.toLowerCase();
       const nameMatch = !search ||
-        `${d.profile?.first_name} ${d.profile?.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
-        d.crm.includes(search);
+        `${d.profile?.first_name} ${d.profile?.last_name}`.toLowerCase().includes(searchLower) ||
+        d.crm.includes(search) ||
+        d.careAreas.some(a => a.toLowerCase().includes(searchLower));
       const specMatch = !selectedSpecialty || d.specialties.some(s => s === selectedSpecialty);
       const urgencyMatch = !isUrgency || availableNowIds.has(d.id) || Boolean(d.available_now);
       const priceMatch = d.consultation_price >= priceRange[0] && d.consultation_price <= priceRange[1];
@@ -459,6 +471,14 @@ const DoctorSearch = () => {
                           <p className="text-xs text-muted-foreground mt-0.5">CRM {doctor.crm}/{doctor.crm_state}{(doctor.experience_years ?? 0) > 0 && ` · ${doctor.experience_years}a exp.`}</p>
                           {doctor.specialties.length > 0 && (
                             <div className="flex flex-wrap gap-1 mt-2">{doctor.specialties.slice(0, 2).map(s => (<span key={s} className="text-[11px] px-2 py-0.5 rounded-full bg-[hsl(var(--p-primary))]/10 text-[hsl(var(--p-primary))] font-semibold">{s}</span>))}</div>
+                          )}
+                          {doctor.careAreas.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {doctor.careAreas.slice(0, 3).map(a => (
+                                <span key={a} className="text-[10px] px-2 py-0.5 rounded-full bg-muted/60 text-muted-foreground font-medium">{a}</span>
+                              ))}
+                              {doctor.careAreas.length > 3 && <span className="text-[10px] text-muted-foreground/60">+{doctor.careAreas.length - 3}</span>}
+                            </div>
                           )}
                           <div className="flex items-center gap-2 mt-2 flex-wrap">
                             {doctor.available_now && (

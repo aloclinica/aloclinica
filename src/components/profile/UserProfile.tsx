@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Camera, Save, Trash2, AlertTriangle, ChevronRight, User, Clock, Bell, HelpCircle, LogOut, Shield, Heart, Pencil, ShieldCheck, Upload } from "lucide-react";
 import BiometricKYC from "@/components/kyc/BiometricKYC";
@@ -80,6 +81,8 @@ const UserProfile = () => {
   const [consultationPrice, setConsultationPrice] = useState(89);
   const [priceMin, setPriceMin] = useState<number | null>(null);
   const [priceMax, setPriceMax] = useState<number | null>(null);
+  const [doctorCareAreas, setDoctorCareAreas] = useState<string[]>([]);
+  const [doctorProfileId, setDoctorProfileId] = useState<string | null>(null);
   const isDoctor = roles.includes("doctor");
 
   useEffect(() => {
@@ -114,11 +117,15 @@ const UserProfile = () => {
   const fetchDoctorProfile = async () => {
     const { data } = await supabase.from("doctor_profiles").select("id, bio, education, experience_years, consultation_price").eq("user_id", user!.id).single();
     if (data) {
+      setDoctorProfileId(data.id);
       setBio(data.bio || ""); setEducation(data.education || "");
       setExperienceYears(data.experience_years || 0); setConsultationPrice(Number(data.consultation_price) || 89);
-      const { data: specData } = await supabase.from("doctor_specialties").select("specialty_id").eq("doctor_id", data.id);
-      if (specData?.length) {
-        const specIds = specData.map((s: any) => s.specialty_id);
+      const [specRes, careRes] = await Promise.all([
+        supabase.from("doctor_specialties").select("specialty_id").eq("doctor_id", data.id),
+        supabase.from("doctor_care_areas" as any).select("area_name").eq("doctor_id", data.id),
+      ]);
+      if (specRes.data?.length) {
+        const specIds = specRes.data.map((s: any) => s.specialty_id);
         const { data: specs } = await supabase.from("specialties").select("price_min, price_max").in("id", specIds);
         if (specs?.length) {
           const mins = (specs as any[]).map(s => s.price_min).filter((v: any) => v != null);
@@ -127,6 +134,7 @@ const UserProfile = () => {
           setPriceMax(maxs.length > 0 ? Math.max(...maxs) : null);
         }
       }
+      setDoctorCareAreas((careRes.data as any[])?.map((c: any) => c.area_name) ?? []);
     }
   };
 
@@ -446,6 +454,40 @@ const UserProfile = () => {
                   <Label>Preço (R$)</Label>
                   <Input type="number" value={consultationPrice} onChange={e => setConsultationPrice(Number(e.target.value))} className="mt-1 h-11 rounded-xl" min={priceMin ?? 0} max={priceMax ?? undefined} />
                   {(priceMin !== null || priceMax !== null) && <p className="text-xs text-muted-foreground mt-1">R$ {priceMin?.toFixed(0) ?? "—"} ~ R$ {priceMax?.toFixed(0) ?? "—"}</p>}
+                </div>
+              </div>
+              {/* Care Areas */}
+              <div>
+                <Label>Áreas de Atendimento</Label>
+                <p className="text-xs text-muted-foreground mb-2">Condições que você mais atende (ex: Infecção Urinária, Enxaqueca)</p>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {doctorCareAreas.map(a => (
+                    <Badge key={a} className="bg-primary/10 text-primary border-primary/20 gap-1 text-xs py-1 px-2.5 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors" onClick={async () => {
+                      if (!doctorProfileId) return;
+                      await supabase.from("doctor_care_areas" as any).delete().eq("doctor_id", doctorProfileId).eq("area_name", a);
+                      setDoctorCareAreas(prev => prev.filter(x => x !== a));
+                      toast.success("Área removida");
+                    }}>
+                      {a} ✕
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Adicionar área de atendimento..."
+                    className="h-10 rounded-xl flex-1"
+                    onKeyDown={async (e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        const val = (e.target as HTMLInputElement).value.trim();
+                        if (!val || !doctorProfileId || doctorCareAreas.includes(val)) return;
+                        await supabase.from("doctor_care_areas" as any).insert({ doctor_id: doctorProfileId, area_name: val });
+                        setDoctorCareAreas(prev => [...prev, val]);
+                        (e.target as HTMLInputElement).value = "";
+                        toast.success("Área adicionada");
+                      }
+                    }}
+                  />
                 </div>
               </div>
             </CardContent>

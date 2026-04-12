@@ -916,6 +916,42 @@ export type Database = {
           },
         ]
       }
+      doctor_care_areas: {
+        Row: {
+          area_name: string
+          created_at: string
+          doctor_id: string
+          id: string
+        }
+        Insert: {
+          area_name: string
+          created_at?: string
+          doctor_id: string
+          id?: string
+        }
+        Update: {
+          area_name?: string
+          created_at?: string
+          doctor_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_care_areas_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctor_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_care_areas_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctor_profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctor_financial: {
         Row: {
           created_at: string | null

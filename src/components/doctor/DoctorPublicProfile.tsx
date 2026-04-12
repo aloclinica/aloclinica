@@ -20,6 +20,7 @@ interface DoctorPublicData {
   name: string;
   avatar_url: string | null;
   specialties: string[];
+  careAreas: string[];
   crm_verified: boolean;
   is_approved: boolean;
 }
@@ -52,6 +53,12 @@ const DoctorPublicProfile = () => {
     const doc = rows?.[0] as any;
     if (!doc) { setLoading(false); return; }
 
+    // Fetch care areas
+    const { data: careAreasData } = await supabase
+      .from("doctor_care_areas" as any)
+      .select("area_name")
+      .eq("doctor_id", doc.id);
+
     // Fetch reviews (satisfaction_surveys is authenticated-only, will work if user is logged in)
     const { data: surveysData } = await supabase
       .from("satisfaction_surveys")
@@ -80,6 +87,7 @@ const DoctorPublicProfile = () => {
       name: `${doc.first_name} ${doc.last_name}`,
       avatar_url: doc.avatar_url ?? null,
       specialties: doc.specialties ?? [],
+      careAreas: (careAreasData as any[])?.map((c: any) => c.area_name) ?? [],
       crm_verified: doc.crm_verified ?? false,
       is_approved: doc.is_approved ?? false,
     });
@@ -170,7 +178,18 @@ const DoctorPublicProfile = () => {
                     ))}
                   </div>
 
-                  {/* Rating */}
+                  {/* Care Areas */}
+                  {doctor.careAreas.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1.5">Áreas de atendimento</p>
+                      <div className="flex flex-wrap gap-1.5 justify-center sm:justify-start">
+                        {doctor.careAreas.map(a => (
+                          <span key={a} className="text-[11px] px-2.5 py-1 rounded-full bg-muted/60 text-muted-foreground font-medium">{a}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-2 mt-3 justify-center sm:justify-start">
                     <div className="flex">
                       {[1, 2, 3, 4, 5].map(i => (
