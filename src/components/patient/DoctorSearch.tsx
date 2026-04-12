@@ -182,9 +182,11 @@ const DoctorSearch = () => {
 
   const filtered = doctors
     .filter(d => {
+      const searchLower = search.toLowerCase();
       const nameMatch = !search ||
-        `${d.profile?.first_name} ${d.profile?.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
-        d.crm.includes(search);
+        `${d.profile?.first_name} ${d.profile?.last_name}`.toLowerCase().includes(searchLower) ||
+        d.crm.includes(search) ||
+        d.careAreas.some(a => a.toLowerCase().includes(searchLower));
       const specMatch = !selectedSpecialty || d.specialties.some(s => s === selectedSpecialty);
       const urgencyMatch = !isUrgency || availableNowIds.has(d.id) || Boolean(d.available_now);
       const priceMatch = d.consultation_price >= priceRange[0] && d.consultation_price <= priceRange[1];
