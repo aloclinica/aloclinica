@@ -547,6 +547,50 @@ const AuthMedico = () => {
                       </div>
                       {showSpecialtyDropdown && <div className="fixed inset-0 z-40" onClick={() => setShowSpecialtyDropdown(false)} />}
                     </div>
+
+                    {/* Care Areas */}
+                    <div className="relative">
+                      <Label>Áreas de atendimento (ex: Infecção Urinária, Enxaqueca)</Label>
+                      <p className="text-xs text-muted-foreground mb-1">Condições e queixas que você mais atende</p>
+                      {selectedCareAreas.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-1.5 mb-1.5">
+                          {selectedCareAreas.map(s => (
+                            <Badge key={s} className="bg-primary/10 text-primary border-primary/20 gap-1 text-xs py-1 px-2.5 cursor-pointer hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-colors" onClick={() => removeCareArea(s)}>
+                              {s} ✕
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                      <div className="relative">
+                        <Input
+                          ref={careAreaInputRef}
+                          value={careAreaSearch}
+                          onChange={e => { setCareAreaSearch(e.target.value); setShowCareAreaDropdown(true); }}
+                          onFocus={() => setShowCareAreaDropdown(true)}
+                          onKeyDown={e => { if (e.key === "Enter" && careAreaSearch.trim()) { e.preventDefault(); addCareArea(careAreaSearch); } }}
+                          placeholder={selectedCareAreas.length ? "Adicionar outra..." : "Buscar ou digitar área de atendimento..."}
+                          className="mt-1 h-11"
+                        />
+                        {showCareAreaDropdown && (careAreaSearch.trim() || selectedCareAreas.length === 0) && (
+                          <div className="absolute z-50 mt-1 w-full max-h-48 overflow-auto rounded-xl border border-border bg-popover shadow-lg">
+                            {filteredCareAreas.slice(0, 8).map(s => (
+                              <button key={s} type="button" className="w-full text-left px-3 py-2 text-sm hover:bg-muted/50 transition-colors" onMouseDown={(e) => { e.preventDefault(); addCareArea(s); }}>
+                                {s}
+                              </button>
+                            ))}
+                            {careAreaSearch.trim() && !PREDEFINED_CARE_AREAS.some(s => s.toLowerCase() === careAreaSearch.toLowerCase().trim()) && (
+                              <button type="button" className="w-full text-left px-3 py-2 text-sm text-primary font-medium hover:bg-primary/5 border-t border-border/50" onMouseDown={(e) => { e.preventDefault(); addCareArea(careAreaSearch); }}>
+                                + Adicionar "{careAreaSearch.trim()}"
+                              </button>
+                            )}
+                            {filteredCareAreas.length === 0 && !careAreaSearch.trim() && (
+                              <p className="px-3 py-2 text-xs text-muted-foreground">Todas as áreas já foram selecionadas</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {showCareAreaDropdown && <div className="fixed inset-0 z-40" onClick={() => setShowCareAreaDropdown(false)} />}
+                    </div>
                     <div><Label>Anos de experiência</Label><Input type="number" min="0" max="60" value={experienceYears} onChange={e => setExperienceYears(e.target.value)} placeholder="Ex: 5" className="mt-1 h-11" /></div>
                     <div>
                       <Label>Tipo de atendimento pretendido *</Label>
