@@ -76,6 +76,7 @@ const UserProfile = () => {
 
   // Doctor fields
   const [bio, setBio] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [education, setEducation] = useState("");
   const [experienceYears, setExperienceYears] = useState(0);
   const [consultationPrice, setConsultationPrice] = useState(89);
