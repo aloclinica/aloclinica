@@ -113,6 +113,18 @@ const PREDEFINED_SPECIALTIES = [
   "Radiologia", "Radioterapia", "Reumatologia", "Urologia",
 ];
 
+const PREDEFINED_CARE_AREAS = [
+  "Infecção Urinária", "Dor de Cabeça", "Dor nas Costas", "Ansiedade", "Depressão",
+  "Insônia", "Hipertensão", "Diabetes", "Asma", "Bronquite", "Rinite Alérgica",
+  "Sinusite", "Gripe e Resfriado", "Dor de Garganta", "Infecção de Ouvido",
+  "Dor Abdominal", "Gastrite", "Refluxo", "Enxaqueca", "Obesidade",
+  "Colesterol Alto", "Anemia", "Tireoide", "Dermatite", "Acne",
+  "Queda de Cabelo", "Cistite", "Candidíase", "TPM", "Menopausa",
+  "Dor no Peito", "Palpitações", "Falta de Ar", "Tontura", "Dor Articular",
+  "Tendinite", "Lombalgia", "Fibromialgia", "Alergia Alimentar", "Conjuntivite",
+];
+
+
 const AuthMedico = () => {
   const [searchParams] = useSearchParams();
   const hasLoginAccess = true; // Login always accessible
@@ -131,6 +143,10 @@ const AuthMedico = () => {
   const [specialtySearch, setSpecialtySearch] = useState("");
   const [showSpecialtyDropdown, setShowSpecialtyDropdown] = useState(false);
   const specialtyInputRef = useRef<HTMLInputElement>(null);
+  const [selectedCareAreas, setSelectedCareAreas] = useState<string[]>([]);
+  const [careAreaSearch, setCareAreaSearch] = useState("");
+  const [showCareAreaDropdown, setShowCareAreaDropdown] = useState(false);
+  const careAreaInputRef = useRef<HTMLInputElement>(null);
   const [bio, setBio] = useState("");
   const [loading, setLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
