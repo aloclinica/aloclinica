@@ -4,7 +4,7 @@ import { ophthalmologyService } from "@/lib/services/ophthalmology-service";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
-import { getDoctorNav } from "@/components/doctor/doctorNav";
+import { getOphthalmologyNav } from "@/components/ophthalmology/ophthalmologyNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,7 +65,7 @@ const OphthalmologyExamDetail = () => {
 
   if (isLoading) {
     return (
-      <DashboardLayout role="doctor" title="Carregando..." nav={getDoctorNav("ophthalmology")}>
+      <DashboardLayout role="doctor" title="Carregando..." nav={getOphthalmologyNav("queue")}>
         <div className="space-y-4 max-w-4xl mx-auto">
           {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
         </div>
@@ -75,7 +75,7 @@ const OphthalmologyExamDetail = () => {
 
   if (!exam) {
     return (
-      <DashboardLayout role="doctor" title="Exame não encontrado" nav={getDoctorNav("ophthalmology")}>
+      <DashboardLayout role="doctor" title="Exame não encontrado" nav={getOphthalmologyNav("queue")}>
         <div className="text-center py-12">
           <p className="text-muted-foreground">Exame não encontrado.</p>
           <Button variant="outline" className="mt-4" onClick={() => navigate(-1)}>Voltar</Button>
@@ -89,7 +89,7 @@ const OphthalmologyExamDetail = () => {
       role="doctor"
       title={`Exame — ${exam.patient_name}`}
       
-      nav={getDoctorNav("ophthalmology")}
+      nav={getOphthalmologyNav("queue")}
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}

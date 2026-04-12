@@ -4,7 +4,7 @@ import { ophthalmologyService } from "@/lib/services/ophthalmology-service";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
-import { getDoctorNav } from "@/components/doctor/doctorNav";
+import { getOphthalmologyNav } from "@/components/ophthalmology/ophthalmologyNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -90,7 +90,7 @@ const OphthalmologyExamQueue = () => {
       role="doctor"
       title="Oftalmologia"
       
-      nav={getDoctorNav("ophthalmology")}
+      nav={getOphthalmologyNav("queue")}
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
