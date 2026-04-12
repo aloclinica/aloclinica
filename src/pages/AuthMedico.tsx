@@ -179,6 +179,23 @@ const AuthMedico = () => {
 
   const removeSpecialty = (s: string) => setSelectedSpecialties(prev => prev.filter(x => x !== s));
 
+  const filteredCareAreas = useMemo(() => {
+    if (!careAreaSearch.trim()) return PREDEFINED_CARE_AREAS.filter(s => !selectedCareAreas.includes(s));
+    const q = careAreaSearch.toLowerCase().trim();
+    return PREDEFINED_CARE_AREAS.filter(s => s.toLowerCase().includes(q) && !selectedCareAreas.includes(s));
+  }, [careAreaSearch, selectedCareAreas]);
+
+  const addCareArea = (s: string) => {
+    const trimmed = s.trim();
+    if (trimmed && !selectedCareAreas.includes(trimmed)) {
+      setSelectedCareAreas(prev => [...prev, trimmed]);
+    }
+    setCareAreaSearch("");
+    setShowCareAreaDropdown(false);
+  };
+
+  const removeCareArea = (s: string) => setSelectedCareAreas(prev => prev.filter(x => x !== s));
+
   const handleSpecialtyKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && specialtySearch.trim()) {
       e.preventDefault();
