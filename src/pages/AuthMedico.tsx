@@ -327,6 +327,16 @@ const AuthMedico = () => {
       await supabase.functions.invoke("assign-role", { body: { user_id: data.user.id, role: "doctor", profile_data: { crm, crm_state: crmState, invite_code_id: validatedCodeId } } });
       await registerConsent(data.user.id, "terms_and_privacy_doctor");
       supabase.functions.invoke("send-email", { body: { type: "welcome_doctor", to: email, data: { name: `${firstName} ${lastName}`, crm: `${crm}/${crmState}` } } }).catch(() => {});
+
+      // Save care areas if selected
+      if (selectedCareAreas.length > 0) {
+        const { data: docProfile } = await supabase.from("doctor_profiles").select("id").eq("user_id", data.user.id).maybeSingle();
+        if (docProfile) {
+          await supabase.from("doctor_care_areas" as any).insert(
+            selectedCareAreas.map(area => ({ doctor_id: docProfile.id, area_name: area }))
+          );
+        }
+      }
     }
     setLoading(false);
     toast.success("Cadastro realizado!", { description: "Aguarde a aprovação do seu CRM." });
