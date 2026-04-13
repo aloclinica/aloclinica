@@ -40,7 +40,7 @@ export async function uploadRecording(
     }
 
     // Registrar metadata no banco
-    const { error: insertError } = await supabase
+    const { error: insertError } = await (supabase as any)
       .from("consultation_recordings")
       .insert({
         appointment_id: appointmentId,
@@ -89,7 +89,7 @@ export async function listRecordings(appointmentId: string): Promise<RecordingMe
       .order("uploaded_at", { ascending: false });
 
     if (error) throw error;
-    return data as RecordingMetadata[];
+    return data as unknown as RecordingMetadata[];
   } catch (err) {
     logError("listRecordings error", err);
     return null;

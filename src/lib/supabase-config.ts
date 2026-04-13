@@ -9,7 +9,7 @@ const validateSupabaseEnv = () => {
   const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
 
   if (!url || !key) {
-    const missing = [];
+    const missing: string[] = [];
     if (!url) missing.push('VITE_SUPABASE_URL');
     if (!key) missing.push('VITE_SUPABASE_PUBLISHABLE_KEY');
 

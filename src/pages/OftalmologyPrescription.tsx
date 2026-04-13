@@ -53,16 +53,17 @@ export default function OftalmologyPrescription() {
     const fetch = async () => {
       const { data: appointment } = await supabase
         .from("appointments")
-        .select("patient_id, patient:profiles(full_name)")
+        .select("patient_id")
         .eq("id", appointmentId)
         .single();
 
       if (appointment) {
-        setPatientName(appointment.patient?.full_name || "");
+        const { data: profile } = await supabase.from("profiles").select("first_name, last_name").eq("user_id", appointment.patient_id!).single();
+        setPatientName(profile ? `${profile.first_name} ${profile.last_name}` : "");
         setPatientId(appointment.patient_id);
       }
 
-      const { data: exam } = await supabase
+      const { data: exam } = await (supabase as any)
         .from("ophthalmology_exams")
         .select("id, od_sphere, od_cylinder, od_axis, os_sphere, os_cylinder, os_axis")
         .eq("appointment_id", appointmentId)
@@ -70,7 +71,7 @@ export default function OftalmologyPrescription() {
 
       if (exam) {
         setExamId(exam.id);
-        setPrescription(prev => ({
+        setPrescription((prev: any) => ({
           ...prev,
           od_sphere: exam.od_sphere,
           od_cylinder: exam.od_cylinder,
@@ -84,12 +85,12 @@ export default function OftalmologyPrescription() {
       // Load doctor info
       const { data: doctorData } = await supabase
         .from("doctor_profiles")
-        .select("first_name, last_name, crm, crm_state")
+        .select("full_name, crm, crm_state")
         .eq("user_id", user.id)
         .single();
 
       if (doctorData) {
-        setDoctorName(`${doctorData.first_name} ${doctorData.last_name}`);
+        setDoctorName(doctorData.full_name || "");
         setDoctorCRM(`${doctorData.crm}/${doctorData.crm_state}`);
       }
     };

@@ -146,12 +146,12 @@ export function usePrescriptionData(appointmentId?: string) {
         setData({
           appointmentId,
           doctorId: appt.doctor_id,
-          patientId,
+          patientId: patientId || "",
           patientName,
           patientCpf,
-          diagnosis: existing?.diagnosis || "",
-          observations: existing?.observations || "",
-          medications: existing?.medications || [emptyMedication()],
+          diagnosis: (existing as any)?.diagnosis || "",
+          observations: (existing as any)?.observations || "",
+          medications: (existing as any)?.medications || [emptyMedication()],
           doctorInfo,
         });
       } catch (err) {

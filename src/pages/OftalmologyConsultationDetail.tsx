@@ -43,17 +43,17 @@ export default function OftalmologyConsultationDetail() {
     if (!appointmentId || !user) return;
 
     const fetch = async () => {
-      const { data: appointment } = await supabase
+      const { data: appointment } = await (supabase as any)
         .from("appointments")
         .select("patient:profiles(full_name)")
         .eq("id", appointmentId)
         .single();
 
       if (appointment) {
-        setPatientName(appointment.patient?.full_name || "");
+        setPatientName((appointment as any).patient?.full_name || "");
       }
 
-      const { data: existingExam } = await supabase
+      const { data: existingExam } = await (supabase as any)
         .from("ophthalmology_exams")
         .select("*")
         .eq("appointment_id", appointmentId)
@@ -72,7 +72,7 @@ export default function OftalmologyConsultationDetail() {
     setSaving(true);
 
     try {
-      const existingExam = exam.id;
+      const existingExam = (exam as any).id;
 
       if (existingExam) {
         await supabase
@@ -80,7 +80,7 @@ export default function OftalmologyConsultationDetail() {
           .update(exam)
           .eq("id", existingExam);
       } else {
-        await supabase
+        await (supabase as any)
           .from("ophthalmology_exams")
           .insert([
             {

@@ -40,7 +40,7 @@ export async function fetchSiteSections(): Promise<SiteSection[]> {
       _cache = (data ?? []) as SiteSection[];
       return _cache;
     });
-  return _promise;
+  return _promise!;
 }
 
 export function invalidateSiteSections() {

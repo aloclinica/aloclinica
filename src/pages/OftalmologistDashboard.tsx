@@ -53,7 +53,7 @@ export default function OftalmologistDashboard() {
             pingoSrc={pingoOftalmologia}
             pingoAlt="Pingo Oftalmologia"
             liveDot={pendingCount > 0}
-            liveColor="purple"
+            liveColor={"green"}
             bubble={{
               greeting: "👁️ Fila de Exames",
               name: `Dr(a). ${profile?.first_name || "Oftalmologista"}`,
