@@ -60,6 +60,15 @@ const LaudosEditar = lazy(() => import("./pages/LaudosEditar"));
 const ClinicaEnviarExame = lazy(() => import("./pages/ClinicaEnviarExame"));
 const ClinicaExames = lazy(() => import("./pages/ClinicaExames"));
 
+// Oftalmologia
+const OftalmologistDashboard = lazy(() => import("./pages/OftalmologistDashboard"));
+const OftalmologyConsultationDetail = lazy(() => import("./pages/OftalmologyConsultationDetail"));
+const OftalmologyPrescription = lazy(() => import("./pages/OftalmologyPrescription"));
+const PatientOftalmologyExams = lazy(() => import("./pages/PatientOftalmologyExams"));
+const BookOftalmologyAppointment = lazy(() => import("./pages/BookOftalmologyAppointment"));
+const PrescriptionDetail = lazy(() => import("./pages/PrescriptionDetail"));
+const PrescriptionReviewerDashboard = lazy(() => import("./pages/PrescriptionReviewerDashboard"));
+
 // Prefetch das rotas mais acessadas após o browser ficar idle
 if (typeof window !== "undefined") {
   const prefetch = () => {
@@ -152,6 +161,20 @@ const AnimatedRoutes = () => {
       <Route path="/laudos/:exameId/editar" element={<ProtectedRoute><LaudosEditar /></ProtectedRoute>} />
       <Route path="/clinica/enviar-exame" element={<ProtectedRoute><ClinicaEnviarExame /></ProtectedRoute>} />
       <Route path="/clinica/exames" element={<ProtectedRoute><ClinicaExames /></ProtectedRoute>} />
+
+      {/* Oftalmologia - Médico */}
+      <Route path="/oftalmologista/dashboard" element={<ProtectedRoute><OftalmologistDashboard /></ProtectedRoute>} />
+      <Route path="/oftalmologista/consulta/:appointmentId" element={<ProtectedRoute><OftalmologyConsultationDetail /></ProtectedRoute>} />
+      <Route path="/oftalmologista/consulta/:appointmentId/prescricao" element={<ProtectedRoute><OftalmologyPrescription /></ProtectedRoute>} />
+
+      {/* Oftalmologia - Paciente */}
+      <Route path="/meu-perfil/exames-oftalmologicos" element={<ProtectedRoute><PatientOftalmologyExams /></ProtectedRoute>} />
+      <Route path="/agendar/oftalmologia" element={<ProtectedRoute><BookOftalmologyAppointment /></ProtectedRoute>} />
+      <Route path="/meu-perfil/prescricao/:prescriptionId" element={<ProtectedRoute><PrescriptionDetail /></ProtectedRoute>} />
+
+      {/* Oftalmologia - Revisor */}
+      <Route path="/revisor/prescricoes" element={<ProtectedRoute><PrescriptionReviewerDashboard /></ProtectedRoute>} />
+
       <Route
         path="/dashboard/*"
         element={
