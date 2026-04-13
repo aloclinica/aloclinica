@@ -3,7 +3,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { warn } from "@/lib/logger";
 
-type AppRole = "patient" | "doctor" | "clinic" | "admin" | "receptionist" | "support" | "partner" | "laudista" | "ophthalmologist";
+type AppRole = "patient" | "doctor" | "clinic" | "admin" | "receptionist" | "support" | "partner" | "laudista" | "ophthalmologist" | "affiliate" | "optician";
 
 interface Profile {
   id: string;

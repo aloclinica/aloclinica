@@ -183,7 +183,7 @@ const ReceptionDashboard = () => {
           bubble={{
             greeting: "🗓️ Agenda de hoje",
             name: "Painel da Recepção",
-            sub: "22 consultas agendadas",
+            sub: `${stats?.total || 0} consulta${stats?.total !== 1 ? 's' : ''} agendadas`,
           }}
           kpis={[
             { label: "Total", value: stats.total },

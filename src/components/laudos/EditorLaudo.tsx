@@ -17,12 +17,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Save, CheckCircle, ExternalLink, ArrowLeft } from "lucide-react";
+import { Save, CheckCircle, ExternalLink, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
+import { useDigitalSignature } from "@/hooks/useDigitalSignature";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function EditorLaudo() {
   const { exameId } = useParams<{ exameId: string }>();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const { signPrescription, signing: signingDigital } = useDigitalSignature();
 
   const [exame, setExame] = useState<AlocExame | null>(null);
   const [laudo, setLaudo] = useState<AlocLaudo | null>(null);
@@ -30,6 +33,9 @@ export default function EditorLaudo() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [signing, setSigning] = useState(false);
+  const [isDigitallySignedNow, setIsDigitallySignedNow] = useState(false);
+  const [doctorName, setDoctorName] = useState("");
+  const [doctorCRM, setDoctorCRM] = useState("");
 
   useEffect(() => {
     if (!exameId || !user) return;
@@ -43,6 +49,18 @@ export default function EditorLaudo() {
         if (!l) l = await criarLaudo(exameId, user.id);
         setLaudo(l);
         setHtml(l.conteudo_html);
+
+        // Load doctor info
+        const { data: doctorData } = await supabase
+          .from("doctor_profiles")
+          .select("first_name, last_name, crm, crm_state")
+          .eq("user_id", user.id)
+          .single();
+
+        if (doctorData) {
+          setDoctorName(`${doctorData.first_name} ${doctorData.last_name}`);
+          setDoctorCRM(`${doctorData.crm}/${doctorData.crm_state}`);
+        }
       } catch {
         toast.error("Erro ao carregar exame");
       } finally {
@@ -79,6 +97,55 @@ export default function EditorLaudo() {
       setSigning(false);
     }
   }, [laudo, exame, html, navigate]);
+
+  const handleSignWithDigital = useCallback(async () => {
+    if (!laudo || !exame || !user || !profile) return;
+    if (!html.trim()) { toast.error("O laudo não pode estar vazio"); return; }
+    setSigning(true);
+    try {
+      // 1. Salvar laudo
+      await salvarLaudo(laudo.id, html);
+
+      // 2. Assinar via sistema tradicional
+      await assinarLaudo(laudo.id, exame.id);
+
+      // 3. Assinar digitalmente com SHA256
+      const laudoContent = JSON.stringify({
+        tipo: "Laudo",
+        exame: exame.tipo_exame,
+        medico: doctorName,
+        crm: doctorCRM,
+        conteudo: html.substring(0, 500), // primeiros 500 chars
+        timestamp: new Date().toISOString(),
+      });
+
+      const base64Content = btoa(laudoContent);
+
+      const signedDoc = await signPrescription({
+        fileName: `laudo-${exame.id}.pdf`,
+        fileBase64: base64Content,
+        doctorName,
+        doctorCRM,
+        doctorCPF: profile.cpf || "CPF_NAO_DISPONIVEL",
+        prescriptionId: laudo.id,
+        documentType: "report",
+      });
+
+      if (!signedDoc) {
+        toast.error("Erro ao assinar digitalmente");
+        return;
+      }
+
+      setIsDigitallySignedNow(true);
+      toast.success("✅ Laudo assinado digitalmente com sucesso!");
+      setTimeout(() => navigate("/laudos/fila"), 1500);
+    } catch (err) {
+      toast.error("Erro ao assinar laudo");
+      console.error(err);
+    } finally {
+      setSigning(false);
+    }
+  }, [laudo, exame, html, user, profile, doctorName, doctorCRM, navigate, signPrescription]);
 
   if (loading) {
     return (
@@ -153,14 +220,36 @@ export default function EditorLaudo() {
             />
 
             {!isReadOnly && (
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={handleSave} disabled={saving}>
+              <div className="flex gap-2 justify-end flex-wrap">
+                <Button variant="outline" onClick={handleSave} disabled={saving || signingDigital || isDigitallySignedNow}>
                   <Save className="h-4 w-4 mr-1" />
                   {saving ? "Salvando…" : "Salvar Rascunho"}
                 </Button>
-                <Button onClick={handleSign} disabled={signing}>
+                <Button
+                  variant="outline"
+                  onClick={handleSign}
+                  disabled={signing || signingDigital || isDigitallySignedNow}
+                >
                   <CheckCircle className="h-4 w-4 mr-1" />
-                  {signing ? "Assinando…" : "Assinar Laudo"}
+                  {signing ? "Assinando…" : "Assinar"}
+                </Button>
+                <Button
+                  onClick={handleSignWithDigital}
+                  disabled={signing || signingDigital || isDigitallySignedNow}
+                  className={`${
+                    isDigitallySignedNow
+                      ? "bg-green-600 hover:bg-green-700"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  } text-white`}
+                >
+                  {signingDigital || signing ? (
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  ) : isDigitallySignedNow ? (
+                    <CheckCircle2 className="h-4 w-4 mr-1" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4 mr-1" />
+                  )}
+                  {signingDigital || signing ? "Assinando…" : isDigitallySignedNow ? "✅ Assinado" : "🔐 Assinar com ICP-Brasil"}
                 </Button>
               </div>
             )}

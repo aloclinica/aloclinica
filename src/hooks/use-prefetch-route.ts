@@ -20,7 +20,28 @@ export const prefetchImport = (importFn: ImportFn) => {
   });
 };
 
-export const prefetchOnIdle = (imports: ImportFn[], timeout = 2500) => {
+/**
+ * Detect if connection is slow (2G, 3G, or slow-4g)
+ * Returns estimated timeout in ms based on connection speed
+ */
+const getAdaptiveTimeout = (): number => {
+  if (typeof window === "undefined") return 2500;
+
+  const nav = (navigator as any)?.connection;
+  if (!nav?.effectiveType) return 2500;
+
+  const timeouts: Record<string, number> = {
+    "4g": 1500,
+    "3g": 3000,
+    "2g": 5000,
+    "slow-4g": 3500,
+  };
+
+  return timeouts[nav.effectiveType] || 2500;
+};
+
+export const prefetchOnIdle = (imports: ImportFn[], timeout?: number) => {
+  const finalTimeout = timeout ?? getAdaptiveTimeout();
   if (typeof window === "undefined") return () => {};
 
   const idleWindow = window as IdleWindow;
@@ -31,7 +52,7 @@ export const prefetchOnIdle = (imports: ImportFn[], timeout = 2500) => {
   };
 
   if (typeof idleWindow.requestIdleCallback === "function") {
-    const idleId = idleWindow.requestIdleCallback(() => run(), { timeout });
+    const idleId = idleWindow.requestIdleCallback(() => run(), { timeout: finalTimeout });
     return () => idleWindow.cancelIdleCallback?.(idleId);
   }
 

@@ -1,8 +1,9 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check, Calendar, Home, Sparkles, Clock, Stethoscope, FileText, Smartphone } from "lucide-react";
 import { motion } from "framer-motion";
 import SEOHead from "@/components/SEOHead";
+import { ChatCircleDots } from "@phosphor-icons/react";
 
 /* CSS confetti */
 const ConfettiPiece = ({ i }: { i: number }) => {
@@ -31,6 +32,10 @@ const checklist = [
 
 const AppointmentConfirmed = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const doctorName = searchParams.get("doctor") || "seu médico";
+  const appointmentDate = searchParams.get("date") || "em breve";
+  const appointmentTime = searchParams.get("time") || "";
 
   const handleAddToCalendar = () => {
     // Google Calendar URL template
@@ -38,6 +43,19 @@ const AppointmentConfirmed = () => {
     const details = encodeURIComponent("Sua teleconsulta na AloClínica. Acesse: https://aloclinica.com.br/dashboard");
     const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}`;
     window.open(url, "_blank");
+  };
+
+  const handleShareWhatsApp = () => {
+    const message = encodeURIComponent(
+      `📋 *Consulta Confirmada na AloClínica* 📋\n\n` +
+      `👨‍⚕️ Médico: ${doctorName}\n` +
+      `📅 Data: ${appointmentDate}\n` +
+      (appointmentTime ? `⏰ Horário: ${appointmentTime}\n\n` : `\n`) +
+      `Clique aqui para acessar sua consulta:\n` +
+      `https://aloclinica.com.br/dashboard\n\n` +
+      `✅ Sua consulta está confirmada!`
+    );
+    window.open(`https://wa.me/?text=${message}`, "_blank");
   };
 
   return (
@@ -142,6 +160,12 @@ const AppointmentConfirmed = () => {
             onClick={handleAddToCalendar}
           >
             <Calendar className="w-4 h-4" /> Adicionar ao Google Calendar
+          </Button>
+          <Button
+            className="w-full h-[52px] rounded-full font-semibold text-[15px] gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+            onClick={handleShareWhatsApp}
+          >
+            <ChatCircleDots className="w-4 h-4" weight="fill" /> Compartilhar no WhatsApp
           </Button>
           <Button
             variant="outline"

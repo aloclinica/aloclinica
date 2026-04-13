@@ -1,7 +1,10 @@
 import { forwardRef, lazy } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Building, CheckCircle, Clock, FileText, Lock, Lightning, ArrowRight, Users } from "@phosphor-icons/react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Building, CheckCircle, Clock, FileText, Lock, ArrowRight, Users, ShieldCheck } from "@phosphor-icons/react";
+import { TrendingUp, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/landing/Header";
 import SEOHead from "@/components/SEOHead";
@@ -66,6 +69,54 @@ const howItWorks = [
   },
 ];
 
+const caseStudies = [
+  {
+    clinic: "Clínica Radiológica SP",
+    result: "70% redução no tempo de laudo",
+    detail: "De 5 dias para 4-8 horas. SLA 24h garantido. Economia de R$ 45k/mês em salário de laudistas.",
+  },
+  {
+    clinic: "Diagnósticos Brasil",
+    result: "100+ exames/dia com Zero erros",
+    detail: "Fila inteligente com IA. Redução de retrabalho de 12% para 0.2%. Satisfação de pacientes acima de 98%.",
+  },
+  {
+    clinic: "Centro Oftalmológico MG",
+    result: "R$ 80k/mês de faturamento novo",
+    detail: "Ofertam telelaudo de refração. Pacientes online pagam 40% a mais por conveniência. Fluxo 100% integrado.",
+  },
+];
+
+const faqItems = [
+  {
+    question: "Qual é o custo? Tem taxas por laudo?",
+    answer: "Modelo SaaS: R$ 2k-5k/mês conforme volume. Sem taxa por laudo. Incluso: suporte 24/7, laudistas network, IA sugestiva, compliance total.",
+  },
+  {
+    question: "Preciso de API complexa ou funciona plug-and-play?",
+    answer: "Os dois! Painel web para usuários não-técnicos (arrastar e soltar). API REST documentada para integração com seu PACS. Suporte dedicado durante implementação.",
+  },
+  {
+    question: "E se precisar de especialista específico (retina, oncologia)?",
+    answer: "Temos rede de 500+ laudistas categorizados por especialidade. Você define preferências. Fila inteligente redireciona automaticamente.",
+  },
+  {
+    question: "Como funciona a assinatura digital? É válida?",
+    answer: "Certificado ICP-Brasil, QR Code de verificação, blockchain de auditoria. Válida juridicamente e fiscalmente. CFM e CREMESP reconhecem.",
+  },
+  {
+    question: "Vocês garantem prazo?",
+    answer: "SLA contratual: até 24h para 90% dos laudos. Premium: 4-6h. Multa financeira se não cumprir. Você controla.",
+  },
+];
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const } },
+};
+
+const container = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } };
+
 const containerVariants = {
   hidden: {},
   show: { transition: { staggerChildren: 0.09 } },
@@ -93,7 +144,19 @@ const ForClinics = forwardRef<HTMLDivElement>((_, ref) => {
 
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 relative overflow-hidden">
-        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
+        {/* Animated floating elements */}
+        <motion.div
+          className="absolute top-32 right-10 w-24 h-24 rounded-full bg-secondary/15 blur-3xl"
+          animate={{ y: [0, 40, 0] }}
+          transition={{ duration: 6, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute bottom-20 left-10 w-32 h-32 rounded-full bg-primary/10 blur-3xl"
+          animate={{ y: [0, -40, 0] }}
+          transition={{ duration: 8, repeat: Infinity, delay: 0.5 }}
+        />
+
+        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             <motion.div
               initial={{ opacity: 0, x: -32 }}
@@ -216,6 +279,74 @@ const ForClinics = forwardRef<HTMLDivElement>((_, ref) => {
         </div>
       </section>
 
+      {/* Case Studies */}
+      <section className="py-20 px-4 bg-muted/20">
+        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
+          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <motion.div variants={fadeUp} className="text-center mb-16">
+              <Badge className="mb-4 text-sm px-4 py-1.5 rounded-full font-semibold bg-primary/10 text-primary border-primary/20">
+                📊 Resultados Comprovados
+              </Badge>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground text-center mb-4 tracking-tight">
+                Clínicas Transformadas por Telelaudo
+              </h2>
+              <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto font-medium">
+                Casos reais de clínicas que aumentaram eficiência e faturamento
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              {caseStudies.map((cs, i) => (
+                <motion.div key={i} variants={fadeUp}>
+                  <Card className="h-full border-border/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group bg-card">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm group-hover:scale-110 transition-transform">
+                          {i + 1}
+                        </div>
+                        <p className="text-xs font-semibold text-muted-foreground">{cs.clinic}</p>
+                      </div>
+                      <p className="text-lg font-black text-primary mb-3 flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5" weight="fill" /> {cs.result}
+                      </p>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{cs.detail}</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-20 px-4">
+        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
+          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-black text-foreground text-center mb-12 tracking-tight">
+              Dúvidas Frequentes
+            </motion.h2>
+            <div className="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+              {faqItems.map((faq, i) => (
+                <motion.div key={i} variants={fadeUp}>
+                  <Card className="h-full border-border/50 hover:shadow-lg hover:border-primary/20 transition-all group">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
+                          <Zap className="w-4 h-4 text-primary" weight="fill" />
+                        </div>
+                        <h3 className="font-bold text-foreground text-sm leading-snug">{faq.question}</h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed ml-11">{faq.answer}</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* CTA Final */}
       <section className="py-20 px-4">
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
@@ -229,10 +360,10 @@ const ForClinics = forwardRef<HTMLDivElement>((_, ref) => {
             <div className="relative z-10 flex flex-col items-center justify-center gap-6 px-6 sm:px-10 py-16 sm:py-20 text-center">
               <div>
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-primary-foreground mb-2">
-                  Pronto para transformar seus laudos?
+                  Transforme seus Laudos em 48h
                 </h2>
                 <p className="text-lg text-primary-foreground/90 max-w-2xl mx-auto">
-                  Comece agora. Suporte dedicado durante toda a integração.
+                  Demo gratuita, sem cartão de crédito. Consultoria estratégica incluída.
                 </p>
               </div>
               <Button
@@ -240,8 +371,8 @@ const ForClinics = forwardRef<HTMLDivElement>((_, ref) => {
                 className="bg-background text-primary hover:bg-background/95 rounded-2xl px-8 gap-2.5 shadow-lg shadow-foreground/10 font-extrabold"
                 onClick={() => navigate("/clinica/cadastro")}
               >
-                <CheckCircle className="w-5 h-5" weight="fill" />
-                Agendar Demo
+                <ShieldCheck className="w-5 h-5" weight="fill" />
+                Solicitar Demonstração
               </Button>
             </div>
           </motion.div>

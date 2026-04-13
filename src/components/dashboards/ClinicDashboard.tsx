@@ -38,6 +38,7 @@ const ClinicDashboard = () => {
   const [clinicProfile, setClinicProfile] = useState<{ id: string; name: string; cnpj?: string | null; address?: string | null; phone?: string | null } | null>(null);
   const [doctors, setDoctors] = useState<any[]>([]);
   const [appointments, setAppointments] = useState<any[]>([]);
+  const [totalSlots, setTotalSlots] = useState(0);
   const [loading, setLoading] = useState(true);
 
   // Route-based active nav detection
@@ -73,6 +74,22 @@ const ClinicDashboard = () => {
     if (doctorIds.length > 0) {
       const { data: appts } = await supabase.from("appointments").select("*, doctor_profiles(consultation_price)").in("doctor_id", doctorIds).gte("scheduled_at", subMonths(new Date(), 6).toISOString()).order("scheduled_at", { ascending: false });
       setAppointments(appts ?? []);
+
+      // Calculate total slots from availability_slots table
+      const monthStart = startOfMonth(new Date());
+      const { data: slots, error: slotsError } = await supabase
+        .from("availability_slots")
+        .select("id", { count: "exact", head: true })
+        .in("doctor_id", doctorIds)
+        .gte("date", monthStart.toISOString());
+
+      if (!slotsError && slots) {
+        setTotalSlots(slots.length > 0 ? slots.length : doctorIds.length * 20);
+      } else {
+        setTotalSlots(doctorIds.length * 20);
+      }
+    } else {
+      setTotalSlots(0);
     }
     setLoading(false);
   };
@@ -83,7 +100,6 @@ const ClinicDashboard = () => {
   const completed = thisMonthAppts.filter(a => a.status === "completed");
   const revenue = completed.reduce((sum, a) => sum + (a.doctor_profiles?.consultation_price ?? 89), 0);
   const activeDoctors = doctors.filter(d => d.status === "active").length;
-  const totalSlots = activeDoctors * 20;
   const occupancy = totalSlots > 0 ? Math.round((thisMonthAppts.length / totalSlots) * 100) : 0;
   const upcomingAppts = appointments.filter(a => new Date(a.scheduled_at) >= now && a.status !== "cancelled").slice(0, 5);
 

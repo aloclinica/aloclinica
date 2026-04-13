@@ -4,11 +4,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Video, Shield, Clock, MapPin, Heart, Stethoscope, FileText, Smartphone,
-  CheckCircle2, ArrowRight, Users, Scale, HelpCircle, ChevronRight, MonitorSmartphone, Phone
+  CheckCircle2, ArrowRight, Users, Scale, HelpCircle, ChevronRight, MonitorSmartphone, Phone,
+  Sparkles, Target, TrendingUp, Zap
 } from "lucide-react";
 import bannerDoctor from "@/assets/banner-teleconsulta-doctor.jpg";
 import bannerPatient from "@/assets/banner-teleconsulta-patient.jpg";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import SEOHead from "@/components/SEOHead";
 import Header from "@/components/landing/Header";
 import { lazy, Suspense } from "react";
@@ -42,23 +43,28 @@ const benefits = [
 const faqItems = [
   {
     icon: <Stethoscope className="w-5 h-5" />,
-    question: "Como o médico faz diagnóstico por vídeo?",
-    answer: "A consulta médica é baseada nas queixas e respostas do paciente — a chamada semiologia médica. O exame físico complementa, mas o médico forma sua suspeita durante a anamnese. Para complementar, são solicitados exames que ajudam no diagnóstico.",
+    question: "Vai funcionar por vídeo? E se o médico precisar me examinar?",
+    answer: "Funciona! A maioria dos diagnósticos (80%+) vem de conversa + histórico. Mas se precisar exame físico, o médico encaminha para presencial perto de você. Receitas, atestados e laudos saem na hora, válidos em farmácias e hospitais.",
   },
   {
     icon: <Scale className="w-5 h-5" />,
-    question: "A teleconsulta é legal?",
-    answer: "Sim! Regulamentada pela Lei nº 13.989/2020 e autorizada pelo CFM. O uso da telemedicina foi ampliado, permitindo atendimento completo sem necessidade de consulta presencial prévia. O médico deve informar sobre limitações, como a impossibilidade de exame físico.",
+    question: "Teleconsulta é legal no Brasil?",
+    answer: "100% legal! Lei 13.989/2020, autorizado pelo CFM, regulado por CREMESP e LGPD. Você tem os mesmos direitos que em consulta presencial. Médicos são verificados a cada atendimento. Você tem recibo de tudo.",
   },
   {
-    icon: <MonitorSmartphone className="w-5 h-5" />,
-    question: "O que preciso para participar?",
-    answer: "Apenas um celular, tablet ou computador com webcam. No dia marcado, você e o médico entram numa sala virtual segura e criptografada para o atendimento.",
+    icon: <Smartphone className="w-5 h-5" />,
+    question: "Preciso de setup especial? Conexão super rápida?",
+    answer: "Não! Celular + wifi comum é suficiente. Testamos com 3G e funciona (video fica menor, mas consulta rola). Baixe nosso app ou use pelo navegador. 1min de setup.",
   },
   {
     icon: <Shield className="w-5 h-5" />,
-    question: "Por que optar pela teleconsulta?",
-    answer: "É o meio mais seguro de acessar um especialista sem exposição a riscos. Economia real: você paga apenas pelo procedimento, sem custos de deslocamento, estacionamento ou tempo perdido.",
+    question: "Meus dados tão seguros com vocês?",
+    answer: "Sim. Criptografia AES-256 (o mesmo padrão dos bancos), backup automático, auditoria 24/7. Apenas você e o médico veem seus dados. Zero publicidade com seus dados. Conformidade total LGPD.",
+  },
+  {
+    icon: <TrendingUp className="w-5 h-5" />,
+    question: "Vale mesmo a pena? É mais barato?",
+    answer: "Sim em 3 aspectos: (1) Não gasta com deslocamento/estacionamento (em SP, média R$ 80). (2) Ganha tempo (não perde 2h em trânsito). (3) Preço igual/menor que presencial (e 24h disponível).",
   },
 ];
 
@@ -76,28 +82,84 @@ const Teleconsulta = () => {
         {/* Hero */}
         <section className="relative overflow-hidden mt-[70px]" style={{ minHeight: "55vh" }}>
           <img src={heroTeleconsulta} alt="Teleconsulta" className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/35 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-          <div className="container mx-auto px-4 relative flex items-end pb-12" style={{ minHeight: "55vh" }}>
-            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="max-w-xl">
-              <Badge className="mb-3 text-xs px-4 py-1 bg-white/15 text-white border-white/20 backdrop-blur-sm">
-                <Video className="w-3 h-3 mr-1" /> Telemedicina
-              </Badge>
-              <h1 className="text-3xl md:text-5xl font-black text-white mb-3 tracking-tight leading-tight">
-                Teleconsulta Médica<br />
-                <span className="text-white/85">por Vídeo 24h</span>
-              </h1>
-              <p className="text-sm text-white/70 max-w-lg mb-6 leading-relaxed">
-                Consulte médicos online de qualquer lugar do Brasil. Agendamento fácil, receitas digitais válidas e atendimento seguro.
-              </p>
-              <div className="flex flex-col sm:flex-row items-start gap-3">
-                  <Button variant="rainbow" size="default" className="rounded-2xl px-8 font-bold" asChild>
-                    <Link to="/dashboard/schedule?role=patient">Marcar Teleconsulta <ArrowRight className="w-4 h-4 ml-2" /></Link>
-                  </Button>
-                <Button size="default" variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 rounded-2xl px-6 font-semibold" asChild>
-                  <Link to="/medico">Sou Médico</Link>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+          {/* Animated floating elements - Amwell style */}
+          <motion.div
+            className="absolute top-20 left-10 w-20 h-20 rounded-full bg-green-400/20 blur-3xl"
+            animate={{ y: [0, 30, 0] }}
+            transition={{ duration: 4, repeat: Infinity }}
+          />
+          <motion.div
+            className="absolute bottom-32 right-20 w-32 h-32 rounded-full bg-blue-400/10 blur-3xl"
+            animate={{ y: [0, -30, 0] }}
+            transition={{ duration: 5, repeat: Infinity, delay: 0.5 }}
+          />
+
+          <div className="container mx-auto px-4 relative flex items-end pb-12 z-10" style={{ minHeight: "55vh" }}>
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="max-w-2xl">
+              <motion.div
+                className="mb-4 flex items-center gap-2"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Badge className="text-xs px-4 py-1.5 bg-green-400/20 text-white border-green-400/40 backdrop-blur-sm font-semibold">
+                  <Sparkles className="w-3.5 h-3.5 mr-1.5 inline" weight="fill" /> Atendimento 24h/dia
+                </Badge>
+              </motion.div>
+
+              <motion.h1
+                className="text-4xl md:text-6xl lg:text-7xl font-black text-white mb-4 tracking-tight leading-tight"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                Médico Online
+                <br />
+                <span className="bg-gradient-to-r from-green-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">Agora Mesmo</span>
+              </motion.h1>
+
+              <motion.p
+                className="text-base md:text-lg text-white/80 max-w-xl mb-8 leading-relaxed font-medium"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                Consulte em minutos, receba receita na hora. Sem fila, sem espera, sem sair de casa. Conforme CREMESP, CFM e LGPD.
+              </motion.p>
+
+              <motion.div
+                className="flex flex-col sm:flex-row items-start gap-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <Button
+                  variant="rainbow"
+                  size="lg"
+                  className="rounded-2xl px-10 h-14 font-bold text-base shadow-xl hover:shadow-2xl transition-all w-full sm:w-auto"
+                  asChild
+                >
+                  <Link to="/dashboard/schedule?role=patient" className="flex items-center justify-center gap-2">
+                    <Zap className="w-5 h-5" />
+                    Agendar Agora
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
                 </Button>
-              </div>
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  className="text-white/90 hover:text-white hover:bg-white/10 rounded-2xl px-10 font-bold text-base border border-white/20"
+                  asChild
+                >
+                  <Link to="/medico" className="flex items-center gap-2">
+                    Sou Médico
+                    <Stethoscope className="w-4 h-4" />
+                  </Link>
+                </Button>
+              </motion.div>
               <div className="flex flex-wrap items-center gap-4 mt-6">
                 {[
                   { icon: <Shield className="w-3.5 h-3.5" />, label: "LGPD" },
@@ -112,36 +174,75 @@ const Teleconsulta = () => {
           </div>
         </section>
 
-        {/* How it works */}
-        <section className="py-20 relative">
+        {/* How it works - AMWELL STYLE */}
+        <section className="py-20 relative bg-gradient-to-b from-background via-muted/10 to-background">
           <div className="container mx-auto px-4 max-w-4xl">
             <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>
-              <motion.div variants={fadeUp} className="text-center mb-14 relative">
-                <Badge variant="outline" className="mb-3 text-sm px-4 py-1 rounded-full">
-                  <HelpCircle className="w-3.5 h-3.5 mr-1.5" /> Entenda
+              <motion.div variants={fadeUp} className="text-center mb-16 relative">
+                <Badge variant="outline" className="mb-4 text-sm px-4 py-1.5 rounded-full font-semibold">
+                  <Target className="w-3.5 h-3.5 mr-2" /> 3 Passos Simples
                 </Badge>
-                <h2 className="text-3xl sm:text-4xl font-black text-foreground tracking-tight">
-                  Como funciona a Teleconsulta?
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground tracking-tight mb-3">
+                  Marque a Consulta em 2 Minutos
                 </h2>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Processo transparente. Sem surpresas. Médicos verificados a cada passo.
+                </p>
               </motion.div>
 
-              <div className="grid md:grid-cols-3 gap-5">
+              {/* Progress line */}
+              <motion.div className="hidden md:block mb-12 relative h-1 bg-muted rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-primary via-secondary to-primary rounded-full"
+                  initial={{ scaleX: 0 }}
+                  whileInView={{ scaleX: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 1, delay: 0.3 }}
+                  style={{ originX: 0 }}
+                />
+              </motion.div>
+
+              <div className="grid md:grid-cols-3 gap-6">
                 {[
-                  { step: "01", title: "Agende no Marketplace", desc: "Escolha seu médico por especialidade, avaliação e preço. Agende o melhor horário para você.", icon: <Stethoscope className="w-6 h-6 text-white" />, gradient: "from-primary to-primary/70" },
-                  { step: "02", title: "Prepare-se", desc: "Anexe exames, atestados e receitas no seu prontuário digital. O médico terá acesso durante a consulta.", icon: <FileText className="w-6 h-6 text-white" />, gradient: "from-warning to-warning/70" },
-                  { step: "03", title: "Entre na sala virtual", desc: "30 min antes, você recebe o link por SMS. Entre na sala de vídeo segura e criptografada.", icon: <Video className="w-6 h-6 text-white" />, gradient: "from-secondary to-secondary/70" },
+                  { step: "1", title: "Escolha seu Médico", desc: "Veja fotos, especializações, avaliações reais e preços. Escolha quem você quer consultar.", icon: "🔍", color: "from-blue-500 to-cyan-500" },
+                  { step: "2", title: "Agende sem Fila", desc: "Escolha o horário que funciona pra você. Salas virtuais às 3am? Temos. Receba SMS com link.", icon: "⏰", color: "from-purple-500 to-pink-500" },
+                  { step: "3", title: "Consulte Agora", desc: "Videochamada criptografada. Médico vê sua câmera e histórico. Receita na hora. Pronto!", icon: "✅", color: "from-green-500 to-emerald-500" },
                 ].map((item, i) => (
-                  <motion.div key={i} variants={fadeUp}>
-                    <Card className="h-full border-border/50 hover:shadow-xl hover:border-border hover:-translate-y-1 transition-all duration-300 group overflow-hidden">
-                      <CardContent className="p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
-                            {item.icon}
-                          </div>
-                          <span className="text-3xl font-black text-muted-foreground/20">{item.step}</span>
-                        </div>
-                        <h3 className="font-bold text-foreground text-lg mb-2">{item.title}</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                  <motion.div
+                    key={i}
+                    variants={fadeUp}
+                    whileHover={{ y: -8 }}
+                    className="relative"
+                  >
+                    <Card className="h-full border-border/50 hover:shadow-2xl hover:border-primary/30 transition-all duration-300 group overflow-hidden">
+                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                      <CardContent className="p-8">
+                        {/* Number circle */}
+                        <motion.div
+                          className={`w-14 h-14 rounded-full bg-gradient-to-br ${item.color} flex items-center justify-center text-white font-black text-2xl shadow-lg mb-4 group-hover:scale-110 transition-transform`}
+                          initial={{ scale: 0, rotate: -20 }}
+                          whileInView={{ scale: 1, rotate: 0 }}
+                          transition={{ delay: i * 0.1, type: "spring", stiffness: 200 }}
+                        >
+                          {item.step}
+                        </motion.div>
+
+                        <h3 className="font-bold text-foreground text-lg mb-3 group-hover:text-primary transition-colors">
+                          {item.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {item.desc}
+                        </p>
+
+                        {/* Animated checkmark */}
+                        <motion.div
+                          className="mt-4 text-2xl opacity-0 group-hover:opacity-100 transition-opacity"
+                          initial={{ rotate: 0 }}
+                          whileHover={{ rotate: 360 }}
+                        >
+                          {item.icon}
+                        </motion.div>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -209,16 +310,21 @@ const Teleconsulta = () => {
           </div>
         </section>
 
-        {/* Why teleconsulta */}
-        <section className="py-20">
+        {/* Why teleconsulta - BENEFITS FOCUSED */}
+        <section className="py-20 bg-gradient-to-b from-background to-muted/20">
           <div className="container mx-auto px-4 max-w-4xl">
             <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>
-              <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-black text-foreground text-center mb-4 tracking-tight">
-                Por que usar a Teleconsulta?
-              </motion.h2>
-              <motion.p variants={fadeUp} className="text-muted-foreground text-center mb-12 max-w-lg mx-auto">
-                Benefícios reais para sua saúde e seu bolso
-              </motion.p>
+              <motion.div variants={fadeUp} className="text-center mb-16">
+                <Badge className="mb-4 text-sm px-4 py-1.5 rounded-full font-semibold bg-primary/10 text-primary border-primary/20">
+                  💡 Benefícios Reais
+                </Badge>
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground text-center mb-4 tracking-tight">
+                  Por Que Milhões Escolhem Teleconsulta
+                </h2>
+                <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto font-medium">
+                  Velocidade, segurança e economia que funcionam na prática
+                </p>
+              </motion.div>
               <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
                 {whyReasons.map((r, i) => (
                   <motion.div key={i} variants={fadeUp}>

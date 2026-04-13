@@ -46,7 +46,7 @@ export type CallStatus =
   | "failed";
 
 interface SignalPayload {
-  type: "offer" | "answer" | "ice-candidate" | "hang-up" | "join";
+  type: "offer" | "answer" | "ice-candidate" | "hang-up" | "join" | "screen-share-start" | "screen-share-stop";
   sender: string;
   data: unknown;
 }
@@ -61,12 +61,16 @@ interface UseWebRTCOptions {
 interface UseWebRTCReturn {
   localStream: MediaStream | null;
   remoteStream: MediaStream | null;
+  screenStream: MediaStream | null;
+  remoteScreenStream: MediaStream | null;
   status: CallStatus;
   isMuted: boolean;
   isVideoOff: boolean;
+  isScreenSharing: boolean;
   toggleMute: () => void;
   toggleVideo: () => void;
   switchCamera: () => Promise<void>;
+  toggleScreenShare: () => Promise<void>;
   hangUp: () => void;
   startCall: () => Promise<void>;
 }
@@ -98,13 +102,18 @@ export function useWebRTC({
 }: UseWebRTCOptions): UseWebRTCReturn {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
+  const [remoteScreenStream, setRemoteScreenStream] = useState<MediaStream | null>(null);
   const [status, setStatus] = useState<CallStatus>("idle");
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
+  const screenStreamRef = useRef<MediaStream | null>(null);
+  const screenSenderRef = useRef<RTCRtpSender | null>(null);
   const iceCandidateQueue = useRef<RTCIceCandidateInit[]>([]);
   const hasRemoteDesc = useRef(false);
   const cleanedUp = useRef(false);
@@ -127,6 +136,12 @@ export function useWebRTC({
     localStreamRef.current = null;
     setLocalStream(null);
 
+    screenStreamRef.current?.getTracks().forEach((t) => t.stop());
+    screenStreamRef.current = null;
+    screenSenderRef.current = null;
+    setScreenStream(null);
+    setIsScreenSharing(false);
+
     if (pcRef.current) {
       pcRef.current.onicecandidate = null;
       pcRef.current.ontrack = null;
@@ -142,6 +157,7 @@ export function useWebRTC({
     }
 
     setRemoteStream(null);
+    setRemoteScreenStream(null);
     setStatus("ended");
   }, []);
 
@@ -344,9 +360,24 @@ export function useWebRTC({
           cleanup();
           break;
         }
+
+        case "screen-share-start": {
+          // Quando o outro usuário começa a compartilhar tela
+          if (remoteScreenStream) return;
+          setRemoteScreenStream(new MediaStream());
+          console.info("[WebRTC] Remote screen share started");
+          break;
+        }
+
+        case "screen-share-stop": {
+          // Quando o outro usuário para de compartilhar tela
+          setRemoteScreenStream(null);
+          console.info("[WebRTC] Remote screen share stopped");
+          break;
+        }
       }
     },
-    [userId, isInitiator, sendSignal, cleanup, flushIceCandidates]
+    [userId, isInitiator, sendSignal, cleanup, flushIceCandidates, remoteScreenStream]
   );
 
   // ─── Get media constraints ─────────────────────────────────────────────────
@@ -518,6 +549,68 @@ export function useWebRTC({
     }
   }, []);
 
+  // ─── Toggle Screen Share ────────────────────────────────────────────────────
+  const toggleScreenShare = useCallback(async () => {
+    try {
+      if (isScreenSharing && screenStreamRef.current && screenSenderRef.current && pcRef.current) {
+        // Parar compartilhamento
+        screenStreamRef.current.getTracks().forEach((t) => t.stop());
+        await screenSenderRef.current.replaceTrack(null);
+        screenStreamRef.current = null;
+        screenSenderRef.current = null;
+        setScreenStream(null);
+        setIsScreenSharing(false);
+        sendSignal({ type: "screen-share-stop", sender: userId, data: null });
+        console.info("[WebRTC] Screen sharing stopped");
+      } else if (!isScreenSharing && pcRef.current) {
+        // Iniciar compartilhamento
+        const displayStream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            cursor: "always",
+            displaySurface: "monitor",
+          } as any,
+          audio: false,
+        });
+
+        screenStreamRef.current = displayStream;
+        setScreenStream(displayStream);
+
+        const screenTrack = displayStream.getVideoTracks()[0];
+        if (!screenTrack) {
+          throw new Error("No screen track obtained");
+        }
+
+        // Se já existe sender de tela, substituir; senão, adicionar novo
+        let sender = screenSenderRef.current;
+        if (!sender) {
+          sender = pcRef.current.addTrack(screenTrack, displayStream);
+          screenSenderRef.current = sender;
+        } else {
+          await sender.replaceTrack(screenTrack);
+        }
+
+        setIsScreenSharing(true);
+        sendSignal({ type: "screen-share-start", sender: userId, data: null });
+        console.info("[WebRTC] Screen sharing started");
+
+        // Quando o usuário para o compartilhamento via botão do browser
+        screenTrack.onended = () => {
+          screenStreamRef.current = null;
+          screenSenderRef.current = null;
+          setScreenStream(null);
+          setIsScreenSharing(false);
+          sendSignal({ type: "screen-share-stop", sender: userId, data: null });
+          console.info("[WebRTC] Screen sharing ended by user");
+        };
+      }
+    } catch (err) {
+      if ((err as Error).name !== "NotAllowedError") {
+        logError("toggleScreenShare failed", err);
+      }
+      // NotAllowedError = user cancelled, ignore silently
+    }
+  }, [isScreenSharing, userId, sendSignal]);
+
   // ─── Desligar chamada ───────────────────────────────────────────────────────
   const hangUp = useCallback(() => {
     sendSignal({ type: "hang-up", sender: userId, data: null });
@@ -544,12 +637,16 @@ export function useWebRTC({
   return {
     localStream,
     remoteStream,
+    screenStream,
+    remoteScreenStream,
     status,
     isMuted,
     isVideoOff,
+    isScreenSharing,
     toggleMute,
     toggleVideo,
     switchCamera,
+    toggleScreenShare,
     hangUp,
     startCall,
   };

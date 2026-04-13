@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/logger";
 import DashboardLayout from "./DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, UserCog, TrendingUp, Pill, FlaskConical, CheckCircle, Search } from "lucide-react";
@@ -30,9 +31,37 @@ const PartnerDashboard = () => {
   const location = useLocation();
   const [validations, setValidations] = useState<Array<{ id: string; prescription_id: string; status: string; notes: string | null; created_at: string }>>([]);
   const [loading, setLoading] = useState(true);
+  const [partnerName, setPartnerName] = useState("Parceiro");
   const activeNav = location.pathname.includes("validate") ? "validate" : location.pathname.includes("history") ? "history" : location.pathname.includes("conversion") ? "conversion" : "overview";
 
-  useEffect(() => { fetchValidations(); }, []);
+  useEffect(() => {
+    fetchValidations();
+    if (user?.id) {
+      loadPartnerName();
+    }
+  }, [user?.id]);
+
+  const loadPartnerName = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("first_name, last_name")
+        .eq("user_id", user!.id)
+        .single();
+
+      if (error) {
+        logError("Error loading partner name:", error);
+        return;
+      }
+
+      if (data) {
+        const name = `${data.first_name || ""} ${data.last_name || ""}`.trim();
+        setPartnerName(name || "Parceiro");
+      }
+    } catch (error) {
+      logError("Error loading partner name:", error);
+    }
+  };
 
   const fetchValidations = async () => {
     if (!user) return;
@@ -57,7 +86,7 @@ const PartnerDashboard = () => {
           liveColor="green"
           bubble={{
             greeting: "🤝 Portal de parceiros",
-            name: "Farmácia Saúde+",
+            name: partnerName,
             sub: "Validação de receitas",
           }}
           kpis={[

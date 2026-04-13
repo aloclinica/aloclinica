@@ -111,8 +111,24 @@ export function validarCRM(crm: string, state?: string): boolean {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export function validarEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email) && email.length <= 254;
+  // RFC 5322 simplified pattern
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+  // Check length constraints: local (64) + @ (1) + domain (255) = 320
+  const [localPart, ...domainParts] = email.split('@');
+  const domain = domainParts.join('@');
+
+  if (email.length > 320) return false;
+  if (!localPart || localPart.length > 64) return false;
+  if (!domain || domain.length > 255) return false;
+
+  // Check consecutive dots
+  if (email.includes('..')) return false;
+
+  // Check starts/ends with dot
+  if (localPart.startsWith('.') || localPart.endsWith('.')) return false;
+
+  return emailRegex.test(email);
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

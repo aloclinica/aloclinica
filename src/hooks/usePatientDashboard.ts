@@ -2,6 +2,48 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+export type ServiceType = "telemedicina" | "oftalmologia" | "cartao" | "all";
+
+/**
+ * Detect service type from patient's active appointments
+ * Returns the primary service type or "all" as default
+ */
+export const useDetectPatientService = () => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["patient-service-type", user?.id],
+    queryFn: async (): Promise<ServiceType> => {
+      if (!user) return "all";
+
+      // Fetch recent appointments to detect service type
+      const { data: appts } = await supabase
+        .from("appointments")
+        .select("appointment_type")
+        .eq("patient_id", user.id)
+        .in("status", ["scheduled", "waiting", "in_progress", "completed"])
+        .order("scheduled_at", { ascending: false })
+        .limit(10);
+
+      if (!appts || appts.length === 0) return "all";
+
+      // Count by type
+      const types = appts.map(a => a.appointment_type?.toLowerCase());
+      const telemedicineCount = types.filter(t => t?.includes("telemedicina") || t?.includes("video")).length;
+      const ophthalmologyCount = types.filter(t => t?.includes("oftalmolog")).length;
+      const cardCount = types.filter(t => t?.includes("cartao") || t?.includes("benefit")).length;
+
+      // Return dominant service type
+      if (telemedicineCount > ophthalmologyCount && telemedicineCount > cardCount) return "telemedicina";
+      if (ophthalmologyCount > telemedicineCount && ophthalmologyCount > cardCount) return "oftalmologia";
+      if (cardCount > 0) return "cartao";
+
+      return "all";
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
 // ─── Shared helper: resolve doctor names from a list of doctor_profile IDs ────
 
 interface WithDoctorId { doctor_id: string }

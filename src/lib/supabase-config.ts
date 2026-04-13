@@ -1,21 +1,36 @@
-// ⚠️ PRODUÇÃO: Adicionar aloclinica.com.br nos redirect URLs do Supabase Dashboard
-// Authentication → URL Configuration → Redirect URLs
-// Adicionar: https://aloclinica.com.br/**
-// Adicionar: https://www.aloclinica.com.br/**
-const FALLBACK_SUPABASE_URL = "https://oaixgmuocuwhsabidpei.supabase.co";
-const FALLBACK_SUPABASE_PUBLISHABLE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9haXhnbXVvY3V3aHNhYmlkcGVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExODUyNjksImV4cCI6MjA4Njc2MTI2OX0.J9KUdJRNxSFdhI4hNu4V9CDQw4rl7wHPvRy3WU8mqrc";
+// ⚠️ PRODUÇÃO: Configure as variáveis de ambiente abaixo
+// .env.local ou .env.production devem conter:
+// VITE_SUPABASE_URL=sua_url_supabase
+// VITE_SUPABASE_PUBLISHABLE_KEY=sua_chave_publica
 
-export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.trim() || FALLBACK_SUPABASE_URL;
-export const SUPABASE_PUBLISHABLE_KEY =
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim() || FALLBACK_SUPABASE_PUBLISHABLE_KEY;
+// Validar credenciais obrigatórias
+const validateSupabaseEnv = () => {
+  const url = import.meta.env.VITE_SUPABASE_URL?.trim();
+  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
+
+  if (!url || !key) {
+    const missing = [];
+    if (!url) missing.push('VITE_SUPABASE_URL');
+    if (!key) missing.push('VITE_SUPABASE_PUBLISHABLE_KEY');
+
+    const error = `❌ [AloClínica] Credenciais Supabase faltando: ${missing.join(', ')}. Configure em .env.local`;
+    console.error(error);
+
+    if (import.meta.env.PROD) {
+      throw new Error(error);
+    }
+  }
+};
+
+validateSupabaseEnv();
+
+export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.trim() || '';
+export const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim() || '';
 export const SUPABASE_PROJECT_ID =
-  import.meta.env.VITE_SUPABASE_PROJECT_ID?.trim() || new URL(SUPABASE_URL).hostname.split(".")[0];
-export const SUPABASE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
-export const hasExplicitSupabaseEnv = Boolean(
-  import.meta.env.VITE_SUPABASE_URL?.trim() && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim(),
-);
+  SUPABASE_URL ? new URL(SUPABASE_URL).hostname.split(".")[0] : '';
+export const SUPABASE_FUNCTIONS_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1` : '';
+export const hasExplicitSupabaseEnv = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
 
-if (import.meta.env.DEV && !import.meta.env.VITE_SUPABASE_URL) {
-  console.warn('[AloClínica] Usando credenciais Supabase de fallback. Configure VITE_SUPABASE_URL em produção.');
+if (!hasExplicitSupabaseEnv && import.meta.env.DEV) {
+  console.warn('[AloClínica] ⚠️ Supabase não configurado. Configure VITE_SUPABASE_URL e VITE_SUPABASE_PUBLISHABLE_KEY em .env.local');
 }

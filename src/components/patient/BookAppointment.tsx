@@ -41,6 +41,7 @@ interface DoctorInfo {
   consultation_price: number;
   rating: number;
   experience_years: number | null;
+  doctor_type?: "telemedicina" | "oftalmologia" | "laudista"; // Added for service type detection
   first_name: string;
   last_name: string;
   specialties: string[];
@@ -173,32 +174,80 @@ const BookAppointment = () => {
     return () => clearInterval(timer);
   }, [pixQrCode]);
 
-  // Poll for payment confirmation
+  // Realtime payment confirmation with fallback polling
   useEffect(() => {
     if (!paymentStep || !appointmentId) return;
     const hasPending = pixQrCode || boletoUrl;
     if (!hasPending) return;
-    const poll = setInterval(async () => {
-      const { data } = await supabase
-        .from("appointments")
-        .select("payment_status")
-        .eq("id", appointmentId)
-        .in("payment_status", ["approved", "confirmed", "received"])
-        .limit(1);
-      if (data && data.length > 0) {
-        clearInterval(poll);
-        toast.success("✅ Pagamento confirmado! Consulta garantida.");
-        navigate("/dashboard/appointments");
+
+    let pollTimeout: NodeJS.Timeout | null = null;
+    let pollInterval: NodeJS.Timeout | null = null;
+    let isSubscribed = true;
+
+    // Realtime listener
+    const channel = supabase
+      .channel(`payment-${appointmentId}`)
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "appointments",
+        filter: `id=eq.${appointmentId}`
+      }, (payload) => {
+        if (isSubscribed && ["approved", "confirmed", "received"].includes(payload.new.payment_status)) {
+          cleanup();
+          toast.success("✅ Pagamento confirmado! Consulta garantida.");
+          navigate("/dashboard/appointments");
+        }
+      })
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          // Reset fallback when realtime connects
+          if (pollInterval) clearInterval(pollInterval);
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          // Start fallback polling if realtime fails
+          startFallbackPoll();
+        }
+      });
+
+    const cleanup = () => {
+      isSubscribed = false;
+      if (pollTimeout) clearTimeout(pollTimeout);
+      if (pollInterval) clearInterval(pollInterval);
+      channel.unsubscribe();
+    };
+
+    const startFallbackPoll = () => {
+      if (!isSubscribed) return;
+      pollInterval = setInterval(async () => {
+        const { data } = await supabase
+          .from("appointments")
+          .select("payment_status")
+          .eq("id", appointmentId)
+          .in("payment_status", ["approved", "confirmed", "received"])
+          .limit(1);
+        if (data && data.length > 0) {
+          cleanup();
+          toast.success("✅ Pagamento confirmado! Consulta garantida.");
+          navigate("/dashboard/appointments");
+        }
+      }, 8000);
+    };
+
+    // Start fallback polling after 10 seconds if realtime not connected
+    pollTimeout = setTimeout(() => {
+      if (channel.state !== "SUBSCRIBED") {
+        startFallbackPoll();
       }
-    }, 8000);
-    return () => clearInterval(poll);
+    }, 10000);
+
+    return cleanup;
   }, [paymentStep, appointmentId, pixQrCode, boletoUrl]);
 
   const fetchDoctor = async () => {
     try {
       const { data: doc, error } = await supabase
         .from("doctor_profiles")
-        .select("id, user_id, crm, crm_state, bio, consultation_price, rating, experience_years")
+        .select("id, user_id, crm, crm_state, bio, consultation_price, rating, experience_years, doctor_type")
         .eq("id", doctorId!)
         .single();
 
@@ -315,13 +364,21 @@ const BookAppointment = () => {
     let errorOccurred = false;
 
     for (const dt of datesToBook) {
+      // Use doctor_type as appointment_type if available (telemedicina/oftalmologia),
+      // otherwise use appointmentType (first_visit/return)
+      const apptType = firstApptId
+        ? "return"
+        : (doctor.doctor_type && ["telemedicina", "oftalmologia"].includes(doctor.doctor_type))
+          ? doctor.doctor_type
+          : appointmentType;
+
       const { data: insertedAppt, error } = await supabase.from("appointments").insert({
         patient_id: user.id,
         doctor_id: doctor.id,
         scheduled_at: dt.toISOString(),
         status: "scheduled",
         payment_status: "pending",
-        appointment_type: firstApptId ? "return" : appointmentType,
+        appointment_type: apptType,
         notes: notesText ? notesText + (firstApptId ? ` | Recorrente` : "") : (firstApptId ? "Agendamento recorrente" : null),
         original_appointment_id: firstApptId || null,
         price_at_booking: basePrice,

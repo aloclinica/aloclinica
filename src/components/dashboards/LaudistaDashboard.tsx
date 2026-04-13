@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useLaudistaEarnings } from "@/hooks/useLaudistaEarnings";
 import { getLaudistaNav } from "@/components/laudista/laudistaNav";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -40,6 +41,7 @@ const LaudistaDashboard = () => {
   const queryClient = useQueryClient();
   const [claimingId, setClaimingId] = useState<string | null>(null);
   const now = new Date();
+  const { currentEarnings, monthlyGoal, percentage, slaOnTime, slaLate, slaPercentage, totalReports, loading: earningsLoading } = useLaudistaEarnings(user?.id);
 
   const { data: doctorProfile } = useQuery({
     queryKey: ["laudista-doctor-profile", user?.id],
@@ -244,6 +246,70 @@ const LaudistaDashboard = () => {
                   </Card>
                 </motion.div>
               )}
+
+              {/* Earnings Progress Card */}
+              <motion.div variants={fadeUp}>
+                <Card className="border-amber-200/30 bg-gradient-to-br from-amber-50/30 to-orange-50/20 dark:from-amber-950/20 dark:to-orange-950/10 overflow-hidden">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-md">
+                        <TrendingUp className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-foreground">Meta de Ganhos</p>
+                        <p className="text-[10px] text-muted-foreground">Este mês</p>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">R$ {currentEarnings.toFixed(2).replace('.', ',')}</span>
+                        <span className="font-bold text-foreground">Meta: R$ {monthlyGoal.toFixed(2).replace('.', ',')}</span>
+                      </div>
+                      <div className="h-2.5 bg-muted/40 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(percentage, 100)}%` }}
+                          transition={{ delay: 0.3, duration: 1 }}
+                          className="h-full bg-gradient-to-r from-amber-500 to-orange-500"
+                        />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">{earningsLoading ? "Carregando..." : `${percentage}% da meta atingida`}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* SLA Tracker Card */}
+              <motion.div variants={fadeUp}>
+                <Card className="border-emerald-200/30 bg-gradient-to-br from-emerald-50/30 to-teal-50/20 dark:from-emerald-950/20 dark:to-teal-950/10 overflow-hidden">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
+                        <Timer className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-foreground">SLA Tracker</p>
+                        <p className="text-[10px] text-muted-foreground">Prazo cumprido</p>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">{slaOnTime} no prazo</span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400">{earningsLoading ? "..." : `${slaPercentage}%`}</span>
+                      </div>
+                      <div className="h-2.5 bg-muted/40 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${slaPercentage}%` }}
+                          transition={{ delay: 0.4, duration: 1 }}
+                          className="h-full bg-gradient-to-r from-emerald-500 to-teal-500"
+                        />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">{slaLate} atrasados ({totalReports} total)</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
 
               {/* Quick Actions */}
               <motion.div variants={fadeUp}>

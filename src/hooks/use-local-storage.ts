@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { logError } from "@/lib/logger";
 
 /**
  * Type-safe localStorage hook with SSR safety and JSON serialization.
@@ -15,7 +16,8 @@ export function useLocalStorage<T>(
     try {
       const item = window.localStorage.getItem(key);
       return item ? (JSON.parse(item) as T) : initialValue;
-    } catch {
+    } catch (error) {
+      logError(`localStorage getItem failed for key: ${key}`, error, { key }, false);
       return initialValue;
     }
   });
@@ -28,8 +30,14 @@ export function useLocalStorage<T>(
           window.localStorage.setItem(key, JSON.stringify(next));
           return next;
         });
-      } catch {
-        // localStorage unavailable (private mode, quota exceeded, etc)
+      } catch (error) {
+        const isQuotaError = error instanceof Error && error.name === 'QuotaExceededError';
+        logError(
+          isQuotaError ? 'localStorage quota exceeded' : `localStorage setItem failed for key: ${key}`,
+          error,
+          { key, isQuotaError },
+          isQuotaError // Show toast only if quota exceeded
+        );
       }
     },
     [key]
@@ -39,8 +47,8 @@ export function useLocalStorage<T>(
     try {
       window.localStorage.removeItem(key);
       setStoredValue(initialValue);
-    } catch {
-      // ignore
+    } catch (error) {
+      logError(`localStorage removeItem failed for key: ${key}`, error, { key }, false);
     }
   }, [key, initialValue]);
 

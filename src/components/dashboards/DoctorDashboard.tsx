@@ -6,11 +6,14 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { getDoctorNav } from "@/components/doctor/doctorNav";
+import { toast } from "sonner";
+import { logError } from "@/lib/logger";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { motion } from "framer-motion";
-import { Calendar, DollarSign, Users, TrendingUp, Video, BarChart2, ArrowRight, Clock } from "lucide-react";
+import { Calendar, DollarSign, Users, TrendingUp, Video, BarChart2, ArrowRight, Clock, RadioFilled, AlertCircle } from "lucide-react";
 import DoctorAnalyticsCharts from "./DoctorAnalyticsCharts";
+import { differenceInHours, differenceInMinutes } from "date-fns";
 import DoctorOnboarding from "@/components/doctor/DoctorOnboarding";
 import { useDoctorStats } from "@/hooks/useDoctorDashboard";
 import { useQueryClient } from "@tanstack/react-query";
@@ -18,9 +21,11 @@ import { HeroBanner } from "./HeroBanner";
 import { StatBento } from "./StatBento";
 import { ActionPills } from "./ActionPills";
 import { LiveQueue, QueueItem } from "./LiveQueue";
+import { cn } from "@/lib/utils";
 import { GoalProgressCard } from "./GoalProgressCard";
 import { DashboardShortcuts } from "./DashboardShortcuts";
 import { PingoBannerCard } from "@/components/mascot/PingoBannerCard";
+import SectionErrorBoundary from "@/components/ui/section-error-boundary";
 import mascotWave from "@/assets/mascot-wave.png";
 import mascotReading from "@/assets/mascot-reading.png";
 import mascotWelcome from "@/assets/mascot-welcome.png";
@@ -38,11 +43,66 @@ const statusLabel: Record<string, string> = {
 };
 
 const DoctorDashboard = () => {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
+  const [isOnline, setIsOnline] = useState(true);
+  const [onlineLoading, setOnlineLoading] = useState(false);
   const { data, isLoading: loading, isError, refetch } = useDoctorStats();
+
+  // Load online status from doctor_profiles on mount
+  useEffect(() => {
+    if (user?.id) {
+      loadOnlineStatus();
+    }
+  }, [user?.id]);
+
+  const loadOnlineStatus = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("doctor_profiles")
+        .select("available_for_on_demand")
+        .eq("user_id", user!.id)
+        .single();
+
+      if (error) {
+        logError("Error loading online status:", error);
+        return;
+      }
+
+      setIsOnline(data?.available_for_on_demand ?? true);
+    } catch (error) {
+      logError("Error loading online status:", error);
+    }
+  };
+
+  const handleToggleOnline = async () => {
+    const newStatus = !isOnline;
+    setOnlineLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from("doctor_profiles")
+        .update({ available_for_on_demand: newStatus })
+        .eq("user_id", user!.id);
+
+      if (error) {
+        logError("Error updating online status:", error);
+        toast.error("Erro ao atualizar status. Tente novamente.");
+        setOnlineLoading(false);
+        return;
+      }
+
+      setIsOnline(newStatus);
+      toast.success(newStatus ? "Você está agora online! 🟢" : "Você está offline 🔴");
+    } catch (error) {
+      logError("Error toggling online status:", error);
+      toast.error("Erro ao atualizar status");
+    } finally {
+      setOnlineLoading(false);
+    }
+  };
 
   interface DoctorAppt {
     id: string; scheduled_at: string; status: string;
@@ -126,6 +186,99 @@ const DoctorDashboard = () => {
       </div>
 
       <motion.div variants={fadeUp} className="mt-5 md:mt-5 space-y-5 pb-24 md:pb-8">
+
+        {/* Online Status Toggle */}
+        <motion.div
+          variants={fadeUp}
+          className="rounded-2xl border border-border/20 bg-gradient-to-r from-card to-muted/20 p-4 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "relative flex h-12 w-12 items-center justify-center rounded-xl",
+              isOnline
+                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                : "bg-muted text-muted-foreground"
+            )}>
+              <div className={cn(
+                "h-2.5 w-2.5 rounded-full",
+                isOnline && "bg-emerald-500 animate-pulse"
+              )} />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Status de Plantão</p>
+              <p className="font-bold text-foreground">{isOnline ? "🟢 Online" : "🔴 Offline"}</p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={handleToggleOnline}
+            disabled={onlineLoading}
+            className={cn(
+              "rounded-full h-9 px-4 font-bold text-xs",
+              isOnline
+                ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                : "bg-muted text-foreground hover:bg-muted"
+            )}
+          >
+            {onlineLoading ? "Atualizando..." : isOnline ? "🟢 Online" : "🔴 Ativar"}
+          </Button>
+        </motion.div>
+
+        {/* Next Appointment Card with Countdown */}
+        {upcomingAppts.length > 0 && (
+          <motion.div
+            variants={fadeUp}
+            className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-primary/3 to-transparent p-5 overflow-hidden relative"
+          >
+            <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-primary/10 blur-3xl opacity-40" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Clock className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Próxima Consulta</span>
+                </div>
+              </div>
+              {(() => {
+                const nextAppt = upcomingAppts[0];
+                const scheduledTime = new Date(nextAppt.scheduled_at);
+                const now = new Date();
+                const hoursUntil = differenceInHours(scheduledTime, now);
+                const minutesUntil = differenceInMinutes(scheduledTime, now);
+
+                return (
+                  <div className="space-y-3">
+                    <div>
+                      <p className="font-bold text-lg text-foreground">{nextAppt.patient_name}</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {format(scheduledTime, "dd 'de' MMMM · HH:mm", { locale: ptBR })} ({nextAppt.duration_minutes || 30}min)
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-primary/10 rounded-lg p-2 text-center">
+                        <p className="text-xs text-muted-foreground font-medium">Começará em</p>
+                        <p className="text-lg font-bold text-primary">
+                          {minutesUntil < 60 ? `${minutesUntil}min` : `${hoursUntil}h`}
+                        </p>
+                      </div>
+                      <div className="bg-emerald-500/10 rounded-lg p-2 text-center">
+                        <p className="text-xs text-muted-foreground font-medium">Status</p>
+                        <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">Pronta</p>
+                      </div>
+                    </div>
+                    <Button
+                      className="w-full rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90"
+                      onClick={() => navigate(`/dashboard/doctor/waiting-room?appt=${nextAppt.id}`)}
+                    >
+                      <Video className="h-4 w-4 mr-2" /> Preparar Sala
+                    </Button>
+                  </div>
+                );
+              })()}
+            </div>
+          </motion.div>
+        )}
 
         {/* Goal progress */}
         {todayAppts.length > 0 && (
@@ -246,7 +399,9 @@ const DoctorDashboard = () => {
               </TabsContent>
 
               <TabsContent value="analytics" className="mt-3">
-                <DoctorAnalyticsCharts />
+                <SectionErrorBoundary fallbackTitle="Erro ao carregar análises">
+                  <DoctorAnalyticsCharts />
+                </SectionErrorBoundary>
               </TabsContent>
             </Tabs>
           </div>

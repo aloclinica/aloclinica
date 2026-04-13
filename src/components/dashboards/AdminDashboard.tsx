@@ -24,6 +24,7 @@ import { ActionPills } from "./ActionPills";
 import { PingoBannerCard } from "@/components/mascot/PingoBannerCard";
 import { PremiumHero } from "./PremiumHero";
 import { AlertBox } from "./AlertBox";
+import SectionErrorBoundary from "@/components/ui/section-error-boundary";
 import pingoAdmin from "@/assets/pingo-admin.png";
 
 const panelOptions = [
@@ -90,14 +91,16 @@ const AdminDashboard = () => {
     setStats(prev => ({ ...prev, live_now: liveRes.count ?? 0, waiting_now: waitRes.count ?? 0 }));
 
     if (liveListRes.data && liveListRes.data.length > 0) {
-      const patientIds = [...new Set(liveListRes.data.map(a => a.patient_id).filter(Boolean))];
-      const doctorIds = [...new Set(liveListRes.data.map(a => a.doctor_id))];
+      const patientIds = [...new Set(liveListRes.data.map((a: any) => a.patient_id).filter(Boolean))];
+      const doctorIds = [...new Set(liveListRes.data.map((a: any) => a.doctor_id))];
       const [pRes, dRes] = await Promise.all([
-        patientIds.length > 0 ? supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds.filter((id): id is string => id !== null)) : { data: [] },
+        patientIds.length > 0
+          ? supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds.filter((id): id is string => id !== null))
+          : Promise.resolve({ data: null as any[] | null }),
         supabase.from("doctor_profiles").select("id, user_id").in("id", doctorIds),
       ]);
-      const pMap = new Map((pRes.data ?? []).map(p => [p.user_id, `${p.first_name} ${p.last_name}`]));
-      const docUserIds = (dRes.data ?? []).map(d => d.user_id);
+      const pMap = new Map((pRes.data ?? []).map((p: any) => [p.user_id, `${p.first_name} ${p.last_name}`.trim()]));
+      const docUserIds = (dRes.data ?? []).map((d: any) => d.user_id);
       const { data: docProfiles } = docUserIds.length > 0
         ? await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", docUserIds)
         : { data: [] };
@@ -278,7 +281,7 @@ const AdminDashboard = () => {
           bubble={{
             greeting: "Monitoramento · Admin",
             name: "Painel de Controle",
-            sub: "12 consultas ao vivo agora",
+            sub: `${stats.live_now} consulta${stats.live_now !== 1 ? 's' : ''} ao vivo agora`,
           }}
           kpis={[
             { label: "Pacientes", value: stats.total_patients },
@@ -505,7 +508,9 @@ const AdminDashboard = () => {
 
         {/* Analytics Charts */}
         <motion.div variants={fadeUp}>
-          <AdminAnalyticsCharts />
+          <SectionErrorBoundary fallbackTitle="Erro ao carregar gráficos de análises">
+            <AdminAnalyticsCharts />
+          </SectionErrorBoundary>
         </motion.div>
 
         <motion.div variants={fadeUp} className="grid lg:grid-cols-2 gap-5">

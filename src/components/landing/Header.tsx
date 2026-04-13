@@ -71,13 +71,13 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
 
   const mobileLinks = [
     { label: "Teleconsulta", href: "/teleconsulta" },
-    { label: "Oftalmologia", href: "/oftalmologia" },
-    { label: "Telelaudo", href: "/para-empresas/telelaudo" },
-    { label: "Cartão Benefícios", href: "/cartao-beneficios" },
-    { label: "Cartão B2B", href: "/cartao-b2b" },
+    // { label: "Oftalmologia", href: "/oftalmologia" },
+    // { label: "Telelaudo", href: "/para-empresas/telelaudo" },
+    // { label: "Cartão Benefícios", href: "/cartao-beneficios" },
+    // { label: "Cartão B2B", href: "/cartao-b2b" },
     { label: "Sou Médico", href: "/para-medicos" },
-    { label: "Sou Laudista", href: "/laudista" },
-    { label: "Sou Clínica", href: "/para-clinicas" },
+    // { label: "Sou Laudista", href: "/laudista" },
+    // { label: "Sou Clínica", href: "/para-clinicas" },
   ];
 
   const triggerCls = "group/trigger text-[13px] font-medium text-muted-foreground hover:text-foreground bg-transparent data-[state=open]:text-foreground data-[state=open]:bg-muted/40 px-3.5 h-9 rounded-full transition-colors duration-150 gap-1.5";
@@ -117,18 +117,18 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
                       <ListItem href="/teleconsulta" title="Teleconsulta" icon={VideoCamera} badge="24h">
                         Consultas por vídeo com especialistas, receita digital e acesso rápido.
                       </ListItem>
-                      <ListItem href="/oftalmologia" title="Oftalmologia" icon={Eye}>
+                      {/* <ListItem href="/oftalmologia" title="Oftalmologia" icon={Eye}>
                         Exames, laudos e receitas para óculos e lentes de contato.
                       </ListItem>
                       <ListItem href="/para-empresas/telelaudo" title="Telelaudo" icon={FileText}>
                         Laudos a distância com IA, SLA e assinatura digital.
-                      </ListItem>
+                      </ListItem> */}
                     </ul>
                   </div>
                 </NavigationMenuContent>
               </NavigationMenuItem>
 
-              <NavigationMenuItem>
+              {/* <NavigationMenuItem>
                 <NavigationMenuTrigger className={triggerCls}>
                   <CreditCard className={triggerIconCls} weight="fill" />
                   Cartões
@@ -145,7 +145,7 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
                     </ul>
                   </div>
                 </NavigationMenuContent>
-              </NavigationMenuItem>
+              </NavigationMenuItem> */}
 
               <NavigationMenuItem>
                 <NavigationMenuTrigger className={triggerCls}>
@@ -158,12 +158,12 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
                       <ListItem href="/para-medicos" title="Sou Médico" icon={Stethoscope}>
                         Atenda pacientes online e aumente sua renda.
                       </ListItem>
-                      <ListItem href="/laudista" title="Sou Laudista" icon={FileText} badge="IA">
+                      {/* <ListItem href="/laudista" title="Sou Laudista" icon={FileText} badge="IA">
                         Emita laudos à distância com IA e assinatura digital.
-                      </ListItem>
-                      <ListItem href="/para-clinicas" title="Sou Clínica" icon={Buildings}>
+                      </ListItem> */}
+                      {/* <ListItem href="/para-clinicas" title="Sou Clínica" icon={Buildings}>
                         Gerencie agendamento, prontuário e equipe.
-                      </ListItem>
+                      </ListItem> */}
                     </ul>
                   </div>
                 </NavigationMenuContent>

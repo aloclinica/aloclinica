@@ -61,6 +61,7 @@ const PreCallCheck = ({ appointmentId, doctorName, doctorSpecialty, scheduledAt,
   const [showTips, setShowTips] = useState(false);
   const [networkQuality, setNetworkQuality] = useState<"good" | "fair" | "poor" | null>(null);
   const [networkLatency, setNetworkLatency] = useState<number | null>(null);
+  const [waitingSeconds, setWaitingSeconds] = useState(0);
 
   // Check if symptoms already submitted
   useEffect(() => {
@@ -128,6 +129,8 @@ const PreCallCheck = ({ appointmentId, doctorName, doctorSpecialty, scheduledAt,
             setDoctorPresent(true);
           }
           statusPollInterval = 5000; // reset on realtime event
+          // Check position on any appointment update
+          updateWaitingPosition();
         }
       )
       .subscribe();
@@ -151,7 +154,7 @@ const PreCallCheck = ({ appointmentId, doctorName, doctorSpecialty, scheduledAt,
     };
     statusPollTimeout = setTimeout(pollStatus, statusPollInterval);
 
-    const checkPosition = async () => {
+    const updateWaitingPosition = async () => {
       const { data } = await supabase
         .from("appointments")
         .select("id")
@@ -163,16 +166,23 @@ const PreCallCheck = ({ appointmentId, doctorName, doctorSpecialty, scheduledAt,
         setWaitingPosition(idx >= 0 ? idx + 1 : null);
       }
     };
-    checkPosition();
-    const posInterval = setInterval(checkPosition, 15000);
+    updateWaitingPosition();
 
     return () => {
       pollActive = false;
       clearTimeout(statusPollTimeout);
       supabase.removeChannel(channel);
-      clearInterval(posInterval);
     };
   }, [appointmentId, isDoctor]);
+
+  // Increment waiting seconds counter for progressive messages
+  useEffect(() => {
+    if (doctorPresent || isDoctor) return;
+    const interval = setInterval(() => {
+      setWaitingSeconds(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [doctorPresent, isDoctor]);
 
   // Waiting room chat
   useEffect(() => {
@@ -856,9 +866,18 @@ const PreCallCheck = ({ appointmentId, doctorName, doctorSpecialty, scheduledAt,
                     </>
                   ) : (
                     <>
-                      <p className="text-sm font-medium text-white">Aguardando o médico...</p>
+                      <p className="text-sm font-medium text-white">
+                        {waitingSeconds < 30
+                          ? "Aguardando o médico entrar..."
+                          : waitingSeconds < 60
+                          ? "O médico está sendo notificado..."
+                          : "Verificando disponibilidade do médico..."}
+                      </p>
                       <p className="text-xs text-[hsl(220,15%,50%)] truncate">
-                        {doctorName ? `${doctorName} foi notificado(a)` : "O médico será notificado"}
+                        {doctorName
+                          ? `${doctorName} foi notificado(a)`
+                          : "O médico será notificado"}{" "}
+                        • {waitingSeconds}s
                       </p>
                     </>
                   )}

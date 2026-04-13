@@ -36,10 +36,24 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+// ── Service Identity ──
+const SERVICE_MAP: Record<string, { name: string; emoji: string; color: string; description: string }> = {
+  patient: { name: "Telemedicina", emoji: "🩺", color: "hsl(210,90%,45%)", description: "Consultoria médica online" },
+  doctor: { name: "Telemedicina", emoji: "🩺", color: "hsl(160,55%,42%)", description: "Atendimento a pacientes" },
+  ophthalmologist: { name: "Oftalmologia", emoji: "👁️", color: "hsl(270,65%,50%)", description: "Exames e prescrições" },
+  laudista: { name: "Telelaudo", emoji: "📋", color: "hsl(175,60%,40%)", description: "Laudos e assinaturas" },
+  clinic: { name: "Telelaudo", emoji: "📋", color: "hsl(175,60%,40%)", description: "Gestão de exames" },
+  receptionist: { name: "Recepção", emoji: "🏥", color: "hsl(30,88%,48%)", description: "Agendas e check-in" },
+  support: { name: "Suporte", emoji: "🎧", color: "hsl(42,90%,48%)", description: "Atendimento ao cliente" },
+  admin: { name: "Administração", emoji: "⚙️", color: "hsl(265,60%,52%)", description: "Controle do sistema" },
+  partner: { name: "Parceria", emoji: "🤝", color: "hsl(148,60%,40%)", description: "Integrações e validações" },
+  ai: { name: "Assistente IA", emoji: "🤖", color: "hsl(210,85%,48%)", description: "Chat inteligente" },
+};
+
 const ROLE_LABELS: Record<string, string> = {
   patient:"Paciente", doctor:"Médico", admin:"Administrador",
   receptionist:"Recepção", support:"Suporte", clinic:"Clínica",
-  partner:"Parceiro", ai:"Assistente IA",
+  partner:"Parceiro", ai:"Assistente IA", ophthalmologist:"Oftalmologista",
 };
 const ROLE_COLORS: Record<string, string> = {
   patient:"bg-primary/10 text-primary border-primary/20",
@@ -177,7 +191,7 @@ const PWABanner = ({ role }: { role: string }) => {
 };
 
 // ── Main ──────────────────────────────────────────────────────────────────────
-const DashboardLayout = ({ children, title, nav, role = "patient" }: DashboardLayoutProps) => {
+const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLayoutProps) => {
   const { profile, roles } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -194,6 +208,9 @@ const DashboardLayout = ({ children, title, nav, role = "patient" }: DashboardLa
   const isAdmin = roles.includes("admin");
   const forceRole = searchParams.get("role");
   const isAdminViewingOtherPanel = isAdmin && forceRole && forceRole !== "admin";
+
+  // Detectar role: se passado via props, use; se admin, use "admin"; senão detecte pela query string ou padrão
+  const role = propsRole || (isAdmin ? "admin" : forceRole || "patient");
   const grad = ROLE_GRADIENT[role] ?? ROLE_GRADIENT.patient;
   const ROLE_RING: Record<string, string> = {
     patient: "ring-blue-400", doctor: "ring-emerald-400", laudista: "ring-blue-600",
@@ -270,23 +287,40 @@ const DashboardLayout = ({ children, title, nav, role = "patient" }: DashboardLa
     );
   };
 
-  const SidebarContent = ({ onItemClick, collapsed = false }: { onItemClick?: () => void; collapsed?: boolean }) => (
+  const SidebarContent = ({ onItemClick, collapsed = false }: { onItemClick?: () => void; collapsed?: boolean }) => {
+    const service = SERVICE_MAP[role] || SERVICE_MAP.patient;
+    return (
     <div ref={sidebarRef} className="flex flex-col h-full min-h-0">
       {/* Spacer top */}
       <div className="h-4 shrink-0" />
 
-      {/* Role badge */}
+      {/* Service Banner */}
       {!collapsed && (
-        <div className="px-3 pt-2 pb-1 shrink-0">
-          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold ${ROLE_COLORS[role] ?? ROLE_COLORS.patient}`}>
-            <span className="text-xs">{ROLE_ICON[role] ?? "👤"}</span>
-            {ROLE_LABELS[role] ?? title}
+        <div className="px-3 pb-2 shrink-0">
+          <div className="relative rounded-xl overflow-hidden bg-gradient-to-br from-muted/60 to-muted/30 border border-border/40 p-3">
+            <div className="flex items-start gap-2">
+              <span className="text-2xl mt-0.5">{service.emoji}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-bold text-foreground">{service.name}</p>
+                <p className="text-[10px] text-muted-foreground/80 leading-snug">{service.description}</p>
+              </div>
+            </div>
           </div>
         </div>
       )}
       {collapsed && (
         <div className="flex justify-center pt-2 pb-1 shrink-0">
-          <span className="text-base">{ROLE_ICON[role] ?? "👤"}</span>
+          <span className="text-2xl">{service.emoji}</span>
+        </div>
+      )}
+
+      {/* Role badge */}
+      {!collapsed && (
+        <div className="px-3 pb-2 shrink-0">
+          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold ${ROLE_COLORS[role] ?? ROLE_COLORS.patient}`}>
+            <span className="text-xs">{ROLE_ICON[role] ?? "👤"}</span>
+            {ROLE_LABELS[role] ?? title}
+          </div>
         </div>
       )}
 
@@ -304,9 +338,12 @@ const DashboardLayout = ({ children, title, nav, role = "patient" }: DashboardLa
           {navGroups.map((group, gi) => (
             <div key={gi}>
               {group.label && !collapsed && (
-                <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.12em] px-2.5 pt-4 pb-1.5">
-                  {group.label}
-                </p>
+                <div className="flex items-center gap-2 px-2.5 pt-4 pb-2">
+                  <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.12em] flex-1">
+                    {group.label}
+                  </p>
+                  <div className="flex-1 h-px bg-gradient-to-r from-muted-foreground/20 to-transparent" />
+                </div>
               )}
               {group.label && collapsed && gi > 0 && (
                 <div className="mx-2 my-2 border-t border-border/10" />
@@ -347,28 +384,47 @@ const DashboardLayout = ({ children, title, nav, role = "patient" }: DashboardLa
         {collapsed ? (
           <button onClick={() => { navigate("/dashboard/profile"); onItemClick?.(); }}
             title="Meu Perfil"
-            className="w-full flex items-center justify-center p-2 rounded-xl hover:bg-muted/50 transition-all duration-200">
+            className="w-full flex items-center justify-center p-2 rounded-xl hover:bg-muted/50 transition-all duration-200 relative">
             <Avatar className="h-7 w-7 ring-2 ring-border/15">
               {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
               <AvatarFallback className={`bg-gradient-to-br ${grad} text-white text-[9px] font-bold`}>{initials}</AvatarFallback>
             </Avatar>
+            {/* Online indicator for doctor role */}
+            {role === "doctor" && (
+              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-background animate-pulse" />
+            )}
           </button>
         ) : (
           <button onClick={() => { navigate("/dashboard/profile"); onItemClick?.(); }}
-            className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-muted/50 transition-all duration-200 text-left group">
-            <Avatar className={`h-8 w-8 ring-2 ${avatarRing} group-hover:ring-primary/25 transition-all`}>
-              {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
-              <AvatarFallback className={`bg-gradient-to-br ${grad} text-white text-[10px] font-bold`}>{initials}</AvatarFallback>
-            </Avatar>
+            className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-muted/50 transition-all duration-200 text-left group relative">
+            <div className="relative">
+              <Avatar className={`h-8 w-8 ring-2 ${avatarRing} group-hover:ring-primary/25 transition-all`}>
+                {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
+                <AvatarFallback className={`bg-gradient-to-br ${grad} text-white text-[10px] font-bold`}>{initials}</AvatarFallback>
+              </Avatar>
+              {/* Online indicator for doctor role */}
+              {role === "doctor" && (
+                <div className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-500 ring-2 ring-background animate-pulse" />
+              )}
+            </div>
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-semibold text-foreground truncate leading-tight">{fullName}</p>
-              <p className="text-[10px] text-muted-foreground truncate leading-tight">{ROLE_LABELS[role] ?? title}</p>
+              <div className="flex items-center gap-1 text-[10px]">
+                <span className="text-muted-foreground truncate flex-1">{ROLE_LABELS[role] ?? title}</span>
+                {role === "doctor" && (
+                  <span className="inline-flex items-center gap-1 shrink-0 px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-medium">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Online
+                  </span>
+                )}
+              </div>
             </div>
           </button>
         )}
       </div>
     </div>
   );
+  };
 
   return (
     <div className="min-h-screen bg-muted/30 flex flex-col">

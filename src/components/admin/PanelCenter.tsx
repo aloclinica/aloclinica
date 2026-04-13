@@ -36,14 +36,56 @@ interface PanelInfo {
   recentUsers: { name: string; page: string; lastSeen: string }[];
 }
 
+// ── Painéis agrupados por serviço ──
+const SERVICES_CONFIG: Record<string, { name: string; emoji: string; color: string; description: string; roles: any[] }> = {
+  telemedicina: {
+    name: "Telemedicina 🩺",
+    emoji: "🩺",
+    color: "from-blue-500 to-cyan-500",
+    description: "Consultas online, pacientes e médicos",
+    roles: [
+      { id: "patient", label: "Paciente", description: "Agendamentos, consultas e saúde", icon: Users, gradient: "from-blue-500 to-blue-600", iconBg: "bg-blue-500/12", accentRing: "ring-blue-500/20", route: "/dashboard?role=patient", roleKey: "patient" },
+      { id: "doctor", label: "Médico", description: "Consultas, prontuários e receitas", icon: Stethoscope, gradient: "from-emerald-500 to-teal-600", iconBg: "bg-emerald-500/12", accentRing: "ring-emerald-500/20", route: "/dashboard?role=doctor", roleKey: "doctor" },
+    ]
+  },
+  oftalmologia: {
+    name: "Oftalmologia 👁️",
+    emoji: "👁️",
+    color: "from-purple-500 to-pink-500",
+    description: "Exames de visão, prescrições e laudos",
+    roles: []
+  },
+  telelaudo: {
+    name: "Telelaudo 📋",
+    emoji: "📋",
+    color: "from-cyan-500 to-teal-500",
+    description: "Laudos digitais, clínicas e laudistas",
+    roles: [
+      { id: "laudista", label: "Médico Laudista", description: "Fila de exames e laudos", icon: FileSearch, gradient: "from-cyan-500 to-sky-600", iconBg: "bg-cyan-500/12", accentRing: "ring-cyan-500/20", route: "/dashboard?role=laudista", roleKey: "doctor" },
+      { id: "clinic", label: "Clínica", description: "Gestão de médicos e afiliações", icon: Building2, gradient: "from-violet-500 to-purple-600", iconBg: "bg-violet-500/12", accentRing: "ring-violet-500/20", route: "/dashboard?role=clinic", roleKey: "clinic" },
+    ]
+  },
+  cartao: {
+    name: "Cartão Benefícios 💳",
+    emoji: "💳",
+    color: "from-amber-500 to-orange-500",
+    description: "Plano mensal, desconto e benefícios",
+    roles: []
+  }
+};
+
 const PANELS: Omit<PanelInfo, "onlineCount" | "totalUsers" | "recentUsers">[] = [
+  // Telemedicina
   { id: "patient", label: "Paciente", description: "Agendamentos, consultas e saúde", icon: Users, gradient: "from-blue-500 to-blue-600", iconBg: "bg-blue-500/12", accentRing: "ring-blue-500/20", route: "/dashboard?role=patient", roleKey: "patient" },
   { id: "doctor", label: "Médico", description: "Consultas, prontuários e receitas", icon: Stethoscope, gradient: "from-emerald-500 to-teal-600", iconBg: "bg-emerald-500/12", accentRing: "ring-emerald-500/20", route: "/dashboard?role=doctor", roleKey: "doctor" },
+  // Telelaudo
   { id: "laudista", label: "Médico Laudista", description: "Fila de exames e laudos", icon: FileSearch, gradient: "from-cyan-500 to-sky-600", iconBg: "bg-cyan-500/12", accentRing: "ring-cyan-500/20", route: "/dashboard?role=laudista", roleKey: "doctor" },
   { id: "clinic", label: "Clínica", description: "Gestão de médicos e afiliações", icon: Building2, gradient: "from-violet-500 to-purple-600", iconBg: "bg-violet-500/12", accentRing: "ring-violet-500/20", route: "/dashboard?role=clinic", roleKey: "clinic" },
+  // Support
   { id: "receptionist", label: "Recepção", description: "Agendas, check-in e cobranças", icon: Monitor, gradient: "from-amber-500 to-orange-600", iconBg: "bg-amber-500/12", accentRing: "ring-amber-500/20", route: "/dashboard?role=receptionist", roleKey: "receptionist" },
   { id: "support", label: "Suporte", description: "Tickets, logs e monitoramento", icon: Headphones, gradient: "from-rose-500 to-pink-600", iconBg: "bg-rose-500/12", accentRing: "ring-rose-500/20", route: "/dashboard?role=support", roleKey: "support" },
   { id: "partner", label: "Parceiro", description: "Validações e integrações", icon: Handshake, gradient: "from-teal-500 to-emerald-600", iconBg: "bg-teal-500/12", accentRing: "ring-teal-500/20", route: "/dashboard?role=partner", roleKey: "partner" },
+  // Admin
   { id: "admin", label: "Administração", description: "Controle total do sistema", icon: ShieldCheck, gradient: "from-primary to-blue-700", iconBg: "bg-primary/12", accentRing: "ring-primary/20", route: "/dashboard?role=admin", roleKey: "admin" },
   { id: "ai-assistant", label: "Assistente IA", description: "Chat, triagem e documentos", icon: Bot, gradient: "from-purple-500 to-fuchsia-600", iconBg: "bg-purple-500/12", accentRing: "ring-purple-500/20", route: "/dashboard/ai-assistant", roleKey: "ai-assistant" },
 ];
@@ -221,6 +263,76 @@ const PanelCenter = () => {
           { label: "Última atualização", value: format(lastRefresh, "HH:mm", { locale: ptBR }), icon: "🕐", iconBg: "bg-amber-50 dark:bg-amber-950/30", valueClass: "text-amber-600 dark:text-amber-400", accentClass: "bg-amber-500" },
         ]} />
 
+        {/* Service Cards - 4 Main Services */}
+        <motion.div variants={fadeUp} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Object.entries(SERVICES_CONFIG).slice(0, 4).map(([key, service]) => {
+            const serviceRoles = service.roles;
+            const serviceOnline = serviceRoles.reduce((sum, role) => {
+              const panel = panels.find(p => p.id === role.id);
+              return sum + (panel?.onlineCount ?? 0);
+            }, 0);
+            const serviceTotal = serviceRoles.reduce((sum, role) => {
+              const panel = panels.find(p => p.id === role.id);
+              return sum + (panel?.totalUsers ?? 0);
+            }, 0);
+
+            return (
+              <motion.div
+                key={key}
+                variants={fadeUp}
+                whileHover={{ y: -4, transition: { duration: 0.25 } }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Card className={`card-interactive relative overflow-hidden group border-border/40 bg-gradient-to-br ${service.color} bg-opacity-5 backdrop-blur-sm hover:shadow-lg transition-all duration-300 ring-1 ring-transparent hover:ring-opacity-30`}>
+                  <div className={`h-1 bg-gradient-to-r ${service.color}`} />
+
+                  <CardContent className="p-5 pt-4">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-start gap-3">
+                        <div className={`text-3xl`}>{service.emoji}</div>
+                        <div>
+                          <h3 className="font-bold text-base text-foreground">{service.name}</h3>
+                          <p className="text-xs text-muted-foreground">{service.description}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Service metrics */}
+                    <div className="grid grid-cols-2 gap-3 mb-4 pt-3 border-t border-border/40">
+                      <div className="bg-muted/30 rounded-lg p-2.5">
+                        <p className="text-[10px] text-muted-foreground font-medium mb-1">Online</p>
+                        <p className="text-lg font-bold text-foreground">{serviceOnline}</p>
+                      </div>
+                      <div className="bg-muted/30 rounded-lg p-2.5">
+                        <p className="text-[10px] text-muted-foreground font-medium mb-1">Total</p>
+                        <p className="text-lg font-bold text-foreground">{serviceTotal}</p>
+                      </div>
+                    </div>
+
+                    {/* Quick links to roles */}
+                    <div className="space-y-1.5">
+                      {serviceRoles.length > 0 ? (
+                        serviceRoles.map(role => (
+                          <button
+                            key={role.id}
+                            onClick={() => navigate(role.route)}
+                            className="w-full text-left text-xs py-2 px-2.5 rounded-lg bg-muted/30 hover:bg-muted/60 transition-colors text-foreground font-medium flex items-center justify-between group/btn"
+                          >
+                            <span className="truncate">{role.label}</span>
+                            <ArrowRight className="w-3 h-3 text-muted-foreground group-hover/btn:translate-x-0.5 transition-transform opacity-0 group-hover/btn:opacity-100" />
+                          </button>
+                        ))
+                      ) : (
+                        <p className="text-xs text-muted-foreground italic p-2">Em breve</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
         {/* Presence bar */}
         <motion.div variants={fadeUp}>
           <Card className="card-interactive border-border/40 bg-card/80 backdrop-blur-sm shadow-sm overflow-hidden">
@@ -265,7 +377,14 @@ const PanelCenter = () => {
           </Card>
         </motion.div>
 
-        {/* Panel grid */}
+        {/* All Panels Grid */}
+        <motion.div variants={fadeUp}>
+          <div className="flex items-center gap-2 mb-4">
+            <LayoutGrid className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-bold text-foreground">Todos os Painéis</h2>
+          </div>
+        </motion.div>
+
         <motion.div variants={fadeUp} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {panels.map((panel) => {
             const Icon = panel.icon;

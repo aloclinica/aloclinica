@@ -16,7 +16,7 @@ import {
   Heart, Lightning, ClipboardText, FileText, UploadSimple,
   Sparkle, Stethoscope, MagnifyingGlass, Star, Plus, Warning,
   Pill, CaretRight, Heartbeat, Timer, TrendUp, TrendDown,
-  FirstAidKit, ChatCircleDots, User,
+  FirstAidKit, ChatCircleDots, User, Activity,
 } from "@phosphor-icons/react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import PatientOnboarding, { ONBOARDING_KEY, KYC_PENDING_KEY } from "@/components/patient/PatientOnboarding";
@@ -27,6 +27,7 @@ import SectionErrorBoundary from "@/components/ui/section-error-boundary";
 import Sparkline from "@/components/ui/sparkline";
 import {
   usePatientStats, usePatientUpcoming, useReturnAppointments, useRecentHealthMetrics,
+  useDetectPatientService, type ServiceType,
 } from "@/hooks/usePatientDashboard";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -44,13 +45,31 @@ const HEALTH_TIPS = [
   { title: "Monitore a pressão!", body: "Acompanhamento regular é prevenção.", metric: "12/8", metricLabel: "Ideal", emoji: "❤️" },
 ];
 
-const QUICK_ACTIONS = [
-  { label: "Agendar", icon: CalendarCheck, path: "/dashboard/schedule?role=patient", color: "hsl(var(--p-primary))", bg: "hsl(var(--p-primary) / 0.08)" },
-  { label: "Urgência", icon: Lightning, path: "/dashboard/urgent-care?role=patient", color: "hsl(var(--destructive))", bg: "hsl(var(--destructive) / 0.08)" },
-  { label: "Exames", icon: ClipboardText, path: "/dashboard/patient/exam-results?role=patient", color: "hsl(var(--secondary))", bg: "hsl(var(--secondary) / 0.08)" },
-  { label: "Receitas", icon: FileText, path: "/dashboard/history?role=patient", color: "hsl(var(--p-primary-mid))", bg: "hsl(var(--p-primary-mid) / 0.08)" },
-  { label: "Docs", icon: UploadSimple, path: "/dashboard/patient/documents?role=patient", color: "hsl(var(--warning))", bg: "hsl(var(--warning) / 0.08)" },
-];
+/**
+ * Get quick actions based on service type
+ * Different services show different quick action buttons
+ */
+const getQuickActions = (serviceType: ServiceType) => {
+  const baseActions = {
+    agendar: { label: "Agendar", icon: CalendarCheck, path: "/dashboard/schedule?role=patient", color: "hsl(var(--p-primary))", bg: "hsl(var(--p-primary) / 0.08)" },
+    urgencia: { label: "Urgência", icon: Lightning, path: "/dashboard/urgent-care?role=patient", color: "hsl(var(--destructive))", bg: "hsl(var(--destructive) / 0.08)" },
+    exames: { label: "Exames", icon: ClipboardText, path: "/dashboard/patient/exam-results?role=patient", color: "hsl(var(--secondary))", bg: "hsl(var(--secondary) / 0.08)" },
+    receitas: { label: "Receitas", icon: FileText, path: "/dashboard/history?role=patient", color: "hsl(var(--p-primary-mid))", bg: "hsl(var(--p-primary-mid) / 0.08)" },
+    docs: { label: "Docs", icon: UploadSimple, path: "/dashboard/patient/documents?role=patient", color: "hsl(var(--warning))", bg: "hsl(var(--warning) / 0.08)" },
+  };
+
+  if (serviceType === "telemedicina") {
+    return [baseActions.agendar, baseActions.urgencia, baseActions.receitas, baseActions.docs];
+  }
+  if (serviceType === "oftalmologia") {
+    return [baseActions.agendar, baseActions.exames, baseActions.docs];
+  }
+  if (serviceType === "cartao") {
+    return [baseActions.agendar];
+  }
+  // "all" - show everything
+  return [baseActions.agendar, baseActions.urgencia, baseActions.exames, baseActions.receitas, baseActions.docs];
+};
 
 const getGreeting = () => {
   const h = new Date().getHours();
@@ -80,6 +99,75 @@ const getContextualSubtitle = (upcoming: unknown[], stats: { total: number } | n
   return "Cuide da sua saúde com quem entende";
 };
 
+/* ── Service Type & Filtering ── */
+
+/**
+ * Determine service type from query param or auto-detect from patient's appointments
+ * URL: /dashboard/patient?service=cartao | ?service=oftalmologia | ?service=telemedicina
+ * Without param: auto-detects from patient's appointment history
+ */
+const getServiceTypeFromParam = (searchParams: URLSearchParams): ServiceType | null => {
+  const service = searchParams.get("service")?.toLowerCase();
+  if (service === "telemedicina" || service === "cartao" || service === "oftalmologia") {
+    return service;
+  }
+  return null;
+};
+
+/**
+ * Sections to show for each service type
+ */
+const SERVICE_SECTIONS = {
+  telemedicina: {
+    heroActions: true,
+    pendingAppt: true,
+    nextAppt: true,
+    quickActions: true,
+    kpis: true,
+    returnAppts: true,
+    healthMetrics: true,
+    healthTip: true,
+    benefitsCard: false,
+    activePrescriptions: true,
+  },
+  oftalmologia: {
+    heroActions: true,
+    pendingAppt: true,
+    nextAppt: true,
+    quickActions: true,
+    kpis: true,
+    returnAppts: true,
+    healthMetrics: false,
+    healthTip: false,
+    benefitsCard: false,
+    activePrescriptions: false,
+  },
+  cartao: {
+    heroActions: true,
+    pendingAppt: false,
+    nextAppt: false,
+    quickActions: false,
+    kpis: false,
+    returnAppts: false,
+    healthMetrics: false,
+    healthTip: false,
+    benefitsCard: true,
+    activePrescriptions: false,
+  },
+  all: {
+    heroActions: true,
+    pendingAppt: true,
+    nextAppt: true,
+    quickActions: true,
+    kpis: true,
+    returnAppts: true,
+    healthMetrics: true,
+    healthTip: true,
+    benefitsCard: true,
+    activePrescriptions: true,
+  },
+};
+
 /* ── Main Component ── */
 
 const PatientDashboard = () => {
@@ -88,6 +176,13 @@ const PatientDashboard = () => {
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const forceOnboarding = searchParams.get("onboarding") === "true";
+
+  // Try to get service from query param first, then auto-detect
+  const paramService = getServiceTypeFromParam(searchParams);
+  const { data: detectedService, isLoading: detectingService } = useDetectPatientService();
+  const serviceType = paramService || detectedService || "all";
+  const sections = SERVICE_SECTIONS[serviceType];
+
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingDone] = useLocalStorage<boolean>(ONBOARDING_KEY, false);
 
@@ -96,7 +191,7 @@ const PatientDashboard = () => {
   const { data: returnAppts = [] } = useReturnAppointments();
   const { data: healthMetrics = [] } = useRecentHealthMetrics();
 
-  const loading = statsLoading || upcomingLoading;
+  const loading = statsLoading || upcomingLoading || detectingService;
   const waitingAppt = upcoming.find((a: { status: string }) =>
     a.status === "waiting" || a.status === "in_progress"
   ) ?? null;
@@ -371,15 +466,16 @@ const PatientDashboard = () => {
         </AnimatePresence>
 
         {/* Live consultation */}
-        {waitingAppt && (
+        {sections.pendingAppt && waitingAppt && (
           <SectionErrorBoundary fallbackTitle="Erro na sala de espera">
             <PatientWaitingCard appointment={waitingAppt} />
           </SectionErrorBoundary>
         )}
 
         {/* ═══════════ QUICK ACTIONS ═══════════ */}
-        <section className="grid grid-cols-5 gap-2 sm:gap-4">
-          {QUICK_ACTIONS.map((action, i) => (
+        {sections.quickActions && (
+        <section className="grid gap-2 sm:gap-4" style={{ gridTemplateColumns: `repeat(${getQuickActions(serviceType).length}, minmax(0, 1fr))` }}>
+          {getQuickActions(serviceType).map((action, i) => (
             <motion.button
               key={action.label}
               initial={{ opacity: 0, y: 16 }}
@@ -402,8 +498,10 @@ const PatientDashboard = () => {
             </motion.button>
           ))}
         </section>
+        )}
 
         {/* ═══════════ BENTO STATS ═══════════ */}
+        {sections.kpis && (
         <section>
           <div className="flex items-center gap-2 mb-3">
             <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-[hsl(var(--p-primary))]/8">
@@ -441,12 +539,17 @@ const PatientDashboard = () => {
             ))}
           </div>
         </section>
+        )}
 
         {/* ═══════════ CONTENT GRID ═══════════ */}
+        {(sections.nextAppt || sections.returnAppts || sections.healthMetrics || sections.healthTip || sections.benefitsCard || sections.activePrescriptions) && (
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-5 lg:gap-8">
 
           {/* LEFT: Next Appointment */}
+          {(sections.nextAppt || sections.returnAppts) && (
           <div className="space-y-5 lg:col-span-2 order-first">
+            {sections.nextAppt && (
+            <>
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: "hsl(var(--p-primary) / 0.1)" }}>
                 <CalendarCheck size={14} weight="fill" className="text-[hsl(var(--p-primary))]" />
@@ -459,16 +562,20 @@ const PatientDashboard = () => {
             ) : (
               <EmptyAppointmentCard navigate={navigate} />
             )}
+            </>
+            )}
 
-            {returnAppts.length > 0 && (
+            {sections.returnAppts && returnAppts.length > 0 && (
               <ReturnAppointments items={returnAppts as ReturnAppt[]} navigate={navigate} />
             )}
           </div>
+          )}
 
           {/* RIGHT */}
           <div className="lg:col-span-3 space-y-5 order-last">
 
             {/* Health Tip — premium card */}
+            {sections.healthTip && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -494,6 +601,7 @@ const PatientDashboard = () => {
                 </div>
               </div>
             </motion.div>
+            )}
 
             {/* Find your doctor — enhanced CTA */}
             <motion.div
@@ -564,12 +672,118 @@ const PatientDashboard = () => {
               </motion.div>
             )}
 
+            {/* Benefits Card - Cartão de Benefícios */}
+            {sections.benefitsCard && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.48 }}
+              className="card-interactive relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 p-5 sm:p-6 shadow-lg border border-amber-400/20"
+            >
+              <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+              <div className="relative z-10">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-3xl">💳</span>
+                      <span className="text-xs font-bold uppercase tracking-wider text-white/70">Cartão de Benefícios</span>
+                    </div>
+                    <h3 className="font-[Manrope] text-xl font-bold text-white">30% de desconto</h3>
+                    <p className="text-sm text-white/80 mt-1">Em todas as suas consultas e serviços</p>
+                  </div>
+                  <div className="text-4xl animate-bounce">✨</div>
+                </div>
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  <div className="bg-white/15 rounded-lg p-2.5 text-center">
+                    <p className="text-xs font-bold text-white/70">Desconto</p>
+                    <p className="text-lg font-bold text-white mt-1">30%</p>
+                  </div>
+                  <div className="bg-white/15 rounded-lg p-2.5 text-center">
+                    <p className="text-xs font-bold text-white/70">Status</p>
+                    <p className="text-lg font-bold text-white mt-1">✓ Ativo</p>
+                  </div>
+                  <div className="bg-white/15 rounded-lg p-2.5 text-center">
+                    <p className="text-xs font-bold text-white/70">Mensal</p>
+                    <p className="text-sm font-bold text-white mt-1">R$29,90</p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  className="w-full rounded-full bg-white text-orange-600 font-bold hover:bg-white/90 shadow-md"
+                  onClick={() => navigate("/dashboard/benefits?role=patient")}
+                >
+                  Ver detalhes <ArrowRight size={13} weight="bold" className="ml-1.5" />
+                </Button>
+              </div>
+            </motion.div>
+            )}
+
+            {/* Active Prescriptions - Receitas Ativas */}
+            {sections.activePrescriptions && (stats?.prescriptions ?? 0) > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.56 }}
+                className="rounded-2xl border border-border/10 bg-card p-5 shadow-[var(--p-shadow-card)]"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <Pill size={15} weight="fill" className="text-destructive" />
+                  <span className="font-[Manrope] text-[14px] font-bold text-foreground">Receitas Ativas</span>
+                </div>
+                <div className="space-y-2">
+                  {[...Array(Math.min(stats?.prescriptions ?? 0, 3))].map((_, i) => {
+                    const daysRemaining = 25 - (i * 3); // Mock countdown days
+                    const isExpiring = daysRemaining <= 7;
+                    return (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.6 + i * 0.05 }}
+                        className={cn(
+                          "card-interactive flex items-center gap-3 p-3 rounded-xl border transition-colors",
+                          isExpiring
+                            ? "border-destructive/20 bg-destructive/5"
+                            : "border-border/5 bg-muted/20"
+                        )}
+                      >
+                        <div className={cn(
+                          "flex h-10 w-10 items-center justify-center rounded-lg",
+                          isExpiring ? "bg-destructive/20" : "bg-[hsl(var(--p-primary))]/10"
+                        )}>
+                          <Pill size={14} weight="fill" className={isExpiring ? "text-destructive" : "text-[hsl(var(--p-primary))]"} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] font-bold text-foreground">Medicação {i + 1}</p>
+                          <p className="text-[10px] text-muted-foreground">Prescrever por Dr. Silva</p>
+                        </div>
+                        <div className={cn(
+                          "text-right text-xs font-bold",
+                          isExpiring ? "text-destructive" : "text-[hsl(var(--p-primary))]"
+                        )}>
+                          {daysRemaining}d
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full mt-3 text-[11px] font-semibold text-muted-foreground hover:text-foreground h-8"
+                  onClick={() => navigate("/dashboard/history?role=patient")}
+                >
+                  Ver todas as receitas <ArrowRight size={12} className="ml-1" />
+                </Button>
+              </motion.div>
+            )}
+
             {/* Recent History */}
             {upcoming.length > 1 && (
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
+                transition={{ delay: 0.64 }}
                 className="rounded-2xl border border-border/10 bg-card p-5 shadow-[var(--p-shadow-card)]"
               >
                 <div className="flex items-center gap-2 mb-4">
@@ -582,7 +796,7 @@ const PatientDashboard = () => {
                       key={appt.id}
                       initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.55 + i * 0.05 }}
+                      transition={{ delay: 0.68 + i * 0.05 }}
                       onClick={() => navigate("/dashboard/appointments?role=patient")}
                       className="card-interactive flex items-center gap-3 p-3 rounded-xl border border-border/5 cursor-pointer"
                     >
@@ -609,6 +823,7 @@ const PatientDashboard = () => {
             )}
           </div>
         </div>
+        )}
       </div>
     </DashboardLayout>
   );

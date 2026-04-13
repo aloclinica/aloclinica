@@ -11,7 +11,7 @@ import {
   MessageSquare, FileText, Clock, Send, X, PanelLeftClose, PanelLeft,
   UserRound, Pill, PhoneOff, Mic, MicOff, Video, VideoOff, Shield,
   MoreVertical, Maximize2, Minimize2, Copy, Share2, FileBadge, Paperclip, Image,
-  Sparkles, Loader2, Stethoscope, ClipboardList, SwitchCamera
+  Sparkles, Loader2, Stethoscope, ClipboardList, SwitchCamera, CheckCircle2
 } from "lucide-react";
 import ConsentTCLE from "./ConsentTCLE";
 import VideoConsultation, { type VideoConsultationHandle } from "./VideoConsultation";
@@ -25,6 +25,8 @@ import SpeechToText from "./SpeechToText";
 import PostConsultationSummary from "./PostConsultationSummary";
 import PatientInfoPanel from "./PatientInfoPanel";
 import DoctorInfoPanel from "./DoctorInfoPanel";
+import { ConsultationChatPanel } from "./ConsultationChatPanel";
+import { useSOAPNotes } from "@/hooks/useSOAPNotes";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -71,15 +73,17 @@ const VideoRoom = () => {
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
-  const [soapNotes, setSoapNotes] = useState({ subjective: "", objective: "", assessment: "", plan: "" });
-  const [activeSOAP, setActiveSOAP] = useState<"S" | "O" | "A" | "P">("S");
-  const [notes, setNotes] = useState("");
   const [unreadCount, setUnreadCount] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const [aiFillingSOAP, setAiFillingSOAP] = useState(false);
-
   const isDoctor = roles.includes("doctor") || roles.includes("admin");
+
+  // Centralizar SOAP notes com hook
+  const soap = useSOAPNotes(appointmentId || "", isDoctor);
+  const [activeSOAP, setActiveSOAP] = useState<"S" | "O" | "A" | "P">("S");
+  const [aiFillingSOAP, setAiFillingSOAP] = useState(false);
+  const [showSavedIndicator, setShowSavedIndicator] = useState(false);
+
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -460,41 +464,39 @@ const VideoRoom = () => {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
+  // File upload for chat component
+  const handleFileUploadForChat = async (file: File): Promise<string> => {
+    if (!user) throw new Error("User not authenticated");
     const ext = file.name.split('.').pop();
     const filePath = `consultation-chat/${appointmentId}/${Date.now()}.${ext}`;
     const { data, error: uploadErr } = await supabase.storage
       .from("patient-documents")
       .upload(filePath, file, { contentType: file.type });
-    if (uploadErr) {
-      toast.error("Erro ao enviar arquivo");
-      return;
-    }
+    if (uploadErr) throw uploadErr;
     const { data: urlData } = supabase.storage.from("patient-documents").getPublicUrl(filePath);
-    sendMessage(urlData.publicUrl, file.name, file.type);
+    return urlData.publicUrl;
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    try {
+      const fileUrl = await handleFileUploadForChat(file);
+      await sendMessage(fileUrl, file.name, file.type);
+    } catch (err) {
+      logError("File upload error", err);
+      toast.error("Erro ao enviar arquivo");
+    }
     e.target.value = "";
   };
 
-  const saveNotes = async (silent = false) => {
+  // Old saveNotes function — now handled by useSOAPNotes hook
+  // Keeping for PDF generation on manual save
+  const saveSoapNotesWithPDF = async (silent = false) => {
     if (!appointmentId || !appointment) return;
-    const { data: doc } = await supabase
-      .from("doctor_profiles").select("id, crm, crm_state").eq("user_id", user!.id).single();
-    if (!doc) return;
 
-    const { data: existing } = await supabase
-      .from("consultation_notes").select("id").eq("appointment_id", appointmentId).single();
-
-    if (existing) {
-      await supabase.from("consultation_notes").update({ content: notes }).eq("id", existing.id);
-    } else {
-      await supabase.from("consultation_notes").insert({
-        appointment_id: appointmentId, doctor_id: doc.id, content: notes,
-      });
-    }
-
-    // Generate PDF only on manual save (not silent auto-save)
+    // Hook's saveNotes handles the database persistence
+    // We just need to generate the PDF here if manual save
     if (!silent) {
       try {
         const { jsPDF } = await import("jspdf");
@@ -563,10 +565,10 @@ const VideoRoom = () => {
 
         // SOAP sections
         const soapSections = [
-          { title: "S - Subjetivo (Queixa do Paciente)", content: soapNotes.subjective },
-          { title: "O - Objetivo (Exame/Observações)", content: soapNotes.objective },
-          { title: "A - Avaliação (Diagnóstico)", content: soapNotes.assessment },
-          { title: "P - Plano (Conduta)", content: soapNotes.plan },
+          { title: "S - Subjetivo (Queixa do Paciente)", content: soap.notes.subjective },
+          { title: "O - Objetivo (Exame/Observações)", content: soap.notes.objective },
+          { title: "A - Avaliação (Diagnóstico)", content: soap.notes.assessment },
+          { title: "P - Plano (Conduta)", content: soap.notes.plan },
         ];
 
         for (const section of soapSections) {
@@ -641,14 +643,24 @@ const VideoRoom = () => {
     }
   };
 
+  // Show "Saved" indicator for 3 seconds after SOAP notes are saved
+  useEffect(() => {
+    if (soap.isSaving) return;
+    if (!soap.isDirty && soap.lastSaved) {
+      setShowSavedIndicator(true);
+      const timer = setTimeout(() => setShowSavedIndicator(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [soap.isSaving, soap.isDirty, soap.lastSaved]);
+
   // Auto-save SOAP notes every 30 seconds
   useEffect(() => {
-    if (!isDoctor || !deviceChecked || !notes) return;
+    if (!isDoctor || !deviceChecked || !soap.isDirty) return;
     const autoSaveInterval = setInterval(() => {
-      saveNotes(true);
+      soap.saveNotes();
     }, 30000);
     return () => clearInterval(autoSaveInterval);
-  }, [isDoctor, deviceChecked, notes, appointmentId, appointment]);
+  }, [isDoctor, deviceChecked, soap.isDirty, appointmentId, appointment]);
 
   // ─── Video presence logging ───
   useEffect(() => {
@@ -673,8 +685,11 @@ const VideoRoom = () => {
     };
   }, [appointmentId, user, deviceChecked]);
 
-  const notesRef = useRef(notes);
-  useEffect(() => { notesRef.current = notes; }, [notes]);
+  // Cache SOAP notes for endCall cleanup
+  const notesRef = useRef(soap.notes);
+  useEffect(() => {
+    notesRef.current = soap.notes;
+  }, [soap.notes]);
   const elapsedRef = useRef(elapsed);
   useEffect(() => { elapsedRef.current = elapsed; }, [elapsed]);
 
@@ -686,18 +701,21 @@ const VideoRoom = () => {
         duration_seconds: elapsedRef.current,
       }).eq("id", presenceLogId.current);
     }
-    if (isDoctor && notesRef.current) await saveNotes(true);
+    // Save SOAP notes if doctor has unsaved changes
+    if (isDoctor && soap.isDirty) {
+      await soap.saveNotes();
+    }
     await supabase.from("appointments").update({ status: "completed" }).eq("id", appointmentId ?? '');
-    
+
     // Notify patient that consultation is completed
     if (isDoctor) {
       const docName = user?.user_metadata?.first_name ? `Dr(a). ${user.user_metadata.first_name} ${user.user_metadata.last_name || ""}`.trim() : "Seu médico";
       notifyConsultationCompleted(appointmentId!, docName).catch(err => logError("notifyConsultationCompleted failed", err));
     }
-    
+
     toast.success("Consulta encerrada");
     setShowSummary(true);
-  }, [isDoctor, appointmentId]);
+  }, [isDoctor, appointmentId, soap.isDirty]);
 
   const handleSummaryContinue = useCallback(() => {
     if (isDoctor) navigate(`/dashboard/prescribe/${appointmentId}`);
@@ -801,70 +819,35 @@ const VideoRoom = () => {
     ? "text-amber-400"
     : "text-[hsl(150,60%,55%)]";
 
-  const chatPanel = (
-    <>
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {messages.length === 0 && (
-          <div className="text-center mt-12 space-y-2">
-            <div className="w-14 h-14 rounded-2xl bg-[hsl(220,20%,12%)] flex items-center justify-center mx-auto">
-              <MessageSquare className="w-6 h-6 text-[hsl(220,15%,30%)]" />
-            </div>
-            <p className="text-xs text-[hsl(220,15%,35%)]">Inicie uma conversa</p>
-            <p className="text-[10px] text-[hsl(220,15%,25%)]">Mensagens são criptografadas</p>
-          </div>
-        )}
-        {messages.map((msg) => {
-          const isMine = msg.sender === (isDoctor ? "doctor" : "patient");
-          return (
-            <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, y: 8, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              className={`flex ${isMine ? "justify-end" : "justify-start"}`}
-            >
-              <div className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
-                isMine
-                  ? "bg-primary text-primary-foreground rounded-br-md"
-                  : "bg-[hsl(220,20%,13%)] text-[hsl(220,20%,90%)] rounded-bl-md border border-[hsl(220,15%,18%)]"
-              }`}>
-                {msg.fileUrl && msg.fileType?.startsWith("image/") && (
-                  <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer" className="block mb-2">
-                    <img src={msg.fileUrl} alt={msg.fileName} className="max-w-full rounded-lg max-h-48 object-cover" loading="lazy" decoding="async" />
-                  </a>
-                )}
-                {msg.fileUrl && !msg.fileType?.startsWith("image/") && (
-                  <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 mb-2 px-2 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 transition-colors">
-                    <Paperclip className="w-3.5 h-3.5 shrink-0" />
-                    <span className="text-xs truncate">{msg.fileName || "Arquivo"}</span>
-                  </a>
-                )}
-                {msg.text && <p>{msg.text}</p>}
-                <p className={`text-[10px] mt-1 ${isMine ? "text-primary-foreground/50" : "text-[hsl(220,15%,35%)]"}`}>{msg.time}</p>
-              </div>
-            </motion.div>
-          );
-        })}
-        <div ref={chatEndRef} />
-      </div>
-      <div className="p-3 border-t border-[hsl(220,15%,12%)] flex gap-2 shrink-0">
-        <label className="w-10 h-10 rounded-xl bg-[hsl(220,20%,12%)] hover:bg-[hsl(220,20%,16%)] flex items-center justify-center cursor-pointer transition-colors shrink-0">
-          <Paperclip className="w-4 h-4 text-[hsl(220,15%,55%)]" />
-          <input type="file" className="hidden" accept="image/*,.pdf,.doc,.docx" onChange={handleFileUpload} />
-        </label>
-        <input
-          value={chatInput}
-          onChange={(e) => setChatInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Mensagem..."
-          aria-label="Digite uma mensagem"
-          className="flex-1 bg-[hsl(220,20%,8%)] border border-[hsl(220,15%,16%)] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-[hsl(220,15%,30%)] outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
-        />
-        <Button size="icon" onClick={() => sendMessage()} className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-10 w-10 shrink-0" aria-label="Enviar mensagem">
-          <Send className="w-4 h-4" aria-hidden="true" />
-        </Button>
-      </div>
-    </>
-  );
+  // Chat panel removed - now using ConsultationChatPanel component
+  // Handler for sending messages
+  const handleSendMessage = async (text: string) => {
+    if (!text.trim() || !appointmentId) return;
+
+    const newMessage: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      sender: isDoctor ? "doctor" : "patient",
+      text,
+      time: format(new Date(), "HH:mm"),
+    };
+
+    setMessages(prev => [...prev, newMessage]);
+    setChatInput("");
+
+    // Persist to database using messages table
+    try {
+      await supabase.from("messages").insert({
+        appointment_id: appointmentId,
+        sender_id: user?.id,
+        content: text,
+      });
+
+      // Mark as read for this user
+      setUnreadCount(0);
+    } catch (err) {
+      logError("Failed to save chat message", err);
+    }
+  };
 
   const soapTabs: { key: "S" | "O" | "A" | "P"; label: string; field: keyof typeof soapNotes; placeholder: string }[] = [
     { key: "S", label: "Subjetivo", field: "subjective", placeholder: "O que o paciente relata: queixas, sintomas, histórico..." },
@@ -873,10 +856,8 @@ const VideoRoom = () => {
     { key: "P", label: "Plano", field: "plan", placeholder: "Plano terapêutico: medicamentos, exames solicitados, retorno..." },
   ];
 
-  const updateSOAPField = (field: keyof typeof soapNotes, value: string) => {
-    const updated = { ...soapNotes, [field]: value };
-    setSoapNotes(updated);
-    setNotes(JSON.stringify(updated));
+  const updateSOAPField = (field: keyof typeof soap.notes, value: string) => {
+    soap.updateSection(field, value);
   };
 
   const handleAIFillSOAP = async () => {
@@ -914,7 +895,7 @@ Severidade: ${symptoms?.severity || "Não informada"}
 Duração: ${symptoms?.duration || "Não informada"}
 Notas adicionais: ${symptoms?.additional_notes || ""}
 Chat médico-paciente: ${chatContext || "Sem mensagens"}
-SOAP atual: S=${soapNotes.subjective}, O=${soapNotes.objective}, A=${soapNotes.assessment}, P=${soapNotes.plan}`,
+SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.notes.assessment}, P=${soap.notes.plan}`,
             },
           ],
           role_context: "doctor",
@@ -927,14 +908,11 @@ SOAP atual: S=${soapNotes.subjective}, O=${soapNotes.objective}, A=${soapNotes.a
           const jsonMatch = data.response.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
             const parsed = JSON.parse(jsonMatch[0]);
-            const updated = {
-              subjective: parsed.subjective || soapNotes.subjective,
-              objective: parsed.objective || soapNotes.objective,
-              assessment: parsed.assessment || soapNotes.assessment,
-              plan: parsed.plan || soapNotes.plan,
-            };
-            setSoapNotes(updated);
-            setNotes(JSON.stringify(updated));
+            // Update each field using the hook's updateSection
+            if (parsed.subjective) soap.updateSection("subjective", parsed.subjective);
+            if (parsed.objective) soap.updateSection("objective", parsed.objective);
+            if (parsed.assessment) soap.updateSection("assessment", parsed.assessment);
+            if (parsed.plan) soap.updateSection("plan", parsed.plan);
             toast.success("🤖 SOAP preenchido pela IA", { description: "Revise e ajuste antes de salvar." });
           }
         } catch {
@@ -993,7 +971,7 @@ SOAP atual: S=${soapNotes.subjective}, O=${soapNotes.objective}, A=${soapNotes.a
         <div key={tab.key} className="flex-1 flex flex-col gap-1.5">
           <p className="text-[11px] font-medium text-[hsl(220,15%,55%)]">{tab.label}</p>
           <MedicalAutocomplete
-            value={soapNotes[tab.field]}
+            value={soap.notes[tab.field]}
             onChange={(val) => updateSOAPField(tab.field, val)}
             field="notes"
             placeholder={tab.placeholder}
@@ -1003,9 +981,32 @@ SOAP atual: S=${soapNotes.subjective}, O=${soapNotes.objective}, A=${soapNotes.a
       ))}
 
       <div className="flex gap-2">
-        <Button onClick={() => saveNotes()} size="sm" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl gap-1.5">
+        <Button onClick={() => soap.saveNotes()} disabled={soap.isSaving} size="sm" className={`flex-1 rounded-xl gap-1.5 transition-all duration-300 ${
+          soap.isSaving
+            ? "bg-primary/70 text-primary-foreground"
+            : showSavedIndicator
+            ? "bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-600/20"
+            : "bg-primary hover:bg-primary/90 text-primary-foreground"
+        }`}>
           <FileText className="w-3.5 h-3.5" />
-          Salvar SOAP
+          {soap.isSaving ? (
+            <span className="flex items-center gap-1.5">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              >
+                <Loader2 className="w-3.5 h-3.5" />
+              </motion.div>
+              Salvando...
+            </span>
+          ) : showSavedIndicator ? (
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              ✓ Salvo
+            </span>
+          ) : (
+            "Salvar SOAP"
+          )}
         </Button>
         <Button
           size="sm"
@@ -1311,7 +1312,15 @@ SOAP atual: S=${soapNotes.subjective}, O=${soapNotes.objective}, A=${soapNotes.a
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              {showChat && chatPanel}
+              {showChat && (
+                <ConsultationChatPanel
+                  messages={messages}
+                  onSendMessage={handleSendMessage}
+                  onUploadFile={handleFileUploadForChat}
+                  isSending={false}
+                  userRole={isDoctor ? "doctor" : "patient"}
+                />
+              )}
               {showNotes && isDoctor && notesPanel}
               {showInfo && isDoctor && appointment?.patient_id && (
                 <PatientInfoPanel patientId={appointment.patient_id} appointmentId={appointmentId!} />
@@ -1369,7 +1378,15 @@ SOAP atual: S=${soapNotes.subjective}, O=${soapNotes.objective}, A=${soapNotes.a
                   </button>
                 </div>
                 <div className="flex-1 flex flex-col overflow-hidden">
-                  {showChat && chatPanel}
+                  {showChat && (
+                <ConsultationChatPanel
+                  messages={messages}
+                  onSendMessage={handleSendMessage}
+                  onUploadFile={handleFileUploadForChat}
+                  isSending={false}
+                  userRole={isDoctor ? "doctor" : "patient"}
+                />
+              )}
                   {showNotes && isDoctor && notesPanel}
                   {showInfo && isDoctor && appointment?.patient_id && (
                     <PatientInfoPanel patientId={appointment.patient_id} appointmentId={appointmentId!} />

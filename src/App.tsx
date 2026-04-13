@@ -44,6 +44,7 @@ const LinkRedirect = lazy(() => import("./pages/LinkRedirect"));
 const ValidateDocument = lazy(() => import("./pages/ValidateDocument"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const DoctorPublicProfilePage = lazy(() => import("./pages/DoctorPublicProfilePage"));
+const PrescriptionVerification = lazy(() => import("./pages/PrescriptionVerification"));
 
 const B2BTelelaudo = lazy(() => import("./pages/B2BTelelaudo"));
 const Oftalmologia = lazy(() => import("./pages/Oftalmologia"));
@@ -90,6 +91,9 @@ const ComoFunciona = lazy(() => import("./pages/ComoFunciona"));
 const Especialidades = lazy(() => import("./pages/Especialidades"));
 const Recursos = lazy(() => import("./pages/Recursos"));
 const FAQ = lazy(() => import("./pages/FAQ"));
+const Servicos = lazy(() => import("./pages/Servicos"));
+const Cartoes = lazy(() => import("./pages/Cartoes"));
+const ParaProfissionais = lazy(() => import("./pages/ParaProfissionais"));
 
 // Prefetch das rotas mais acessadas após o browser ficar idle
 if (typeof window !== "undefined") {
@@ -176,14 +180,18 @@ const AnimatedRoutes = () => {
       <Route path="/l/:id" element={<LinkRedirect />} />
       <Route path="/validar/:id" element={<ValidateDocument />} />
       <Route path="/validar" element={<ValidateDocument />} />
+      <Route path="/validar-receita/:prescriptionId" element={<PrescriptionVerification />} />
 
       <Route path="/para-empresas/telelaudo" element={<B2BTelelaudo />} />
+      <Route path="/servicos" element={<Servicos />} />
       <Route path="/teleconsulta" element={<Teleconsulta />} />
-      <Route path="/oftalmologia" element={<Oftalmologia />} />
+      {/* <Route path="/oftalmologia" element={<Oftalmologia />} /> */}
+      {/* <Route path="/cartoes" element={<Cartoes />} /> */}
+      {/* <Route path="/cartao-beneficios" element={<CartaoBeneficios />} /> */}
+      {/* <Route path="/cartao-b2b" element={<CartaoB2B />} /> */}
+      <Route path="/para-profissionais" element={<ParaProfissionais />} />
       <Route path="/para-medicos" element={<ForDoctors />} />
       <Route path="/para-clinicas" element={<ForClinics />} />
-      <Route path="/cartao-beneficios" element={<CartaoBeneficios />} />
-      <Route path="/cartao-b2b" element={<CartaoB2B />} />
       <Route path="/sobre" element={<Sobre />} />
       <Route path="/seguranca" element={<Seguranca />} />
       <Route path="/contato" element={<Contato />} />
@@ -192,28 +200,28 @@ const AnimatedRoutes = () => {
       <Route path="/recursos" element={<Recursos />} />
       <Route path="/faq" element={<FAQ />} />
 
-      <Route path="/telelaudo" element={<Navigate to="/laudista" replace />} />
-      <Route path="/telelaudo-workspace" element={<ProtectedRoute><TelelaudoWorkspace /></ProtectedRoute>} />
-      <Route path="/laudos/fila" element={<ProtectedRoute><LaudosFila /></ProtectedRoute>} />
-      <Route path="/laudos/editor/:exameId" element={<ProtectedRoute><LaudosEditor /></ProtectedRoute>} />
-      <Route path="/laudos/validar/:token" element={<LaudosValidar />} />
-      <Route path="/laudos/validar" element={<LaudosValidar />} />
-      <Route path="/laudos/:exameId/editar" element={<ProtectedRoute><LaudosEditar /></ProtectedRoute>} />
-      <Route path="/clinica/enviar-exame" element={<ProtectedRoute><ClinicaEnviarExame /></ProtectedRoute>} />
-      <Route path="/clinica/exames" element={<ProtectedRoute><ClinicaExames /></ProtectedRoute>} />
+      {/* <Route path="/telelaudo" element={<Navigate to="/laudista" replace />} /> */}
+      {/* <Route path="/telelaudo-workspace" element={<ProtectedRoute><TelelaudoWorkspace /></ProtectedRoute>} /> */}
+      {/* <Route path="/laudos/fila" element={<ProtectedRoute><LaudosFila /></ProtectedRoute>} /> */}
+      {/* <Route path="/laudos/editor/:exameId" element={<ProtectedRoute><LaudosEditor /></ProtectedRoute>} /> */}
+      {/* <Route path="/laudos/validar/:token" element={<LaudosValidar />} /> */}
+      {/* <Route path="/laudos/validar" element={<LaudosValidar />} /> */}
+      {/* <Route path="/laudos/:exameId/editar" element={<ProtectedRoute><LaudosEditar /></ProtectedRoute>} /> */}
+      {/* <Route path="/clinica/enviar-exame" element={<ProtectedRoute><ClinicaEnviarExame /></ProtectedRoute>} /> */}
+      {/* <Route path="/clinica/exames" element={<ProtectedRoute><ClinicaExames /></ProtectedRoute>} /> */}
 
-      {/* Oftalmologia - Médico */}
-      <Route path="/oftalmologista/dashboard" element={<ProtectedRoute><OftalmologistDashboard /></ProtectedRoute>} />
-      <Route path="/oftalmologista/consulta/:appointmentId" element={<ProtectedRoute><OftalmologyConsultationDetail /></ProtectedRoute>} />
-      <Route path="/oftalmologista/consulta/:appointmentId/prescricao" element={<ProtectedRoute><OftalmologyPrescription /></ProtectedRoute>} />
+      {/* OCULTO: Oftalmologia - Médico */}
+      {/* <Route path="/oftalmologista/dashboard" element={<ProtectedRoute><OftalmologistDashboard /></ProtectedRoute>} /> */}
+      {/* <Route path="/oftalmologista/consulta/:appointmentId" element={<ProtectedRoute><OftalmologyConsultationDetail /></ProtectedRoute>} /> */}
+      {/* <Route path="/oftalmologista/consulta/:appointmentId/prescricao" element={<ProtectedRoute><OftalmologyPrescription /></ProtectedRoute>} /> */}
 
-      {/* Oftalmologia - Paciente */}
-      <Route path="/meu-perfil/exames-oftalmologicos" element={<ProtectedRoute><PatientOftalmologyExams /></ProtectedRoute>} />
-      <Route path="/agendar/oftalmologia" element={<ProtectedRoute><BookOftalmologyAppointment /></ProtectedRoute>} />
-      <Route path="/meu-perfil/prescricao/:prescriptionId" element={<ProtectedRoute><PrescriptionDetail /></ProtectedRoute>} />
+      {/* OCULTO: Oftalmologia - Paciente */}
+      {/* <Route path="/meu-perfil/exames-oftalmologicos" element={<ProtectedRoute><PatientOftalmologyExams /></ProtectedRoute>} /> */}
+      {/* <Route path="/agendar/oftalmologia" element={<ProtectedRoute><BookOftalmologyAppointment /></ProtectedRoute>} /> */}
+      {/* <Route path="/meu-perfil/prescricao/:prescriptionId" element={<ProtectedRoute><PrescriptionDetail /></ProtectedRoute>} /> */}
 
-      {/* Oftalmologia - Revisor */}
-      <Route path="/revisor/prescricoes" element={<ProtectedRoute><PrescriptionReviewerDashboard /></ProtectedRoute>} />
+      {/* OCULTO: Oftalmologia - Revisor */}
+      {/* <Route path="/revisor/prescricoes" element={<ProtectedRoute><PrescriptionReviewerDashboard /></ProtectedRoute>} /> */}
 
       <Route
         path="/dashboard/*"

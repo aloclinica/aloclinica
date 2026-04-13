@@ -40,6 +40,7 @@ import jsPDF from "jspdf";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { motion } from "framer-motion";
 import type { ExamRequest, ExamReport, ReportTemplate } from "@/types/domain";
+import { LaudoValidator } from "@/components/laudista/LaudoValidator";
 
 // ==================== WL PRESETS ====================
 const WL_PRESETS = [
@@ -2258,13 +2259,23 @@ const ExamReportEditor = () => {
 
       {/* Sign Confirmation AlertDialog */}
       <AlertDialog open={showSignDialog} onOpenChange={setShowSignDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <AlertDialogHeader>
             <AlertDialogTitle>Assinar Laudo</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação é irreversível. O laudo será enviado para a clínica com sua assinatura digital.
+              Validação automática e confirmação de assinatura. Esta ação é irreversível.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          {/* Automatic Validation */}
+          <div className="my-4">
+            <LaudoValidator
+              laudoText={content.replace(/<[^>]+>/g, "").trim()}
+              examType={examRequest?.exam_type}
+              isLoading={signing}
+            />
+          </div>
+
           <AlertDialogFooter>
             <AlertDialogCancel disabled={signing}>Cancelar</AlertDialogCancel>
             <AlertDialogAction

@@ -9,18 +9,18 @@ export const getClinicNav = (active: string) => [
     active: active === "home",
     group: "Principal",
   },
-  {
-    label: "Enviar Exame para Laudo",
-    href: "/dashboard/clinic/exam-upload?role=clinic",
-    icon: <NavIcon icon={<Upload className="w-3.5 h-3.5" />} color="green" />,
-    active: active === "exam-upload",
-    group: "Telelaudo",
-  },
-  {
-    label: "Meus Exames",
-    href: "/dashboard/clinic/exam-list?role=clinic",
-    icon: <NavIcon icon={<ClipboardList className="w-3.5 h-3.5" />} color="purple" />,
-    active: active === "exam-list",
-    group: "Telelaudo",
-  },
+  // {
+  //   label: "Enviar Exame para Laudo",
+  //   href: "/dashboard/clinic/exam-upload?role=clinic",
+  //   icon: <NavIcon icon={<Upload className="w-3.5 h-3.5" />} color="green" />,
+  //   active: active === "exam-upload",
+  //   group: "Telelaudo",
+  // },
+  // {
+  //   label: "Meus Exames",
+  //   href: "/dashboard/clinic/exam-list?role=clinic",
+  //   icon: <NavIcon icon={<ClipboardList className="w-3.5 h-3.5" />} color="purple" />,
+  //   active: active === "exam-list",
+  //   group: "Telelaudo",
+  // },
 ];

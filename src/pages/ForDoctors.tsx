@@ -1,7 +1,10 @@
 import { forwardRef, lazy } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Stethoscope, CurrencyDollar, CalendarBlank, Globe, ShieldCheck, ArrowRight, ChartLineUp, CheckCircle } from "@phosphor-icons/react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Stethoscope, CurrencyDollar, CalendarBlank, Globe, ShieldCheck, ArrowRight, ChartLineUp, CheckCircle, Lock } from "@phosphor-icons/react";
+import { TrendingUp, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/landing/Header";
 import SEOHead from "@/components/SEOHead";
@@ -66,6 +69,57 @@ const howItWorks = [
   },
 ];
 
+const faqItems = [
+  {
+    question: "Quanto eu ganho por consulta?",
+    answer: "A média é de R$ 30-80 por consulta de 20-30 min, dependendo da especialidade. Médicos de psicologia, cardiologia e dermatologia ganham mais. Você recebe 48h após a consulta.",
+  },
+  {
+    question: "Preciso abandonar meu consultório?",
+    answer: "Não! A teleconsulta é complemento de renda. Muitos médicos atendem 2-3 pacientes online entre consultas presenciais. Você controla 100% da sua agenda.",
+  },
+  {
+    question: "Vocês controlam meus horários?",
+    answer: "Zero controle. Você define quando está disponível (pode ser 3am, domingo, feriado — como quiser). Pacientes encaixam nos seus horários, não o contrário.",
+  },
+  {
+    question: "E se surgir dúvida sobre a plataforma?",
+    answer: "Time médico dedicado disponível 24/7 por chat, email e whatsapp. Temos também webinars mensais e documentação completa.",
+  },
+  {
+    question: "Meus dados de paciente ficam seguros?",
+    answer: "Sim. LGPD compliant, criptografia AES-256, prontuário eletrônico em nuvem, backup automático. Auditoria e conformidade 100% CFM/CREMESP.",
+  },
+];
+
+const testimonials = [
+  {
+    name: "Dr. Lucas Ferreira",
+    specialty: "Cardiologista",
+    income: "R$ 4.2k/mês",
+    quote: "Em 6 meses de teleconsulta, fiz mais consultas do que fazia em 1 ano de consultório físico. Flexibilidade total.",
+  },
+  {
+    name: "Dra. Marina Silva",
+    specialty: "Dermatologista",
+    income: "R$ 3.8k/mês",
+    quote: "Perfeito para pós-consulta e retornos. Menos deslocamento, mais renda, mesma qualidade.",
+  },
+  {
+    name: "Dr. Rafael Mendes",
+    specialty: "Psicólogo",
+    income: "R$ 5.1k/mês",
+    quote: "Meus pacientes adoram. Não perde ninguém por questão de deslocamento. Renda super consistente.",
+  },
+];
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const } },
+};
+
+const container = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } };
+
 const containerVariants = {
   hidden: {},
   show: { transition: { staggerChildren: 0.09 } },
@@ -93,7 +147,19 @@ const ForDoctors = forwardRef<HTMLDivElement>((_, ref) => {
 
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 relative overflow-hidden">
-        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
+        {/* Animated floating elements */}
+        <motion.div
+          className="absolute top-32 left-10 w-24 h-24 rounded-full bg-primary/15 blur-3xl"
+          animate={{ y: [0, 40, 0] }}
+          transition={{ duration: 6, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute bottom-20 right-10 w-32 h-32 rounded-full bg-secondary/10 blur-3xl"
+          animate={{ y: [0, -40, 0] }}
+          transition={{ duration: 8, repeat: Infinity, delay: 0.5 }}
+        />
+
+        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             <motion.div
               initial={{ opacity: 0, x: -32 }}
@@ -216,6 +282,79 @@ const ForDoctors = forwardRef<HTMLDivElement>((_, ref) => {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="py-20 px-4 bg-muted/20">
+        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
+          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <motion.div variants={fadeUp} className="text-center mb-16">
+              <Badge className="mb-4 text-sm px-4 py-1.5 rounded-full font-semibold bg-primary/10 text-primary border-primary/20">
+                ⭐ O Que Médicos Falam
+              </Badge>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground text-center mb-4 tracking-tight">
+                Histórias Reais de Sucesso
+              </h2>
+              <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto font-medium">
+                Médicos como você já aumentaram sua renda sem abandonar seu consultório
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              {testimonials.map((t, i) => (
+                <motion.div key={i} variants={fadeUp}>
+                  <Card className="h-full border-border/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group bg-card">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold group-hover:scale-110 transition-transform">
+                          {t.name.charAt(0)}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-foreground text-sm">{t.name}</h3>
+                          <p className="text-xs text-muted-foreground">{t.specialty}</p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground italic mb-4 leading-relaxed">"{t.quote}"</p>
+                      <div className="pt-4 border-t border-border/50">
+                        <p className="text-xs font-semibold text-primary flex items-center gap-1">
+                          <TrendingUp className="w-3.5 h-3.5" weight="fill" /> {t.income}/mês
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-20 px-4">
+        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
+          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-black text-foreground text-center mb-12 tracking-tight">
+              Dúvidas Frequentes
+            </motion.h2>
+            <div className="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+              {faqItems.map((faq, i) => (
+                <motion.div key={i} variants={fadeUp}>
+                  <Card className="h-full border-border/50 hover:shadow-lg hover:border-primary/20 transition-all group">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
+                          <Sparkles className="w-4 h-4 text-primary" weight="fill" />
+                        </div>
+                        <h3 className="font-bold text-foreground text-sm leading-snug">{faq.question}</h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed ml-11">{faq.answer}</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* CTA Final */}
       <section className="py-20 px-4">
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
@@ -229,10 +368,10 @@ const ForDoctors = forwardRef<HTMLDivElement>((_, ref) => {
             <div className="relative z-10 flex flex-col items-center justify-center gap-6 px-6 sm:px-10 py-16 sm:py-20 text-center">
               <div>
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-primary-foreground mb-2">
-                  Pronto para expandir sua prática?
+                  Sua Renda Extra em 5 Minutos
                 </h2>
                 <p className="text-lg text-primary-foreground/90 max-w-2xl mx-auto">
-                  Cadastro gratuito, sem compromisso. Aprovação garantida em até 24 horas.
+                  Cadastro gratuito, análise em 24h. Começar a atender no mesmo dia.
                 </p>
               </div>
               <Button
@@ -241,7 +380,7 @@ const ForDoctors = forwardRef<HTMLDivElement>((_, ref) => {
                 onClick={() => navigate("/medico/cadastro")}
               >
                 <CheckCircle className="w-5 h-5" weight="fill" />
-                Começar Agora
+                Quero Começar Agora
               </Button>
             </div>
           </motion.div>

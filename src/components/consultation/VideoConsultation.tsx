@@ -5,9 +5,10 @@
  */
 
 import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
-import { UserRound, VideoOff } from "lucide-react";
+import { UserRound, VideoOff, Monitor, MonitorOff, Circle, Download } from "lucide-react";
 import { motion } from "framer-motion";
 import { useWebRTC, type CallStatus } from "@/hooks/use-webrtc";
+import { useRecording } from "@/hooks/use-recording";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -17,8 +18,16 @@ export interface VideoConsultationHandle {
   toggleMute: () => void;
   toggleVideo: () => void;
   switchCamera: () => Promise<void>;
+  toggleScreenShare: () => Promise<void>;
+  startRecording: () => void;
+  stopRecording: () => void;
+  downloadRecording: (filename?: string) => void;
   isMuted: boolean;
   isVideoOff: boolean;
+  isScreenSharing: boolean;
+  isRecording: boolean;
+  hasRecording: boolean;
+  recordingDuration: number;
   status: CallStatus;
 }
 
@@ -48,17 +57,23 @@ const VideoConsultation = forwardRef<VideoConsultationHandle, VideoConsultationP
 
     const localVideoRef = useRef<HTMLVideoElement>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
+    const screenVideoRef = useRef<HTMLVideoElement>(null);
+    const remoteScreenVideoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const {
       localStream,
       remoteStream,
+      screenStream,
+      remoteScreenStream,
       status,
       isMuted,
       isVideoOff,
+      isScreenSharing,
       toggleMute,
       toggleVideo,
       switchCamera,
+      toggleScreenShare,
       hangUp,
       startCall,
     } = useWebRTC({
@@ -68,19 +83,99 @@ const VideoConsultation = forwardRef<VideoConsultationHandle, VideoConsultationP
       displayName: userName,
     });
 
+    const {
+      status: recordingStatus,
+      recordingDuration,
+      recordedBlob,
+      startRecording: startRecordingInternal,
+      stopRecording: stopRecordingInternal,
+      downloadRecording,
+      isRecording,
+      hasRecording,
+    } = useRecording({
+      mimeType: "video/webm",
+      videoBitsPerSecond: 2500000,
+      audioBitsPerSecond: 128000,
+    });
+
     useImperativeHandle(ref, () => ({
       hangUp,
       toggleMute,
       toggleVideo,
       switchCamera,
+      toggleScreenShare,
+      startRecording,
+      stopRecording,
+      downloadRecording,
       isMuted,
       isVideoOff,
+      isScreenSharing,
+      isRecording,
+      hasRecording,
+      recordingDuration,
       status,
-    }), [hangUp, toggleMute, toggleVideo, switchCamera, isMuted, isVideoOff, status]);
+    }), [hangUp, toggleMute, toggleVideo, switchCamera, toggleScreenShare, isMuted, isVideoOff, isScreenSharing, isRecording, hasRecording, recordingDuration, status]);
 
     useEffect(() => {
       onStatusChange?.(status);
     }, [status, onStatusChange]);
+
+    // ─── Criar stream combinado para gravação ───────────────────────────────────
+    const createRecordingStream = useRef(() => {
+      try {
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const recordingStream = new MediaStream();
+
+        // Adicionar áudio local
+        if (localStream) {
+          localStream.getAudioTracks().forEach((track) => {
+            recordingStream.addTrack(track);
+          });
+        }
+
+        // Adicionar áudio remoto
+        if (remoteStream) {
+          remoteStream.getAudioTracks().forEach((track) => {
+            recordingStream.addTrack(track);
+          });
+        }
+
+        // Adicionar vídeo local
+        if (localStream) {
+          localStream.getVideoTracks().forEach((track) => {
+            recordingStream.addTrack(track);
+          });
+        }
+
+        // Adicionar vídeo remoto
+        if (remoteStream) {
+          remoteStream.getVideoTracks().forEach((track) => {
+            recordingStream.addTrack(track);
+          });
+        }
+
+        // Adicionar vídeo de tela compartilhada (se existir)
+        if (screenStream) {
+          screenStream.getVideoTracks().forEach((track) => {
+            recordingStream.addTrack(track);
+          });
+        }
+
+        return recordingStream;
+      } catch (err) {
+        console.error("Error creating recording stream:", err);
+        return new MediaStream();
+      }
+    });
+
+    const startRecording = () => {
+      const recordingStream = createRecordingStream.current();
+      startRecordingInternal(recordingStream);
+    };
+
+    const stopRecording = () => {
+      stopRecordingInternal();
+    };
 
     // Iniciar chamada automaticamente
     useEffect(() => {
@@ -100,6 +195,18 @@ const VideoConsultation = forwardRef<VideoConsultationHandle, VideoConsultationP
         remoteVideoRef.current.srcObject = remoteStream;
       }
     }, [remoteStream]);
+
+    useEffect(() => {
+      if (screenVideoRef.current && screenStream) {
+        screenVideoRef.current.srcObject = screenStream;
+      }
+    }, [screenStream]);
+
+    useEffect(() => {
+      if (remoteScreenVideoRef.current && remoteScreenStream) {
+        remoteScreenVideoRef.current.srcObject = remoteScreenStream;
+      }
+    }, [remoteScreenStream]);
 
     // Som de entrada (beep suave)
     useEffect(() => {
@@ -131,6 +238,14 @@ const VideoConsultation = forwardRef<VideoConsultationHandle, VideoConsultationP
     const isWaiting = status === "idle" || status === "requesting_media" || status === "waiting_peer";
     const isActive = status === "connected" || status === "connecting" || status === "reconnecting";
     const hasRemoteVideo = remoteStream && remoteStream.getVideoTracks().some(t => t.enabled);
+    const hasRemoteScreen = remoteScreenStream && remoteScreenStream.getVideoTracks().some(t => t.enabled);
+    const hasLocalScreen = screenStream && screenStream.getVideoTracks().some(t => t.enabled);
+
+    const formatDurationDisplay = (seconds: number): string => {
+      const minutes = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${minutes}:${secs.toString().padStart(2, "0")}`;
+    };
 
     return (
       <div
@@ -148,8 +263,18 @@ const VideoConsultation = forwardRef<VideoConsultationHandle, VideoConsultationP
           }`}
         />
 
+        {/* ===== Screen Share — Tela cheia quando ativado ===== */}
+        {(hasLocalScreen || hasRemoteScreen) && (
+          <video
+            ref={hasLocalScreen ? screenVideoRef : remoteScreenVideoRef}
+            autoPlay
+            playsInline
+            className="absolute inset-0 w-full h-full object-contain z-[2] bg-black"
+          />
+        )}
+
         {/* ===== Placeholder quando sem vídeo remoto ===== */}
-        {(!hasRemoteVideo || !isActive) && (
+        {(!hasRemoteVideo || !isActive) && !hasRemoteScreen && (
           <div className="absolute inset-0 z-[1] flex items-center justify-center">
             <div className="flex flex-col items-center gap-5">
               <div className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-[hsl(220,20%,12%)] border-2 border-[hsl(220,15%,20%)] flex items-center justify-center">
@@ -215,11 +340,133 @@ const VideoConsultation = forwardRef<VideoConsultationHandle, VideoConsultationP
           </div>
         </motion.div>
 
+        {/* ===== Controles de Vídeo — Bottom Center ===== */}
+        {isActive && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="absolute bottom-0 left-0 right-0 z-20 flex justify-center items-center gap-3 pb-6 px-4"
+          >
+            <Button
+              onClick={toggleMute}
+              variant={isMuted ? "destructive" : "default"}
+              size="lg"
+              className="rounded-full w-12 h-12 p-0 min-h-[48px] min-w-[48px]"
+              title={isMuted ? "Desmutetar" : "Mutetar"}
+            >
+              {isMuted ? "🔇" : "🔊"}
+            </Button>
+
+            <Button
+              onClick={toggleVideo}
+              variant={isVideoOff ? "destructive" : "default"}
+              size="lg"
+              className="rounded-full w-12 h-12 p-0 min-h-[48px] min-w-[48px]"
+              title={isVideoOff ? "Ligar câmera" : "Desligar câmera"}
+            >
+              {isVideoOff ? "📹" : "🎥"}
+            </Button>
+
+            {isMobile && (
+              <Button
+                onClick={switchCamera}
+                variant="outline"
+                size="lg"
+                className="rounded-full w-12 h-12 p-0 min-h-[48px] min-w-[48px] border-white/20 text-white"
+                title="Trocar câmera"
+              >
+                🔄
+              </Button>
+            )}
+
+            <Button
+              onClick={toggleScreenShare}
+              variant={isScreenSharing ? "default" : "outline"}
+              size="lg"
+              className={`rounded-full w-12 h-12 p-0 min-h-[48px] min-w-[48px] ${
+                isScreenSharing
+                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "border-white/20 text-white hover:bg-white/10"
+              }`}
+              title={isScreenSharing ? "Parar compartilhamento" : "Compartilhar tela"}
+            >
+              {isScreenSharing ? <Monitor className="w-5 h-5" /> : <MonitorOff className="w-5 h-5" />}
+            </Button>
+
+            <Button
+              onClick={isRecording ? stopRecording : startRecording}
+              variant={isRecording ? "destructive" : "outline"}
+              size="lg"
+              className={`rounded-full w-12 h-12 p-0 min-h-[48px] min-w-[48px] ${
+                isRecording
+                  ? "bg-red-600 hover:bg-red-700 text-white"
+                  : "border-white/20 text-white hover:bg-white/10"
+              }`}
+              title={isRecording ? "Parar gravação" : "Iniciar gravação"}
+            >
+              {isRecording ? (
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 0.6, repeat: Infinity }}
+                >
+                  <Circle className="w-5 h-5 fill-current" />
+                </motion.div>
+              ) : (
+                "🔴"
+              )}
+            </Button>
+
+            {hasRecording && !isRecording && (
+              <Button
+                onClick={() => downloadRecording(`consulta-${new Date().toISOString().slice(0, 10)}.webm`)}
+                variant="outline"
+                size="lg"
+                className="rounded-full w-12 h-12 p-0 min-h-[48px] min-w-[48px] border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10"
+                title="Baixar gravação"
+              >
+                <Download className="w-5 h-5" />
+              </Button>
+            )}
+
+            <Button
+              onClick={hangUp}
+              variant="destructive"
+              size="lg"
+              className="rounded-full w-12 h-12 p-0 min-h-[48px] min-w-[48px]"
+              title="Encerrar chamada"
+            >
+              ☎️
+            </Button>
+          </motion.div>
+        )}
+
         {/* ===== Indicador de reconexão ===== */}
         {status === "reconnecting" && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-4 py-2 rounded-full bg-amber-500/90 text-white text-xs font-medium flex items-center gap-2 shadow-lg backdrop-blur-sm">
             <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
             Reconectando...
+          </div>
+        )}
+
+        {/* ===== Indicador de Compartilhamento ===== */}
+        {isScreenSharing && (
+          <div className="absolute top-4 right-4 z-20 px-3 py-2 rounded-full bg-blue-600/90 text-white text-xs font-medium flex items-center gap-2 shadow-lg backdrop-blur-sm">
+            <Monitor className="w-3 h-3" />
+            Compartilhando tela
+          </div>
+        )}
+
+        {/* ===== Indicador de Gravação ===== */}
+        {isRecording && (
+          <div className="absolute top-4 left-4 z-20 px-3 py-2 rounded-full bg-red-600/90 text-white text-xs font-medium flex items-center gap-2 shadow-lg backdrop-blur-sm">
+            <motion.div
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 0.6, repeat: Infinity }}
+            >
+              <Circle className="w-3 h-3 fill-current" />
+            </motion.div>
+            Gravando {recordingDuration > 0 && `(${formatDurationDisplay(recordingDuration)})`}
           </div>
         )}
       </div>

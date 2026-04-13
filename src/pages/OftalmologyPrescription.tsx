@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { ArrowLeft, Glasses, Save } from "lucide-react";
+import { ArrowLeft, Glasses, Save, CheckCircle2, Loader2 } from "lucide-react";
+import { useDigitalSignature } from "@/hooks/useDigitalSignature";
 
 interface PrescriptionData {
   prescription_type: string;
@@ -30,16 +31,21 @@ interface PrescriptionData {
 
 export default function OftalmologyPrescription() {
   const { appointmentId } = useParams();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const { signPrescription, signing } = useDigitalSignature();
+
   const [examId, setExamId] = useState<string | null>(null);
   const [patientId, setPatientId] = useState<string | null>(null);
   const [patientName, setPatientName] = useState("");
+  const [doctorName, setDoctorName] = useState("");
+  const [doctorCRM, setDoctorCRM] = useState("");
   const [prescription, setPrescription] = useState<Partial<PrescriptionData>>({
     prescription_type: "glasses",
     recommended_use: "Uso geral",
   });
   const [saving, setSaving] = useState(false);
+  const [isSigned, setIsSigned] = useState(false);
 
   useEffect(() => {
     if (!appointmentId || !user) return;
@@ -74,6 +80,18 @@ export default function OftalmologyPrescription() {
           os_axis: exam.os_axis,
         }));
       }
+
+      // Load doctor info
+      const { data: doctorData } = await supabase
+        .from("doctor_profiles")
+        .select("first_name, last_name, crm, crm_state")
+        .eq("user_id", user.id)
+        .single();
+
+      if (doctorData) {
+        setDoctorName(`${doctorData.first_name} ${doctorData.last_name}`);
+        setDoctorCRM(`${doctorData.crm}/${doctorData.crm_state}`);
+      }
     };
 
     fetch();
@@ -101,6 +119,83 @@ export default function OftalmologyPrescription() {
       navigate(`/oftalmologista`);
     } catch (error) {
       toast.error("Erro ao emitir prescrição");
+      console.error(error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSignAndSave = async () => {
+    if (!examId || !patientId || !user || !profile) return;
+
+    setSaving(true);
+    try {
+      // 1. Salvar prescrição
+      const { data: prescriptionData, error: insertError } = await supabase
+        .from("ophthalmology_prescriptions")
+        .insert([
+          {
+            exam_id: examId,
+            patient_id: patientId,
+            doctor_id: user.id,
+            ...prescription,
+          },
+        ])
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      // 2. Assinar digitalmente
+      const prescriptionContent = JSON.stringify({
+        tipo: "Prescrição Oftalmológica",
+        paciente: patientName,
+        medico: doctorName,
+        crm: doctorCRM,
+        oD: {
+          esfera: prescription.od_sphere,
+          cilindro: prescription.od_cylinder,
+          eixo: prescription.od_axis,
+          adicao: prescription.od_add,
+        },
+        oE: {
+          esfera: prescription.os_sphere,
+          cilindro: prescription.os_cylinder,
+          eixo: prescription.os_axis,
+          adicao: prescription.os_add,
+        },
+        distanciaPupilar: prescription.pupillary_distance,
+        uso: prescription.recommended_use,
+        observacoes: prescription.observations,
+        timestamp: new Date().toISOString(),
+      });
+
+      const encoder = new TextEncoder();
+      const data = encoder.encode(prescriptionContent);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const base64Content = btoa(prescriptionContent);
+
+      const signedDoc = await signPrescription({
+        fileName: `prescricao-oftalmologia-${examId}.pdf`,
+        fileBase64: base64Content,
+        doctorName,
+        doctorCRM,
+        doctorCPF: profile.cpf || "CPF_NAO_DISPONIVEL",
+        prescriptionId: prescriptionData.id,
+        documentType: "exam",
+      });
+
+      if (!signedDoc) {
+        toast.error("Erro ao assinar prescrição digitalmente");
+        return;
+      }
+
+      setIsSigned(true);
+      toast.success("✅ Prescrição assinada digitalmente com sucesso!");
+      setTimeout(() => navigate(`/oftalmologista`), 1500);
+    } catch (error) {
+      toast.error("Erro ao emitir e assinar prescrição");
       console.error(error);
     } finally {
       setSaving(false);
@@ -352,17 +447,36 @@ export default function OftalmologyPrescription() {
             <Button
               variant="outline"
               onClick={() => navigate(-1)}
+              disabled={saving || signing || isSigned}
               className="border-gray-300 text-gray-700 hover:bg-gray-50"
             >
               Cancelar
             </Button>
             <Button
               onClick={savePrescription}
-              disabled={saving}
-              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+              disabled={saving || signing || isSigned}
+              className="bg-gray-600 hover:bg-gray-700 text-white flex items-center gap-2"
             >
               <Save className="h-4 w-4" />
-              {saving ? "Emitindo..." : "Emitir Prescrição"}
+              {saving ? "Salvando..." : "Apenas Salvar"}
+            </Button>
+            <Button
+              onClick={handleSignAndSave}
+              disabled={saving || signing || isSigned}
+              className={`flex items-center gap-2 text-white ${
+                isSigned
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              {signing || saving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : isSigned ? (
+                <CheckCircle2 className="h-4 w-4" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4" />
+              )}
+              {signing || saving ? "Assinando..." : isSigned ? "✅ Assinada" : "🔐 Emitir e Assinar"}
             </Button>
           </motion.div>
         </motion.div>
