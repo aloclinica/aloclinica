@@ -110,7 +110,7 @@ export default function SignupClinic() {
       if (!authData.user) throw new Error("Falha ao criar usuário");
 
       // 2. Create clinic profile
-      const { error: profileError } = await supabase.from("profiles").insert([
+      const { error: profileError } = await (supabase as any).from("profiles").insert([
         {
           id: authData.user.id,
           full_name: formData.representative_name,
