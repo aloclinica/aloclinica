@@ -71,6 +71,7 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
 
   const mobileLinks = [
     { label: "Teleconsulta", href: "/teleconsulta" },
+    { label: "Oftalmologia", href: "/oftalmologia" },
     { label: "Sou Médico", href: "/medico" },
     { label: "Sou Laudista", href: "/laudista" },
     { label: "Sou Clínica", href: "/clinica" },
@@ -113,6 +114,9 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
                     <ul className="grid gap-0.5">
                       <ListItem href="/teleconsulta" title="Teleconsulta" icon={VideoCamera} badge="24h">
                         Consultas por vídeo com especialistas, receita digital e acesso rápido.
+                      </ListItem>
+                      <ListItem href="/oftalmologia" title="Oftalmologia" icon={Eye}>
+                        Exames, laudos e receitas para óculos e lentes de contato.
                       </ListItem>
                       <ListItem href="/paciente" title="Consulta Avulsa" icon={Stethoscope}>
                         Atendimento rápido, seguro e sem burocracia.
