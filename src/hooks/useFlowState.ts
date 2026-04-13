@@ -145,7 +145,7 @@ export function useFlowState(options: FlowStateHookOptions = {}) {
               { role: userRole, operation, permission },
               false
             );
-            options.onPermissionDenied?.(permission);
+            (options as any).onPermissionDenied?.(permission);
             return false;
           }
         }

@@ -26,7 +26,7 @@ import PostConsultationSummary from "./PostConsultationSummary";
 import PatientInfoPanel from "./PatientInfoPanel";
 import DoctorInfoPanel from "./DoctorInfoPanel";
 import { ConsultationChatPanel } from "./ConsultationChatPanel";
-import { useSOAPNotes } from "@/hooks/useSOAPNotes";
+import { useSOAPNotes, type SOAPNotes } from "@/hooks/useSOAPNotes";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -481,7 +481,7 @@ const VideoRoom = () => {
     if (!file || !user) return;
     try {
       const fileUrl = await handleFileUploadForChat(file);
-      await sendMessage(fileUrl, file.name, file.type);
+      await sendMessage(fileUrl, file.name, file.type.startsWith("image") ? "image" : "document");
     } catch (err) {
       logError("File upload error", err);
       toast.error("Erro ao enviar arquivo");
@@ -646,12 +646,13 @@ const VideoRoom = () => {
 
   // Show "Saved" indicator for 3 seconds after SOAP notes are saved
   useEffect(() => {
-    if (soap.isSaving) return;
+    if (soap.isSaving) return undefined;
     if (!soap.isDirty && soap.lastSaved) {
       setShowSavedIndicator(true);
       const timer = setTimeout(() => setShowSavedIndicator(false), 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [soap.isSaving, soap.isDirty, soap.lastSaved]);
 
   // Auto-save SOAP notes every 30 seconds
