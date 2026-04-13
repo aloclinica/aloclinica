@@ -46,6 +46,7 @@ const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const DoctorPublicProfilePage = lazy(() => import("./pages/DoctorPublicProfilePage"));
 
 const B2BTelelaudo = lazy(() => import("./pages/B2BTelelaudo"));
+const Oftalmologia = lazy(() => import("./pages/Oftalmologia"));
 
 const Teleconsulta = lazy(() => import("./pages/Teleconsulta"));
 const Telelaudo = lazy(() => import("./pages/Telelaudo"));
@@ -139,6 +140,7 @@ const AnimatedRoutes = () => {
       
       <Route path="/para-empresas/telelaudo" element={<B2BTelelaudo />} />
       <Route path="/teleconsulta" element={<Teleconsulta />} />
+      <Route path="/oftalmologia" element={<Oftalmologia />} />
       
       <Route path="/telelaudo" element={<Navigate to="/laudista" replace />} />
       <Route path="/laudista" element={<AuthLaudista />} />
