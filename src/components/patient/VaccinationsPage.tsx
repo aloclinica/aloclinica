@@ -44,7 +44,7 @@ export default function VaccinationsPage() {
     queryKey: ["vaccinations", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("vaccination_records" as any).select("*").eq("patient_id", user!.id).order("date_given", { ascending: false });
-      return (data ?? []) as VaccRecord[];
+      return (data ?? []) as unknown as VaccRecord[];
     },
     enabled: !!user,
   });

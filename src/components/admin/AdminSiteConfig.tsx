@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getAdminNav } from "./adminNav";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,11 +13,14 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Save, RefreshCw, Plus, Trash2, Pencil, X, Star,
   Globe, Palette, Search, Plug, LayoutTemplate, SlidersHorizontal,
   MessageSquareQuote, CircleDollarSign, HelpCircle, Image, GripVertical, Check,
+  AlertTriangle, Eye, EyeOff, Undo2, CheckCircle2, Copy, ExternalLink,
 } from "lucide-react";
 import { warn } from "@/lib/logger";
 import { invalidateSiteConfig } from "@/lib/site-config";
@@ -70,11 +73,51 @@ type ConfigRow = {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const SaveBtn = ({ onSave, saving }: { onSave: () => void; saving: boolean }) => (
-  <Button onClick={onSave} disabled={saving}>
-    {saving ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-    {saving ? "Salvando…" : "Salvar"}
+const MotionCard = motion.create(Card);
+
+const cardAnim = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.3 },
+};
+
+const SaveBtn = ({ onSave, saving, hasChanges }: { onSave: () => void; saving: boolean; hasChanges?: boolean }) => (
+  <Button onClick={onSave} disabled={saving} className="gap-2" size="sm">
+    {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+    {saving ? "Salvando…" : "Salvar alterações"}
+    {hasChanges && !saving && (
+      <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+    )}
   </Button>
+);
+
+const EmptyState = ({ icon: Icon, title, description, action }: { icon: React.ElementType; title: string; description: string; action?: React.ReactNode }) => (
+  <div className="flex flex-col items-center justify-center py-16 text-center">
+    <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+      <Icon className="w-7 h-7 text-muted-foreground" />
+    </div>
+    <p className="text-sm font-medium text-foreground mb-1">{title}</p>
+    <p className="text-xs text-muted-foreground max-w-[280px] mb-4">{description}</p>
+    {action}
+  </div>
+);
+
+const SectionSkeleton = () => (
+  <div className="space-y-4">
+    {[1, 2, 3].map((i) => (
+      <div key={i} className="space-y-2">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+    ))}
+  </div>
+);
+
+const StatPill = ({ label, count, color = "muted" }: { label: string; count: number; color?: string }) => (
+  <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-${color}/10 text-${color}-foreground border border-${color}/20`}>
+    <span className="text-foreground font-bold">{count}</span>
+    {label}
+  </div>
 );
 
 const ConfigField = ({
@@ -90,8 +133,10 @@ const ConfigField = ({
 
   if (row.input_type === "boolean") {
     return (
-      <div className="flex items-center justify-between py-2.5 border-b border-border last:border-0">
-        <Label className="font-normal text-sm">{row.label}</Label>
+      <div className="flex items-center justify-between py-3 px-3 rounded-lg border border-border/50 bg-card/50 hover:bg-accent/30 transition-colors">
+        <div className="flex-1 min-w-0">
+          <Label className="font-normal text-sm cursor-pointer">{row.label}</Label>
+        </div>
         <Switch checked={v === "true"} onCheckedChange={(c) => onChange(row.key, String(c))} />
       </div>
     );
@@ -99,19 +144,21 @@ const ConfigField = ({
   if (row.input_type === "textarea") {
     return (
       <div className="space-y-1.5">
-        <Label className="text-sm">{row.label}</Label>
-        <Textarea value={v} onChange={(e) => onChange(row.key, e.target.value)} className="resize-none min-h-[80px]" placeholder={row.label} />
+        <Label className="text-sm font-medium">{row.label}</Label>
+        <Textarea value={v} onChange={(e) => onChange(row.key, e.target.value)} className="resize-none min-h-[80px] bg-card/50" placeholder={row.label} />
       </div>
     );
   }
   if (row.input_type === "color") {
     return (
       <div className="space-y-1.5">
-        <Label className="text-sm">{row.label}</Label>
+        <Label className="text-sm font-medium">{row.label}</Label>
         <div className="flex items-center gap-3">
-          <input type="color" value={v || "#000000"} onChange={(e) => onChange(row.key, e.target.value)} className="w-10 h-10 rounded-lg border border-border cursor-pointer p-0.5" />
-          <Input value={v} onChange={(e) => onChange(row.key, e.target.value)} className="font-mono uppercase w-32" placeholder="#000000" maxLength={7} />
-          {v && <span className="w-8 h-8 rounded-lg border border-border shadow-sm" style={{ backgroundColor: v }} />}
+          <div className="relative">
+            <input type="color" value={v || "#000000"} onChange={(e) => onChange(row.key, e.target.value)} className="w-12 h-12 rounded-xl border-2 border-border cursor-pointer p-1 bg-transparent" />
+          </div>
+          <Input value={v} onChange={(e) => onChange(row.key, e.target.value)} className="font-mono uppercase w-32 bg-card/50" placeholder="#000000" maxLength={7} />
+          {v && <span className="w-10 h-10 rounded-xl border-2 border-border shadow-sm ring-2 ring-offset-2 ring-offset-background ring-transparent" style={{ backgroundColor: v }} />}
         </div>
       </div>
     );
@@ -119,13 +166,19 @@ const ConfigField = ({
   if (row.input_type === "url") {
     return (
       <div className="space-y-1.5">
-        <Label className="text-sm">{row.label}</Label>
+        <Label className="text-sm font-medium">{row.label}</Label>
         <div className="flex gap-2">
-          <Input value={v} onChange={(e) => onChange(row.key, e.target.value)} placeholder="https://" className="flex-1" />
-          {v && <a href={v} target="_blank" rel="noopener noreferrer"><Button variant="outline" size="icon" type="button" tabIndex={-1}><Image className="w-4 h-4" /></Button></a>}
+          <Input value={v} onChange={(e) => onChange(row.key, e.target.value)} placeholder="https://" className="flex-1 bg-card/50" />
+          {v && (
+            <Button variant="outline" size="icon" type="button" tabIndex={-1} asChild>
+              <a href={v} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-4 h-4" /></a>
+            </Button>
+          )}
         </div>
         {v && /\.(png|jpg|jpeg|gif|webp|svg)(\?.*)?$/i.test(v) && (
-          <img src={v} alt="preview" className="mt-1 h-14 w-auto rounded-lg border border-border object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+          <div className="mt-2 p-2 rounded-lg border border-border bg-muted/30">
+            <img src={v} alt="preview" className="h-16 w-auto rounded-lg object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+          </div>
         )}
       </div>
     );
@@ -133,15 +186,15 @@ const ConfigField = ({
   if (row.input_type === "number") {
     return (
       <div className="space-y-1.5">
-        <Label className="text-sm">{row.label}</Label>
-        <Input type="number" value={v} onChange={(e) => onChange(row.key, e.target.value)} className="w-32" />
+        <Label className="text-sm font-medium">{row.label}</Label>
+        <Input type="number" value={v} onChange={(e) => onChange(row.key, e.target.value)} className="w-32 bg-card/50" />
       </div>
     );
   }
   return (
     <div className="space-y-1.5">
-      <Label className="text-sm">{row.label}</Label>
-      <Input value={v} onChange={(e) => onChange(row.key, e.target.value)} placeholder={row.label} />
+      <Label className="text-sm font-medium">{row.label}</Label>
+      <Input value={v} onChange={(e) => onChange(row.key, e.target.value)} placeholder={row.label} className="bg-card/50" />
     </div>
   );
 };
@@ -151,12 +204,48 @@ const ConfigField = ({
 const StarRating = ({ value, onChange }: { value: number; onChange: (v: number) => void }) => (
   <div className="flex gap-1">
     {[1, 2, 3, 4, 5].map((s) => (
-      <button key={s} type="button" onClick={() => onChange(s)}>
-        <Star className={`w-5 h-5 ${s <= value ? "text-amber-400 fill-amber-400" : "text-muted-foreground"}`} />
+      <button key={s} type="button" onClick={() => onChange(s)} className="transition-transform hover:scale-110">
+        <Star className={`w-5 h-5 transition-colors ${s <= value ? "text-amber-400 fill-amber-400" : "text-muted-foreground/30"}`} />
       </button>
     ))}
   </div>
 );
+
+// ── JSON Validator ────────────────────────────────────────────────────────────
+
+const JsonField = ({ value, onChange, placeholder, minH = "180px", hint }: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  minH?: string;
+  hint?: string;
+}) => {
+  const isValid = useMemo(() => {
+    if (!value?.trim()) return null;
+    try { JSON.parse(value); return true; } catch { return false; }
+  }, [value]);
+
+  return (
+    <div className="space-y-2">
+      <div className="relative">
+        <Textarea
+          className={`font-mono text-xs bg-card/50 ${isValid === false ? "border-destructive/50 focus-visible:ring-destructive/30" : isValid === true ? "border-emerald-500/50" : ""}`}
+          style={{ minHeight: minH }}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+        />
+        {isValid !== null && (
+          <div className={`absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${isValid ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive"}`}>
+            {isValid ? <CheckCircle2 className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
+            {isValid ? "JSON válido" : "JSON inválido"}
+          </div>
+        )}
+      </div>
+      {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
+    </div>
+  );
+};
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
@@ -166,6 +255,7 @@ const AdminSiteConfig = () => {
   // Config key-value
   const [configRows, setConfigRows] = useState<ConfigRow[]>([]);
   const [values, setValues] = useState<ConfigMap>({});
+  const [savedValues, setSavedValues] = useState<ConfigMap>({});
   const [savingCat, setSavingCat] = useState<string | null>(null);
 
   // Plans
@@ -189,9 +279,16 @@ const AdminSiteConfig = () => {
 
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("geral");
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Delete confirmation
   const [deleteTarget, setDeleteTarget] = useState<{ type: "plan" | "testimonial" | "faq"; id: string; label: string } | null>(null);
+
+  // Unsaved changes detection
+  const hasUnsavedChanges = useCallback((cat: string) => {
+    const catRows = configRows.filter((r) => r.category === cat);
+    return catRows.some((r) => (values[r.key] ?? "") !== (savedValues[r.key] ?? ""));
+  }, [configRows, values, savedValues]);
 
   // ── Data loading ───────────────────────────────────────────────────────────
 
@@ -202,15 +299,16 @@ const AdminSiteConfig = () => {
     const map: ConfigMap = {};
     for (const r of data ?? []) map[r.key] = r.value ?? "";
     setValues(map);
+    setSavedValues(map);
   }, []);
 
   const loadPlans = useCallback(async () => {
     const { data, error } = await supabase.from("plans").select("*").order("price");
     if (error) { warn("[SiteConfig] plans error", error); return; }
-    setPlans((data ?? []).map((p: any) => ({
+    setPlans((data ?? []).map((p: Record<string, unknown>) => ({
       ...p,
       features: Array.isArray(p.features) ? p.features : [],
-    })));
+    })) as Plan[]);
   }, []);
 
   const loadTestimonials = useCallback(async () => {
@@ -238,13 +336,33 @@ const AdminSiteConfig = () => {
   const saveCategory = async (cat: string) => {
     setSavingCat(cat);
     const catRows = configRows.filter((r) => r.category === cat);
-    await Promise.all(catRows.map((r) =>
+    const changedRows = catRows.filter((r) => (values[r.key] ?? "") !== (savedValues[r.key] ?? ""));
+    if (changedRows.length === 0) {
+      toast.info("Nenhuma alteração para salvar");
+      setSavingCat(null);
+      return;
+    }
+    await Promise.all(changedRows.map((r) =>
       supabase.from("site_config").update({ value: values[r.key] ?? "" }).eq("key", r.key)
     ));
-    toast.success("Configurações salvas!");
+    toast.success(`${changedRows.length} configuração${changedRows.length > 1 ? "ões" : ""} salva${changedRows.length > 1 ? "s" : ""}!`);
     invalidateSiteConfig();
-    loadConfig();
+    setSavedValues((prev) => {
+      const next = { ...prev };
+      for (const r of changedRows) next[r.key] = values[r.key] ?? "";
+      return next;
+    });
     setSavingCat(null);
+  };
+
+  const resetCategory = (cat: string) => {
+    const catRows = configRows.filter((r) => r.category === cat);
+    setValues((prev) => {
+      const next = { ...prev };
+      for (const r of catRows) next[r.key] = savedValues[r.key] ?? "";
+      return next;
+    });
+    toast.info("Alterações descartadas");
   };
 
   const handleChange = (key: string, val: string) => setValues((p) => ({ ...p, [key]: val }));
@@ -400,6 +518,62 @@ const AdminSiteConfig = () => {
     loadFaq();
   };
 
+  // ── Filtered FAQ items ─────────────────────────────────────────────────────
+
+  const filteredFaq = useMemo(() => {
+    if (!searchTerm.trim()) return faqItems;
+    const term = searchTerm.toLowerCase();
+    return faqItems.filter((f) =>
+      f.question.toLowerCase().includes(term) ||
+      f.answer.toLowerCase().includes(term) ||
+      (f.category ?? "").toLowerCase().includes(term)
+    );
+  }, [faqItems, searchTerm]);
+
+  // ── Tab config ─────────────────────────────────────────────────────────────
+
+  const tabItems = useMemo(() => [
+    { id: "geral", label: "Geral", icon: Globe, count: rows("geral").length },
+    { id: "landing", label: "Landing", icon: LayoutTemplate },
+    { id: "cards", label: "Cards / JSON", icon: LayoutTemplate },
+    { id: "secoes", label: "Seções", icon: SlidersHorizontal, count: rows("secoes").length },
+    { id: "planos", label: "Planos", icon: CircleDollarSign, count: plans.length },
+    { id: "depoimentos", label: "Depoimentos", icon: MessageSquareQuote, count: testimonials.length },
+    { id: "faq", label: "FAQ", icon: HelpCircle, count: faqItems.length },
+    { id: "aparencia", label: "Aparência", icon: Palette },
+    { id: "seo", label: "SEO", icon: Search },
+    { id: "integracoes", label: "Integrações", icon: Plug },
+  ], [configRows, plans.length, testimonials.length, faqItems.length]);
+
+  // ── Category save bar ──────────────────────────────────────────────────────
+
+  const CategorySaveBar = ({ cat }: { cat: string }) => {
+    const changed = hasUnsavedChanges(cat);
+    return (
+      <AnimatePresence>
+        {changed && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            className="mt-4 flex items-center justify-between gap-3 p-3 rounded-xl border border-amber-500/30 bg-amber-500/5"
+          >
+            <div className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400">
+              <AlertTriangle className="w-4 h-4" />
+              <span>Alterações não salvas</span>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" onClick={() => resetCategory(cat)} className="gap-1.5 text-xs h-8">
+                <Undo2 className="w-3.5 h-3.5" />Descartar
+              </Button>
+              <SaveBtn onSave={() => saveCategory(cat)} saving={savingCat === cat} hasChanges />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  };
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
@@ -407,40 +581,63 @@ const AdminSiteConfig = () => {
       <div className="space-y-6 pb-24 md:pb-8">
 
         {/* Header */}
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Configuração da Plataforma</h1>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              Configuração da Plataforma
+              {values["maintenance_mode"] === "true" && (
+                <Badge variant="destructive" className="text-[10px] animate-pulse">MANUTENÇÃO</Badge>
+              )}
+            </h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              Edite textos, imagens, planos, depoimentos, FAQ, cores e integrações sem código.
+              Gerencie textos, imagens, planos, depoimentos, FAQ, cores e integrações.
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={loadAll} disabled={loading} className="shrink-0">
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-            Recarregar
-          </Button>
+          <div className="flex items-center gap-2">
+            {!loading && (
+              <div className="hidden md:flex items-center gap-2 mr-2">
+                <Badge variant="outline" className="text-[10px] gap-1 font-normal">
+                  <span className="font-bold text-foreground">{configRows.length}</span> configs
+                </Badge>
+                <Badge variant="outline" className="text-[10px] gap-1 font-normal">
+                  <span className="font-bold text-foreground">{plans.length}</span> planos
+                </Badge>
+                <Badge variant="outline" className="text-[10px] gap-1 font-normal">
+                  <span className="font-bold text-foreground">{testimonials.length}</span> depoimentos
+                </Badge>
+              </div>
+            )}
+            <Button variant="outline" size="sm" onClick={loadAll} disabled={loading} className="shrink-0 gap-2">
+              <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+              Recarregar
+            </Button>
+          </div>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-24 text-muted-foreground text-sm">
-            Carregando configurações…
+          <div className="space-y-6">
+            <div className="flex gap-2 overflow-hidden">
+              {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-9 w-24 rounded-lg shrink-0" />)}
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              {[1, 2].map((i) => (
+                <Card key={i}>
+                  <CardHeader><Skeleton className="h-5 w-32" /></CardHeader>
+                  <CardContent><SectionSkeleton /></CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         ) : (
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="flex flex-wrap gap-1 h-auto p-1 mb-6">
-              {[
-                { id: "geral",        label: "Geral",          icon: <Globe               className="w-3.5 h-3.5" /> },
-                { id: "landing",      label: "Landing",        icon: <LayoutTemplate      className="w-3.5 h-3.5" /> },
-                { id: "cards",        label: "Cards de entrada", icon: <LayoutTemplate    className="w-3.5 h-3.5" /> },
-                { id: "secoes",       label: "Seções",         icon: <SlidersHorizontal   className="w-3.5 h-3.5" /> },
-                { id: "planos",       label: "Planos",         icon: <CircleDollarSign    className="w-3.5 h-3.5" /> },
-                { id: "depoimentos",  label: "Depoimentos",    icon: <MessageSquareQuote  className="w-3.5 h-3.5" /> },
-                { id: "faq",          label: "FAQ",            icon: <HelpCircle          className="w-3.5 h-3.5" /> },
-                { id: "aparencia",    label: "Aparência",      icon: <Palette             className="w-3.5 h-3.5" /> },
-                { id: "seo",          label: "SEO",            icon: <Search              className="w-3.5 h-3.5" /> },
-                { id: "integracoes",  label: "Integrações",    icon: <Plug                className="w-3.5 h-3.5" /> },
-              ].map((t) => (
-                <TabsTrigger key={t.id} value={t.id} className="flex items-center gap-1.5 text-xs">
-                  {t.icon}{t.label}
+          <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setSearchTerm(""); }}>
+            <TabsList className="flex flex-wrap gap-1 h-auto p-1.5 mb-6 bg-muted/50">
+              {tabItems.map((t) => (
+                <TabsTrigger key={t.id} value={t.id} className="flex items-center gap-1.5 text-xs px-3 py-2 data-[state=active]:shadow-sm">
+                  <t.icon className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{t.label}</span>
+                  {t.count !== undefined && t.count > 0 && (
+                    <span className="ml-0.5 text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-full min-w-[18px] text-center">{t.count}</span>
+                  )}
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -448,73 +645,85 @@ const AdminSiteConfig = () => {
             {/* ── GERAL ─────────────────────────────────────────────────── */}
             <TabsContent value="geral">
               <div className="grid gap-6 md:grid-cols-2">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Identidade</CardTitle>
-                    <p className="text-xs text-muted-foreground">Nome, logo, favicon e descrição.</p>
+                <MotionCard {...cardAnim}>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-primary" />Identidade
+                    </CardTitle>
+                    <CardDescription>Nome, logo, favicon e descrição.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {rows("geral").filter(r => ["site_name","site_description","logo_url","favicon_url"].includes(r.key)).map(r => (
+                    {rows("geral").filter(r => ["site_name", "site_description", "logo_url", "favicon_url"].includes(r.key)).map(r => (
                       <ConfigField key={r.key} row={r} value={values[r.key] ?? ""} onChange={handleChange} />
                     ))}
                   </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Contato & Rodapé</CardTitle>
-                    <p className="text-xs text-muted-foreground">E-mail, telefone, WhatsApp e textos do rodapé.</p>
+                </MotionCard>
+
+                <MotionCard {...cardAnim} transition={{ ...cardAnim.transition, delay: 0.05 }}>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <MessageSquareQuote className="w-4 h-4 text-primary" />Contato & Rodapé
+                    </CardTitle>
+                    <CardDescription>E-mail, telefone, WhatsApp e textos do rodapé.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {rows("geral").filter(r => ["contact_email","contact_phone","whatsapp_number","footer_text","footer_tagline"].includes(r.key)).map(r => (
+                    {rows("geral").filter(r => ["contact_email", "contact_phone", "whatsapp_number", "footer_text", "footer_tagline"].includes(r.key)).map(r => (
                       <ConfigField key={r.key} row={r} value={values[r.key] ?? ""} onChange={handleChange} />
                     ))}
                   </CardContent>
-                </Card>
-                <Card className="md:col-span-2">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Redes Sociais</CardTitle>
-                    <p className="text-xs text-muted-foreground">Links das redes sociais exibidos no rodapé.</p>
+                </MotionCard>
+
+                <MotionCard {...cardAnim} transition={{ ...cardAnim.transition, delay: 0.1 }} className="md:col-span-2">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <ExternalLink className="w-4 h-4 text-primary" />Redes Sociais
+                    </CardTitle>
+                    <CardDescription>Links das redes sociais exibidos no rodapé.</CardDescription>
                   </CardHeader>
                   <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {rows("geral").filter(r => r.key.startsWith("social_")).map(r => (
                       <ConfigField key={r.key} row={r} value={values[r.key] ?? ""} onChange={handleChange} />
                     ))}
                   </CardContent>
-                </Card>
+                </MotionCard>
               </div>
-              <div className="mt-4 flex justify-end">
-                <SaveBtn onSave={() => saveCategory("geral")} saving={savingCat === "geral"} />
-              </div>
+              <CategorySaveBar cat="geral" />
             </TabsContent>
 
             {/* ── LANDING ───────────────────────────────────────────────── */}
             <TabsContent value="landing">
               <div className="grid gap-6 md:grid-cols-2">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Hero</CardTitle>
-                    <p className="text-xs text-muted-foreground">Bloco principal da página inicial.</p>
+                <MotionCard {...cardAnim}>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <LayoutTemplate className="w-4 h-4 text-primary" />Hero
+                    </CardTitle>
+                    <CardDescription>Bloco principal da página inicial.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {rows("landing").filter(r => ["landing_badge_text","hero_title","hero_subtitle","hero_cta_text","hero_cta_primary_text","hero_cta_primary_url","hero_cta_secondary_text","hero_cta_secondary_url","landing_second_cta","hero_image_url","hero_video_url"].includes(r.key)).map(r => (
+                    {rows("landing").filter(r => ["landing_badge_text", "hero_title", "hero_subtitle", "hero_cta_text", "hero_cta_primary_text", "hero_cta_primary_url", "hero_cta_secondary_text", "hero_cta_secondary_url", "landing_second_cta", "hero_image_url", "hero_video_url"].includes(r.key)).map(r => (
                       <ConfigField key={r.key} row={r} value={values[r.key] ?? ""} onChange={handleChange} />
                     ))}
                   </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Estatísticas em destaque</CardTitle>
-                    <p className="text-xs text-muted-foreground">4 números exibidos abaixo do hero.</p>
+                </MotionCard>
+
+                <MotionCard {...cardAnim} transition={{ ...cardAnim.transition, delay: 0.05 }}>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <SlidersHorizontal className="w-4 h-4 text-primary" />Estatísticas em destaque
+                    </CardTitle>
+                    <CardDescription>4 números exibidos abaixo do hero.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {[1, 2, 3, 4].map((n) => (
-                      <div key={n} className="grid grid-cols-2 gap-2 pb-3 border-b border-border last:border-0">
+                      <div key={n} className="grid grid-cols-2 gap-2 pb-3 border-b border-border/30 last:border-0">
                         <div className="space-y-1">
                           <Label className="text-xs text-muted-foreground">Stat {n} — Valor</Label>
                           <Input
                             value={values[`stat_${n}_value`] ?? ""}
                             onChange={(e) => handleChange(`stat_${n}_value`, e.target.value)}
                             placeholder="10k+"
+                            className="bg-card/50"
                           />
                         </div>
                         <div className="space-y-1">
@@ -523,94 +732,92 @@ const AdminSiteConfig = () => {
                             value={values[`stat_${n}_label`] ?? ""}
                             onChange={(e) => handleChange(`stat_${n}_label`, e.target.value)}
                             placeholder="Pacientes"
+                            className="bg-card/50"
                           />
                         </div>
                       </div>
                     ))}
                   </CardContent>
-                </Card>
+                </MotionCard>
               </div>
-              <div className="mt-4 flex justify-end">
-                <SaveBtn onSave={() => saveCategory("landing")} saving={savingCat === "landing"} />
-              </div>
+              <CategorySaveBar cat="landing" />
             </TabsContent>
 
             {/* ── CARDS DE ENTRADA / LISTAS JSON ────────────────────────── */}
             <TabsContent value="cards">
               <div className="grid gap-6">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Cards de entrada da landing</CardTitle>
-                    <p className="text-xs text-muted-foreground">
-                      JSON com os 3 cards logo abaixo do Hero. Cada item: <code>{`{title, description, icon, cta, href, isClinic?}`}</code>. Ícones suportados: Stethoscope, Eye, Building2.
-                    </p>
+                <MotionCard {...cardAnim}>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <LayoutTemplate className="w-4 h-4 text-primary" />Cards de entrada da landing
+                    </CardTitle>
+                    <CardDescription>
+                      JSON com os 3 cards abaixo do Hero. Cada item: <code className="text-[10px] bg-muted px-1 py-0.5 rounded">{`{title, description, icon, cta, href}`}</code>
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <Textarea
-                      className="font-mono text-xs min-h-[220px]"
+                  <CardContent>
+                    <JsonField
                       value={values["entry_cards"] ?? ""}
-                      onChange={(e) => handleChange("entry_cards", e.target.value)}
+                      onChange={(v) => handleChange("entry_cards", v)}
                       placeholder='[{"title":"...","description":"...","icon":"Stethoscope","cta":"Agendar","href":"/..."}]'
+                      minH="220px"
+                      hint="Ícones suportados: Stethoscope, Eye, Building2. Se inválido, a landing usa valores padrão."
                     />
-                    <p className="text-[11px] text-muted-foreground">
-                      Dica: valide o JSON antes de salvar — se estiver inválido, a landing usa os valores padrão.
-                    </p>
                   </CardContent>
-                </Card>
+                </MotionCard>
 
-                <Card>
-                  <CardHeader className="pb-2">
+                <MotionCard {...cardAnim} transition={{ ...cardAnim.transition, delay: 0.05 }}>
+                  <CardHeader className="pb-3">
                     <CardTitle className="text-base">Como funciona — Passos</CardTitle>
-                    <p className="text-xs text-muted-foreground">
-                      JSON array de passos: <code>{`{step, title, desc, time?}`}</code>.
-                    </p>
+                    <CardDescription>
+                      JSON array de passos: <code className="text-[10px] bg-muted px-1 py-0.5 rounded">{`{step, title, desc, time?}`}</code>
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Textarea
-                      className="font-mono text-xs min-h-[180px]"
+                    <JsonField
                       value={values["how_it_works_steps"] ?? ""}
-                      onChange={(e) => handleChange("how_it_works_steps", e.target.value)}
+                      onChange={(v) => handleChange("how_it_works_steps", v)}
+                      minH="180px"
                     />
                   </CardContent>
-                </Card>
+                </MotionCard>
 
-                <Card>
-                  <CardHeader className="pb-2">
+                <MotionCard {...cardAnim} transition={{ ...cardAnim.transition, delay: 0.1 }}>
+                  <CardHeader className="pb-3">
                     <CardTitle className="text-base">Especialidades em destaque</CardTitle>
-                    <p className="text-xs text-muted-foreground">JSON array de nomes de especialidades.</p>
+                    <CardDescription>JSON array de nomes de especialidades.</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Textarea
-                      className="font-mono text-xs min-h-[120px]"
+                    <JsonField
                       value={values["featured_specialties"] ?? ""}
-                      onChange={(e) => handleChange("featured_specialties", e.target.value)}
+                      onChange={(v) => handleChange("featured_specialties", v)}
                       placeholder='["Cardiologia","Dermatologia",...]'
+                      minH="120px"
                     />
                   </CardContent>
-                </Card>
+                </MotionCard>
               </div>
               <div className="mt-4 flex justify-end gap-2">
-                <SaveBtn onSave={() => saveCategory("cards")} saving={savingCat === "cards"} />
-                <SaveBtn onSave={() => saveCategory("secoes")} saving={savingCat === "secoes"} />
+                <SaveBtn onSave={() => saveCategory("cards")} saving={savingCat === "cards"} hasChanges={hasUnsavedChanges("cards")} />
               </div>
             </TabsContent>
 
             {/* ── SEÇÕES ────────────────────────────────────────────────── */}
             <TabsContent value="secoes">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Visibilidade das Seções</CardTitle>
-                  <p className="text-xs text-muted-foreground">Ative ou desative blocos de conteúdo na página inicial.</p>
+              <MotionCard {...cardAnim}>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <SlidersHorizontal className="w-4 h-4 text-primary" />Visibilidade das Seções
+                  </CardTitle>
+                  <CardDescription>Ative ou desative blocos de conteúdo na página inicial.</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-1">
                   {rows("secoes").map(r => (
                     <ConfigField key={r.key} row={r} value={values[r.key] ?? ""} onChange={handleChange} />
                   ))}
-                  <div className="mt-4">
-                    <SaveBtn onSave={() => saveCategory("secoes")} saving={savingCat === "secoes"} />
-                  </div>
                 </CardContent>
-              </Card>
+              </MotionCard>
+              <CategorySaveBar cat="secoes" />
             </TabsContent>
 
             {/* ── PLANOS ────────────────────────────────────────────────── */}
@@ -618,48 +825,78 @@ const AdminSiteConfig = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">{plans.length} plano{plans.length !== 1 ? "s" : ""} cadastrado{plans.length !== 1 ? "s" : ""}</p>
-                    <p className="text-xs text-muted-foreground">Edite preços, funcionalidades e descrições dos planos de assinatura.</p>
+                    <p className="text-sm font-semibold">
+                      {plans.length} plano{plans.length !== 1 ? "s" : ""} cadastrado{plans.length !== 1 ? "s" : ""}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {plans.filter(p => p.is_active).length} ativo{plans.filter(p => p.is_active).length !== 1 ? "s" : ""}
+                      {plans.filter(p => !p.is_active).length > 0 && ` · ${plans.filter(p => !p.is_active).length} inativo${plans.filter(p => !p.is_active).length !== 1 ? "s" : ""}`}
+                    </p>
                   </div>
-                  <Button onClick={openNewPlan} size="sm"><Plus className="w-4 h-4 mr-2" />Novo Plano</Button>
+                  <Button onClick={openNewPlan} size="sm" className="gap-2"><Plus className="w-4 h-4" />Novo Plano</Button>
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {plans.map((p) => (
-                    <Card key={p.id} className={`relative ${!p.is_active ? "opacity-60" : ""}`}>
-                      <CardContent className="pt-4 pb-4">
-                        <div className="flex items-start justify-between gap-2 mb-3">
-                          <div>
-                            <p className="font-semibold text-sm">{p.name}</p>
-                            <p className="text-xs text-muted-foreground">{p.description ?? "—"}</p>
-                          </div>
-                          <Switch checked={p.is_active} onCheckedChange={() => togglePlanActive(p)} className="shrink-0" />
-                        </div>
-                        <div className="flex items-baseline gap-1 mb-2">
-                          <span className="text-2xl font-bold">R$ {Number(p.price).toFixed(2).replace(".", ",")}</span>
-                          <span className="text-xs text-muted-foreground">/{p.interval === "monthly" ? "mês" : p.interval === "annual" ? "ano" : "único"}</span>
-                        </div>
-                        {p.features.length > 0 && (
-                          <ul className="mb-3 space-y-0.5">
-                            {p.features.slice(0, 4).map((f, i) => (
-                              <li key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                <Check className="w-3 h-3 text-emerald-500 shrink-0" />{f}
-                              </li>
-                            ))}
-                            {p.features.length > 4 && <li className="text-xs text-muted-foreground pl-4">+{p.features.length - 4} mais…</li>}
-                          </ul>
-                        )}
-                        <div className="flex gap-2 mt-2">
-                          <Button variant="outline" size="sm" className="flex-1" onClick={() => openEditPlan(p)}>
-                            <Pencil className="w-3.5 h-3.5 mr-1.5" />Editar
-                          </Button>
-                          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => deletePlan(p.id, p.name)}>
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+
+                {plans.length === 0 ? (
+                  <EmptyState
+                    icon={CircleDollarSign}
+                    title="Nenhum plano cadastrado"
+                    description="Crie planos de assinatura para seus pacientes."
+                    action={<Button size="sm" onClick={openNewPlan} className="gap-2"><Plus className="w-4 h-4" />Criar primeiro plano</Button>}
+                  />
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <AnimatePresence>
+                      {plans.map((p, i) => (
+                        <MotionCard
+                          key={p.id}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.05 }}
+                          className={`relative group overflow-hidden ${!p.is_active ? "opacity-50 grayscale-[30%]" : ""}`}
+                        >
+                          {!p.is_active && (
+                            <div className="absolute inset-0 bg-background/50 z-10 flex items-center justify-center pointer-events-none">
+                              <Badge variant="outline" className="text-xs"><EyeOff className="w-3 h-3 mr-1" />Inativo</Badge>
+                            </div>
+                          )}
+                          <CardContent className="pt-5 pb-4">
+                            <div className="flex items-start justify-between gap-2 mb-3">
+                              <div>
+                                <p className="font-semibold text-sm">{p.name}</p>
+                                <p className="text-xs text-muted-foreground line-clamp-1">{p.description ?? "Sem descrição"}</p>
+                              </div>
+                              <Switch checked={p.is_active} onCheckedChange={() => togglePlanActive(p)} className="shrink-0" />
+                            </div>
+                            <div className="flex items-baseline gap-1 mb-3">
+                              <span className="text-2xl font-bold tracking-tight">R$ {Number(p.price).toFixed(2).replace(".", ",")}</span>
+                              <span className="text-xs text-muted-foreground">/{p.interval === "monthly" ? "mês" : p.interval === "annual" ? "ano" : "único"}</span>
+                            </div>
+                            {p.features.length > 0 && (
+                              <ul className="mb-3 space-y-1">
+                                {p.features.slice(0, 4).map((f, i) => (
+                                  <li key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                    <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />{f}
+                                  </li>
+                                ))}
+                                {p.features.length > 4 && (
+                                  <li className="text-xs text-muted-foreground/60 pl-5">+{p.features.length - 4} mais…</li>
+                                )}
+                              </ul>
+                            )}
+                            <div className="flex gap-2 mt-3 pt-3 border-t border-border/30">
+                              <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={() => openEditPlan(p)}>
+                                <Pencil className="w-3.5 h-3.5" />Editar
+                              </Button>
+                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive h-8 w-8" onClick={() => deletePlan(p.id, p.name)}>
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </MotionCard>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                )}
               </div>
 
               {/* Plan dialog */}
@@ -705,17 +942,20 @@ const AdminSiteConfig = () => {
                           <Input className="mt-1 font-mono text-xs" value={editingPlan.stripe_price_id ?? ""} onChange={(e) => setEditingPlan({ ...editingPlan, stripe_price_id: e.target.value || null })} placeholder="price_xxx" />
                         </div>
                       </div>
-                      <div className="flex items-center justify-between py-1">
+                      <div className="flex items-center justify-between py-2 px-3 rounded-lg border border-border/50 bg-muted/30">
                         <Label className="font-normal">Plano ativo</Label>
                         <Switch checked={editingPlan.is_active} onCheckedChange={(c) => setEditingPlan({ ...editingPlan, is_active: c })} />
                       </div>
                       <div>
                         <Label>Funcionalidades incluídas</Label>
-                        <div className="flex flex-wrap gap-1.5 mt-2 min-h-[32px]">
+                        <div className="flex flex-wrap gap-1.5 mt-2 min-h-[32px] p-2 rounded-lg border border-dashed border-border/50 bg-muted/20">
+                          {editingPlan.features.length === 0 && (
+                            <span className="text-xs text-muted-foreground/50 italic">Nenhuma funcionalidade adicionada</span>
+                          )}
                           {editingPlan.features.map((f, i) => (
                             <Badge key={i} variant="secondary" className="gap-1 pr-1">
                               {f}
-                              <button type="button" onClick={() => removeFeature(i)} className="ml-0.5 text-muted-foreground hover:text-foreground">
+                              <button type="button" onClick={() => removeFeature(i)} className="ml-0.5 text-muted-foreground hover:text-foreground transition-colors">
                                 <X className="w-3 h-3" />
                               </button>
                             </Badge>
@@ -729,15 +969,15 @@ const AdminSiteConfig = () => {
                             placeholder="Ex: Consultas ilimitadas"
                             className="flex-1 text-sm"
                           />
-                          <Button type="button" variant="outline" size="sm" onClick={addFeature}><Plus className="w-4 h-4" /></Button>
+                          <Button type="button" variant="outline" size="sm" onClick={addFeature} className="gap-1"><Plus className="w-4 h-4" /></Button>
                         </div>
                       </div>
                     </div>
                   )}
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setPlanDialog(false)}>Cancelar</Button>
-                    <Button onClick={savePlan} disabled={savingPlan}>
-                      {savingPlan ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                    <Button onClick={savePlan} disabled={savingPlan} className="gap-2">
+                      {savingPlan ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                       Salvar Plano
                     </Button>
                   </DialogFooter>
@@ -750,41 +990,69 @@ const AdminSiteConfig = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">{testimonials.length} depoimento{testimonials.length !== 1 ? "s" : ""}</p>
-                    <p className="text-xs text-muted-foreground">Depoimentos exibidos na landing page.</p>
+                    <p className="text-sm font-semibold">
+                      {testimonials.length} depoimento{testimonials.length !== 1 ? "s" : ""}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {testimonials.filter(t => t.is_active).length} ativo{testimonials.filter(t => t.is_active).length !== 1 ? "s" : ""} na landing page
+                    </p>
                   </div>
-                  <Button size="sm" onClick={openNewTestimonial}><Plus className="w-4 h-4 mr-2" />Novo Depoimento</Button>
+                  <Button size="sm" onClick={openNewTestimonial} className="gap-2"><Plus className="w-4 h-4" />Novo Depoimento</Button>
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {testimonials.map((t) => (
-                    <Card key={t.id} className={!t.is_active ? "opacity-60" : ""}>
-                      <CardContent className="pt-4 pb-4 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            {t.avatar_url ? (
-                              <img src={t.avatar_url} alt={t.name} className="w-8 h-8 rounded-full object-cover border border-border" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                            ) : (
-                              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold">{t.name[0]}</div>
-                            )}
-                            <div>
-                              <p className="text-sm font-semibold leading-tight">{t.name}</p>
-                              <p className="text-xs text-muted-foreground">{t.role ?? ""}{t.company ? ` · ${t.company}` : ""}</p>
+
+                {testimonials.length === 0 ? (
+                  <EmptyState
+                    icon={MessageSquareQuote}
+                    title="Nenhum depoimento"
+                    description="Adicione depoimentos de pacientes para exibir na landing page."
+                    action={<Button size="sm" onClick={openNewTestimonial} className="gap-2"><Plus className="w-4 h-4" />Adicionar primeiro</Button>}
+                  />
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <AnimatePresence>
+                      {testimonials.map((t, i) => (
+                        <MotionCard
+                          key={t.id}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.05 }}
+                          className={`group ${!t.is_active ? "opacity-50" : ""}`}
+                        >
+                          <CardContent className="pt-4 pb-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2.5">
+                                {t.avatar_url ? (
+                                  <img src={t.avatar_url} alt={t.name} className="w-9 h-9 rounded-full object-cover border-2 border-border" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                                ) : (
+                                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-xs font-bold text-primary">{t.name[0]}</div>
+                                )}
+                                <div>
+                                  <p className="text-sm font-semibold leading-tight">{t.name}</p>
+                                  <p className="text-[11px] text-muted-foreground">{t.role ?? ""}{t.company ? ` · ${t.company}` : ""}</p>
+                                </div>
+                              </div>
+                              <Switch checked={t.is_active} onCheckedChange={() => toggleTestimonialActive(t)} />
                             </div>
-                          </div>
-                          <Switch checked={t.is_active} onCheckedChange={() => toggleTestimonialActive(t)} />
-                        </div>
-                        <div className="flex gap-0.5">
-                          {[1,2,3,4,5].map(s => <Star key={s} className={`w-3.5 h-3.5 ${s <= t.rating ? "text-amber-400 fill-amber-400" : "text-muted-foreground"}`} />)}
-                        </div>
-                        <p className="text-xs text-muted-foreground line-clamp-3">"{t.text}"</p>
-                        <div className="flex gap-2 pt-1">
-                          <Button variant="outline" size="sm" className="flex-1" onClick={() => openEditTestimonial(t)}><Pencil className="w-3.5 h-3.5 mr-1.5" />Editar</Button>
-                          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => deleteTestimonial(t.id, t.name)}><Trash2 className="w-3.5 h-3.5" /></Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                            <div className="flex gap-0.5">
+                              {[1, 2, 3, 4, 5].map(s => (
+                                <Star key={s} className={`w-3.5 h-3.5 ${s <= t.rating ? "text-amber-400 fill-amber-400" : "text-muted-foreground/20"}`} />
+                              ))}
+                            </div>
+                            <p className="text-xs text-muted-foreground line-clamp-3 italic">"{t.text}"</p>
+                            <div className="flex gap-2 pt-2 border-t border-border/30">
+                              <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={() => openEditTestimonial(t)}>
+                                <Pencil className="w-3.5 h-3.5" />Editar
+                              </Button>
+                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive h-8 w-8" onClick={() => deleteTestimonial(t.id, t.name)}>
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </MotionCard>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                )}
               </div>
 
               <Dialog open={testimonialDialog} onOpenChange={setTestimonialDialog}>
@@ -820,7 +1088,7 @@ const AdminSiteConfig = () => {
                       </div>
                       <div className="flex items-center gap-4">
                         <div>
-                          <Label className="text-sm mb-1 block">Avaliação</Label>
+                          <Label className="text-sm mb-1.5 block">Avaliação</Label>
                           <StarRating value={editingTestimonial.rating} onChange={(v) => setEditingTestimonial({ ...editingTestimonial, rating: v })} />
                         </div>
                         <div className="flex items-center gap-2 ml-auto">
@@ -836,8 +1104,8 @@ const AdminSiteConfig = () => {
                   )}
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setTestimonialDialog(false)}>Cancelar</Button>
-                    <Button onClick={saveTestimonial} disabled={savingTestimonial}>
-                      {savingTestimonial ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                    <Button onClick={saveTestimonial} disabled={savingTestimonial} className="gap-2">
+                      {savingTestimonial ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                       Salvar
                     </Button>
                   </DialogFooter>
@@ -848,36 +1116,83 @@ const AdminSiteConfig = () => {
             {/* ── FAQ ───────────────────────────────────────────────────── */}
             <TabsContent value="faq">
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-medium">{faqItems.length} pergunta{faqItems.length !== 1 ? "s" : ""} no FAQ</p>
-                    <p className="text-xs text-muted-foreground">Perguntas frequentes exibidas na landing page.</p>
+                    <p className="text-sm font-semibold">{faqItems.length} pergunta{faqItems.length !== 1 ? "s" : ""} no FAQ</p>
+                    <p className="text-xs text-muted-foreground">
+                      {faqItems.filter(f => f.is_active).length} ativa{faqItems.filter(f => f.is_active).length !== 1 ? "s" : ""} na landing page
+                    </p>
                   </div>
-                  <Button size="sm" onClick={openNewFaq}><Plus className="w-4 h-4 mr-2" />Nova Pergunta</Button>
+                  <div className="flex gap-2">
+                    {faqItems.length > 3 && (
+                      <div className="relative">
+                        <Search className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          placeholder="Buscar FAQ…"
+                          className="pl-8 h-8 text-xs w-48"
+                        />
+                      </div>
+                    )}
+                    <Button size="sm" onClick={openNewFaq} className="gap-2"><Plus className="w-4 h-4" />Nova Pergunta</Button>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  {faqItems.map((f) => (
-                    <Card key={f.id} className={!f.is_active ? "opacity-60" : ""}>
-                      <CardContent className="py-3 px-4">
-                        <div className="flex items-start gap-3">
-                          <GripVertical className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                              <p className="text-sm font-medium">{f.question}</p>
-                              {f.category && <Badge variant="outline" className="text-[10px]">{f.category}</Badge>}
+
+                {faqItems.length === 0 ? (
+                  <EmptyState
+                    icon={HelpCircle}
+                    title="Nenhuma pergunta no FAQ"
+                    description="Adicione perguntas frequentes para exibir na landing page."
+                    action={<Button size="sm" onClick={openNewFaq} className="gap-2"><Plus className="w-4 h-4" />Criar primeira pergunta</Button>}
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <AnimatePresence>
+                      {filteredFaq.map((f, i) => (
+                        <MotionCard
+                          key={f.id}
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.03 }}
+                          className={`${!f.is_active ? "opacity-50" : ""}`}
+                        >
+                          <CardContent className="py-3 px-4">
+                            <div className="flex items-start gap-3">
+                              <GripVertical className="w-4 h-4 text-muted-foreground/40 mt-0.5 shrink-0 cursor-grab" />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                                  <p className="text-sm font-medium">{f.question}</p>
+                                  {f.category && (
+                                    <Badge variant="outline" className="text-[10px] font-normal">{f.category}</Badge>
+                                  )}
+                                  {!f.is_active && (
+                                    <Badge variant="secondary" className="text-[10px] gap-0.5"><EyeOff className="w-2.5 h-2.5" />Oculto</Badge>
+                                  )}
+                                </div>
+                                <p className="text-xs text-muted-foreground line-clamp-2">{f.answer}</p>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0">
+                                <Switch checked={f.is_active} onCheckedChange={() => toggleFaqActive(f)} />
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditFaq(f)}>
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => deleteFaq(f.id, f.question)}>
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              </div>
                             </div>
-                            <p className="text-xs text-muted-foreground line-clamp-2">{f.answer}</p>
-                          </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <Switch checked={f.is_active} onCheckedChange={() => toggleFaqActive(f)} />
-                            <Button variant="ghost" size="sm" onClick={() => openEditFaq(f)}><Pencil className="w-3.5 h-3.5" /></Button>
-                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => deleteFaq(f.id, f.question)}><Trash2 className="w-3.5 h-3.5" /></Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                          </CardContent>
+                        </MotionCard>
+                      ))}
+                    </AnimatePresence>
+                    {searchTerm && filteredFaq.length === 0 && (
+                      <div className="text-center py-8 text-sm text-muted-foreground">
+                        Nenhum resultado para "<span className="font-medium text-foreground">{searchTerm}</span>"
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <Dialog open={faqDialog} onOpenChange={setFaqDialog}>
@@ -905,16 +1220,16 @@ const AdminSiteConfig = () => {
                           <Input className="mt-1" type="number" min={1} value={editingFaq.order_index} onChange={(e) => setEditingFaq({ ...editingFaq, order_index: Number(e.target.value) })} />
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Label className="font-normal text-sm">Ativo</Label>
+                      <div className="flex items-center gap-2 py-2 px-3 rounded-lg border border-border/50 bg-muted/30">
+                        <Label className="font-normal text-sm flex-1">Ativo na landing</Label>
                         <Switch checked={editingFaq.is_active} onCheckedChange={(c) => setEditingFaq({ ...editingFaq, is_active: c })} />
                       </div>
                     </div>
                   )}
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setFaqDialog(false)}>Cancelar</Button>
-                    <Button onClick={saveFaq} disabled={savingFaq}>
-                      {savingFaq ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                    <Button onClick={saveFaq} disabled={savingFaq} className="gap-2">
+                      {savingFaq ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                       Salvar
                     </Button>
                   </DialogFooter>
@@ -924,77 +1239,105 @@ const AdminSiteConfig = () => {
 
             {/* ── APARÊNCIA ─────────────────────────────────────────────── */}
             <TabsContent value="aparencia">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Cores e Estilo</CardTitle>
-                  <p className="text-xs text-muted-foreground">Paleta principal da plataforma.</p>
+              <MotionCard {...cardAnim}>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Palette className="w-4 h-4 text-primary" />Cores e Estilo
+                  </CardTitle>
+                  <CardDescription>Paleta principal da plataforma.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {rows("aparencia").map(r => (
                     <ConfigField key={r.key} row={r} value={values[r.key] ?? ""} onChange={handleChange} />
                   ))}
-                  <div className="p-3 rounded-xl border border-border bg-muted/40">
-                    <p className="text-xs text-muted-foreground mb-2 font-medium">Pré-visualização</p>
-                    <div className="flex gap-3 flex-wrap">
-                      {(["color_primary","color_secondary","color_accent"] as const).map(k => (
-                        <div key={k} className="flex flex-col items-center gap-1">
-                          <div className="w-14 h-14 rounded-xl border border-border shadow-sm" style={{ backgroundColor: values[k] || "#cccccc" }} />
-                          <span className="text-[10px] text-muted-foreground font-mono">{values[k] || "—"}</span>
+
+                  {/* Color Preview */}
+                  <div className="p-4 rounded-xl border border-border bg-gradient-to-br from-muted/50 to-muted/20">
+                    <p className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider">Pré-visualização da Paleta</p>
+                    <div className="flex gap-4 flex-wrap">
+                      {([
+                        { key: "color_primary", label: "Primária" },
+                        { key: "color_secondary", label: "Secundária" },
+                        { key: "color_accent", label: "Destaque" },
+                      ]).map(({ key, label }) => (
+                        <div key={key} className="flex flex-col items-center gap-1.5">
+                          <div
+                            className="w-16 h-16 rounded-2xl border-2 border-border shadow-lg transition-all hover:scale-105"
+                            style={{ backgroundColor: values[key] || "#cccccc" }}
+                          />
+                          <span className="text-[10px] font-medium text-muted-foreground">{label}</span>
+                          <span className="text-[10px] text-muted-foreground/60 font-mono">{values[key] || "—"}</span>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <SaveBtn onSave={() => saveCategory("aparencia")} saving={savingCat === "aparencia"} />
                 </CardContent>
-              </Card>
+              </MotionCard>
+              <CategorySaveBar cat="aparencia" />
             </TabsContent>
 
             {/* ── SEO ───────────────────────────────────────────────────── */}
             <TabsContent value="seo">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">SEO e Metadados</CardTitle>
-                  <p className="text-xs text-muted-foreground">Título, descrição e imagem para buscadores e redes sociais.</p>
+              <MotionCard {...cardAnim}>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Search className="w-4 h-4 text-primary" />SEO e Metadados
+                  </CardTitle>
+                  <CardDescription>Título, descrição e imagem para buscadores e redes sociais.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {rows("seo").map(r => (
                     <ConfigField key={r.key} row={r} value={values[r.key] ?? ""} onChange={handleChange} />
                   ))}
-                  <div className="p-4 rounded-xl border border-border bg-white dark:bg-zinc-900 shadow-sm">
-                    <p className="text-xs text-muted-foreground mb-1.5">Prévia no Google:</p>
-                    <p className="text-blue-600 dark:text-blue-400 text-sm font-medium leading-tight">{values["seo_title"] || "AlôMédico"}</p>
-                    <p className="text-green-700 dark:text-green-500 text-xs">alomedico.com.br</p>
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{values["seo_description"] || "—"}</p>
+
+                  {/* Google Preview */}
+                  <div className="p-4 rounded-xl border border-border bg-card shadow-sm">
+                    <p className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider">Prévia no Google</p>
+                    <div className="space-y-0.5">
+                      <p className="text-blue-600 dark:text-blue-400 text-base font-medium leading-tight hover:underline cursor-default">
+                        {values["seo_title"] || "AlôMédico — Telemedicina e Tele-laudos"}
+                      </p>
+                      <p className="text-emerald-700 dark:text-emerald-500 text-xs flex items-center gap-1">
+                        <Globe className="w-3 h-3" />
+                        alomedico.com.br
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                        {values["seo_description"] || "Consultas online com especialistas, laudos médicos e muito mais."}
+                      </p>
+                    </div>
                   </div>
-                  <SaveBtn onSave={() => saveCategory("seo")} saving={savingCat === "seo"} />
                 </CardContent>
-              </Card>
+              </MotionCard>
+              <CategorySaveBar cat="seo" />
             </TabsContent>
 
             {/* ── INTEGRAÇÕES ───────────────────────────────────────────── */}
             <TabsContent value="integracoes">
-              <Card>
-                <CardHeader className="pb-2">
+              <MotionCard {...cardAnim}>
+                <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
+                    <Plug className="w-4 h-4 text-primary" />
                     Integrações e Flags
                     {values["maintenance_mode"] === "true" && (
-                      <Badge variant="destructive" className="text-[10px]">MANUTENÇÃO ATIVA</Badge>
+                      <Badge variant="destructive" className="text-[10px] animate-pulse ml-2">🔧 MANUTENÇÃO ATIVA</Badge>
                     )}
                   </CardTitle>
-                  <p className="text-xs text-muted-foreground">Ative/desative funcionalidades e modo manutenção.</p>
+                  <CardDescription>Ative/desative funcionalidades e modo manutenção.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-1">
                   {rows("integracoes").filter(r => r.input_type === "boolean").map(r => (
                     <ConfigField key={r.key} row={r} value={values[r.key] ?? ""} onChange={handleChange} />
                   ))}
-                  <div className="space-y-4 pt-2 border-t border-border">
-                    {rows("integracoes").filter(r => r.input_type !== "boolean").map(r => (
-                      <ConfigField key={r.key} row={r} value={values[r.key] ?? ""} onChange={handleChange} />
-                    ))}
-                  </div>
-                  <SaveBtn onSave={() => saveCategory("integracoes")} saving={savingCat === "integracoes"} />
+                  {rows("integracoes").filter(r => r.input_type !== "boolean").length > 0 && (
+                    <div className="space-y-4 pt-4 mt-2 border-t border-border/30">
+                      {rows("integracoes").filter(r => r.input_type !== "boolean").map(r => (
+                        <ConfigField key={r.key} row={r} value={values[r.key] ?? ""} onChange={handleChange} />
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
-              </Card>
+              </MotionCard>
+              <CategorySaveBar cat="integracoes" />
             </TabsContent>
           </Tabs>
         )}

@@ -43,8 +43,8 @@ interface WithdrawalRequest {
   id: string;
   user_id: string;
   amount: number;
-  pix_key: string;
-  pix_key_type: string;
+  pix_key: string | null;
+  pix_key_type: string | null;
   status: string;
   notes: string | null;
   admin_notes: string | null;

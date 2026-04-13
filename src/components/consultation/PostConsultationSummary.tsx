@@ -48,16 +48,12 @@ const PostConsultationSummary = ({
       const [notesRes, prescRes, apptRes] = await Promise.all([
         supabase.from("consultation_notes").select("id").eq("appointment_id", appointmentId).limit(1),
         supabase.from("prescriptions").select("id").eq("appointment_id", appointmentId).limit(1),
-        supabase.from("appointments").select("patient_id, doctor_id, patient_rating").eq("id", appointmentId).single(),
+        supabase.from("appointments").select("patient_id, doctor_id").eq("id", appointmentId).single(),
       ]);
       setHasNotes((notesRes.data?.length ?? 0) > 0);
       setHasPrescription((prescRes.data?.length ?? 0) > 0);
 
-      if (apptRes.data?.patient_rating) {
-        setExistingRating(apptRes.data.patient_rating);
-        setSelectedRating(apptRes.data.patient_rating);
-        setRatingDone(true);
-      }
+      // patient_rating column may not exist yet — skip rating preload
 
       if (apptRes.data) {
         const otherId = isDoctor ? apptRes.data.patient_id : null;
@@ -80,11 +76,12 @@ const PostConsultationSummary = ({
   const handleSubmitRating = async () => {
     if (!selectedRating) { toast.error("Selecione uma avaliação de 1 a 5 estrelas"); return; }
     setRatingSubmitting(true);
-    const { error } = await supabase.from("appointments").update({
-      patient_rating: selectedRating,
-      patient_review: reviewText.trim() || null,
-      rated_at: new Date().toISOString(),
-    }).eq("id", appointmentId);
+    const { error } = await supabase.from("satisfaction_surveys").insert({
+      appointment_id: appointmentId,
+      patient_id: user?.id,
+      nps_score: selectedRating * 2,
+      comment: reviewText.trim() || null,
+    } as any);
 
     if (error) {
       logError("[PostConsultationSummary] submit rating failed", error);

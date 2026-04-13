@@ -46,7 +46,7 @@ export default function CarePlansPage() {
         .select(`*, doctor_profiles!inner(user_id, profiles(first_name, last_name))`)
         .eq("patient_id", user!.id)
         .order("created_at", { ascending: false });
-      return (data ?? []) as CarePlan[];
+      return (data ?? []) as unknown as CarePlan[];
     },
     enabled: !!user,
   });

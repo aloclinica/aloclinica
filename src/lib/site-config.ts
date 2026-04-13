@@ -17,19 +17,17 @@ let _promise: Promise<ConfigMap> | null = null;
 async function fetchConfig(): Promise<ConfigMap> {
   if (_cache) return _cache;
   if (_promise) return _promise;
-  _promise = supabase
-    .from("site_config")
-    .select("key, value")
-    .then(({ data, error }) => {
-      if (error) {
-        warn("[site-config] fetch error", error);
-        return {} as ConfigMap;
-      }
-      const map: ConfigMap = {};
-      for (const row of data ?? []) map[row.key] = row.value ?? "";
-      _cache = map;
-      return map;
-    });
+  _promise = (async () => {
+    const { data, error } = await supabase.from("site_config").select("key, value");
+    if (error) {
+      warn("[site-config] fetch error", error);
+      return {} as ConfigMap;
+    }
+    const map: ConfigMap = {};
+    for (const row of data ?? []) map[row.key] = row.value ?? "";
+    _cache = map;
+    return map;
+  })();
   return _promise;
 }
 

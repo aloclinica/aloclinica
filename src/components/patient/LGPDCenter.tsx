@@ -64,7 +64,7 @@ export default function LGPDCenter() {
         .eq("data_owner_id", user!.id)
         .order("created_at", { ascending: false })
         .limit(50);
-      return (data ?? []) as AccessLog[];
+      return (data ?? []) as unknown as AccessLog[];
     },
     enabled: !!user,
   });
@@ -77,7 +77,7 @@ export default function LGPDCenter() {
         .select("*")
         .eq("user_id", user!.id)
         .order("requested_at", { ascending: false });
-      return (data ?? []) as DeletionRequest[];
+      return (data ?? []) as unknown as DeletionRequest[];
     },
     enabled: !!user,
   });

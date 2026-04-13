@@ -58,7 +58,7 @@ export default function SecondOpinionManager({ examRequestId, originalReport, on
       let query = supabase.from("second_opinion_requests" as any).select("*").order("created_at", { ascending: false });
       if (examRequestId) query = query.eq("exam_request_id", examRequestId);
       const { data } = await query;
-      return (data ?? []) as SecondOpinion[];
+      return (data ?? []) as unknown as SecondOpinion[];
     },
     enabled: !!user,
   });
