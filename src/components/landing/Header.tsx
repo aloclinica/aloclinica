@@ -2,7 +2,7 @@ import { useState, memo, forwardRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import { Stethoscope, VideoCamera, Buildings, FileText, SignIn, ShoppingBag, SignOut, SquaresFour, CaretRight, Eye } from "@phosphor-icons/react";
+import { Stethoscope, VideoCamera, Buildings, FileText, SignIn, SignOut, SquaresFour, CaretRight, Eye, CreditCard } from "@phosphor-icons/react";
 import mascot from "@/assets/mascot.png";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -73,7 +73,8 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
     { label: "Teleconsulta", href: "/teleconsulta" },
     { label: "Oftalmologia", href: "/oftalmologia" },
     { label: "Telelaudo", href: "/para-empresas/telelaudo" },
-    { label: "Planos", href: "/#pricing" },
+    { label: "Cartão Benefícios", href: "/cartao-beneficios" },
+    { label: "Cartão B2B", href: "/cartao-b2b" },
     { label: "Sou Médico", href: "/para-medicos" },
     { label: "Sou Laudista", href: "/laudista" },
     { label: "Sou Clínica", href: "/para-clinicas" },
@@ -127,14 +128,23 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
                 </NavigationMenuContent>
               </NavigationMenuItem>
 
-              <NavigationMenuItem className="flex">
-                <Link
-                  to="/#pricing"
-                  className={triggerCls}
-                >
-                  <ShoppingBag className={triggerIconCls} weight="fill" />
-                  Planos
-                </Link>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className={triggerCls}>
+                  <CreditCard className={triggerIconCls} weight="fill" />
+                  Cartões
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <div className="p-2 w-[300px]">
+                    <ul className="grid gap-0.5">
+                      <ListItem href="/cartao-beneficios" title="Cartão Benefícios" icon={CreditCard}>
+                        Planos individuais e familiares de telemedicina.
+                      </ListItem>
+                      <ListItem href="/cartao-b2b" title="Cartão B2B" icon={Buildings}>
+                        Benefício corporativo de saúde para sua empresa.
+                      </ListItem>
+                    </ul>
+                  </div>
+                </NavigationMenuContent>
               </NavigationMenuItem>
 
               <NavigationMenuItem>
