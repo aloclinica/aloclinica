@@ -19,26 +19,46 @@ import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import LazyAvatar from "@/components/ui/lazy-avatar";
 
+/* ─── Pingo specialty images ─── */
+import pingoClinicoGeral from "@/assets/pingo-clinico-geral.png";
+import pingoCardiologista from "@/assets/pingo-cardiologista.png";
+import pingoDermatologista from "@/assets/pingo-dermatologista.png";
+import pingoPediatra from "@/assets/pingo-pediatra.png";
+import pingoPsiquiatra from "@/assets/pingo-psiquiatra.png";
+import pingoNeurologista from "@/assets/pingo-neurologista.png";
+import pingoGastro from "@/assets/pingo-gastro.png";
+import pingoEndocrino from "@/assets/pingo-endocrino.png";
+import pingoUrologista from "@/assets/pingo-urologista.png";
+import pingoGinecologista from "@/assets/pingo-ginecologista.png";
+import pingoOrtopedista from "@/assets/pingo-ortopedista.png";
+import pingoNutricionista from "@/assets/pingo-nutricionista.png";
+import pingoPneumologista from "@/assets/pingo-pneumologista.png";
+import pingoOtorrino from "@/assets/pingo-otorrino.png";
+import pingoReumatologista from "@/assets/pingo-reumatologista.png";
+import pingoInfectologista from "@/assets/pingo-infectologista.png";
+import pingoAlergologista from "@/assets/pingo-alergologista.png";
+import pingoFonoaudiologo from "@/assets/pingo-fonoaudiologo.png";
+
 /* ─── Specialty catalogue ─── */
 const specialties = [
-  { name: "Clínico Geral", emoji: "🏥", color: "from-blue-500/15 to-cyan-500/10 border-blue-200 dark:border-blue-800" },
-  { name: "Cardiologia", emoji: "❤️", color: "from-red-500/15 to-rose-500/10 border-red-200 dark:border-red-800" },
-  { name: "Dermatologia", emoji: "🔬", color: "from-pink-500/15 to-fuchsia-500/10 border-pink-200 dark:border-pink-800" },
-  { name: "Pediatria", emoji: "👶", color: "from-sky-500/15 to-blue-500/10 border-sky-200 dark:border-sky-800" },
-  { name: "Psicologia", emoji: "🧠", color: "from-violet-500/15 to-purple-500/10 border-violet-200 dark:border-violet-800" },
-  { name: "Neurologia", emoji: "⚡", color: "from-amber-500/15 to-yellow-500/10 border-amber-200 dark:border-amber-800" },
-  { name: "Gastroenterologia", emoji: "🍽️", color: "from-orange-500/15 to-amber-500/10 border-orange-200 dark:border-orange-800" },
-  { name: "Endocrinologia", emoji: "🔬", color: "from-teal-500/15 to-emerald-500/10 border-teal-200 dark:border-teal-800" },
-  { name: "Urologia", emoji: "💧", color: "from-cyan-500/15 to-sky-500/10 border-cyan-200 dark:border-cyan-800" },
-  { name: "Ginecologia", emoji: "♀️", color: "from-rose-500/15 to-pink-500/10 border-rose-200 dark:border-rose-800" },
-  { name: "Ortopedia", emoji: "🦵", color: "from-emerald-500/15 to-green-500/10 border-emerald-200 dark:border-emerald-800" },
-  { name: "Nutrição", emoji: "🥗", color: "from-lime-500/15 to-green-500/10 border-lime-200 dark:border-lime-800" },
-  { name: "Pneumologia", emoji: "💨", color: "from-indigo-500/15 to-blue-500/10 border-indigo-200 dark:border-indigo-800" },
-  { name: "Otorrinolaringologia", emoji: "👂", color: "from-purple-500/15 to-indigo-500/10 border-purple-200 dark:border-purple-800" },
-  { name: "Reumatologia", emoji: "🦴", color: "from-stone-500/15 to-neutral-500/10 border-stone-200 dark:border-stone-800" },
-  { name: "Infectologia", emoji: "🦠", color: "from-green-500/15 to-emerald-500/10 border-green-200 dark:border-green-800" },
-  { name: "Alergologia", emoji: "🤧", color: "from-yellow-500/15 to-amber-500/10 border-yellow-200 dark:border-yellow-800" },
-  { name: "Fonoaudiologia", emoji: "🗣️", color: "from-fuchsia-500/15 to-pink-500/10 border-fuchsia-200 dark:border-fuchsia-800" },
+  { name: "Clínico Geral", img: pingoClinicoGeral, color: "from-blue-500/15 to-cyan-500/10 border-blue-200 dark:border-blue-800" },
+  { name: "Cardiologia", img: pingoCardiologista, color: "from-red-500/15 to-rose-500/10 border-red-200 dark:border-red-800" },
+  { name: "Dermatologia", img: pingoDermatologista, color: "from-pink-500/15 to-fuchsia-500/10 border-pink-200 dark:border-pink-800" },
+  { name: "Pediatria", img: pingoPediatra, color: "from-sky-500/15 to-blue-500/10 border-sky-200 dark:border-sky-800" },
+  { name: "Psicologia", img: pingoPsiquiatra, color: "from-violet-500/15 to-purple-500/10 border-violet-200 dark:border-violet-800" },
+  { name: "Neurologia", img: pingoNeurologista, color: "from-amber-500/15 to-yellow-500/10 border-amber-200 dark:border-amber-800" },
+  { name: "Gastroenterologia", img: pingoGastro, color: "from-orange-500/15 to-amber-500/10 border-orange-200 dark:border-orange-800" },
+  { name: "Endocrinologia", img: pingoEndocrino, color: "from-teal-500/15 to-emerald-500/10 border-teal-200 dark:border-teal-800" },
+  { name: "Urologia", img: pingoUrologista, color: "from-cyan-500/15 to-sky-500/10 border-cyan-200 dark:border-cyan-800" },
+  { name: "Ginecologia", img: pingoGinecologista, color: "from-rose-500/15 to-pink-500/10 border-rose-200 dark:border-rose-800" },
+  { name: "Ortopedia", img: pingoOrtopedista, color: "from-emerald-500/15 to-green-500/10 border-emerald-200 dark:border-emerald-800" },
+  { name: "Nutrição", img: pingoNutricionista, color: "from-lime-500/15 to-green-500/10 border-lime-200 dark:border-lime-800" },
+  { name: "Pneumologia", img: pingoPneumologista, color: "from-indigo-500/15 to-blue-500/10 border-indigo-200 dark:border-indigo-800" },
+  { name: "Otorrinolaringologia", img: pingoOtorrino, color: "from-purple-500/15 to-indigo-500/10 border-purple-200 dark:border-purple-800" },
+  { name: "Reumatologia", img: pingoReumatologista, color: "from-stone-500/15 to-neutral-500/10 border-stone-200 dark:border-stone-800" },
+  { name: "Infectologia", img: pingoInfectologista, color: "from-green-500/15 to-emerald-500/10 border-green-200 dark:border-green-800" },
+  { name: "Alergologia", img: pingoAlergologista, color: "from-yellow-500/15 to-amber-500/10 border-yellow-200 dark:border-yellow-800" },
+  { name: "Fonoaudiologia", img: pingoFonoaudiologo, color: "from-fuchsia-500/15 to-pink-500/10 border-fuchsia-200 dark:border-fuchsia-800" },
 ];
 
 interface PublicDoctor {
@@ -244,7 +264,7 @@ const Agendar = () => {
                           spec.color
                         )}
                       >
-                        <span className="text-3xl sm:text-4xl">{spec.emoji}</span>
+                        <img src={spec.img} alt={spec.name} className="w-12 h-12 sm:w-16 sm:h-16 object-contain" loading="lazy" />
                         <span className="text-xs sm:text-sm font-semibold text-foreground text-center leading-tight">
                           {spec.name}
                         </span>
