@@ -125,45 +125,55 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
       {isOn("hero") && <HeroSection />}
 
       {/* ═══════════════ AGENDAR CONSULTA ═══════════════ */}
-      <section className="relative py-16 md:py-24 overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/[0.04] via-primary/[0.10] to-background" />
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/[0.06] rounded-full blur-[150px] -z-10" />
+      <section className="relative py-20 md:py-32 overflow-hidden">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/[0.03] via-primary/[0.08] to-background" />
+        <div className="absolute top-[-10%] right-[-5%] w-[700px] h-[700px] bg-primary/[0.07] rounded-full blur-[160px] -z-10" />
+        <div className="absolute bottom-[-15%] left-[-10%] w-[500px] h-[500px] bg-secondary/[0.05] rounded-full blur-[120px] -z-10" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left — Image */}
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-[1fr_1.1fr] gap-8 lg:gap-20 items-center">
+            {/* Left — Image (much larger) */}
             <motion.div
-              className="flex justify-center lg:justify-start"
-              initial={{ opacity: 0, x: -40 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              className="flex justify-center relative order-2 lg:order-1"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             >
+              {/* Glow behind image */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.08] to-secondary/[0.06] blur-[100px] rounded-full scale-75 -z-10" />
               <img
                 src={doctorTeleconsulta}
                 alt="Médica realizando teleconsulta"
                 loading="lazy"
                 width={1024}
                 height={1280}
-                className="w-[280px] sm:w-[320px] lg:w-[380px] h-auto drop-shadow-2xl"
+                className="w-[340px] sm:w-[400px] md:w-[440px] lg:w-[500px] xl:w-[540px] h-auto drop-shadow-2xl"
               />
             </motion.div>
 
             {/* Right — Content */}
             <motion.div
-              initial={{ opacity: 0, y: 24 }}
+              className="order-1 lg:order-2"
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
             >
-              <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary mb-3">
+              <motion.span
+                className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary bg-primary/[0.08] px-4 py-1.5 rounded-full mb-5"
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+              >
+                <Video className="w-3.5 h-3.5" />
                 Telemedicina
-              </span>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground leading-tight mb-4">
+              </motion.span>
+              <h2 className="text-3xl sm:text-4xl lg:text-[2.8rem] xl:text-5xl font-extrabold text-foreground leading-[1.1] mb-5">
                 Agende sua<br />
-                <span className="text-primary">consulta online</span>
+                <span className="text-gradient">consulta online</span>
               </h2>
-              <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-8 max-w-lg">
+              <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-10 max-w-lg">
                 Consulte-se com médicos especialistas verificados sem sair de casa.
                 Receitas digitais válidas em todo o Brasil, atendimento humanizado por vídeo em HD.
               </p>
@@ -176,18 +186,18 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
                 ].map((item, i) => (
                   <motion.div
                     key={item.title}
-                    className="flex items-start gap-4 p-4 rounded-2xl bg-card border border-border/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
-                    initial={{ opacity: 0, x: 20 }}
+                    className="flex items-start gap-4 p-4 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/40 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                    initial={{ opacity: 0, x: 24 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: 0.2 + i * 0.1 }}
+                    transition={{ delay: 0.25 + i * 0.12 }}
                   >
-                    <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                       <item.icon className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-bold text-foreground text-sm md:text-base">{item.title}</p>
-                      <p className="text-xs md:text-sm text-muted-foreground">{item.desc}</p>
+                      <p className="font-bold text-foreground text-[15px] md:text-base">{item.title}</p>
+                      <p className="text-xs md:text-sm text-muted-foreground mt-0.5">{item.desc}</p>
                     </div>
                   </motion.div>
                 ))}
@@ -195,14 +205,14 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
 
               <motion.div
                 className="flex flex-col sm:flex-row gap-3"
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: 0.4 }}
+                transition={{ delay: 0.5 }}
               >
                 <Button
                   size="lg"
-                  className="rounded-2xl h-[52px] px-8 text-sm font-bold shadow-lg shadow-primary/20 group"
+                  className="rounded-2xl h-[54px] px-10 text-sm font-bold shadow-lg shadow-primary/25 group hover:-translate-y-0.5 transition-all"
                   onClick={() => navigate("/paciente")}
                 >
                   Agendar consulta
@@ -211,7 +221,7 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="rounded-2xl h-[52px] px-8 text-sm font-bold border-2"
+                  className="rounded-2xl h-[54px] px-10 text-sm font-bold border-2 hover:border-primary/30 hover:bg-primary/[0.04] transition-all"
                   onClick={() => navigate("/dashboard/doctors")}
                 >
                   Ver especialistas
