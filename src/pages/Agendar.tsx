@@ -206,7 +206,10 @@ const Agendar = () => {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: (i % 12) * 0.03 }}
-                        onClick={() => setSearchParams({ especialidade: spec.name })}
+                        onClick={() => {
+                          const returnUrl = `/agendar?especialidade=${encodeURIComponent(spec.name)}`;
+                          navigate(`/paciente?redirect=${encodeURIComponent(returnUrl)}`);
+                        }}
                         className="group text-left p-5 rounded-2xl border border-border/50 bg-card hover:border-primary/40 hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
                       >
                         <div className="text-2xl mb-2">{spec.emoji}</div>
