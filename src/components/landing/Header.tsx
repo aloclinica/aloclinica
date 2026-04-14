@@ -102,22 +102,6 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
         <div className="hidden lg:flex items-center">
           <NavigationMenu>
             <NavigationMenuList className="gap-0.5">
-              {/* Serviços dropdown */}
-              <NavigationMenuItem>
-                <NavigationMenuTrigger className={triggerCls}>
-                  <VideoCamera className={triggerIconCls} weight="fill" />
-                  Serviços
-                </NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <div className="p-2 w-[340px]">
-                    <ul className="grid gap-0.5">
-                      <ListItem href="/teleconsulta" title="Teleconsulta" icon={VideoCamera} badge="24h">
-                        Consultas por vídeo com especialistas, receita digital e acesso rápido.
-                      </ListItem>
-                    </ul>
-                  </div>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
 
               {/* AloClinica dropdown */}
               <NavigationMenuItem>
