@@ -234,7 +234,7 @@ const Teleconsulta = () => {
                     animate={{ y: [0, 4, 0] }}
                     transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                   >
-                    <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                    <Star className="w-3.5 h-3.5 text-warning fill-warning" />
                     <span className="text-xs font-bold text-foreground">4.9</span>
                   </motion.div>
                 </div>
