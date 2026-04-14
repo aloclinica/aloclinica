@@ -4,10 +4,32 @@ import { useNavigate } from "react-router-dom";
 import { Stethoscope, ArrowRight, CaretDown } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 
+import pingoClinicoGeral from "@/assets/pingo-clinico-geral.png";
+import pingoDermatologista from "@/assets/pingo-dermatologista.png";
+import pingoGinecologista from "@/assets/pingo-ginecologista.png";
+import pingoOrtopedista from "@/assets/pingo-ortopedista.png";
+import pingoCardiologista from "@/assets/pingo-cardiologista.png";
+import pingoPediatra from "@/assets/pingo-pediatra.png";
+import pingoPsiquiatra from "@/assets/pingo-psiquiatra.png";
+import pingoNeurologista from "@/assets/pingo-neurologista.png";
+import pingoOftalmologista from "@/assets/pingo-oftalmologista.png";
+import pingoEndocrinologista from "@/assets/pingo-endocrinologista.png";
+import pingoUrologista from "@/assets/pingo-urologista.png";
+import pingoGastroenterologista from "@/assets/pingo-gastroenterologista.png";
+
 const topSpecialties = [
-  "Clínico geral", "Dermatologista", "Ginecologista-obstetra", "Ortopedista",
-  "Cardiologista", "Pediatra", "Psiquiatra", "Neurologista",
-  "Oftalmologista", "Endocrinopediatra", "Urologista", "Gastroenterologista",
+  { name: "Clínico geral", img: pingoClinicoGeral },
+  { name: "Dermatologista", img: pingoDermatologista },
+  { name: "Ginecologista-obstetra", img: pingoGinecologista },
+  { name: "Ortopedista", img: pingoOrtopedista },
+  { name: "Cardiologista", img: pingoCardiologista },
+  { name: "Pediatra", img: pingoPediatra },
+  { name: "Psiquiatra", img: pingoPsiquiatra },
+  { name: "Neurologista", img: pingoNeurologista },
+  { name: "Oftalmologista", img: pingoOftalmologista },
+  { name: "Endocrinologista", img: pingoEndocrinologista },
+  { name: "Urologista", img: pingoUrologista },
+  { name: "Gastroenterologista", img: pingoGastroenterologista },
 ];
 
 const moreSpecialties = [
@@ -23,8 +45,6 @@ const moreSpecialties = [
 function SpecialtiesSection() {
   const navigate = useNavigate();
   const [showAll, setShowAll] = useState(false);
-
-  const displayed = showAll ? [...topSpecialties, ...moreSpecialties] : topSpecialties;
 
   return (
     <section className="relative py-20 md:py-32 overflow-hidden">
@@ -51,27 +71,65 @@ function SpecialtiesSection() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4 mb-8">
-          <AnimatePresence mode="popLayout">
-            {displayed.map((name, i) => (
-              <motion.button
-                key={name}
-                layout
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ delay: i < 12 ? i * 0.02 : (i - 12) * 0.015, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                className="group flex items-center justify-center gap-2 px-3 py-4 rounded-2xl bg-card/80 border border-border/40 hover:shadow-lg hover:border-primary/25 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-                onClick={() => navigate("/dashboard/doctors")}
-              >
-                <Stethoscope className="w-4 h-4 text-primary/50 group-hover:text-primary shrink-0 transition-colors" weight="fill" />
-                <span className="text-xs md:text-sm font-semibold text-foreground text-center leading-tight group-hover:text-primary transition-colors">
-                  {name}
-                </span>
-              </motion.button>
-            ))}
-          </AnimatePresence>
+        {/* Top 12 with Pingo icons */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4 mb-6">
+          {topSpecialties.map((s, i) => (
+            <motion.button
+              key={s.name}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.04, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="group flex flex-col items-center gap-3 p-4 rounded-2xl bg-card/80 border border-border/40 hover:shadow-lg hover:border-primary/25 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+              onClick={() => navigate("/dashboard/doctors")}
+            >
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                <img
+                  src={s.img}
+                  alt={`Pingo ${s.name}`}
+                  loading="lazy"
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span className="text-xs md:text-sm font-semibold text-foreground text-center leading-tight group-hover:text-primary transition-colors">
+                {s.name}
+              </span>
+            </motion.button>
+          ))}
         </div>
+
+        {/* More specialties (expandable) */}
+        <AnimatePresence>
+          {showAll && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4 mb-6">
+                {moreSpecialties.map((name, i) => (
+                  <motion.button
+                    key={name}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.02, duration: 0.35 }}
+                    className="group flex items-center justify-center gap-2 px-3 py-4 rounded-2xl bg-card/80 border border-border/40 hover:shadow-lg hover:border-primary/25 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                    onClick={() => navigate("/dashboard/doctors")}
+                  >
+                    <Stethoscope className="w-4 h-4 text-primary/50 group-hover:text-primary shrink-0 transition-colors" weight="fill" />
+                    <span className="text-xs md:text-sm font-semibold text-foreground text-center leading-tight group-hover:text-primary transition-colors">
+                      {name}
+                    </span>
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="flex flex-col items-center gap-4">
           {!showAll && (
