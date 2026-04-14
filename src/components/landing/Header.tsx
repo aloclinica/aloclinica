@@ -70,14 +70,11 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
   }, []);
 
   const mobileLinks = [
+    { label: "Laudos", href: "/para-empresas/telelaudo" },
+    { label: "Plantão", href: "/plantao" },
     { label: "Teleconsulta", href: "/teleconsulta" },
-    // { label: "Oftalmologia", href: "/oftalmologia" },
-    // { label: "Telelaudo", href: "/para-empresas/telelaudo" },
-    // { label: "Cartão Benefícios", href: "/cartao-beneficios" },
-    // { label: "Cartão B2B", href: "/cartao-b2b" },
+    { label: "Receita", href: "/receita" },
     { label: "Sou Médico", href: "/para-medicos" },
-    // { label: "Sou Laudista", href: "/laudista" },
-    // { label: "Sou Clínica", href: "/para-clinicas" },
   ];
 
   const triggerCls = "group/trigger text-[13px] font-medium text-muted-foreground hover:text-foreground bg-transparent data-[state=open]:text-foreground data-[state=open]:bg-muted/40 px-3.5 h-9 rounded-full transition-colors duration-150 gap-1.5";
@@ -106,6 +103,7 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
         <div className="hidden lg:flex items-center">
           <NavigationMenu>
             <NavigationMenuList className="gap-0.5">
+              {/* Serviços dropdown */}
               <NavigationMenuItem>
                 <NavigationMenuTrigger className={triggerCls}>
                   <VideoCamera className={triggerIconCls} weight="fill" />
@@ -117,40 +115,41 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
                       <ListItem href="/teleconsulta" title="Teleconsulta" icon={VideoCamera} badge="24h">
                         Consultas por vídeo com especialistas, receita digital e acesso rápido.
                       </ListItem>
-                      {/* <ListItem href="/oftalmologia" title="Oftalmologia" icon={Eye}>
-                        Exames, laudos e receitas para óculos e lentes de contato.
-                      </ListItem>
                       <ListItem href="/para-empresas/telelaudo" title="Telelaudo" icon={FileText}>
                         Laudos a distância com IA, SLA e assinatura digital.
-                      </ListItem> */}
+                      </ListItem>
+                      <ListItem href="/oftalmologia" title="Oftalmologia" icon={Eye}>
+                        Exames, laudos e receitas para óculos e lentes de contato.
+                      </ListItem>
                     </ul>
                   </div>
                 </NavigationMenuContent>
               </NavigationMenuItem>
 
-              {/* <NavigationMenuItem>
+              {/* AloClinica dropdown */}
+              <NavigationMenuItem>
                 <NavigationMenuTrigger className={triggerCls}>
-                  <CreditCard className={triggerIconCls} weight="fill" />
-                  Cartões
+                  AloClinica
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <div className="p-2 w-[300px]">
                     <ul className="grid gap-0.5">
+                      <ListItem href="/sobre" title="Sobre nós" icon={Buildings}>
+                        Conheça a AloClínica e nossa missão.
+                      </ListItem>
                       <ListItem href="/cartao-beneficios" title="Cartão Benefícios" icon={CreditCard}>
                         Planos individuais e familiares de telemedicina.
-                      </ListItem>
-                      <ListItem href="/cartao-b2b" title="Cartão B2B" icon={Buildings}>
-                        Benefício corporativo de saúde para sua empresa.
                       </ListItem>
                     </ul>
                   </div>
                 </NavigationMenuContent>
-              </NavigationMenuItem> */}
+              </NavigationMenuItem>
 
+              {/* Médicos dropdown */}
               <NavigationMenuItem>
                 <NavigationMenuTrigger className={triggerCls}>
                   <Stethoscope className={triggerIconCls} weight="fill" />
-                  Para Profissionais
+                  Médicos
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <div className="p-2 w-[300px]">
@@ -158,15 +157,45 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
                       <ListItem href="/para-medicos" title="Sou Médico" icon={Stethoscope}>
                         Atenda pacientes online e aumente sua renda.
                       </ListItem>
-                      {/* <ListItem href="/laudista" title="Sou Laudista" icon={FileText} badge="IA">
+                      <ListItem href="/laudista" title="Sou Laudista" icon={FileText} badge="IA">
                         Emita laudos à distância com IA e assinatura digital.
-                      </ListItem> */}
-                      {/* <ListItem href="/para-clinicas" title="Sou Clínica" icon={Buildings}>
-                        Gerencie agendamento, prontuário e equipe.
-                      </ListItem> */}
+                      </ListItem>
                     </ul>
                   </div>
                 </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              {/* Links diretos */}
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link to="/para-empresas/telelaudo" className={cn(triggerCls, "cursor-pointer")}>
+                    Laudos
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link to="/plantao" className={cn(triggerCls, "cursor-pointer")}>
+                    Plantão
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link to="/teleconsulta" className={cn(triggerCls, "cursor-pointer")}>
+                    Teleconsulta
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link to="/receita" className={cn(triggerCls, "cursor-pointer")}>
+                    Receita
+                  </Link>
+                </NavigationMenuLink>
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
