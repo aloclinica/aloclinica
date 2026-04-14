@@ -168,14 +168,6 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
               {/* Links diretos */}
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
-                  <Link to="/para-empresas/telelaudo" className={cn(triggerCls, "cursor-pointer")}>
-                    Laudos
-                  </Link>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <NavigationMenuLink asChild>
                   <Link to="/plantao" className={cn(triggerCls, "cursor-pointer")}>
                     Plantão
                   </Link>
