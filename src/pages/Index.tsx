@@ -16,7 +16,6 @@ import { useSiteConfig } from "@/lib/site-config";
 import { useSiteSections } from "@/lib/site-sections";
 import { motion } from "framer-motion";
 import mockupPhoneHand from "@/assets/mockup-phone-hand.png";
-import { useSiteSections } from "@/lib/site-sections";
 
 // Icon name → component map (used to resolve string "icon" from CMS JSON)
 const ICON_MAP: Record<string, LucideIcon> = {
