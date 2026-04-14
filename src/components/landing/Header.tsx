@@ -114,12 +114,6 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
                       <ListItem href="/teleconsulta" title="Teleconsulta" icon={VideoCamera} badge="24h">
                         Consultas por vídeo com especialistas, receita digital e acesso rápido.
                       </ListItem>
-                      <ListItem href="/para-empresas/telelaudo" title="Telelaudo" icon={FileText}>
-                        Laudos a distância com IA, SLA e assinatura digital.
-                      </ListItem>
-                      <ListItem href="/oftalmologia" title="Oftalmologia" icon={Eye}>
-                        Exames, laudos e receitas para óculos e lentes de contato.
-                      </ListItem>
                     </ul>
                   </div>
                 </NavigationMenuContent>
@@ -155,9 +149,6 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
                     <ul className="grid gap-0.5">
                       <ListItem href="/para-medicos" title="Sou Médico" icon={Stethoscope}>
                         Atenda pacientes online e aumente sua renda.
-                      </ListItem>
-                      <ListItem href="/laudista" title="Sou Laudista" icon={FileText} badge="IA">
-                        Emita laudos à distância com IA e assinatura digital.
                       </ListItem>
                     </ul>
                   </div>
