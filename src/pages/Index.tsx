@@ -11,11 +11,11 @@ import DeferredSection from "@/components/ui/deferred-section";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Stethoscope } from "@phosphor-icons/react";
-import { Stethoscope as StethoscopeLucide, Eye, Building2, ArrowRight, Wifi, Smartphone, LogIn, type LucideIcon } from "lucide-react";
+import { Stethoscope as StethoscopeLucide, Eye, Building2, ArrowRight, Wifi, Smartphone, LogIn, Calendar, Video, FileText, type LucideIcon } from "lucide-react";
 import { useSiteConfig } from "@/lib/site-config";
 import { useSiteSections } from "@/lib/site-sections";
 import { motion } from "framer-motion";
-import mockupPhoneHand from "@/assets/mockup-phone-hand.png";
+import doctorTeleconsulta from "@/assets/doctor-phone-teleconsulta.png";
 
 // Icon name → component map (used to resolve string "icon" from CMS JSON)
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -123,6 +123,104 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
       />
       {isOn("header") && <Header />}
       {isOn("hero") && <HeroSection />}
+
+      {/* ═══════════════ AGENDAR CONSULTA ═══════════════ */}
+      <section className="relative py-16 md:py-24 overflow-hidden">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/[0.04] via-primary/[0.10] to-background" />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/[0.06] rounded-full blur-[150px] -z-10" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left — Image */}
+            <motion.div
+              className="flex justify-center lg:justify-start"
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <img
+                src={doctorTeleconsulta}
+                alt="Médica realizando teleconsulta"
+                loading="lazy"
+                width={1024}
+                height={1280}
+                className="w-[280px] sm:w-[320px] lg:w-[380px] h-auto drop-shadow-2xl"
+              />
+            </motion.div>
+
+            {/* Right — Content */}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary mb-3">
+                Telemedicina
+              </span>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground leading-tight mb-4">
+                Agende sua<br />
+                <span className="text-primary">consulta online</span>
+              </h2>
+              <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-8 max-w-lg">
+                Consulte-se com médicos especialistas verificados sem sair de casa.
+                Receitas digitais válidas em todo o Brasil, atendimento humanizado por vídeo em HD.
+              </p>
+
+              <div className="space-y-4 mb-10">
+                {[
+                  { icon: Calendar, title: "Agende em segundos", desc: "Escolha o horário que melhor se encaixa na sua rotina" },
+                  { icon: Video, title: "Consulta por vídeo em HD", desc: "Atendimento seguro com criptografia ponta a ponta" },
+                  { icon: FileText, title: "Receita digital válida", desc: "Aceita em qualquer farmácia do Brasil" },
+                ].map((item, i) => (
+                  <motion.div
+                    key={item.title}
+                    className="flex items-start gap-4 p-4 rounded-2xl bg-card border border-border/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+                    initial={{ opacity: 0, x: 20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.2 + i * 0.1 }}
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <item.icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-foreground text-sm md:text-base">{item.title}</p>
+                      <p className="text-xs md:text-sm text-muted-foreground">{item.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              <motion.div
+                className="flex flex-col sm:flex-row gap-3"
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4 }}
+              >
+                <Button
+                  size="lg"
+                  className="rounded-2xl h-[52px] px-8 text-sm font-bold shadow-lg shadow-primary/20 group"
+                  onClick={() => navigate("/paciente")}
+                >
+                  Agendar consulta
+                  <ArrowRight className="w-4 h-4 ml-1.5 transition-transform group-hover:translate-x-1" />
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="rounded-2xl h-[52px] px-8 text-sm font-bold border-2"
+                  onClick={() => navigate("/dashboard/doctors")}
+                >
+                  Ver especialistas
+                </Button>
+              </motion.div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
 
     </div>
   );
