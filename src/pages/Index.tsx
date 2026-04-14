@@ -6,13 +6,14 @@ import Header from "@/components/landing/Header";
 import HeroSection from "@/components/landing/HeroSection";
 import SpecialtiesSection from "@/components/landing/SpecialtiesSection";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Video } from "lucide-react";
+import { ArrowRight, Video, Star } from "lucide-react";
 import { useSiteSections } from "@/lib/site-sections";
 import { motion } from "framer-motion";
 import doctorTeleconsulta from "@/assets/doctor-phone-teleconsulta.png";
 import pingoCalendar from "@/assets/pingo-calendar.png";
 import pingoVideocall from "@/assets/pingo-videocall.png";
 import pingoPrescription from "@/assets/pingo-prescription.png";
+import pingoDepoimentos from "@/assets/pingo-depoimentos.png";
 
 const Index = forwardRef<HTMLDivElement>((_, ref) => {
   const { setTheme, theme } = useTheme();
