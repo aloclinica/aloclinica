@@ -275,8 +275,8 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
                   </>
                 ) : (
                   <>
-                    <Button size="sm" variant="outline" className="rounded-full justify-start gap-2 font-semibold" onClick={() => { setMobileOpen(false); navigate("/paciente"); }}>
-                      <Stethoscope className="w-4 h-4" weight="fill" /> Consulta Avulsa
+                    <Button size="sm" variant="outline" className="rounded-full justify-start gap-2 font-semibold border-primary/20 bg-primary/[0.05] text-primary" onClick={() => { setMobileOpen(false); navigate("/paciente"); }}>
+                      <Stethoscope className="w-4 h-4" weight="fill" /> Agendar Consulta
                     </Button>
                     <Button size="sm" className="rounded-full justify-start gap-2 bg-primary text-primary-foreground font-semibold" onClick={() => { setMobileOpen(false); navigate("/paciente"); }}>
                       <SignIn className="w-4 h-4" weight="bold" /> Entrar
