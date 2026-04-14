@@ -152,7 +152,7 @@ const AnimatedRoutes = () => {
   return (
     <Routes location={location}>
       <Route path="/" element={<Index />} />
-      <Route path="/auth" element={<Auth />} />
+      <Route path="/auth" element={<Navigate to="/paciente" replace />} />
       <Route path="/paciente" element={<AuthPaciente />} />
       <Route path="/paciente/cadastro" element={<SignupPatient />} />
       <Route path="/medico" element={<AuthMedico />} />

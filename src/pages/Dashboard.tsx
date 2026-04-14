@@ -189,7 +189,7 @@ const Dashboard = () => {
     return null;
   }
 
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/paciente" replace />;
 
   const isAdmin = roles.includes("admin");
   const validForceRoles = ["patient", "doctor", "support", "admin", "laudista", "ophthalmologist"];
