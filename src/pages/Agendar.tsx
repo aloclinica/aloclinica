@@ -88,9 +88,26 @@ const Agendar = () => {
         .select("id, full_name, display_name, avatar_url, crm, crm_state, crm_verified, bio, short_description, consultation_price, consultation_duration_min, rating, total_reviews, experience_years, available_now, available_for_telemedicine, sub_specialties")
         .eq("available_for_telemedicine", true);
 
-      if (!error && data) {
-        setDoctors(data as unknown as PublicDoctor[]);
+      let doctorList = (data as unknown as PublicDoctor[]) ?? [];
+
+      // Enrich with care areas
+      if (doctorList.length > 0) {
+        const ids = doctorList.map((d) => d.id);
+        const { data: areas } = await supabase
+          .from("doctor_care_areas")
+          .select("doctor_id, area_name")
+          .in("doctor_id", ids);
+        if (areas) {
+          const areaMap: Record<string, string[]> = {};
+          (areas as any[]).forEach((a: any) => {
+            if (!areaMap[a.doctor_id]) areaMap[a.doctor_id] = [];
+            areaMap[a.doctor_id].push(a.area_name);
+          });
+          doctorList = doctorList.map((d) => ({ ...d, care_areas: areaMap[d.id] ?? [] }));
+        }
       }
+
+      setDoctors(doctorList);
       setLoading(false);
     };
     fetchDoctors();
