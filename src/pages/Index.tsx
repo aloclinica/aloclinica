@@ -1,70 +1,17 @@
-import { useEffect, forwardRef, lazy } from "react";
+import { useEffect, forwardRef } from "react";
 import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
 import SEOHead from "@/components/SEOHead";
 import Header from "@/components/landing/Header";
 import HeroSection from "@/components/landing/HeroSection";
-import SocialProofBar from "@/components/landing/SocialProofBar";
-import FloatingMobileCTA from "@/components/landing/FloatingMobileCTA";
-import DeferredSection from "@/components/ui/deferred-section";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Stethoscope } from "@phosphor-icons/react";
-import { Stethoscope as StethoscopeLucide, Eye, Building2, ArrowRight, Wifi, Smartphone, LogIn, Calendar, Video, FileText, type LucideIcon } from "lucide-react";
-import { useSiteConfig } from "@/lib/site-config";
+import { ArrowRight, Video } from "lucide-react";
 import { useSiteSections } from "@/lib/site-sections";
 import { motion } from "framer-motion";
 import doctorTeleconsulta from "@/assets/doctor-phone-teleconsulta.png";
 import pingoCalendar from "@/assets/pingo-calendar.png";
 import pingoVideocall from "@/assets/pingo-videocall.png";
 import pingoPrescription from "@/assets/pingo-prescription.png";
-
-// Icon name → component map (used to resolve string "icon" from CMS JSON)
-const ICON_MAP: Record<string, LucideIcon> = {
-  Stethoscope: StethoscopeLucide,
-  Eye,
-  Building2,
-};
-
-type EntryCard = {
-  title: string;
-  description: string;
-  icon: string;
-  cta: string;
-  href: string;
-  isClinic?: boolean;
-};
-
-const DEFAULT_ENTRY_CARDS: EntryCard[] = [
-  { title: "Consulta Médica Online", description: "Fale por vídeo com médicos de diversas especialidades.", icon: "Stethoscope", cta: "Agendar agora", href: "/dashboard/doctors?type=telemedicina" },
-  { title: "Consulta Oftalmológica",  description: "Avaliação com oftalmologista e teste de visão online.", icon: "Eye",         cta: "Ver oftalmologistas", href: "/dashboard/doctors?type=oftalmologia" },
-  { title: "Sou clínica e quero enviar exame para laudo", description: "Envie exames e receba laudos de médicos especialistas.", icon: "Building2", cta: "Enviar exame", href: "/clinica/enviar-exame", isClinic: true },
-];
-
-function parseEntryCards(raw: string): EntryCard[] {
-  if (!raw) return DEFAULT_ENTRY_CARDS;
-  try {
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) return parsed as EntryCard[];
-    return DEFAULT_ENTRY_CARDS;
-  } catch {
-    return DEFAULT_ENTRY_CARDS;
-  }
-}
-
-// Lazy-load below-the-fold sections
-const StatsSection = lazy(() => import("@/components/landing/StatsSection"));
-const HorizontalScrollCards = lazy(() => import("@/components/landing/HorizontalScrollCards"));
-const SpecialtiesShowcase = lazy(() => import("@/components/landing/SpecialtiesShowcase"));
-const HowItWorksSection = lazy(() => import("@/components/landing/HowItWorksSection"));
-const BenefitsGrid = lazy(() => import("@/components/landing/BenefitsGrid"));
-const HealthNetworkSection = lazy(() => import("@/components/landing/HealthNetworkSection"));
-const PricingSection = lazy(() => import("@/components/landing/PricingSection"));
-const TestimonialsSection = lazy(() => import("@/components/landing/TestimonialsSection"));
-const CTABanner = lazy(() => import("@/components/landing/CTABanner"));
-const FAQSection = lazy(() => import("@/components/landing/FAQSection"));
-const Footer = lazy(() => import("@/components/landing/Footer"));
 
 const Index = forwardRef<HTMLDivElement>((_, ref) => {
   const { setTheme, theme } = useTheme();
