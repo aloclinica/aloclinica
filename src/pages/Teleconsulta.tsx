@@ -84,13 +84,19 @@ const Teleconsulta = () => {
         description="Consulte médicos online por vídeo 24h. Entenda como funciona a teleconsulta, benefícios, legalidade e como agendar."
       />
       <div className="min-h-screen relative">
-        <div className="fixed inset-0 -z-10 bg-gradient-to-br from-muted/30 via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/5" />
+        {/* Gradient background that flows with scroll */}
+        <div className="fixed inset-0 -z-10">
+          <div className="absolute inset-0 bg-gradient-to-b from-[hsl(var(--primary)/0.05)] via-background via-30% to-background" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_80%_-10%,hsl(var(--primary)/0.08),transparent)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_20%_50%,hsl(var(--secondary)/0.04),transparent)]" />
+        </div>
         <Header />
 
         {/* ═══════════════ HERO ═══════════════ */}
         <section className="relative mt-[70px] overflow-hidden">
-          {/* Background pattern */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--primary)/0.06),transparent_60%)]" />
+          {/* Hero-specific radial accent */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--primary)/0.07),transparent_55%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,hsl(var(--secondary)/0.05),transparent_50%)]" />
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
           <div className="container mx-auto px-4 py-16 md:py-20 lg:py-28 relative z-10">
