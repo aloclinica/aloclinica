@@ -1,52 +1,28 @@
 import { forwardRef, lazy } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Check, ArrowRight, Heart, Eye, Target, Users, Lightning, Lock } from "@phosphor-icons/react";
+import { Check, ArrowRight, Heart, Eye, Target, Users, Lightning, Lock, Star, ShieldCheck, Video, FirstAid, Heartbeat, Cpu, ChatsCircle, Globe, Certificate } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/landing/Header";
 import SEOHead from "@/components/SEOHead";
 
+import pingoTecnologia from "@/assets/pingo-tecnologia.png";
+import pingoConfianca from "@/assets/pingo-confianca.png";
+import pingoPacientesFelizes from "@/assets/pingo-pacientes-felizes.png";
+import pingoSeguranca from "@/assets/pingo-seguranca.png";
+import pingoVideocall from "@/assets/pingo-videocall.png";
+
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
-const values = [
-  {
-    icon: Heart,
-    title: "Cuidado em Primeiro",
-    desc: "Cada decisão é guiada pelo bem-estar do paciente e qualidade do atendimento.",
-  },
-  {
-    icon: Lightning,
-    title: "Inovação Contínua",
-    desc: "Tecnologia de ponta para tornar saúde acessível, rápida e confiável.",
-  },
-  {
-    icon: Lock,
-    title: "Segurança Total",
-    desc: "Conformidade com LGPD, CFM e padrões internacionais de privacidade.",
-  },
-  {
-    icon: Users,
-    title: "Inclusão & Acesso",
-    desc: "Saúde de qualidade para todos, independente de localização ou condição econômica.",
-  },
-];
+const fadeUp = {
+  initial: { opacity: 0, y: 24 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true } as const,
+};
 
-const timeline = [
-  { year: "2020", event: "Fundação da AloClínica", desc: "Nasce a missão de democratizar acesso à saúde." },
-  { year: "2021", event: "Primeiro Telemedicina Launch", desc: "Plataforma de teleconsulta com 100+ médicos." },
-  { year: "2022", event: "Módulo de Oftalmologia", desc: "Lançamento completo com exames e receitas de óculos." },
-  { year: "2023", event: "Solução B2B Telelaudo", desc: "Laudos a distância com IA para clínicas." },
-  { year: "2024", event: "500+ Profissionais Ativos", desc: "Crescimento exponencial e expansão de serviços." },
-  { year: "2025", event: "Visão 2030", desc: "Plataforma completa de saúde digital para Brasil." },
-];
-
-const team = [
-  { name: "Dr. Carlos Silva", role: "Fundador & CEO", area: "Cardiologia, Gestão" },
-  { name: "Dra. Marina Santos", role: "CTO", area: "Tecnologia, IA em Saúde" },
-  { name: "Pedro Costa", role: "COO", area: "Operações, Compliance" },
-  { name: "Juliana Oliveira", role: "CMO", area: "Marketing, Crescimento" },
-];
+const stagger = { initial: "hidden", whileInView: "visible", viewport: { once: true } as const };
+const staggerContainer = { hidden: {}, visible: { transition: { staggerChildren: 0.1 } } };
+const staggerItem = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };
 
 const Sobre = forwardRef<HTMLDivElement>((_, ref) => {
   const navigate = useNavigate();
@@ -63,241 +39,374 @@ const Sobre = forwardRef<HTMLDivElement>((_, ref) => {
 
       <Header />
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4">
-        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55 }}
-            className="text-center max-w-3xl mx-auto"
-          >
-            <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full mb-4">
-              Nossa História
-            </span>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground leading-tight mb-6">
-              Saúde Digital para <span className="text-primary">Todos</span>
-            </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              AloClínica nasceu com a missão simples mas ambiciosa: transformar acesso à saúde no Brasil através de tecnologia segura, acessível e centrada no paciente.
-            </p>
+      {/* ═══════════════ HERO ═══════════════ */}
+      <section className="pt-32 pb-16 md:pb-24 px-4 overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-4 py-1.5 rounded-full mb-5">
+                <Heart className="w-3.5 h-3.5" weight="fill" />
+                Quem Somos
+              </span>
+              <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-foreground leading-[1.08] mb-6">
+                Cuidando da saúde de{" "}
+                <span className="text-gradient">milhares de brasileiros</span>
+              </h1>
+              <p className="text-lg text-muted-foreground leading-relaxed max-w-xl mb-8">
+                A AloClínica nasceu com a missão de democratizar o acesso à saúde de qualidade. 
+                Conectamos pacientes e médicos através de tecnologia segura, acessível e humanizada — 
+                porque acreditamos que todo brasileiro merece atendimento de excelência.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  size="lg"
+                  className="rounded-2xl h-[54px] px-8 text-sm font-bold shadow-lg shadow-primary/25 gap-2 group"
+                  onClick={() => navigate("/paciente")}
+                >
+                  Agendar Consulta
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" weight="bold" />
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="rounded-2xl h-[54px] px-8 text-sm font-bold border-2"
+                  onClick={() => navigate("/para-medicos")}
+                >
+                  Seja Parceiro
+                </Button>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="flex justify-center"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <img src={pingoConfianca} alt="Pingo mascote da AloClínica" width={400} height={400} className="w-[280px] sm:w-[340px] lg:w-[400px] drop-shadow-2xl" />
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════ MISSÃO, VISÃO, COMPROMISSO ═══════════════ */}
+      <section className="py-20 px-4 bg-muted/30">
+        <div className="max-w-7xl mx-auto">
+          <motion.div {...stagger} variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { label: "Missão", icon: Target, color: "text-primary", text: "Democratizar acesso à saúde de qualidade através de telemedicina segura, rápida e acessível para todos os brasileiros." },
+              { label: "Visão", icon: Eye, color: "text-primary", text: "Ser a plataforma de saúde digital mais confiável e utilizada no Brasil, referência em inovação e cuidado humanizado." },
+              { label: "Compromisso", icon: Heart, color: "text-primary", text: "Colocar o paciente no centro de cada decisão, com ética, transparência e excelência médica." },
+            ].map((item, i) => (
+              <motion.div key={i} variants={staggerItem} className="relative p-8 rounded-2xl border border-border bg-background hover:border-primary/30 transition-all group overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/[0.03] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/[0.06] transition-colors" />
+                <div className="relative">
+                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
+                    <item.icon className={`w-7 h-7 ${item.color}`} weight="fill" />
+                  </div>
+                  <h3 className="text-xl font-bold text-foreground mb-3">{item.label}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{item.text}</p>
+                </div>
+              </motion.div>
+            ))}
           </motion.div>
         </div>
       </section>
 
-      {/* Mission, Vision, Values */}
-      <section className="py-20 px-4 bg-muted/30">
-        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            {[
-              {
-                label: "Missão",
-                icon: Target,
-                text: "Democratizar acesso à saúde de qualidade através de telemedicina segura, rápida e acessível.",
-              },
-              {
-                label: "Visão",
-                icon: Eye,
-                text: "Ser a plataforma de saúde digital mais confiável e usada no Brasil até 2030.",
-              },
-              {
-                label: "Compromisso",
-                icon: Heart,
-                text: "Colocar cuidado, segurança e inovação no centro de cada decisão.",
-              },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="text-center p-8 rounded-2xl border border-border bg-background"
-              >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <item.icon className="w-6 h-6 text-primary" weight="fill" />
-                </div>
-                <h3 className="text-xl font-bold text-foreground mb-3">{item.label}</h3>
-                <p className="text-muted-foreground">{item.text}</p>
-              </motion.div>
-            ))}
-          </div>
+      {/* ═══════════════ NOSSA TECNOLOGIA ═══════════════ */}
+      <section className="py-20 md:py-28 px-4 overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            <motion.div className="flex justify-center order-2 lg:order-1" {...fadeUp} transition={{ duration: 0.6 }}>
+              <img src={pingoTecnologia} alt="Pingo com tecnologia médica" loading="lazy" width={512} height={512} className="w-[260px] sm:w-[320px] lg:w-[380px] drop-shadow-xl" />
+            </motion.div>
 
-          {/* Values Grid */}
-          <div className="mt-20">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground text-center mb-12">
+            <motion.div className="order-1 lg:order-2" {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }}>
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-4 py-1.5 rounded-full mb-5">
+                <Cpu className="w-3.5 h-3.5" weight="fill" />
+                Nossa Tecnologia
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground leading-tight mb-6">
+                Inovação a serviço da <span className="text-primary">sua saúde</span>
+              </h2>
+              <p className="text-muted-foreground leading-relaxed mb-8">
+                Utilizamos tecnologia de ponta para oferecer uma experiência médica segura e eficiente. 
+                Cada detalhe foi pensado para garantir qualidade no atendimento.
+              </p>
+
+              <div className="space-y-4">
+                {[
+                  { icon: Video, title: "Videochamada em HD", desc: "Conexão estável com criptografia ponta a ponta para consultas seguras e sem interrupção." },
+                  { icon: ShieldCheck, title: "Receita Digital Válida", desc: "Prescrições com assinatura digital certificada (ICP-Brasil), aceitas em qualquer farmácia do país." },
+                  { icon: Cpu, title: "Inteligência Artificial", desc: "IA para auxiliar médicos em diagnósticos, otimizar laudos e melhorar a experiência do paciente." },
+                  { icon: Lock, title: "Proteção de Dados (LGPD)", desc: "Seus dados são protegidos com os mais altos padrões de segurança e em total conformidade com a LGPD." },
+                ].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    className="flex items-start gap-4 p-4 rounded-2xl bg-card/80 border border-border/40 hover:border-primary/20 hover:shadow-md transition-all"
+                    {...fadeUp}
+                    transition={{ delay: 0.2 + i * 0.1 }}
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <item.icon className="w-5 h-5 text-primary" weight="fill" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-foreground text-[15px]">{item.title}</p>
+                      <p className="text-sm text-muted-foreground mt-0.5">{item.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════ NOSSOS VALORES ═══════════════ */}
+      <section className="py-20 px-4 bg-muted/30">
+        <div className="max-w-7xl mx-auto">
+          <motion.div className="text-center mb-14" {...fadeUp}>
+            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-4 py-1.5 rounded-full mb-4">
               Nossos Valores
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-4">
+              A moral que nos guia
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {values.map((value, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.08 }}
-                  className="p-6 rounded-xl border border-border bg-card hover:border-primary/30 transition-all"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                    <value.icon className="w-5 h-5 text-primary" weight="fill" />
-                  </div>
-                  <h3 className="font-semibold text-foreground mb-2">{value.title}</h3>
-                  <p className="text-sm text-muted-foreground">{value.desc}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Cada ação, cada linha de código e cada consulta é orientada por valores que colocam o ser humano em primeiro lugar.
+            </p>
+          </motion.div>
 
-      {/* Timeline */}
-      <section className="py-20 px-4">
-        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground text-center mb-16">
-            Nossa Trajetória
-          </h2>
-
-          <div className="max-w-3xl mx-auto">
-            {timeline.map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="relative pl-8 pb-12 last:pb-0"
-              >
-                <div className="absolute left-0 top-2 w-4 h-4 rounded-full bg-primary border-4 border-background" />
-                {i < timeline.length - 1 && (
-                  <div className="absolute left-[7px] top-8 w-0.5 h-16 bg-border" />
-                )}
-
-                <div className="p-6 rounded-xl border border-border bg-card">
-                  <div className="flex items-center gap-4 mb-2">
-                    <span className="text-lg font-extrabold text-primary">{item.year}</span>
-                    <h3 className="text-lg font-semibold text-foreground">{item.event}</h3>
-                  </div>
-                  <p className="text-muted-foreground">{item.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Team */}
-      <section className="py-20 px-4 bg-muted/30">
-        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground text-center mb-12">
-            Liderança Dedicada
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-            {team.map((member, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="text-center p-6 rounded-xl border border-border bg-background"
-              >
-                <div className="w-16 h-16 rounded-full bg-primary/10 mx-auto mb-4 flex items-center justify-center">
-                  <Users className="w-8 h-8 text-primary" weight="fill" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-1">{member.name}</h3>
-                <p className="text-sm text-primary font-medium mb-2">{member.role}</p>
-                <p className="text-xs text-muted-foreground">{member.area}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-20 px-4">
-        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          <motion.div {...stagger} variants={staggerContainer} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { metric: "500+", label: "Profissionais de Saúde" },
-              { metric: "100k+", label: "Pacientes Ativos" },
-              { metric: "30+", label: "Especialidades" },
-              { metric: "24h", label: "Suporte Disponível" },
+              { icon: Heart, title: "Empatia", desc: "Tratamos cada paciente como gostaríamos de ser tratados. Cuidado humanizado acima de tudo.", color: "bg-red-500/10 text-red-500" },
+              { icon: Certificate, title: "Ética", desc: "Seguimos rigorosamente o código de ética médica, as normas do CFM e legislação brasileira.", color: "bg-primary/10 text-primary" },
+              { icon: Lightning, title: "Inovação", desc: "Buscamos constantemente novas formas de melhorar a experiência e o acesso à saúde.", color: "bg-amber-500/10 text-amber-500" },
+              { icon: Globe, title: "Acessibilidade", desc: "Saúde de qualidade para todos os brasileiros, de qualquer lugar e a qualquer hora.", color: "bg-emerald-500/10 text-emerald-500" },
             ].map((item, i) => (
               <motion.div
                 key={i}
+                variants={staggerItem}
+                className="p-6 rounded-2xl border border-border bg-background hover:border-primary/30 hover:-translate-y-1 transition-all duration-300 group"
+              >
+                <div className={`w-12 h-12 rounded-xl ${item.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <item.icon className="w-6 h-6" weight="fill" />
+                </div>
+                <h3 className="font-bold text-foreground text-lg mb-2">{item.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ═══════════════ PACIENTES SATISFEITOS ═══════════════ */}
+      <section className="py-20 md:py-28 px-4 overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            <motion.div {...fadeUp} transition={{ duration: 0.5 }}>
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-4 py-1.5 rounded-full mb-5">
+                <ChatsCircle className="w-3.5 h-3.5" weight="fill" />
+                Pacientes Satisfeitos
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground leading-tight mb-6">
+                Quem usa, <span className="text-primary">recomenda</span>
+              </h2>
+              <p className="text-muted-foreground leading-relaxed mb-8">
+                A satisfação dos nossos pacientes é o que nos motiva a evoluir todos os dias. 
+                São milhares de vidas transformadas com atendimento médico de qualidade.
+              </p>
+
+              <div className="space-y-5">
+                {[
+                  { name: "Maria Fernanda", city: "São Paulo, SP", text: "Consultar pela AloClínica mudou minha vida. Recebi atendimento excelente sem precisar sair de casa. Super recomendo!", stars: 5 },
+                  { name: "João Carlos", city: "Recife, PE", text: "Moro no interior e finalmente consegui consultar com um especialista. A receita digital funcionou perfeitamente na farmácia.", stars: 5 },
+                  { name: "Ana Beatriz", city: "Belo Horizonte, MG", text: "Atendimento rápido, médico muito atencioso e a plataforma é super fácil de usar. Nota 10!", stars: 5 },
+                ].map((t, i) => (
+                  <motion.div
+                    key={i}
+                    className="p-5 rounded-2xl border border-border bg-card/80 hover:shadow-md transition-all"
+                    {...fadeUp}
+                    transition={{ delay: 0.15 + i * 0.1 }}
+                  >
+                    <div className="flex items-center gap-1 mb-2">
+                      {Array.from({ length: t.stars }).map((_, si) => (
+                        <Star key={si} className="w-4 h-4 text-amber-400" weight="fill" />
+                      ))}
+                    </div>
+                    <p className="text-sm text-foreground mb-3 italic">"{t.text}"</p>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-xs font-bold text-primary">{t.name[0]}</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{t.name}</p>
+                        <p className="text-xs text-muted-foreground">{t.city}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div className="flex justify-center" {...fadeUp} transition={{ duration: 0.6, delay: 0.2 }}>
+              <img src={pingoPacientesFelizes} alt="Pingo com pacientes felizes" loading="lazy" width={512} height={512} className="w-[280px] sm:w-[340px] lg:w-[420px] drop-shadow-xl" />
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════ NÚMEROS ═══════════════ */}
+      <section className="py-20 px-4 bg-muted/30">
+        <div className="max-w-7xl mx-auto">
+          <motion.div className="text-center mb-14" {...fadeUp}>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-4">
+              AloClínica em números
+            </h2>
+            <p className="text-muted-foreground max-w-lg mx-auto">
+              Resultados que comprovam nosso compromisso com a saúde do brasileiro.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { metric: "100k+", label: "Pacientes Atendidos", icon: Users },
+              { metric: "500+", label: "Médicos Especialistas", icon: FirstAid },
+              { metric: "30+", label: "Especialidades Médicas", icon: Heartbeat },
+              { metric: "4.9★", label: "Satisfação Geral", icon: Star },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                className="text-center p-6 rounded-2xl border border-border bg-background hover:border-primary/30 transition-all"
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
               >
-                <div className="text-3xl sm:text-4xl font-extrabold text-primary mb-2">{item.metric}</div>
-                <p className="text-muted-foreground text-sm">{item.label}</p>
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <item.icon className="w-6 h-6 text-primary" weight="fill" />
+                </div>
+                <div className="text-3xl sm:text-4xl font-extrabold text-primary mb-1">{item.metric}</div>
+                <p className="text-sm text-muted-foreground">{item.label}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Compliance & Trust */}
-      <section className="py-20 px-4 bg-muted/30">
-        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground text-center mb-12">
-            Segurança & Conformidade
-          </h2>
+      {/* ═══════════════ SEGURANÇA & CONFORMIDADE ═══════════════ */}
+      <section className="py-20 md:py-28 px-4 overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            <motion.div className="flex justify-center order-2 lg:order-1" {...fadeUp} transition={{ duration: 0.6 }}>
+              <img src={pingoSeguranca} alt="Pingo segurança de dados" loading="lazy" width={512} height={512} className="w-[260px] sm:w-[300px] lg:w-[360px] drop-shadow-xl" />
+            </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+            <motion.div className="order-1 lg:order-2" {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }}>
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-4 py-1.5 rounded-full mb-5">
+                <Lock className="w-3.5 h-3.5" weight="fill" />
+                Segurança & Conformidade
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground leading-tight mb-6">
+                Seus dados estão <span className="text-primary">protegidos</span>
+              </h2>
+              <p className="text-muted-foreground leading-relaxed mb-8">
+                Seguimos os mais rigorosos padrões de segurança e estamos em total conformidade 
+                com a legislação brasileira e as normas do Conselho Federal de Medicina.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  { title: "LGPD Compliant", desc: "Proteção total de dados pessoais conforme a legislação brasileira." },
+                  { title: "CFM Regulado", desc: "Aprovado pelo Conselho Federal de Medicina para telemedicina." },
+                  { title: "Criptografia E2E", desc: "Comunicações protegidas com criptografia de ponta a ponta." },
+                  { title: "Backup Contínuo", desc: "Redundância de sistemas e backup automático 24/7." },
+                  { title: "ISO 27001", desc: "Práticas alinhadas ao padrão internacional de segurança." },
+                  { title: "Auditoria", desc: "Logs de acesso e auditoria contínua de todas as operações." },
+                ].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    className="flex items-start gap-3 p-3"
+                    {...fadeUp}
+                    transition={{ delay: 0.2 + i * 0.06 }}
+                  >
+                    <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" weight="bold" />
+                    <div>
+                      <p className="font-semibold text-foreground text-sm">{item.title}</p>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════ DIFERENCIAIS ═══════════════ */}
+      <section className="py-20 px-4 bg-muted/30">
+        <div className="max-w-7xl mx-auto">
+          <motion.div className="text-center mb-14" {...fadeUp}>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-4">
+              Por que escolher a AloClínica?
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Diferenciais que fazem da AloClínica a plataforma de saúde digital mais completa do Brasil.
+            </p>
+          </motion.div>
+
+          <motion.div {...stagger} variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { title: "LGPD", desc: "Proteção de dados pessoais em conformidade total com legislação brasileira." },
-              { title: "CFM Regulado", desc: "Aprovado e regulado pelo Conselho Federal de Medicina." },
-              { title: "Encriptação", desc: "Criptografia de ponta a ponta em todas as comunicações." },
-              { title: "Backup 24/7", desc: "Redundância de sistemas e backup automático contínuo." },
+              { icon: Video, title: "Consulta 24h", desc: "Atendimento médico disponível a qualquer hora, incluindo fins de semana e feriados." },
+              { icon: FirstAid, title: "30+ Especialidades", desc: "De clínico geral a cardiologia, neurologia, dermatologia e muito mais." },
+              { icon: ShieldCheck, title: "Médicos Verificados", desc: "Todos os profissionais são verificados pelo CRM e passam por rigoroso processo de seleção." },
+              { icon: Heartbeat, title: "Prontuário Digital", desc: "Seu histórico médico completo, seguro e acessível de qualquer lugar." },
+              { icon: ChatsCircle, title: "Suporte Humanizado", desc: "Equipe de suporte dedicada para ajudar em qualquer etapa do atendimento." },
+              { icon: Globe, title: "Acesso Nacional", desc: "Consulte de qualquer cidade do Brasil com a mesma qualidade e agilidade." },
             ].map((item, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="p-6 rounded-xl border border-border bg-background"
+                variants={staggerItem}
+                className="p-6 rounded-2xl border border-border bg-background hover:border-primary/30 hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <Check className="w-5 h-5 text-primary" weight="bold" />
-                  <h3 className="font-semibold text-foreground">{item.title}</h3>
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                  <item.icon className="w-6 h-6 text-primary" weight="fill" />
                 </div>
-                <p className="text-sm text-muted-foreground">{item.desc}</p>
+                <h3 className="font-bold text-foreground text-lg mb-2">{item.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* CTA Final */}
+      {/* ═══════════════ CTA FINAL ═══════════════ */}
       <section className="py-20 px-4">
-        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
+        <div className="max-w-7xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            {...fadeUp}
             className="relative rounded-3xl overflow-hidden bg-gradient-hero shadow-elevated"
           >
             <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary-foreground)/0.22),transparent_38%),radial-gradient(circle_at_bottom_right,hsl(var(--primary-foreground)/0.14),transparent_34%)]" />
-            <div className="relative z-10 flex flex-col items-center justify-center gap-6 px-6 sm:px-10 py-16 sm:py-20 text-center">
-              <div>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-primary-foreground mb-2">
-                  Quer fazer parte dessa revolução?
-                </h2>
-                <p className="text-lg text-primary-foreground/90 max-w-2xl mx-auto">
-                  Pacientes, médicos e empresas — juntos transformando saúde no Brasil.
-                </p>
+            <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8 px-8 sm:px-12 py-14 sm:py-16">
+              <div className="flex items-center gap-6">
+                <img src={pingoVideocall} alt="Pingo" loading="lazy" width={100} height={100} className="w-20 h-20 hidden sm:block drop-shadow-lg" />
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-extrabold text-primary-foreground mb-2">
+                    Comece a cuidar da sua saúde hoje
+                  </h2>
+                  <p className="text-primary-foreground/85 max-w-xl">
+                    Agende sua primeira consulta e descubra por que milhares de brasileiros confiam na AloClínica.
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col sm:flex-row gap-3 shrink-0">
                 <Button
                   size="lg"
-                  className="bg-background text-primary hover:bg-background/95 rounded-2xl px-8 gap-2.5 font-extrabold"
+                  className="bg-background text-primary hover:bg-background/95 rounded-2xl px-8 gap-2 font-extrabold"
                   onClick={() => navigate("/paciente/cadastro")}
                 >
-                  Comece como Paciente
+                  Comece Agora
                   <ArrowRight className="w-5 h-5" weight="bold" />
                 </Button>
                 <Button
@@ -314,7 +423,6 @@ const Sobre = forwardRef<HTMLDivElement>((_, ref) => {
         </div>
       </section>
 
-      {/* Footer */}
       <Footer />
     </div>
   );
