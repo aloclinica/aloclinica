@@ -206,11 +206,11 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
               <Button
                 size="sm"
                 variant="outline"
-                className="rounded-full gap-1.5 text-[13px] font-semibold h-9 px-4 border-border/50 hover:border-primary/25 hover:bg-primary/[0.03] transition-all duration-150"
+                className="rounded-full gap-1.5 text-[13px] font-semibold h-9 px-4 border-primary/20 bg-primary/[0.05] text-primary hover:bg-primary/[0.10] hover:border-primary/30 transition-all duration-150"
                 onClick={() => navigate("/paciente")}
               >
                 <Stethoscope className="w-3.5 h-3.5" weight="fill" />
-                Consulta Avulsa
+                Agendar Consulta
               </Button>
               <Button
                 size="sm"
