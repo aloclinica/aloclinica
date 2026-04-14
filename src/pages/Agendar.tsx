@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,32 +8,33 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  ArrowLeft, ArrowRight, Star, Video, MapPin, Clock, Shield,
-  Search, Stethoscope, UserCheck
+  ArrowLeft, ArrowRight, Star, Video, Clock, Shield,
+  Search, Stethoscope, UserCheck, SlidersHorizontal, TrendingUp, BadgePercent,
+  ChevronDown,
 } from "lucide-react";
 import Header from "@/components/landing/Header";
 import SEOHead from "@/components/SEOHead";
 import { cn } from "@/lib/utils";
 
 const specialties = [
-  { name: "Clínico Geral", emoji: "🏥", desc: "Primeiro acolhimento e atendimento geral" },
-  { name: "Cardiologia", emoji: "❤️", desc: "Coração e saúde cardiovascular" },
-  { name: "Dermatologia", emoji: "🔬", desc: "Pele, acne e estética" },
-  { name: "Pediatria", emoji: "👶", desc: "Saúde infantil" },
-  { name: "Psicologia", emoji: "🧠", desc: "Saúde mental e terapia" },
-  { name: "Neurologia", emoji: "⚡", desc: "Sistema nervoso" },
-  { name: "Gastroenterologia", emoji: "🍽️", desc: "Digestão e intestinos" },
-  { name: "Endocrinologia", emoji: "🔬", desc: "Diabetes e hormônios" },
-  { name: "Urologia", emoji: "💧", desc: "Sistema urinário" },
-  { name: "Ginecologia", emoji: "♀️", desc: "Saúde da mulher" },
-  { name: "Ortopedia", emoji: "🦵", desc: "Ossos e articulações" },
-  { name: "Nutrição", emoji: "🥗", desc: "Dieta e emagrecimento" },
-  { name: "Pneumologia", emoji: "💨", desc: "Pulmões e respiração" },
-  { name: "Otorrinolaringologia", emoji: "👂", desc: "Ouvidos, nariz, garganta" },
-  { name: "Reumatologia", emoji: "🦴", desc: "Articulações e inflamação" },
-  { name: "Infectologia", emoji: "🦠", desc: "Infecções" },
-  { name: "Alergologia", emoji: "🤧", desc: "Alergias" },
-  { name: "Fonoaudiologia", emoji: "🗣️", desc: "Fala e audição" },
+  { name: "Clínico Geral", emoji: "🏥" },
+  { name: "Cardiologia", emoji: "❤️" },
+  { name: "Dermatologia", emoji: "🔬" },
+  { name: "Pediatria", emoji: "👶" },
+  { name: "Psicologia", emoji: "🧠" },
+  { name: "Neurologia", emoji: "⚡" },
+  { name: "Gastroenterologia", emoji: "🍽️" },
+  { name: "Endocrinologia", emoji: "🔬" },
+  { name: "Urologia", emoji: "💧" },
+  { name: "Ginecologia", emoji: "♀️" },
+  { name: "Ortopedia", emoji: "🦵" },
+  { name: "Nutrição", emoji: "🥗" },
+  { name: "Pneumologia", emoji: "💨" },
+  { name: "Otorrinolaringologia", emoji: "👂" },
+  { name: "Reumatologia", emoji: "🦴" },
+  { name: "Infectologia", emoji: "🦠" },
+  { name: "Alergologia", emoji: "🤧" },
+  { name: "Fonoaudiologia", emoji: "🗣️" },
 ];
 
 interface PublicDoctor {
@@ -57,10 +58,7 @@ interface PublicDoctor {
   care_areas?: string[];
 }
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-};
+type SortMode = "rating" | "price" | "available";
 
 const Agendar = () => {
   const navigate = useNavigate();
@@ -69,28 +67,22 @@ const Agendar = () => {
 
   const [search, setSearch] = useState("");
   const [doctors, setDoctors] = useState<PublicDoctor[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [sort, setSort] = useState<SortMode>("rating");
+  const [showAllSpecs, setShowAllSpecs] = useState(false);
+  const [expandedBio, setExpandedBio] = useState<string | null>(null);
 
-  // Filter specialties
-  const filtered = specialties.filter(
-    (s) =>
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.desc.toLowerCase().includes(search.toLowerCase())
-  );
-
-  // Load doctors when specialty selected
+  // Load ALL doctors on mount
   useEffect(() => {
-    if (!selectedSpecialty) return;
     const fetchDoctors = async () => {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("doctor_profiles_public" as any)
         .select("id, full_name, display_name, avatar_url, crm, crm_state, crm_verified, bio, short_description, consultation_price, consultation_duration_min, rating, total_reviews, experience_years, available_now, available_for_telemedicine, sub_specialties")
         .eq("available_for_telemedicine", true);
 
       let doctorList = (data as unknown as PublicDoctor[]) ?? [];
 
-      // Enrich with care areas
       if (doctorList.length > 0) {
         const ids = doctorList.map((d) => d.id);
         const { data: areas } = await supabase
@@ -111,343 +103,389 @@ const Agendar = () => {
       setLoading(false);
     };
     fetchDoctors();
-  }, [selectedSpecialty]);
+  }, []);
+
+  // Filter + sort doctors
+  const filteredDoctors = useMemo(() => {
+    let list = [...doctors];
+
+    // Filter by search (name or specialty)
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((d) => {
+        const name = (d.display_name || d.full_name || "").toLowerCase();
+        const bio = (d.bio || d.short_description || "").toLowerCase();
+        const areas = (d.care_areas ?? []).join(" ").toLowerCase();
+        return name.includes(q) || bio.includes(q) || areas.includes(q);
+      });
+    }
+
+    // Sort
+    if (sort === "rating") {
+      list.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+    } else if (sort === "price") {
+      list.sort((a, b) => (a.consultation_price ?? 89) - (b.consultation_price ?? 89));
+    } else if (sort === "available") {
+      list.sort((a, b) => (b.available_now ? 1 : 0) - (a.available_now ? 1 : 0));
+    }
+
+    return list;
+  }, [doctors, search, sort]);
 
   const handleSelectDoctor = (doctorId: string) => {
-    const returnUrl = `/dashboard/schedule?doctor=${doctorId}&specialty=${encodeURIComponent(selectedSpecialty || "")}`;
+    const returnUrl = `/dashboard/schedule?doctor=${doctorId}&specialty=${encodeURIComponent(selectedSpecialty || "Clínico Geral")}`;
     navigate(`/paciente?redirect=${encodeURIComponent(returnUrl)}`);
   };
 
-  const handleBack = () => {
-    setSearchParams({});
-    setDoctors([]);
+  const handleSelectSpecialty = (name: string) => {
+    setSearchParams({ especialidade: name });
   };
+
+  const visibleSpecs = showAllSpecs ? specialties : specialties.slice(0, 8);
 
   return (
     <>
       <SEOHead
-        title="Agendar Consulta Online | AloClínica"
+        title={selectedSpecialty ? `${selectedSpecialty} — Agendar Teleconsulta | AloClínica` : "Agendar Consulta Online | AloClínica"}
         description="Escolha a especialidade e o médico ideal para sua teleconsulta. Atendimento por vídeo, rápido e seguro."
       />
       <div className="min-h-screen relative bg-background">
         <div className="fixed inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-br from-[hsl(210,80%,92%)] via-[hsl(215,65%,88%)] to-[hsl(225,55%,85%)] dark:from-[hsl(210,40%,10%)] dark:via-[hsl(215,35%,13%)] dark:to-[hsl(225,30%,16%)]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.04] via-background to-background" />
         </div>
         <Header />
 
         <div className="pt-24 pb-20 px-4">
-          <div className="max-w-5xl mx-auto">
-            {/* Progress indicator */}
+          <div className="max-w-4xl mx-auto">
+            {/* ═══ HEADER ═══ */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center justify-center gap-3 mb-10"
+              className="text-center mb-8"
             >
-              <div className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-colors",
-                !selectedSpecialty ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
-              )}>
-                <span className="w-6 h-6 rounded-full bg-primary-foreground/20 flex items-center justify-center text-xs font-bold">1</span>
-                Especialidade
-              </div>
-              <ArrowRight className="w-4 h-4 text-muted-foreground" />
-              <div className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-colors",
-                selectedSpecialty ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-              )}>
-                <span className="w-6 h-6 rounded-full bg-primary-foreground/20 flex items-center justify-center text-xs font-bold">2</span>
-                Médico
-              </div>
-              <ArrowRight className="w-4 h-4 text-muted-foreground" />
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold bg-muted text-muted-foreground">
-                <span className="w-6 h-6 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs font-bold">3</span>
-                Entrar
+              <h1 className="text-3xl sm:text-4xl font-black text-foreground tracking-tight mb-2">
+                Agende sua <span className="text-primary">teleconsulta</span>
+              </h1>
+              <p className="text-muted-foreground max-w-lg mx-auto text-sm">
+                Busque por especialidade ou nome do profissional
+              </p>
+            </motion.div>
+
+            {/* ═══ SEARCH BAR ═══ */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="max-w-2xl mx-auto mb-6"
+            >
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground" />
+                <Input
+                  placeholder="Busque por especialidade ou nome do profissional..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-12 h-13 rounded-2xl text-sm border-border/60 shadow-sm focus-visible:ring-primary/30"
+                />
               </div>
             </motion.div>
 
-            <AnimatePresence mode="wait">
-              {!selectedSpecialty ? (
-                /* ═══════════════ STEP 1: ESPECIALIDADE ═══════════════ */
-                <motion.div
-                  key="step1"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="text-center mb-8">
-                    <h1 className="text-3xl sm:text-4xl font-black text-foreground tracking-tight mb-3">
-                      Qual especialidade você precisa?
-                    </h1>
-                    <p className="text-muted-foreground max-w-xl mx-auto">
-                      Selecione a área de saúde e veja os médicos disponíveis para teleconsulta
-                    </p>
-                  </div>
-
-                  {/* Search */}
-                  <div className="max-w-md mx-auto mb-8">
-                    <div className="relative">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Buscar especialidade..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="pl-11 h-12 rounded-xl"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {filtered.map((spec, i) => (
-                      <motion.button
-                        key={spec.name}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: (i % 12) * 0.03 }}
-                        onClick={() => {
-                          const returnUrl = `/agendar?especialidade=${encodeURIComponent(spec.name)}`;
-                          navigate(`/paciente?redirect=${encodeURIComponent(returnUrl)}`);
-                        }}
-                        className="group text-left p-5 rounded-2xl border border-border/50 bg-card hover:border-primary/40 hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
-                      >
-                        <div className="text-2xl mb-2">{spec.emoji}</div>
-                        <h3 className="font-semibold text-foreground text-sm mb-1 group-hover:text-primary transition-colors">
-                          {spec.name}
-                        </h3>
-                        <p className="text-xs text-muted-foreground line-clamp-2">{spec.desc}</p>
-                      </motion.button>
-                    ))}
-                  </div>
-
-                  {filtered.length === 0 && (
-                    <p className="text-center text-muted-foreground py-12">Nenhuma especialidade encontrada.</p>
+            {/* ═══ SPECIALTY CHIPS ═══ */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.15 }}
+              className="mb-6"
+            >
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <button
+                  onClick={() => setSearchParams({})}
+                  className={cn(
+                    "px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border",
+                    !selectedSpecialty
+                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                      : "bg-card text-muted-foreground border-border/50 hover:border-primary/30 hover:text-foreground"
                   )}
-                </motion.div>
-              ) : (
-                /* ═══════════════ STEP 2: MÉDICOS ═══════════════ */
-                <motion.div
-                  key="step2"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.3 }}
                 >
-                  <div className="flex items-center gap-3 mb-8">
-                    <Button variant="ghost" size="sm" onClick={handleBack} className="rounded-full">
-                      <ArrowLeft className="w-4 h-4 mr-1" /> Voltar
-                    </Button>
-                    <div>
-                      <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
-                        Médicos em {selectedSpecialty}
-                      </h1>
-                      <p className="text-sm text-muted-foreground">
-                        Escolha o profissional ideal para sua consulta
-                      </p>
-                    </div>
-                  </div>
+                  Todas
+                </button>
+                {visibleSpecs.map((spec) => (
+                  <button
+                    key={spec.name}
+                    onClick={() => handleSelectSpecialty(spec.name)}
+                    className={cn(
+                      "px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border",
+                      selectedSpecialty === spec.name
+                        ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                        : "bg-card text-muted-foreground border-border/50 hover:border-primary/30 hover:text-foreground"
+                    )}
+                  >
+                    {spec.emoji} {spec.name}
+                  </button>
+                ))}
+                {!showAllSpecs && specialties.length > 8 && (
+                  <button
+                    onClick={() => setShowAllSpecs(true)}
+                    className="px-3 py-1.5 rounded-full text-xs font-semibold text-primary hover:bg-primary/5 transition-colors flex items-center gap-1"
+                  >
+                    +{specialties.length - 8} mais <ChevronDown className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            </motion.div>
 
-                  {loading ? (
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      {[1, 2].map((i) => (
-                        <Card key={i} className="overflow-hidden">
-                          <CardContent className="p-5 flex gap-4">
-                            <Skeleton className="w-24 h-28 rounded-xl shrink-0" />
-                            <div className="space-y-2.5 flex-1">
-                              <Skeleton className="h-5 w-3/4" />
-                              <Skeleton className="h-4 w-1/3" />
-                              <Skeleton className="h-3 w-1/2" />
-                              <div className="flex gap-2">
-                                <Skeleton className="h-6 w-16 rounded-full" />
-                                <Skeleton className="h-6 w-20 rounded-full" />
-                              </div>
-                              <Skeleton className="h-3 w-full" />
-                              <Skeleton className="h-9 w-28" />
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : doctors.length === 0 ? (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-center py-16"
-                    >
-                      <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-                        <Stethoscope className="w-8 h-8 text-muted-foreground" />
+            {/* ═══ SORT FILTERS ═══ */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="flex flex-wrap items-center gap-2 mb-6"
+            >
+              <span className="text-xs text-muted-foreground mr-1">Ordenar:</span>
+              {([
+                { key: "rating" as SortMode, label: "Mais avaliados", icon: Star },
+                { key: "price" as SortMode, label: "Menor preço", icon: BadgePercent },
+                { key: "available" as SortMode, label: "Disponível agora", icon: Clock },
+              ]).map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key}
+                  onClick={() => setSort(key)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border",
+                    sort === key
+                      ? "bg-primary/10 text-primary border-primary/30"
+                      : "text-muted-foreground border-transparent hover:bg-muted"
+                  )}
+                >
+                  <Icon className="w-3 h-3" />
+                  {label}
+                </button>
+              ))}
+            </motion.div>
+
+            {/* ═══ DOCTOR LIST ═══ */}
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i} className="overflow-hidden">
+                    <CardContent className="p-5 flex gap-5">
+                      <Skeleton className="w-24 h-28 rounded-xl shrink-0" />
+                      <div className="space-y-3 flex-1">
+                        <Skeleton className="h-5 w-2/3" />
+                        <Skeleton className="h-4 w-1/4" />
+                        <Skeleton className="h-3 w-1/3" />
+                        <div className="flex gap-2">
+                          <Skeleton className="h-6 w-20 rounded-full" />
+                          <Skeleton className="h-6 w-24 rounded-full" />
+                        </div>
+                        <Skeleton className="h-3 w-full" />
+                        <Skeleton className="h-10 w-32" />
                       </div>
-                      <h3 className="text-lg font-bold text-foreground mb-2">Nenhum médico disponível</h3>
-                      <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                        No momento, não há médicos disponíveis para esta especialidade. Tente outra ou volte mais tarde.
-                      </p>
-                      <Button variant="outline" onClick={handleBack} className="rounded-xl">
-                        <ArrowLeft className="w-4 h-4 mr-2" /> Escolher outra especialidade
-                      </Button>
-                    </motion.div>
-                  ) : (
-                    <div className="grid gap-4">
-                      {doctors.map((doc, i) => {
-                        const name = doc.display_name || doc.full_name || "Médico";
-                        const price = doc.consultation_price ?? 89;
-                        const discountPrice = Math.round(price * 0.7 * 100) / 100;
-                        const bioText = doc.bio || doc.short_description;
-                        const areas = doc.care_areas ?? [];
-                        const subSpecs = doc.sub_specialties ?? [];
-                        return (
-                          <motion.div
-                            key={doc.id}
-                            initial={{ opacity: 0, y: 16 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.06 }}
-                          >
-                            <Card className="border-border/50 hover:shadow-xl hover:border-primary/20 transition-all duration-300 group overflow-hidden">
-                              <CardContent className="p-0">
-                                <div className="flex flex-col sm:flex-row">
-                                  {/* Avatar / Photo */}
-                                  <div className="sm:w-40 shrink-0 p-4 sm:p-5 flex sm:flex-col items-center sm:items-center gap-4 sm:gap-3">
-                                    <div className="relative">
-                                      {doc.avatar_url ? (
-                                        <img
-                                          src={doc.avatar_url}
-                                          alt={name}
-                                          className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl object-cover border-2 border-primary/20"
-                                          loading="lazy"
-                                        />
-                                      ) : (
-                                        <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl bg-primary/10 flex items-center justify-center border-2 border-primary/20">
-                                          <span className="text-2xl sm:text-3xl font-bold text-primary">{name[0]}</span>
-                                        </div>
-                                      )}
-                                      {doc.available_now && (
-                                        <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-2 border-card rounded-full" />
-                                      )}
-                                    </div>
-                                    {doc.rating && (
-                                      <div className="flex items-center gap-1">
-                                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                                        <span className="text-sm font-bold text-foreground">{doc.rating}</span>
-                                        {doc.total_reviews ? (
-                                          <span className="text-xs text-muted-foreground">({doc.total_reviews})</span>
-                                        ) : null}
-                                      </div>
-                                    )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : filteredDoctors.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-16"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+                  <Stethoscope className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-bold text-foreground mb-2">
+                  Nenhum médico encontrado
+                </h3>
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto text-sm">
+                  {search
+                    ? "Tente outro termo de busca ou escolha outra especialidade."
+                    : "No momento não há médicos disponíveis para esta especialidade."}
+                </p>
+                <Button variant="outline" onClick={() => { setSearch(""); setSearchParams({}); }} className="rounded-xl">
+                  <ArrowLeft className="w-4 h-4 mr-2" /> Ver todas as especialidades
+                </Button>
+              </motion.div>
+            ) : (
+              <div className="space-y-4">
+                {/* Results count */}
+                <p className="text-xs text-muted-foreground">
+                  {filteredDoctors.length} {filteredDoctors.length === 1 ? "profissional encontrado" : "profissionais encontrados"}
+                  {selectedSpecialty ? ` em ${selectedSpecialty}` : ""}
+                </p>
+
+                {filteredDoctors.map((doc, i) => {
+                  const name = doc.display_name || doc.full_name || "Médico";
+                  const price = doc.consultation_price ?? 89;
+                  const discountPrice = Math.round(price * 0.7 * 100) / 100;
+                  const bioText = doc.bio || doc.short_description;
+                  const areas = doc.care_areas ?? [];
+                  const subSpecs = doc.sub_specialties ?? [];
+                  const isBioExpanded = expandedBio === doc.id;
+
+                  return (
+                    <motion.div
+                      key={doc.id}
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: Math.min(i * 0.05, 0.3) }}
+                    >
+                      <Card className="border-border/50 hover:shadow-lg hover:border-primary/15 transition-all duration-300 group overflow-hidden">
+                        <CardContent className="p-0">
+                          <div className="flex flex-col sm:flex-row">
+                            {/* ── Avatar column ── */}
+                            <div className="sm:w-44 shrink-0 p-4 sm:p-5 flex sm:flex-col items-center gap-4 sm:gap-3 sm:border-r sm:border-border/30">
+                              <div className="relative">
+                                {doc.avatar_url ? (
+                                  <img
+                                    src={doc.avatar_url}
+                                    alt={name}
+                                    className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl object-cover border-2 border-primary/15"
+                                    loading="lazy"
+                                  />
+                                ) : (
+                                  <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl bg-primary/10 flex items-center justify-center border-2 border-primary/15">
+                                    <span className="text-2xl sm:text-3xl font-bold text-primary">{name[0]}</span>
                                   </div>
-
-                                  {/* Info */}
-                                  <div className="flex-1 p-4 sm:p-5 sm:pl-0 pt-0 sm:pt-5 space-y-3">
-                                    {/* Name + Verified */}
-                                    <div className="flex items-start gap-2 flex-wrap">
-                                      <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
-                                        {name}
-                                      </h3>
-                                      {doc.crm_verified && (
-                                        <Badge className="bg-emerald-500 text-white text-[10px] px-1.5 py-0 rounded-full shrink-0">
-                                          <UserCheck className="w-3 h-3 mr-0.5" /> Verificado
-                                        </Badge>
+                                )}
+                                {doc.available_now && (
+                                  <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-2 border-card rounded-full" />
+                                )}
+                              </div>
+                              {doc.rating != null && doc.rating > 0 && (
+                                <div className="flex items-center gap-1">
+                                  {[...Array(5)].map((_, idx) => (
+                                    <Star
+                                      key={idx}
+                                      className={cn(
+                                        "w-3.5 h-3.5",
+                                        idx < Math.round(doc.rating!)
+                                          ? "fill-amber-400 text-amber-400"
+                                          : "text-muted-foreground/30"
                                       )}
-                                    </div>
+                                    />
+                                  ))}
+                                  {doc.total_reviews ? (
+                                    <span className="text-[11px] text-muted-foreground ml-0.5">({doc.total_reviews})</span>
+                                  ) : null}
+                                </div>
+                              )}
+                            </div>
 
-                                    {/* Specialty badge */}
-                                    <div className="flex flex-wrap gap-1.5">
-                                      <Badge className="bg-primary/15 text-primary border-0 text-xs font-semibold rounded-md">
-                                        {selectedSpecialty}
+                            {/* ── Info column ── */}
+                            <div className="flex-1 p-4 sm:p-5 pt-0 sm:pt-5 space-y-2.5">
+                              {/* Name + verified */}
+                              <div className="flex items-start gap-2 flex-wrap">
+                                <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors leading-tight">
+                                  {name}
+                                </h3>
+                                {doc.crm_verified && (
+                                  <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px] px-1.5 py-0 rounded-full shrink-0">
+                                    <UserCheck className="w-3 h-3 mr-0.5" /> Verificado
+                                  </Badge>
+                                )}
+                              </div>
+
+                              {/* Specialty + online badge */}
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <Badge className="bg-primary/10 hover:bg-primary/10 text-primary border-0 text-[11px] font-semibold rounded-md">
+                                  {selectedSpecialty || "Clínico Geral"}
+                                </Badge>
+                                {doc.available_now && (
+                                  <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-600 bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400 dark:bg-emerald-950 rounded-md">
+                                    <Clock className="w-3 h-3 mr-1" /> Online agora
+                                  </Badge>
+                                )}
+                              </div>
+
+                              {/* CRM */}
+                              <p className="text-xs text-muted-foreground">
+                                Número de registro: <span className="font-semibold text-foreground">{doc.crm_state} {doc.crm}</span>
+                              </p>
+
+                              {/* Prices */}
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-xs text-muted-foreground">Valor:</span>
+                                <span className="text-sm font-bold text-foreground">
+                                  R$ {price.toFixed(2).replace(".", ",")}
+                                </span>
+                                <span className="text-xs text-muted-foreground">ou</span>
+                                <Badge className="bg-amber-400 hover:bg-amber-400 text-amber-900 text-[11px] font-bold border-0 rounded-md px-2">
+                                  R$ {discountPrice.toFixed(2).replace(".", ",")} Cartão de Desconto
+                                </Badge>
+                              </div>
+
+                              {/* Care areas */}
+                              {areas.length > 0 && (
+                                <div>
+                                  <p className="text-[11px] text-muted-foreground mb-1">Doenças tratadas:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {areas.slice(0, 5).map((area) => (
+                                      <Badge key={area} variant="outline" className="text-[10px] px-2 py-0.5 rounded-md font-normal">
+                                        {area}
                                       </Badge>
-                                      {doc.available_now && (
-                                        <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-600 bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400 dark:bg-emerald-950 rounded-md">
-                                          <Clock className="w-3 h-3 mr-1" /> Online agora
-                                        </Badge>
-                                      )}
-                                    </div>
-
-                                    {/* CRM */}
-                                    <p className="text-xs text-muted-foreground">
-                                      Número de registro: <span className="font-semibold text-foreground">{doc.crm_state} {doc.crm}</span>
-                                    </p>
-
-                                    {/* Prices */}
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      <span className="text-sm text-muted-foreground">Valor:</span>
-                                      <span className="text-sm font-bold text-foreground">
-                                        R$ {price.toFixed(2).replace(".", ",")}
+                                    ))}
+                                    {areas.length > 5 && (
+                                      <span className="text-[10px] text-primary font-medium cursor-pointer hover:underline self-center">
+                                        Ver todas
                                       </span>
-                                      <span className="text-xs text-muted-foreground">ou</span>
-                                      <Badge className="bg-amber-400 text-amber-900 text-xs font-bold border-0 rounded-md px-2">
-                                        R$ {discountPrice.toFixed(2).replace(".", ",")} Cartão de Desconto
-                                      </Badge>
-                                    </div>
-
-                                    {/* Care areas / conditions */}
-                                    {areas.length > 0 && (
-                                      <div>
-                                        <p className="text-xs text-muted-foreground mb-1.5">Doenças tratadas:</p>
-                                        <div className="flex flex-wrap gap-1">
-                                          {areas.slice(0, 5).map((area) => (
-                                            <Badge key={area} variant="outline" className="text-[10px] px-2 py-0.5 rounded-md font-normal">
-                                              {area}
-                                            </Badge>
-                                          ))}
-                                          {areas.length > 5 && (
-                                            <span className="text-[10px] text-primary font-medium cursor-pointer hover:underline">
-                                              Ver todas
-                                            </span>
-                                          )}
-                                        </div>
-                                      </div>
                                     )}
-
-                                    {/* Sub specialties */}
-                                    {subSpecs.length > 0 && (
-                                      <div>
-                                        <p className="text-xs text-muted-foreground mb-1.5">Áreas de interesse:</p>
-                                        <div className="flex flex-wrap gap-1">
-                                          {subSpecs.slice(0, 3).map((spec) => (
-                                            <Badge key={spec} variant="outline" className="text-[10px] px-2 py-0.5 rounded-md border-primary/20 text-primary/80 font-normal">
-                                              {spec}
-                                            </Badge>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {/* Bio */}
-                                    {bioText && (
-                                      <div className="pt-1">
-                                        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 border-t border-border/40 pt-2.5">
-                                          {bioText}
-                                          {bioText.length > 150 && (
-                                            <span className="text-primary font-medium cursor-pointer ml-1 hover:underline">
-                                              Saiba mais
-                                            </span>
-                                          )}
-                                        </p>
-                                      </div>
-                                    )}
-
-                                    {/* CTA */}
-                                    <div className="pt-2">
-                                      <Button
-                                        className="rounded-xl px-6 font-bold"
-                                        onClick={() => handleSelectDoctor(doc.id)}
-                                      >
-                                        Agendar Consulta
-                                        <ArrowRight className="w-4 h-4 ml-2" />
-                                      </Button>
-                                    </div>
                                   </div>
                                 </div>
-                              </CardContent>
-                            </Card>
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
+                              )}
 
-            {/* Trust footer */}
+                              {/* Sub specialties */}
+                              {subSpecs.length > 0 && (
+                                <div>
+                                  <p className="text-[11px] text-muted-foreground mb-1">Áreas de interesse:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {subSpecs.slice(0, 3).map((spec) => (
+                                      <Badge key={spec} variant="outline" className="text-[10px] px-2 py-0.5 rounded-md border-primary/20 text-primary/80 font-normal">
+                                        {spec}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Bio */}
+                              {bioText && (
+                                <div className="border-t border-border/30 pt-2.5 mt-1">
+                                  <p className="text-xs text-muted-foreground leading-relaxed">
+                                    {isBioExpanded ? bioText : bioText.slice(0, 150)}
+                                    {bioText.length > 150 && !isBioExpanded && "... "}
+                                    {bioText.length > 150 && (
+                                      <button
+                                        onClick={() => setExpandedBio(isBioExpanded ? null : doc.id)}
+                                        className="text-primary font-medium hover:underline ml-0.5 inline"
+                                      >
+                                        {isBioExpanded ? "Ver menos" : "Saiba mais"}
+                                      </button>
+                                    )}
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* CTA */}
+                              <div className="pt-2">
+                                <Button
+                                  className="rounded-xl px-6 font-bold shadow-sm"
+                                  onClick={() => handleSelectDoctor(doc.id)}
+                                >
+                                  Agendar Consulta
+                                  <ArrowRight className="w-4 h-4 ml-2" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* ═══ TRUST FOOTER ═══ */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
