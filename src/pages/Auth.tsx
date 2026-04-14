@@ -39,15 +39,6 @@ const roleCards = [
     iconBg: "from-[hsl(210,85%,92%)] to-[hsl(160,70%,92%)]",
     iconColor: "text-[hsl(210,85%,40%)]",
   },
-  {
-    to: "/clinica",
-    title: "Sou clínica",
-    desc: "Gestão institucional, telelaudo e equipe",
-    icon: Building2,
-    gradient: "from-[hsl(220,55%,22%)] to-[hsl(42,85%,55%)]",
-    iconBg: "from-[hsl(220,55%,92%)] to-[hsl(42,85%,92%)]",
-    iconColor: "text-[hsl(220,55%,25%)]",
-  },
 ];
 
 const Auth = () => {
