@@ -95,7 +95,7 @@ const Servicos = lazy(() => import("./pages/Servicos"));
 const Cartoes = lazy(() => import("./pages/Cartoes"));
 const ParaProfissionais = lazy(() => import("./pages/ParaProfissionais"));
 
-// Prefetch das rotas mais acessadas após o browser ficar idle
+const Agendar = lazy(() => import("./pages/Agendar"));
 if (typeof window !== "undefined") {
   const prefetch = () => {
     import("./pages/AuthPaciente");
@@ -197,6 +197,7 @@ const AnimatedRoutes = () => {
       <Route path="/contato" element={<Contato />} />
       <Route path="/como-funciona" element={<ComoFunciona />} />
       <Route path="/especialidades" element={<Especialidades />} />
+      <Route path="/agendar" element={<Agendar />} />
       <Route path="/recursos" element={<Recursos />} />
       <Route path="/faq" element={<FAQ />} />
 
