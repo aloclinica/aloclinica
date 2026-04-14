@@ -76,8 +76,8 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
     { label: "Sou Médico", href: "/para-medicos" },
   ];
 
-  const triggerCls = "group/trigger text-[13px] font-medium text-muted-foreground hover:text-foreground bg-transparent data-[state=open]:text-foreground data-[state=open]:bg-muted/40 px-3.5 h-9 rounded-full transition-colors duration-150 gap-1.5";
-  const triggerIconCls = "w-[15px] h-[15px] text-muted-foreground/60 group-hover/trigger:text-primary group-data-[state=open]/trigger:text-primary transition-colors duration-150";
+  const triggerCls = "group/trigger text-[12px] xl:text-[13px] font-medium text-muted-foreground hover:text-foreground bg-transparent data-[state=open]:text-foreground data-[state=open]:bg-muted/40 px-2.5 xl:px-3.5 h-9 rounded-full transition-colors duration-150 gap-1 xl:gap-1.5 whitespace-nowrap";
+  const triggerIconCls = "w-[14px] h-[14px] xl:w-[15px] xl:h-[15px] text-muted-foreground/60 group-hover/trigger:text-primary group-data-[state=open]/trigger:text-primary transition-colors duration-150";
 
   return (
     <header
