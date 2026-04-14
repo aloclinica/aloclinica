@@ -1,23 +1,30 @@
-import { memo } from "react";
-import { motion } from "framer-motion";
+import { memo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Stethoscope, ArrowRight } from "@phosphor-icons/react";
+import { Stethoscope, ArrowRight, CaretDown } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 
-const specialties = [
-  "Acupunturista", "Anestesiologista", "Cardiologista", "Cirurgião gastrointestinal",
+const topSpecialties = [
+  "Clínico geral", "Dermatologista", "Ginecologista-obstetra", "Ortopedista",
+  "Cardiologista", "Pediatra", "Psiquiatra", "Neurologista",
+  "Oftalmologista", "Endocrinopediatra", "Urologista", "Gastroenterologista",
+];
+
+const moreSpecialties = [
+  "Acupunturista", "Anestesiologista", "Cirurgião gastrointestinal",
   "Cirurgião geral", "Cirurgião oncológico", "Cirurgião plástico", "Cirurgião vascular",
-  "Cirurgião-dentista", "Clínica médica", "Clínico geral", "Dermatologista",
-  "Endocrinopediatra", "Fisiatra", "Fisioterapeuta", "Fonoaudiólogo",
-  "Gastroenterologista", "Geriatra", "Ginecologista-obstetra", "Homeopata",
-  "Infectologista", "Médico de família", "Médico de tráfego", "Médico do trabalho",
-  "Nefrologista", "Neurologista", "Nutricionista", "Nutrólogista",
-  "Oftalmologista", "Ortopedista", "Otorrinolaringologista", "Pediatra",
-  "Pneumologista", "Psicólogo", "Psiquiatra", "Reumatologista", "Urologista",
+  "Cirurgião-dentista", "Clínica médica", "Fisiatra", "Fisioterapeuta", "Fonoaudiólogo",
+  "Geriatra", "Homeopata", "Infectologista", "Médico de família",
+  "Médico de tráfego", "Médico do trabalho", "Nefrologista", "Nutricionista",
+  "Nutrólogista", "Otorrinolaringologista", "Pneumologista", "Psicólogo",
+  "Reumatologista",
 ];
 
 function SpecialtiesSection() {
   const navigate = useNavigate();
+  const [showAll, setShowAll] = useState(false);
+
+  const displayed = showAll ? [...topSpecialties, ...moreSpecialties] : topSpecialties;
 
   return (
     <section className="relative py-20 md:py-32 overflow-hidden">
@@ -44,32 +51,40 @@ function SpecialtiesSection() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4 mb-12">
-          {specialties.map((name, i) => (
-            <motion.button
-              key={name}
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.02, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="group flex items-center justify-center gap-2 px-3 py-4 rounded-2xl bg-card/80 border border-border/40 hover:shadow-lg hover:border-primary/25 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-              onClick={() => navigate("/dashboard/doctors")}
-            >
-              <Stethoscope className="w-4 h-4 text-primary/50 group-hover:text-primary shrink-0 transition-colors" weight="fill" />
-              <span className="text-xs md:text-sm font-semibold text-foreground text-center leading-tight group-hover:text-primary transition-colors">
-                {name}
-              </span>
-            </motion.button>
-          ))}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4 mb-8">
+          <AnimatePresence mode="popLayout">
+            {displayed.map((name, i) => (
+              <motion.button
+                key={name}
+                layout
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ delay: i < 12 ? i * 0.02 : (i - 12) * 0.015, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                className="group flex items-center justify-center gap-2 px-3 py-4 rounded-2xl bg-card/80 border border-border/40 hover:shadow-lg hover:border-primary/25 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                onClick={() => navigate("/dashboard/doctors")}
+              >
+                <Stethoscope className="w-4 h-4 text-primary/50 group-hover:text-primary shrink-0 transition-colors" weight="fill" />
+                <span className="text-xs md:text-sm font-semibold text-foreground text-center leading-tight group-hover:text-primary transition-colors">
+                  {name}
+                </span>
+              </motion.button>
+            ))}
+          </AnimatePresence>
         </div>
 
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-        >
+        <div className="flex flex-col items-center gap-4">
+          {!showAll && (
+            <Button
+              size="lg"
+              variant="ghost"
+              className="rounded-2xl h-[46px] px-6 text-sm font-bold text-primary hover:bg-primary/[0.06] transition-all group"
+              onClick={() => setShowAll(true)}
+            >
+              Ver mais especialidades
+              <CaretDown className="w-4 h-4 ml-1.5 transition-transform group-hover:translate-y-0.5" weight="bold" />
+            </Button>
+          )}
           <Button
             size="lg"
             variant="outline"
@@ -79,7 +94,7 @@ function SpecialtiesSection() {
             Ver todos os especialistas
             <ArrowRight className="w-4 h-4 ml-1.5 transition-transform group-hover:translate-x-1" weight="bold" />
           </Button>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
