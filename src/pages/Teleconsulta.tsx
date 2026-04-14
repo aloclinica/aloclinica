@@ -199,8 +199,8 @@ const Teleconsulta = () => {
                     animate={{ y: [0, 8, 0] }}
                     transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
                   >
-                    <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center">
+                      <CheckCircle2 className="w-4 h-4 text-secondary" />
                     </div>
                     <div>
                       <p className="text-xs font-bold text-foreground">30+ especialidades</p>
