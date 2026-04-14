@@ -78,6 +78,7 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
 
   const triggerCls = "group/trigger text-[12px] xl:text-[13px] font-medium text-muted-foreground hover:text-foreground bg-transparent data-[state=open]:text-foreground data-[state=open]:bg-muted/40 px-2.5 xl:px-3.5 h-9 rounded-full transition-colors duration-150 gap-1 xl:gap-1.5 whitespace-nowrap";
   const triggerIconCls = "w-[14px] h-[14px] xl:w-[15px] xl:h-[15px] text-muted-foreground/60 group-hover/trigger:text-primary group-data-[state=open]/trigger:text-primary transition-colors duration-150";
+  const linkBtnCls = "text-[12px] xl:text-[13px] font-medium px-3.5 xl:px-4 h-9 rounded-full border border-border/60 bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/60 hover:border-border transition-all duration-150 inline-flex items-center justify-center whitespace-nowrap cursor-pointer";
 
   return (
     <header
@@ -136,10 +137,10 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
                 </NavigationMenuContent>
               </NavigationMenuItem>
 
-              {/* Links diretos */}
+              {/* Links diretos — botões */}
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
-                  <Link to="/plantao" className={cn(triggerCls, "cursor-pointer")}>
+                  <Link to="/plantao" className={linkBtnCls}>
                     Plantão
                   </Link>
                 </NavigationMenuLink>
@@ -147,7 +148,7 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
 
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
-                  <Link to="/teleconsulta" className={cn(triggerCls, "cursor-pointer")}>
+                  <Link to="/teleconsulta" className={linkBtnCls}>
                     Teleconsulta
                   </Link>
                 </NavigationMenuLink>
@@ -155,7 +156,7 @@ const Header = memo(forwardRef<HTMLElement>((_, ref) => {
 
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
-                  <Link to="/receita" className={cn(triggerCls, "cursor-pointer")}>
+                  <Link to="/receita" className={linkBtnCls}>
                     Receita
                   </Link>
                 </NavigationMenuLink>
