@@ -11,7 +11,7 @@
 
 @layer base {
   :root {
-    --background: 210 20% 99%;
+    --background: 210 30% 97%;
     --foreground: 215 45% 12%;
 
     --card: 0 0% 100%;
@@ -142,18 +142,18 @@
     --pr-bg: 160 18% 98%;
     --pr-accent: 160 50% 94%;
 
-    /* Continuous background — clean medical white with subtle warmth */
+    /* Continuous background — Pingo blue gradient */
     --landing-bg:
-      radial-gradient(ellipse 100% 50% at 0% 80%, hsl(215 30% 94% / 0.35) 0%, transparent 55%),
-      radial-gradient(ellipse 80% 40% at 100% 20%, hsl(168 25% 92% / 0.3) 0%, transparent 50%),
-      radial-gradient(ellipse 120% 60% at 50% 100%, hsl(215 20% 95% / 0.25) 0%, transparent 45%),
+      radial-gradient(ellipse 100% 50% at 0% 80%, hsl(210 60% 88% / 0.5) 0%, transparent 55%),
+      radial-gradient(ellipse 80% 40% at 100% 20%, hsl(205 55% 90% / 0.45) 0%, transparent 50%),
+      radial-gradient(ellipse 120% 60% at 50% 100%, hsl(215 50% 92% / 0.35) 0%, transparent 45%),
       linear-gradient(
         180deg,
-        hsl(210 20% 99%) 0%,
-        hsl(215 18% 98%) 20%,
-        hsl(215 15% 97%) 45%,
-        hsl(210 12% 97.5%) 70%,
-        hsl(215 18% 98%) 100%
+        hsl(210 40% 96%) 0%,
+        hsl(210 45% 94%) 20%,
+        hsl(212 40% 93%) 45%,
+        hsl(210 35% 95%) 70%,
+        hsl(208 42% 94%) 100%
       );
   }
 
