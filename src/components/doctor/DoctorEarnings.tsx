@@ -57,27 +57,27 @@ const DoctorEarnings = () => {
 
     const [confirmedRes, pendingRes, withdrawRes, walletRes] = await Promise.all([
       // Only count appointments with confirmed payment (issue #5)
-      supabase
+      db
         .from("appointments")
         .select("id, scheduled_at, status, payment_status, price_at_booking")
         .eq("doctor_id", docProfile.id)
         .eq("status", "completed")
         .in("payment_status", ["approved", "confirmed", "received"])
         .order("scheduled_at", { ascending: false }),
-      supabase
+      db
         .from("appointments")
         .select("id, scheduled_at, price_at_booking")
         .eq("doctor_id", docProfile.id)
         .eq("status", "completed")
         .eq("payment_status", "pending")
         .order("scheduled_at", { ascending: false }),
-      supabase
+      db
         .from("withdrawal_requests")
         .select("*")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false })
         .limit(20),
-      supabase
+      db
         .from("wallet_transactions")
         .select("*")
         .eq("user_id", user!.id)

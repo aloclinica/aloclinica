@@ -104,7 +104,7 @@ const UserProfile = () => {
   // Check KYC verification status
   useEffect(() => {
     if (!user) return;
-    supabase
+    db
       .from("kyc_verificacoes")
       .select("status")
       .eq("user_id", user.id)

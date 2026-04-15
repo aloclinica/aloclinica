@@ -90,16 +90,16 @@ export const usePatientStats = () => {
     queryFn: async () => {
       if (!user) return null;
       const [completedRes, prescRes, docsRes] = await Promise.all([
-        supabase
+        db
           .from("appointments")
           .select("id", { count: "exact", head: true })
           .eq("patient_id", user.id)
           .eq("status", "completed"),
-        supabase
+        db
           .from("prescriptions")
           .select("id", { count: "exact", head: true })
           .eq("patient_id", user.id),
-        supabase
+        db
           .from("patient_documents")
           .select("id", { count: "exact", head: true })
           .eq("patient_id", user.id),
