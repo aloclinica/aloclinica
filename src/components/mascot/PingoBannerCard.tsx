@@ -1,5 +1,5 @@
 /**
- * PingoBannerCard — Banner com imagem real do Pingo
+ * PingoBannerCard — Banner com imagem real da Dra. Lila
  * Mesmo padrão de renderização do Header.tsx ListItem
  */
 import { cn } from "@/lib/utils";

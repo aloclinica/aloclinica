@@ -50,7 +50,7 @@ class ErrorBoundary extends Component<Props, State> {
             <div className="bg-white rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,.1)] border border-black/5 p-7">
               <h2 className="text-[20px] font-extrabold text-foreground mb-2 tracking-tight">Oops! Algo deu errado</h2>
               <p className="text-[13px] text-muted-foreground mb-4 leading-relaxed">
-                O Pingo encontrou um erro inesperado. Tente recarregar a página ou voltar ao início.
+                A Dra. Lila encontrou um erro inesperado. Tente recarregar a página ou voltar ao início.
               </p>
               {this.state.error && (
                 <pre className="text-left text-[10px] bg-red-50 rounded-xl p-3 mb-4 overflow-auto max-h-28 text-red-600 border border-red-100">

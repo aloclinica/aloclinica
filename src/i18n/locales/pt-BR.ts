@@ -124,7 +124,7 @@ const ptBR = {
   "dashboard.notifications": "Notificações",
 
   // Pingo
-  "pingo.greeting": "Olá! Eu sou o Pingo, seu assistente virtual. Como posso ajudar?",
+  "pingo.greeting": "Olá! Eu sou a Dra. Lila, seu assistente virtual. Como posso ajudar?",
   "pingo.placeholder": "Digite sua pergunta...",
   "pingo.newConversation": "Nova conversa",
 } as const;

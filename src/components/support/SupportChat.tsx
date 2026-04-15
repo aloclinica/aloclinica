@@ -11,7 +11,7 @@ import { Send, Bot, User, Loader2, Headset } from "lucide-react";
 
 type Message = { role: "user" | "assistant" | "support"; content: string };
 
-const WELCOME_MSG = "Olá! 🐧 Sou o Pingo, assistente virtual da Alô Médico. Como posso ajudar a equipe de suporte hoje?";
+const WELCOME_MSG = "Olá! 🐧 Sou a Dra. Lila, assistente virtual da Alô Médico. Como posso ajudar a equipe de suporte hoje?";
 const CHAT_URL = `${SUPABASE_FUNCTIONS_URL}/pingo-chat`;
 
 const SupportChat = () => {
