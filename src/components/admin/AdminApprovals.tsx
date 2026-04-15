@@ -58,7 +58,7 @@ const AdminApprovals = () => {
       const profile = pMap.get(d.user_id);
       const doctorSpecs = (specsRes.data ?? []).filter(s => s.doctor_id === d.id).map(s => specMap.get(s.specialty_id) ?? "—");
       const kyc = kycMap.get(d.id);
-      return { ...d, first_name: profile?.first_name ?? "", last_name: profile?.last_name ?? "", phone: profile?.phone ?? "", cpf: profile?.cpf ?? "", specialties: doctorSpecs, kyc_status: kyc?.kyc_status ?? "pending", kyc_face_match_score: kyc?.kyc_face_match_score ?? null, kyc_verified_at: kyc?.kyc_verified_at ?? null };
+      return { ...d, first_name: (profile as any)?.first_name ?? "", last_name: (profile as any)?.last_name ?? "", phone: (profile as any)?.phone ?? "", cpf: (profile as any)?.cpf ?? "", specialties: doctorSpecs, kyc_status: kyc?.kyc_status ?? "pending", kyc_face_match_score: kyc?.kyc_face_match_score ?? null, kyc_verified_at: kyc?.kyc_verified_at ?? null };
     });
     setPendingDoctors(enriched.filter(d => !d.is_approved));
     setApprovedDoctors(enriched.filter(d => d.is_approved));
@@ -70,7 +70,7 @@ const AdminApprovals = () => {
     const userIds = data.map(c => c.user_id);
     const { data: profiles } = await db.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds);
     const pMap = new Map(profiles?.map(p => [p.user_id, p] as const) ?? []);
-    const enriched = data.map(c => ({ ...c, owner_name: pMap.has(c.user_id) ? `${pMap.get(c.user_id)!.first_name} ${pMap.get(c.user_id)!.last_name}` : "—" }));
+    const enriched = data.map((c: any) => ({ ...c, owner_name: pMap.has(c.user_id) ? `${(pMap.get(c.user_id) as any)!.first_name} ${(pMap.get(c.user_id) as any)!.last_name}` : "—" }));
     setPendingClinics(enriched.filter(c => !c.is_approved));
     setApprovedClinics(enriched.filter(c => c.is_approved));
   };
@@ -81,7 +81,7 @@ const AdminApprovals = () => {
     const userIds = data.map(p => p.user_id);
     const { data: profiles } = await db.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds);
     const pMap = new Map(profiles?.map(p => [p.user_id, p] as const) ?? []);
-    const enriched = data.map(p => ({ ...p, owner_name: pMap.has(p.user_id) ? `${pMap.get(p.user_id)!.first_name} ${pMap.get(p.user_id)!.last_name}` : "—" }));
+    const enriched = data.map((p: any) => ({ ...p, owner_name: pMap.has(p.user_id) ? `${(pMap.get(p.user_id) as any)!.first_name} ${(pMap.get(p.user_id) as any)!.last_name}` : "—" }));
     setPendingPartners(enriched.filter(p => !p.is_approved));
     setApprovedPartners(enriched.filter(p => p.is_approved));
   };

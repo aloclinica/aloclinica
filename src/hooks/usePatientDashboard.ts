@@ -53,9 +53,9 @@ interface WithDoctorId { doctor_id: string }
  * resolves each doctor's display name in a single batch fetch.
  * Returns a new array with a `doctor_name` field added to each record.
  */
-async function enrichWithDoctorNames<T extends WithDoctorId>(
-  records: T[],
-): Promise<(T & { doctor_name: string })[]> {
+async function enrichWithDoctorNames(
+  records: any[],
+): Promise<any[]> {
   if (!records.length) return [];
 
   const doctorIds = [...new Set(records.map(r => r.doctor_id))];

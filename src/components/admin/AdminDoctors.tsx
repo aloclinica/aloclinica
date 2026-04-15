@@ -35,7 +35,7 @@ const AdminDoctors = () => {
     const userIds = data.map(d => d.user_id);
     const { data: profiles } = await db.from("profiles").select("user_id, first_name, last_name, phone").in("user_id", userIds);
     const pMap = new Map(profiles?.map(p => [p.user_id, p]) ?? []);
-    setDoctors(data.map(d => ({ ...d, ...pMap.get(d.user_id) })));
+    setDoctors(data.map((d: any) => ({ ...d, ...(pMap.get(d.user_id) as any ?? {}) })));
     setLoading(false);
   };
 

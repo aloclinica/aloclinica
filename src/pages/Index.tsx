@@ -5,6 +5,8 @@ import SEOHead from "@/components/SEOHead";
 import Header from "@/components/landing/Header";
 import HeroSection from "@/components/landing/HeroSection";
 import SpecialtiesSection from "@/components/landing/SpecialtiesSection";
+import CTABanner from "@/components/landing/CTABanner";
+import Footer from "@/components/landing/Footer";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Video, Star } from "lucide-react";
 import { useSiteSections } from "@/lib/site-sections";
@@ -277,6 +279,11 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
         </div>
       </section>
 
+      {/* ═══════════════ CTA FINAL ═══════════════ */}
+      {isOn("cta_banner") && <CTABanner />}
+
+      {/* ═══════════════ FOOTER ═══════════════ */}
+      {isOn("footer") && <Footer />}
     </div>
   );
 });
