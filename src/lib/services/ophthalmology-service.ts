@@ -9,7 +9,7 @@ type OphthalmologyPrescriptionInsert = Database["public"]["Tables"]["ophthalmolo
 
 export const ophthalmologyService = {
   // ── Exams ──
-  async getExams(filters?: { status?: string; clinic_id?: string }): Promise<OphthalmologyExam[]> {
+  async getExams(filters?: { status?: string; clinic_id?: string }): Promise<any[]> {
     let query = db.from("ophthalmology_exams").select("*").order("created_at", { ascending: false });
     if (filters?.status) query = query.eq("status", filters.status);
     if (filters?.clinic_id) query = query.eq("clinic_id", filters.clinic_id);
@@ -18,7 +18,7 @@ export const ophthalmologyService = {
     return data ?? [];
   },
 
-  async getExamById(id: string): Promise<OphthalmologyExam> {
+  async getExamById(id: string): Promise<any> {
     const { data, error } = await db.from("ophthalmology_exams").select("*").eq("id", id).single();
     if (error) throw new Error(error.message);
     return data;
