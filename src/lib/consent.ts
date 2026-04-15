@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { logError } from "@/lib/logger";
 
 export const registerConsent = async (
@@ -7,7 +7,7 @@ export const registerConsent = async (
   version = "1.0",
 ) => {
   try {
-    await supabase.from("user_consents").insert({
+    await db.from("user_consents").insert({
       user_id: userId,
       consent_type: consentType,
       version,

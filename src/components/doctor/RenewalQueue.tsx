@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getDoctorNav } from "./doctorNav";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,7 +43,7 @@ const RenewalQueue = () => {
 
   const fetchDoctorProfile = async () => {
     if (!user) return;
-    const { data } = await supabase.from("doctor_profiles").select("id").eq("user_id", user.id).maybeSingle();
+    const { data } = await db.from("doctor_profiles").select("id").eq("user_id", user.id).maybeSingle();
     if (data) setDoctorProfileId(data.id);
   };
 
@@ -59,7 +59,7 @@ const RenewalQueue = () => {
 
   const handleClaim = async (renewal: RenewalItem) => {
     if (!doctorProfileId) return;
-    await supabase.from("prescription_renewals").update({
+    await db.from("prescription_renewals").update({
       status: "in_review",
       assigned_doctor_id: doctorProfileId,
     }).eq("id", renewal.id);
@@ -69,14 +69,14 @@ const RenewalQueue = () => {
 
   const getDoctorName = async () => {
     if (!user) return "Médico";
-    const { data } = await supabase.from("profiles").select("first_name, last_name").eq("user_id", user.id).maybeSingle();
+    const { data } = await db.from("profiles").select("first_name, last_name").eq("user_id", user.id).maybeSingle();
     return data ? `Dr(a). ${data.first_name} ${data.last_name}` : "Médico";
   };
 
   const handleApprove = async () => {
     if (!selectedRenewal || !doctorProfileId) return;
     setProcessing(true);
-    await supabase.from("prescription_renewals").update({
+    await db.from("prescription_renewals").update({
       status: "approved",
       reviewed_at: new Date().toISOString(),
     }).eq("id", selectedRenewal.id);
@@ -95,7 +95,7 @@ const RenewalQueue = () => {
     if (!selectedRenewal) return;
     setProcessing(true);
     const reason = rejectionReason || "Não aprovada pelo médico";
-    await supabase.from("prescription_renewals").update({
+    await db.from("prescription_renewals").update({
       status: "rejected",
       reviewed_at: new Date().toISOString(),
       rejection_reason: reason,
@@ -113,7 +113,7 @@ const RenewalQueue = () => {
   };
 
   const viewPrescription = async (url: string) => {
-    const { data } = await supabase.storage.from("patient-documents").createSignedUrl(url, 3600);
+    const { data } = await db.storage.from("patient-documents").createSignedUrl(url, 3600);
     if (data?.signedUrl) window.open(data.signedUrl, "_blank");
   };
 

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getPatientNav } from "./patientNav";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,7 +27,7 @@ const PatientExamUpload = () => {
   useEffect(() => { if (user) fetchDocuments(); }, [user]);
 
   const fetchDocuments = async () => {
-    const { data } = await supabase.from("patient_documents")
+    const { data } = await db.from("patient_documents")
       .select("*")
       .eq("patient_id", user!.id)
       .order("created_at", { ascending: false });
@@ -57,9 +57,9 @@ const PatientExamUpload = () => {
       return;
     }
 
-    const { data: urlData } = supabase.storage.from("patient-documents").getPublicUrl(filePath);
+    const { data: urlData } = db.storage.from("patient-documents").getPublicUrl(filePath);
 
-    const { error: dbError } = await supabase.from("patient_documents").insert({
+    const { error: dbError } = await db.from("patient_documents").insert({
       patient_id: user.id,
       uploaded_by: user.id,
       file_name: file.name,
@@ -83,14 +83,14 @@ const PatientExamUpload = () => {
   };
 
   const viewDocument = async (doc: { file_url: string }) => {
-    const { data } = await supabase.storage.from("patient-documents").createSignedUrl(doc.file_url, 3600);
+    const { data } = await db.storage.from("patient-documents").createSignedUrl(doc.file_url, 3600);
     if (data?.signedUrl) window.open(data.signedUrl, "_blank");
     else toast.error("Erro ao abrir documento");
   };
 
   const deleteDocument = async (doc: { id: string; file_url: string }) => {
-    await supabase.storage.from("patient-documents").remove([doc.file_url]);
-    await supabase.from("patient_documents").delete().eq("id", doc.id);
+    await db.storage.from("patient-documents").remove([doc.file_url]);
+    await db.from("patient_documents").delete().eq("id", doc.id);
     toast.success("Documento removido");
     fetchDocuments();
   };

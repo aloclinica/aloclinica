@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,7 +50,7 @@ const PreConsultationForm = ({ appointmentId, onComplete }: PreConsultationFormP
     if (!mainComplaint.trim() || !user) return;
     setSaving(true);
 
-    const { error } = await supabase.from("pre_consultation_symptoms").insert({
+    const { error } = await db.from("pre_consultation_symptoms").insert({
       appointment_id: appointmentId,
       patient_id: user.id,
       main_complaint: mainComplaint.trim(),

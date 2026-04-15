@@ -2,7 +2,7 @@ import { logError } from "@/lib/logger";
 import { useState, useRef, useEffect } from "react";
 import { securityMonitor } from "@/lib/security-monitor";
 import { useNavigate, Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -170,7 +170,7 @@ const AuthPaciente = () => {
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
     if (error) {
       setLoading(false);
       securityMonitor.trackFailedLogin(email);
@@ -224,7 +224,7 @@ const AuthPaciente = () => {
 
     setLoading(true);
     try {
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await db.auth.signUp({
         email,
         password,
         options: {
@@ -248,7 +248,7 @@ const AuthPaciente = () => {
       if (signUpData.user) {
         const userId = signUpData.user.id;
 
-        await supabase.from("profiles").upsert({
+        await db.from("profiles").upsert({
           user_id: userId,
           cpf: cleanCpf,
           phone: cleanPhone,
@@ -260,7 +260,7 @@ const AuthPaciente = () => {
         await registerConsent(userId);
 
         try {
-          await supabase.functions.invoke("send-email", {
+          await db.functions.invoke("send-email", {
             body: { type: "welcome", to: email, data: { name: firstName } },
           });
         } catch {}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -71,7 +71,7 @@ const DoctorPublicProfile = () => {
     // Get patient names for reviews
     const patientIds = [...new Set(surveysData?.map((s: any) => s.patient_id) ?? [])];
     const { data: patientProfiles } = patientIds.length > 0
-      ? await supabase.from("profiles").select("user_id, first_name").in("user_id", patientIds)
+      ? await db.from("profiles").select("user_id, first_name").in("user_id", patientIds)
       : { data: [] };
     const patientMap = new Map<string, string>(patientProfiles?.map((p: any) => [p.user_id, p.first_name] as [string, string]) ?? []);
 

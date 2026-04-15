@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { logError } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
@@ -46,9 +46,9 @@ const PostConsultationSummary = ({
   useEffect(() => {
     const load = async () => {
       const [notesRes, prescRes, apptRes] = await Promise.all([
-        supabase.from("consultation_notes").select("id").eq("appointment_id", appointmentId).limit(1),
-        supabase.from("prescriptions").select("id").eq("appointment_id", appointmentId).limit(1),
-        supabase.from("appointments").select("patient_id, doctor_id").eq("id", appointmentId).single(),
+        db.from("consultation_notes").select("id").eq("appointment_id", appointmentId).limit(1),
+        db.from("prescriptions").select("id").eq("appointment_id", appointmentId).limit(1),
+        db.from("appointments").select("patient_id, doctor_id").eq("id", appointmentId).single(),
       ]);
       setHasNotes((notesRes.data?.length ?? 0) > 0);
       setHasPrescription((prescRes.data?.length ?? 0) > 0);
@@ -59,12 +59,12 @@ const PostConsultationSummary = ({
         const otherId = isDoctor ? apptRes.data.patient_id : null;
         const otherDocId = !isDoctor ? apptRes.data.doctor_id : null;
         if (otherId) {
-          const { data: p } = await supabase.from("profiles").select("first_name, last_name").eq("user_id", otherId).single();
+          const { data: p } = await db.from("profiles").select("first_name, last_name").eq("user_id", otherId).single();
           if (p) setOtherPartyName(`${p.first_name} ${p.last_name}`);
         } else if (otherDocId) {
-          const { data: doc } = await supabase.from("doctor_profiles").select("user_id").eq("id", otherDocId).single();
+          const { data: doc } = await db.from("doctor_profiles").select("user_id").eq("id", otherDocId).single();
           if (doc) {
-            const { data: p } = await supabase.from("profiles").select("first_name, last_name").eq("user_id", doc.user_id).single();
+            const { data: p } = await db.from("profiles").select("first_name, last_name").eq("user_id", doc.user_id).single();
             if (p) setOtherPartyName(`Dr(a). ${p.first_name} ${p.last_name}`);
           }
         }
@@ -76,7 +76,7 @@ const PostConsultationSummary = ({
   const handleSubmitRating = async () => {
     if (!selectedRating) { toast.error("Selecione uma avaliação de 1 a 5 estrelas"); return; }
     setRatingSubmitting(true);
-    const { error } = await supabase.from("satisfaction_surveys").insert({
+    const { error } = await db.from("satisfaction_surveys").insert({
       appointment_id: appointmentId,
       patient_id: user?.id,
       nps_score: selectedRating * 2,

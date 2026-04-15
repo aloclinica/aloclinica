@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "./DashboardLayout";
 import { getReceptionNav } from "@/components/reception/receptionNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,7 +75,7 @@ const ReceptionDashboard = () => {
       .channel("reception-live")
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "appointments" }, () => fetchToday())
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { db.removeChannel(channel); };
   }, []);
 
   const fetchToday = async (showRefreshing = false) => {
@@ -96,14 +96,14 @@ const ReceptionDashboard = () => {
     const doctorIds = [...new Set(data.map(a => a.doctor_id))];
 
     const [pRes, dRes] = await Promise.all([
-      patientIds.length > 0 ? supabase.from("profiles").select("user_id, first_name, last_name, phone").in("user_id", patientIds.filter((id): id is string => !!id)) : { data: [] },
-      supabase.from("doctor_profiles").select("id, user_id").in("id", doctorIds),
+      patientIds.length > 0 ? db.from("profiles").select("user_id, first_name, last_name, phone").in("user_id", patientIds.filter((id): id is string => !!id)) : { data: [] },
+      db.from("doctor_profiles").select("id, user_id").in("id", doctorIds),
     ]);
 
     const pMap = new Map((pRes.data ?? []).map(p => [p.user_id, p]));
     const docUserIds = (dRes.data ?? []).map(d => d.user_id);
     const { data: docProfiles } = docUserIds.length > 0
-      ? await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", docUserIds)
+      ? await db.from("profiles").select("user_id, first_name, last_name").in("user_id", docUserIds)
       : { data: [] };
     const docMap = new Map<string, string>();
     (dRes.data ?? []).forEach(d => {
@@ -133,7 +133,7 @@ const ReceptionDashboard = () => {
   };
 
   const updateStatus = async (id: string, status: string) => {
-    await supabase.from("appointments").update({ status }).eq("id", id);
+    await db.from("appointments").update({ status }).eq("id", id);
     toast.success(`Status atualizado: ${statusLabel[status] ?? status}`);
   };
 

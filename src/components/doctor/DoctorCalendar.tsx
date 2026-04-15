@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getDoctorNav } from "./doctorNav";
@@ -94,17 +94,17 @@ const DoctorCalendar = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const { data: doc } = await supabase.from("doctor_profiles").select("id").eq("user_id", user!.id).single();
+    const { data: doc } = await db.from("doctor_profiles").select("id").eq("user_id", user!.id).single();
     if (!doc) { setLoading(false); return; }
 
     const [apptRes, absRes] = await Promise.all([
-      supabase.from("appointments")
+      db.from("appointments")
         .select("id, scheduled_at, status, patient_id, duration_minutes, appointment_type, guest_patient_id, notes")
         .eq("doctor_id", doc.id)
         .gte("scheduled_at", dateRange.start.toISOString())
         .lte("scheduled_at", dateRange.end.toISOString())
         .order("scheduled_at", { ascending: true }),
-      supabase.from("doctor_absences")
+      db.from("doctor_absences")
         .select("absence_date")
         .eq("doctor_id", doc.id)
         .gte("absence_date", format(dateRange.start, "yyyy-MM-dd"))
@@ -120,8 +120,8 @@ const DoctorCalendar = () => {
     const guestIds = [...new Set(data.filter(a => a.guest_patient_id).map(a => a.guest_patient_id))];
 
     const [pRes, gRes] = await Promise.all([
-      patientIds.length ? supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds.filter((id): id is string => id !== null)) : { data: [] },
-      guestIds.length ? supabase.from("guest_patients").select("id, full_name").in("id", guestIds.filter((id): id is string => id !== null)) : { data: [] },
+      patientIds.length ? db.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds.filter((id): id is string => id !== null)) : { data: [] },
+      guestIds.length ? db.from("guest_patients").select("id, full_name").in("id", guestIds.filter((id): id is string => id !== null)) : { data: [] },
     ]);
 
     const pMap = new Map((pRes.data ?? []).map((p: { user_id: string; first_name: string; last_name: string }) => [p.user_id, `${p.first_name} ${p.last_name}`]));

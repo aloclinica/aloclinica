@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -48,13 +48,13 @@ const ChatPage = () => {
   useEffect(() => { if (user) fetchConversations(); }, [user]);
 
   const fetchConversations = async () => {
-    let query = supabase.from("appointments").select("id, scheduled_at, status, patient_id, doctor_id")
+    let query = db.from("appointments").select("id, scheduled_at, status, patient_id, doctor_id")
       .in("status", ["scheduled", "confirmed", "waiting", "in_progress", "completed"])
       .order("scheduled_at", { ascending: false })
       .limit(50);
 
     if (isDoctor) {
-      const { data: doc } = await supabase.from("doctor_profiles").select("id").eq("user_id", user!.id).single();
+      const { data: doc } = await db.from("doctor_profiles").select("id").eq("user_id", user!.id).single();
       if (doc) query = query.eq("doctor_id", doc.id);
       else { setLoading(false); return; }
     } else {
@@ -71,13 +71,13 @@ const ChatPage = () => {
     const nameMap = new Map<string, string>();
 
     if (isDoctor) {
-      const { data: profiles } = await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", otherIds.filter((id): id is string => id !== null));
+      const { data: profiles } = await db.from("profiles").select("user_id, first_name, last_name").in("user_id", otherIds.filter((id): id is string => id !== null));
       profiles?.forEach(p => nameMap.set(p.user_id, `${p.first_name} ${p.last_name}`));
     } else {
-      const { data: docs } = await supabase.from("doctor_profiles").select("id, user_id").in("id", otherIds.filter((id): id is string => id !== null));
+      const { data: docs } = await db.from("doctor_profiles").select("id, user_id").in("id", otherIds.filter((id): id is string => id !== null));
       const docUserIds = docs?.map(d => d.user_id) ?? [];
       const { data: profiles } = docUserIds.length > 0
-        ? await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", docUserIds)
+        ? await db.from("profiles").select("user_id, first_name, last_name").in("user_id", docUserIds)
         : { data: [] };
       const pMap = new Map<string, string>();
       profiles?.forEach(p => pMap.set(p.user_id, `Dr(a). ${p.first_name} ${p.last_name}`));

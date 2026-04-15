@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Users, Stethoscope, Star, ShieldCheck } from "@phosphor-icons/react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useSiteConfig } from "@/lib/site-config";
 
 const fallbackStats = [
@@ -58,7 +58,7 @@ const StatsSection = forwardRef<HTMLElement>((_, ref) => {
     (async () => {
       try {
         const [specialtiesRes] = await Promise.all([
-          supabase.from("specialties").select("id", { count: "exact", head: true }),
+          db.from("specialties").select("id", { count: "exact", head: true }),
         ]);
         const specialties = specialtiesRes.count ?? 0;
 

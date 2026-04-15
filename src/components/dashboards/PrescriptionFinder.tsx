@@ -3,7 +3,7 @@ import { Search, QrCode, Loader2, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -28,19 +28,19 @@ export function PrescriptionFinder({ onValidated }: { onValidated?: () => void }
     setLoading(true);
     setFound(null);
     try {
-      const { data } = await supabase.from("prescriptions")
+      const { data } = await db.from("prescriptions")
         .select("id, diagnosis, medications, created_at, doctor_id, patient_id")
         .ilike("id", `${code.trim()}%`).limit(1).single();
 
       if (!data) { toast.error("Receita não encontrada"); setLoading(false); return; }
 
       const [docRes, patRes] = await Promise.all([
-        supabase.from("doctor_profiles").select("user_id").eq("id", data.doctor_id).single(),
-        supabase.from("profiles").select("first_name, last_name").eq("user_id", data.patient_id).single(),
+        db.from("doctor_profiles").select("user_id").eq("id", data.doctor_id).single(),
+        db.from("profiles").select("first_name, last_name").eq("user_id", data.patient_id).single(),
       ]);
       let doctorName = "—";
       if (docRes.data) {
-        const { data: dp } = await supabase.from("profiles").select("first_name, last_name").eq("user_id", docRes.data.user_id).single();
+        const { data: dp } = await db.from("profiles").select("first_name, last_name").eq("user_id", docRes.data.user_id).single();
         if (dp) doctorName = `Dr(a). ${dp.first_name} ${dp.last_name}`;
       }
       setFound({ ...data, doctor_name: doctorName, patient_name: patRes.data ? `${patRes.data.first_name} ${patRes.data.last_name}` : "—", medications: Array.isArray(data.medications) ? (data.medications as string[]) : [] });
@@ -52,7 +52,7 @@ export function PrescriptionFinder({ onValidated }: { onValidated?: () => void }
     if (!found) return;
     setDispensing(true);
     try {
-      await supabase.from("prescription_validations").insert([{ prescription_id: found.id, validated_by: "partner", status: "dispensed", notes: "Dispensado pelo parceiro" }]);
+      await db.from("prescription_validations").insert([{ prescription_id: found.id, validated_by: "partner", status: "dispensed", notes: "Dispensado pelo parceiro" }]);
       toast.success("Receita dispensada com sucesso!");
       setFound(null); setCode("");
       onValidated?.();

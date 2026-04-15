@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getPatientNav } from "./patientNav";
 import { Card, CardContent } from "@/components/ui/card";
@@ -70,7 +70,7 @@ const PrescriptionRenewalForm = () => {
     if (file.size > 10 * 1024 * 1024) { toast.error("Arquivo muito grande (máx 10MB)"); return; }
     setUploading(true);
     const filePath = `${user.id}/renewal-${Date.now()}-${file.name}`;
-    const { error } = await supabase.storage.from("patient-documents").upload(filePath, file);
+    const { error } = await db.storage.from("patient-documents").upload(filePath, file);
     if (error) { toast.error("Erro no upload: " + error.message); }
     else { setPrescriptionUrl(filePath); toast.success("Receita enviada!"); }
     setUploading(false);
@@ -87,7 +87,7 @@ const PrescriptionRenewalForm = () => {
       additional_notes: notes.trim(),
     };
 
-    const { data, error } = await supabase.from("prescription_renewals").insert({
+    const { data, error } = await db.from("prescription_renewals").insert({
       patient_id: user.id,
       original_prescription_url: prescriptionUrl,
       health_questionnaire: questionnaire,
@@ -110,7 +110,7 @@ const PrescriptionRenewalForm = () => {
     }
     setProcessing(true);
     try {
-      const { data: profile } = await supabase.from("profiles").select("first_name, last_name, cpf, phone").eq("user_id", user.id).single();
+      const { data: profile } = await db.from("profiles").select("first_name, last_name, cpf, phone").eq("user_id", user.id).single();
       if (!profile?.cpf) { toast.error("CPF obrigatório"); setProcessing(false); return; }
 
       const customerName = `${profile.first_name} ${profile.last_name}`.trim();
@@ -129,7 +129,7 @@ const PrescriptionRenewalForm = () => {
 
       if (paymentMethod === "card") {
         const [expiryMonth, expiryYear] = cardExpiry.split("/");
-        const { data: tokenData, error: tokenError } = await supabase.functions.invoke("tokenize-card", {
+        const { data: tokenData, error: tokenError } = await db.functions.invoke("tokenize-card", {
           body: {
             customerName, customerCpf: profile.cpf, customerEmail: user.email, customerPhone: profile.phone,
             cardHolderName: cardName, cardNumber: cardNumber.replace(/\s/g, ""),
@@ -141,7 +141,7 @@ const PrescriptionRenewalForm = () => {
         payload.creditCardToken = tokenData.creditCardToken;
       }
 
-      const { data, error } = await supabase.functions.invoke("create-asaas-payment", { body: payload });
+      const { data, error } = await db.functions.invoke("create-asaas-payment", { body: payload });
       if (error || !data?.success) { toast.error("Erro no pagamento", { description: data?.error }); setProcessing(false); return; }
 
       if (paymentMethod === "pix" && data.pixQrCode) {
@@ -161,7 +161,7 @@ const PrescriptionRenewalForm = () => {
 
       // Card — instant
       if (data.status === "CONFIRMED" || data.status === "RECEIVED") {
-        await supabase.from("prescription_renewals").update({ paid_at: new Date().toISOString(), status: "pending_review", payment_id: data.paymentId }).eq("id", renewalId);
+        await db.from("prescription_renewals").update({ paid_at: new Date().toISOString(), status: "pending_review", payment_id: data.paymentId }).eq("id", renewalId);
         toast.success("Pagamento confirmado! 🎉", { description: "Um médico analisará sua receita em breve." });
         resetForm();
         fetchRenewals();

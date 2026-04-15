@@ -12,7 +12,7 @@ import CpfInput from "@/components/ui/cpf-input";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { QRCodeSVG } from "qrcode.react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { toast } from "sonner";
 import mascotWelcome from "@/assets/mascot-welcome.png";
 import { formatMask } from "@/hooks/use-mask";
@@ -50,7 +50,7 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
 
   useEffect(() => {
     if (user) {
-      supabase.from("profiles").select("*").eq("user_id", user.id).single().then(({ data }) => {
+      db.from("profiles").select("*").eq("user_id", user.id).single().then(({ data }) => {
         if (data) {
           setFirstName(data.first_name || "");
           setLastName(data.last_name || "");
@@ -92,7 +92,7 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
   const saveProfile = async () => {
     if (!user) return;
     setSaving(true);
-    await supabase.from("profiles").update({
+    await db.from("profiles").update({
       first_name: firstName, last_name: lastName,
       cpf: cpf.replace(/\D/g, ""), phone: phone.replace(/\D/g, ""),
       date_of_birth: dateOfBirth || null, blood_type: bloodType || null,

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "./DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,19 +60,19 @@ const ClinicDashboard = () => {
         if (row && doctorIds.includes(row.doctor_id)) fetchData();
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { db.removeChannel(channel); };
   }, [clinicProfile, doctors]);
 
   const fetchData = async () => {
     setLoading(true);
-    const { data: clinic } = await supabase.from("clinic_profiles").select("*").eq("user_id", user!.id).single();
+    const { data: clinic } = await db.from("clinic_profiles").select("*").eq("user_id", user!.id).single();
     setClinicProfile(clinic);
     if (!clinic) { setLoading(false); return; }
-    const { data: affiliations } = await supabase.from("clinic_affiliations").select("*, doctor_profiles(*, profiles(first_name, last_name))").eq("clinic_id", clinic.id);
+    const { data: affiliations } = await db.from("clinic_affiliations").select("*, doctor_profiles(*, profiles(first_name, last_name))").eq("clinic_id", clinic.id);
     setDoctors(affiliations ?? []);
     const doctorIds = (affiliations ?? []).map((a: { doctor_id: string }) => a.doctor_id);
     if (doctorIds.length > 0) {
-      const { data: appts } = await supabase.from("appointments").select("*, doctor_profiles(consultation_price)").in("doctor_id", doctorIds).gte("scheduled_at", subMonths(new Date(), 6).toISOString()).order("scheduled_at", { ascending: false });
+      const { data: appts } = await db.from("appointments").select("*, doctor_profiles(consultation_price)").in("doctor_id", doctorIds).gte("scheduled_at", subMonths(new Date(), 6).toISOString()).order("scheduled_at", { ascending: false });
       setAppointments(appts ?? []);
 
       // Calculate total slots from availability_slots table

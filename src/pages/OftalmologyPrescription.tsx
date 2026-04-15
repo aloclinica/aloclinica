@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,7 +58,7 @@ export default function OftalmologyPrescription() {
         .single();
 
       if (appointment) {
-        const { data: profile } = await supabase.from("profiles").select("first_name, last_name").eq("user_id", appointment.patient_id!).single();
+        const { data: profile } = await db.from("profiles").select("first_name, last_name").eq("user_id", appointment.patient_id!).single();
         setPatientName(profile ? `${profile.first_name} ${profile.last_name}` : "");
         setPatientId(appointment.patient_id);
       }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getPatientNav } from "./patientNav";
 import { Card, CardContent } from "@/components/ui/card";
@@ -48,7 +48,7 @@ const DependentsManager = () => {
   useEffect(() => { if (user) fetchDependents(); }, [user]);
 
   const fetchDependents = async () => {
-    const { data } = await supabase.from("dependents")
+    const { data } = await db.from("dependents")
       .select("*")
       .eq("user_id", user!.id)
       .order("created_at", { ascending: true });
@@ -87,11 +87,11 @@ const DependentsManager = () => {
     };
 
     if (editing) {
-      const { error } = await supabase.from("dependents").update(payload).eq("id", editing.id);
+      const { error } = await db.from("dependents").update(payload).eq("id", editing.id);
       if (error) toast.error("Erro ao atualizar");
       else toast.success("Dependente atualizado!");
     } else {
-      const { error } = await supabase.from("dependents").insert({ ...payload, user_id: user!.id });
+      const { error } = await db.from("dependents").insert({ ...payload, user_id: user!.id });
       if (error) toast.error("Erro ao cadastrar");
       else toast.success("Dependente adicionado!");
     }
@@ -103,7 +103,7 @@ const DependentsManager = () => {
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase.from("dependents").delete().eq("id", id);
+    const { error } = await db.from("dependents").delete().eq("id", id);
     if (error) toast.error("Erro ao remover");
     else { toast.success("Dependente removido"); fetchDependents(); }
   };

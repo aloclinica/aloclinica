@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getDoctorNav } from "./doctorNav";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,12 +29,12 @@ const DoctorOnDutyPanel = () => {
       .channel("on-duty-queue")
       .on("postgres_changes", { event: "*", schema: "public", table: "on_demand_queue" }, () => fetchQueue())
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { db.removeChannel(channel); };
   }, []);
 
   const fetchDoctorProfile = async () => {
     if (!user) return;
-    const { data } = await supabase.from("doctor_profiles").select("id").eq("user_id", user.id).maybeSingle();
+    const { data } = await db.from("doctor_profiles").select("id").eq("user_id", user.id).maybeSingle();
     if (data) setDoctorProfileId(data.id);
   };
 
@@ -53,7 +53,7 @@ const DoctorOnDutyPanel = () => {
     setAccepting(true);
 
     // Create appointment
-    const { data: appt, error: apptError } = await supabase.from("appointments").insert({
+    const { data: appt, error: apptError } = await db.from("appointments").insert({
       patient_id: entry.patient_id,
       doctor_id: doctorProfileId,
       scheduled_at: new Date().toISOString(),
@@ -69,7 +69,7 @@ const DoctorOnDutyPanel = () => {
     }
 
     // Update queue entry
-    await supabase.from("on_demand_queue").update({
+    await db.from("on_demand_queue").update({
       status: "in_progress",
       assigned_doctor_id: doctorProfileId,
       assigned_at: new Date().toISOString(),

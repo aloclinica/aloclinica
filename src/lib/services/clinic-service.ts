@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { logError } from "@/lib/logger";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -89,12 +89,12 @@ export const getClinicDoctorsRanking = async (clinicId: string): Promise<ClinicD
     const doctorIds = affiliations.map(a => a.doctor_id);
 
     const [doctorsRes, profilesRes, specsRes] = await Promise.all([
-      supabase.from("doctor_profiles").select("id, user_id, rating, total_reviews").in("id", doctorIds),
-      supabase.from("profiles").select("user_id, first_name, last_name").in(
+      db.from("doctor_profiles").select("id, user_id, rating, total_reviews").in("id", doctorIds),
+      db.from("profiles").select("user_id, first_name, last_name").in(
         "user_id",
-        (await supabase.from("doctor_profiles").select("user_id").in("id", doctorIds)).data?.map(d => d.user_id) ?? []
+        (await db.from("doctor_profiles").select("user_id").in("id", doctorIds)).data?.map(d => d.user_id) ?? []
       ),
-      supabase.from("doctor_specialties").select("doctor_id, specialties(name)").in("doctor_id", doctorIds),
+      db.from("doctor_specialties").select("doctor_id, specialties(name)").in("doctor_id", doctorIds),
     ]);
 
     // Count appointments per doctor (last 30 days)
@@ -151,7 +151,7 @@ export const submitExamRequest = async (params: {
   specialtyRequired?: string;
 }): Promise<string | null> => {
   try {
-    const { data, error } = await supabase.from("exam_requests").insert({
+    const { data, error } = await db.from("exam_requests").insert({
       requesting_clinic_id: params.clinicId,
       exam_type: params.examType,
       patient_name: params.patientName,

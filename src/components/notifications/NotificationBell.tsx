@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -96,8 +96,8 @@ const NotificationBell = () => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
-      supabase.removeChannel(msgChannel);
+      db.removeChannel(channel);
+      db.removeChannel(msgChannel);
       if (pulseTimeout.current) clearTimeout(pulseTimeout.current);
     };
   }, [user, showRealtimeToast]);
@@ -125,7 +125,7 @@ const NotificationBell = () => {
   const markAsRead = async (id: string) => {
     // Optimistic update
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-    const { error } = await supabase.from("notifications").update({ is_read: true }).eq("id", id);
+    const { error } = await db.from("notifications").update({ is_read: true }).eq("id", id);
     if (error) {
       // Rollback
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: false } : n));
@@ -137,7 +137,7 @@ const NotificationBell = () => {
     if (unreadIds.length === 0) return;
     // Optimistic update
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-    const { error } = await supabase.from("notifications").update({ is_read: true }).in("id", unreadIds);
+    const { error } = await db.from("notifications").update({ is_read: true }).in("id", unreadIds);
     if (error) {
       // Rollback
       fetchNotifications();
@@ -148,7 +148,7 @@ const NotificationBell = () => {
     // Optimistic update
     const prev = notifications;
     setNotifications(p => p.filter(n => n.id !== id));
-    const { error } = await supabase.from("notifications").delete().eq("id", id);
+    const { error } = await db.from("notifications").delete().eq("id", id);
     if (error) {
       setNotifications(prev);
       toast.error("Erro ao excluir notificação");

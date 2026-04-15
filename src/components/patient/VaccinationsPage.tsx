@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getPatientNav } from "./patientNav";
@@ -43,7 +43,7 @@ export default function VaccinationsPage() {
   const { data: records = [], isLoading } = useQuery({
     queryKey: ["vaccinations", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("vaccination_records" as any).select("*").eq("patient_id", user!.id).order("date_given", { ascending: false });
+      const { data } = await db.from("vaccination_records" as any).select("*").eq("patient_id", user!.id).order("date_given", { ascending: false });
       return (data ?? []) as unknown as VaccRecord[];
     },
     enabled: !!user,
@@ -55,7 +55,7 @@ export default function VaccinationsPage() {
   const save = async () => {
     if (!form.vaccine_name || !form.date_given) { toast.error("Preencha vacina e data"); return; }
     setSaving(true);
-    const { error } = await supabase.from("vaccination_records" as any).insert({
+    const { error } = await db.from("vaccination_records" as any).insert({
       patient_id: user!.id,
       vaccine_name: form.vaccine_name,
       dose: form.dose || null,

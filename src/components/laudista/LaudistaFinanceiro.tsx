@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getLaudistaNav } from "./laudistaNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,7 +42,7 @@ const LaudistaFinanceiro = () => {
   const { data: doctorProfile } = useQuery({
     queryKey: ["laudista-doctor-profile", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("doctor_profiles").select("*").eq("user_id", user!.id).maybeSingle();
+      const { data } = await db.from("doctor_profiles").select("*").eq("user_id", user!.id).maybeSingle();
       return data;
     },
     enabled: !!user,
@@ -54,9 +54,9 @@ const LaudistaFinanceiro = () => {
     queryFn: async () => {
       const dpId = doctorProfile!.id;
       const [reportsRes, withdrawRes, walletRes] = await Promise.all([
-        supabase.from("exam_reports").select("id, created_at, signed_at").eq("reporter_id", dpId).not("signed_at", "is", null).order("created_at", { ascending: false }),
-        supabase.from("withdrawal_requests").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(20),
-        supabase.from("wallet_transactions").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(100),
+        db.from("exam_reports").select("id, created_at, signed_at").eq("reporter_id", dpId).not("signed_at", "is", null).order("created_at", { ascending: false }),
+        db.from("withdrawal_requests").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(20),
+        db.from("wallet_transactions").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(100),
       ]);
 
       const reports = reportsRes.data ?? [];
@@ -97,9 +97,9 @@ const LaudistaFinanceiro = () => {
     queryFn: async () => {
       const dpId = doctorProfile!.id;
       const [specsRes, totalRes, signedRes] = await Promise.all([
-        supabase.from("doctor_specialties").select("specialty_id, specialties(name)").eq("doctor_id", dpId),
-        supabase.from("exam_reports").select("id", { count: "exact", head: true }).eq("reporter_id", dpId),
-        supabase.from("exam_reports").select("id", { count: "exact", head: true }).eq("reporter_id", dpId).not("signed_at", "is", null),
+        db.from("doctor_specialties").select("specialty_id, specialties(name)").eq("doctor_id", dpId),
+        db.from("exam_reports").select("id", { count: "exact", head: true }).eq("reporter_id", dpId),
+        db.from("exam_reports").select("id", { count: "exact", head: true }).eq("reporter_id", dpId).not("signed_at", "is", null),
       ]);
       return {
         specialties: (specsRes.data ?? []).map((s: any) => s.specialties?.name).filter(Boolean),
@@ -116,7 +116,7 @@ const LaudistaFinanceiro = () => {
     if (!earningsData || amount > earningsData.available) { toast.error("Valor superior ao saldo disponível"); return; }
     if (!pixKey.trim()) { toast.error("Informe sua chave PIX"); return; }
     setSubmitting(true);
-    const { error } = await supabase.from("withdrawal_requests").insert({ user_id: user!.id, amount, pix_key: pixKey });
+    const { error } = await db.from("withdrawal_requests").insert({ user_id: user!.id, amount, pix_key: pixKey });
     if (error) { toast.error("Erro ao solicitar saque", { description: error.message }); }
     else { toast.success("Solicitação de saque enviada!"); setWithdrawOpen(false); setWithdrawAmount(""); setPixKey(""); queryClient.invalidateQueries({ queryKey: ["laudista-earnings"] }); }
     setSubmitting(false);

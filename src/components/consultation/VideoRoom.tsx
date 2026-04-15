@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { AppointmentRow } from "@/types/domain";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { notifyConsultationStarted, notifyConsultationCompleted } from "@/lib/notifications";
 import { Button } from "@/components/ui/button";
@@ -198,7 +198,7 @@ const VideoRoom = () => {
     return () => {
       pollActive = false;
       clearTimeout(pollTimeout);
-      supabase.removeChannel(queueChannel);
+      db.removeChannel(queueChannel);
     };
   }, [appointment, isDoctor]);
 
@@ -237,7 +237,7 @@ const VideoRoom = () => {
     if (!appointmentId || !user) return;
 
     // Primary: postgres_changes for persisted messages
-    const roomChannel = supabase.channel(`video-room-${appointmentId}`)
+    const roomChannel = db.channel(`video-room-${appointmentId}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages", filter: `appointment_id=eq.${appointmentId}` },
@@ -301,7 +301,7 @@ const VideoRoom = () => {
     return () => {
       pollActive = false;
       clearTimeout(pollTimeout);
-      supabase.removeChannel(roomChannel);
+      db.removeChannel(roomChannel);
     };
   }, [appointmentId, user, isDoctor]);
 
@@ -345,7 +345,7 @@ const VideoRoom = () => {
 
     // Verify correct participant
     if (isDoctor) {
-      const { data: dp } = await supabase.from("doctor_profiles").select("id").eq("user_id", user!.id).maybeSingle();
+      const { data: dp } = await db.from("doctor_profiles").select("id").eq("user_id", user!.id).maybeSingle();
       if (dp && dp.id !== data.doctor_id) {
         toast.error("Acesso negado", { description: "Esta consulta não está atribuída a você." });
         navigate("/dashboard");
@@ -374,7 +374,7 @@ const VideoRoom = () => {
         const newRoomId = gerarRoomId(appointmentId ?? '');
         setJitsiRoomId(newRoomId);
       }
-      await supabase.from("appointments").update({ status: "in_progress" } as any).eq("id", appointmentId ?? '');
+      await db.from("appointments").update({ status: "in_progress" } as any).eq("id", appointmentId ?? '');
       const docName = user?.user_metadata?.first_name ? `Dr(a). ${user.user_metadata.first_name} ${user.user_metadata.last_name || ""}`.trim() : "Seu médico";
       notifyConsultationStarted(appointmentId ?? '', docName).catch(err => logError("notifyConsultationStarted failed", err));
     } else {
@@ -450,7 +450,7 @@ const VideoRoom = () => {
 
     // Persist to DB
     if (appointmentId && user) {
-      const { data: inserted } = await supabase.from("messages").insert({
+      const { data: inserted } = await db.from("messages").insert({
         appointment_id: appointmentId,
         sender_id: user.id,
         content: fileUrl ? `${content}\n${fileUrl}` : content,
@@ -472,7 +472,7 @@ const VideoRoom = () => {
       .from("patient-documents")
       .upload(filePath, file, { contentType: file.type });
     if (uploadErr) throw uploadErr;
-    const { data: urlData } = supabase.storage.from("patient-documents").getPublicUrl(filePath);
+    const { data: urlData } = db.storage.from("patient-documents").getPublicUrl(filePath);
     return urlData.publicUrl;
   };
 
@@ -622,9 +622,9 @@ const VideoRoom = () => {
 
         if (!uploadError) {
           // Save reference in patient_documents table
-          const { data: urlData } = supabase.storage.from("patient-documents").getPublicUrl(filePath);
+          const { data: urlData } = db.storage.from("patient-documents").getPublicUrl(filePath);
           
-          await supabase.from("patient_documents").insert({
+          await db.from("patient_documents").insert({
             patient_id: patientId || user!.id,
             uploaded_by: user!.id,
             file_name: `Prontuário SOAP - ${dateStr}`,
@@ -668,7 +668,7 @@ const VideoRoom = () => {
   useEffect(() => {
     if (!appointmentId || !user || !deviceChecked) return;
     const logPresence = async () => {
-      const { data } = await supabase.from("video_presence_logs").insert({
+      const { data } = await db.from("video_presence_logs").insert({
         appointment_id: appointmentId,
         user_id: user.id,
         user_role: isDoctor ? "doctor" : "patient",
@@ -679,7 +679,7 @@ const VideoRoom = () => {
 
     return () => {
       if (presenceLogId.current) {
-        supabase.from("video_presence_logs").update({
+        db.from("video_presence_logs").update({
           left_at: new Date().toISOString(),
           duration_seconds: elapsed,
         }).eq("id", presenceLogId.current).then(() => {});
@@ -698,7 +698,7 @@ const VideoRoom = () => {
   const endCall = useCallback(async () => {
     videoRef.current?.hangUp();
     if (presenceLogId.current) {
-      await supabase.from("video_presence_logs").update({
+      await db.from("video_presence_logs").update({
         left_at: new Date().toISOString(),
         duration_seconds: elapsedRef.current,
       }).eq("id", presenceLogId.current);
@@ -707,7 +707,7 @@ const VideoRoom = () => {
     if (isDoctor && soap.isDirty) {
       await soap.saveNotes();
     }
-    await supabase.from("appointments").update({ status: "completed" }).eq("id", appointmentId ?? '');
+    await db.from("appointments").update({ status: "completed" }).eq("id", appointmentId ?? '');
 
     // Notify patient that consultation is completed
     if (isDoctor) {
@@ -838,7 +838,7 @@ const VideoRoom = () => {
 
     // Persist to database using messages table
     try {
-      await (supabase.from("messages") as any).insert({
+      await (db.from("messages") as any).insert({
         appointment_id: appointmentId,
         sender_id: user?.id,
         content: text,
@@ -876,7 +876,7 @@ const VideoRoom = () => {
       // Gather chat messages for context
       const chatContext = messages.slice(-10).map(m => `${m.sender}: ${m.text}`).join("\n");
 
-      const { data, error } = await supabase.functions.invoke("ai-assistant", {
+      const { data, error } = await db.functions.invoke("ai-assistant", {
         body: {
           messages: [
             {
@@ -1225,10 +1225,10 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
                   if (next) {
                     const rid = gerarRoomId(appointmentId ?? '');
                     setJitsiRoomId(rid);
-                    supabase.from("appointments").update({ jitsi_room_id: rid } as any).eq("id", appointmentId ?? '');
+                    db.from("appointments").update({ jitsi_room_id: rid } as any).eq("id", appointmentId ?? '');
                   } else {
                     setJitsiRoomId(null);
-                    supabase.from("appointments").update({ jitsi_room_id: null } as any).eq("id", appointmentId ?? '');
+                    db.from("appointments").update({ jitsi_room_id: null } as any).eq("id", appointmentId ?? '');
                   }
                 }}
               />

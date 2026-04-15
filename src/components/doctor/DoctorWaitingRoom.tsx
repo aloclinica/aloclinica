@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getDoctorNav } from "./doctorNav";
@@ -67,11 +67,11 @@ const DoctorWaitingRoom = () => {
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => { db.removeChannel(channel); };
   }, [doctorId]);
 
   const fetchDoctorProfile = async () => {
-    const { data } = await supabase.from("doctor_profiles").select("id").eq("user_id", user!.id).single();
+    const { data } = await db.from("doctor_profiles").select("id").eq("user_id", user!.id).single();
     if (data) {
       setDoctorId(data.id);
       fetchWaitingPatients(data.id);
@@ -92,7 +92,7 @@ const DoctorWaitingRoom = () => {
 
   const fetchTriageData = async (appointmentIds: string[]) => {
     if (appointmentIds.length === 0) return;
-    const { data } = await supabase.from("pre_consultation_symptoms")
+    const { data } = await db.from("pre_consultation_symptoms")
       .select("appointment_id, main_complaint, symptoms, severity")
       .in("appointment_id", appointmentIds);
     const map = new Map<string, any>();
@@ -104,7 +104,7 @@ const DoctorWaitingRoom = () => {
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
 
-    const { data } = await supabase.from("appointments")
+    const { data } = await db.from("appointments")
       .select("id, scheduled_at, status, patient_id, duration_minutes, appointment_type, guest_patient_id")
       .eq("doctor_id", docId)
       .gte("scheduled_at", todayStart.toISOString())
@@ -118,8 +118,8 @@ const DoctorWaitingRoom = () => {
     const guestIds = [...new Set(data.filter(a => a.guest_patient_id).map(a => a.guest_patient_id))];
 
     const [pRes, gRes] = await Promise.all([
-      patientIds.length ? supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds.filter((id): id is string => id !== null)) : { data: [] },
-      guestIds.length ? supabase.from("guest_patients").select("id, full_name").in("id", guestIds.filter((id): id is string => id !== null)) : { data: [] },
+      patientIds.length ? db.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds.filter((id): id is string => id !== null)) : { data: [] },
+      guestIds.length ? db.from("guest_patients").select("id, full_name").in("id", guestIds.filter((id): id is string => id !== null)) : { data: [] },
     ]);
 
     const pMap = new Map((pRes.data ?? []).map((p: any) => [p.user_id, `${p.first_name} ${p.last_name}`]));

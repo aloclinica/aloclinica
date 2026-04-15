@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -173,7 +173,7 @@ const PatientEMR = ({ patientId, appointmentId, isDoctor = false, readOnly = fal
     if (!patientId) return;
     fetchAllData();
     if (user && isDoctorRole && patientId !== user.id) {
-      supabase.from("medical_record_access_logs" as any).insert({
+      db.from("medical_record_access_logs" as any).insert({
         patient_id: patientId, accessed_by: user.id, access_type: "emr_view", user_agent: navigator.userAgent,
       }).then(() => {});
     }
@@ -182,23 +182,23 @@ const PatientEMR = ({ patientId, appointmentId, isDoctor = false, readOnly = fal
   const fetchAllData = async () => {
     setLoading(true);
     const [profileRes, recordsRes, docsRes, pastRes] = await Promise.all([
-      supabase.from("profiles").select("*").eq("user_id", patientId).maybeSingle(),
-      supabase.from("medical_records").select("id, record_type, title, description, cid_code, severity, is_active, created_at")
+      db.from("profiles").select("*").eq("user_id", patientId).maybeSingle(),
+      db.from("medical_records").select("id, record_type, title, description, cid_code, severity, is_active, created_at")
         .eq("patient_id", patientId).order("created_at", { ascending: false }),
-      supabase.from("patient_documents").select("*").eq("patient_id", patientId).order("created_at", { ascending: false }),
-      supabase.from("clinical_anamnesis" as any).select("*").eq("patient_id", patientId)
+      db.from("patient_documents").select("*").eq("patient_id", patientId).order("created_at", { ascending: false }),
+      db.from("clinical_anamnesis" as any).select("*").eq("patient_id", patientId)
         .order("created_at", { ascending: false }) as any,
     ]);
 
     let currentAnamnesisRes: any = null;
     if (appointmentId) {
-      currentAnamnesisRes = await (supabase.from("clinical_anamnesis" as any).select("*")
+      currentAnamnesisRes = await (db.from("clinical_anamnesis" as any).select("*")
         .eq("appointment_id", appointmentId).maybeSingle() as any);
     }
 
     let docProfileRes: any = null;
     if (user && isDoctorRole) {
-      docProfileRes = await supabase.from("doctor_profiles").select("id").eq("user_id", user.id).maybeSingle();
+      docProfileRes = await db.from("doctor_profiles").select("id").eq("user_id", user.id).maybeSingle();
     }
 
     if (profileRes.data) setPatient(profileRes.data);
@@ -233,7 +233,7 @@ const PatientEMR = ({ patientId, appointmentId, isDoctor = false, readOnly = fal
       setSaveStatus("saved");
       setLastSavedAt(new Date(existing.updated_at || existing.created_at));
 
-      const auditRes = await (supabase.from("clinical_evolution_audit" as any)
+      const auditRes = await (db.from("clinical_evolution_audit" as any)
         .select("*").eq("record_id", existing.id).order("changed_at", { ascending: false }) as any);
       if (auditRes.data) setAuditLog(auditRes.data as unknown as AuditEntry[]);
     }
@@ -268,9 +268,9 @@ const PatientEMR = ({ patientId, appointmentId, isDoctor = false, readOnly = fal
 
     let error: any;
     if (existingIdRef.current) {
-      ({ error } = await supabase.from("clinical_anamnesis" as any).update(fields).eq("id", existingIdRef.current));
+      ({ error } = await db.from("clinical_anamnesis" as any).update(fields).eq("id", existingIdRef.current));
     } else {
-      const res = await (supabase.from("clinical_anamnesis" as any).insert({
+      const res = await (db.from("clinical_anamnesis" as any).insert({
         appointment_id: appointmentId, patient_id: patientId, doctor_id: doctorIdRef.current, ...fields,
       }).select("id").single() as any);
       error = res.error;
@@ -292,7 +292,7 @@ const PatientEMR = ({ patientId, appointmentId, isDoctor = false, readOnly = fal
   const handleAddRecord = useCallback(async () => {
     if (!newRecord.title.trim() || !patientId) return;
     setAddingRecord(true);
-    const { error } = await supabase.from("medical_records").insert({
+    const { error } = await db.from("medical_records").insert({
       patient_id: patientId,
       record_type: newRecord.record_type,
       title: newRecord.title.trim(),
@@ -311,7 +311,7 @@ const PatientEMR = ({ patientId, appointmentId, isDoctor = false, readOnly = fal
       setNewRecord({ record_type: "allergy", title: "", description: "", cid_code: "", severity: "" });
       setShowAddRecord(false);
       // Refresh records
-      const { data } = await supabase.from("medical_records")
+      const { data } = await db.from("medical_records")
         .select("id, record_type, title, description, cid_code, severity, is_active, created_at")
         .eq("patient_id", patientId).order("created_at", { ascending: false });
       if (data) setRecords(data as MedicalRecord[]);
@@ -1095,7 +1095,7 @@ const PatientEMR = ({ patientId, appointmentId, isDoctor = false, readOnly = fal
                             </div>
                             <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"
                               onClick={async () => {
-                                const { data } = await supabase.storage.from("patient-documents").createSignedUrl(d.file_url, 3600);
+                                const { data } = await db.storage.from("patient-documents").createSignedUrl(d.file_url, 3600);
                                 if (data?.signedUrl) window.open(data.signedUrl, "_blank");
                               }}>
                               <Eye className="w-3.5 h-3.5 mr-1" /> Ver

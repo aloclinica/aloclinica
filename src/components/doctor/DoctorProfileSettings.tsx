@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getDoctorNav } from "@/components/doctor/doctorNav";
@@ -115,8 +115,8 @@ const DoctorProfileSettings = () => {
   const loadProfile = useCallback(async () => {
     if (!user) return;
     const [specsRes, profRes] = await Promise.all([
-      supabase.from("specialties").select("id, name").order("name"),
-      supabase.from("doctor_profiles").select("*").eq("user_id", user.id).maybeSingle(),
+      db.from("specialties").select("id, name").order("name"),
+      db.from("doctor_profiles").select("*").eq("user_id", user.id).maybeSingle(),
     ]);
     setSpecialties((specsRes.data as any[]) || []);
     const d: any = profRes.data;
@@ -189,12 +189,12 @@ const DoctorProfileSettings = () => {
     try {
       const blob = await resizeImage(file, 512);
       const path = `${user.id}/avatar-${Date.now()}.jpg`;
-      const { error } = await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: "image/jpeg" });
+      const { error } = await db.storage.from("avatars").upload(path, blob, { upsert: true, contentType: "image/jpeg" });
       if (error) throw error;
-      const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+      const { data: { publicUrl } } = db.storage.from("avatars").getPublicUrl(path);
       setAvatarUrl(publicUrl);
-      await supabase.from("doctor_profiles").update({ avatar_url: publicUrl } as any).eq("user_id", user.id);
-      await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("user_id", user.id);
+      await db.from("doctor_profiles").update({ avatar_url: publicUrl } as any).eq("user_id", user.id);
+      await db.from("profiles").update({ avatar_url: publicUrl }).eq("user_id", user.id);
       toast.success("Foto atualizada");
     } catch (err: any) {
       toast.error("Erro no upload", { description: err.message });
@@ -207,9 +207,9 @@ const DoctorProfileSettings = () => {
     setUploading(true);
     try {
       const path = `${user.id}/cover-${Date.now()}.${file.name.split(".").pop()}`;
-      const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+      const { error } = await db.storage.from("avatars").upload(path, file, { upsert: true });
       if (error) throw error;
-      const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+      const { data: { publicUrl } } = db.storage.from("avatars").getPublicUrl(path);
       setCoverUrl(publicUrl);
       toast.success("Capa atualizada");
     } catch (err: any) {
@@ -277,8 +277,8 @@ const DoctorProfileSettings = () => {
       show_in_directory: showInDirectory,
     };
     const { error } = profileId
-      ? await supabase.from("doctor_profiles").update(payload).eq("id", profileId)
-      : await supabase.from("doctor_profiles").insert({ ...payload, user_id: user.id });
+      ? await db.from("doctor_profiles").update(payload).eq("id", profileId)
+      : await db.from("doctor_profiles").insert({ ...payload, user_id: user.id });
     setSaving(false);
     if (error) toast.error("Erro ao salvar", { description: error.message });
     else toast.success("Perfil atualizado");

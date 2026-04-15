@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import mascotWelcome from "@/assets/mascot-welcome.png";
 import mascotReading from "@/assets/mascot-reading.png";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
@@ -89,7 +89,7 @@ const AppointmentsList = () => {
       .channel("patient-appts-list")
       .on("postgres_changes", { event: "*", schema: "public", table: "appointments", filter: `patient_id=eq.${user.id}` }, () => fetchAppointments())
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { db.removeChannel(channel); };
   }, [user]);
 
   const fetchAppointments = async () => {
@@ -110,8 +110,8 @@ const AppointmentsList = () => {
 
     const userIds = doctors?.map(d => d.user_id) ?? [];
     const [profilesRes, specsRes] = await Promise.all([
-      supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds),
-      supabase.from("doctor_specialties").select("doctor_id, specialties(name)").in("doctor_id", doctorIds),
+      db.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds),
+      db.from("doctor_specialties").select("doctor_id, specialties(name)").in("doctor_id", doctorIds),
     ]);
 
     const doctorMap = new Map(doctors?.map(d => [d.id, d]) ?? []);

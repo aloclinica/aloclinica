@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -74,12 +74,12 @@ const HealthTimeline = () => {
 
   const fetchTimeline = async () => {
     const [apptsRes, prescsRes, docsRes, recordsRes, metricsRes, diaryRes] = await Promise.all([
-      supabase.from("appointments").select("id, scheduled_at, status, doctor_id").eq("patient_id", user!.id).eq("status", "completed").order("scheduled_at", { ascending: false }).limit(100),
-      supabase.from("prescriptions").select("id, created_at, diagnosis, doctor_id").eq("patient_id", user!.id).order("created_at", { ascending: false }).limit(100),
-      supabase.from("patient_documents").select("id, created_at, file_name, description").eq("patient_id", user!.id).order("created_at", { ascending: false }).limit(100),
-      supabase.from("medical_records").select("id, created_at, title, record_type, cid_code").eq("patient_id", user!.id).order("created_at", { ascending: false }).limit(100),
-      supabase.from("health_metrics").select("id, measured_at, type, value, unit, notes").eq("patient_id", user!.id).order("measured_at", { ascending: false }).limit(100),
-      supabase.from("symptom_diary").select("id, entry_date, mood, symptoms, notes").eq("patient_id", user!.id).order("entry_date", { ascending: false }).limit(100),
+      db.from("appointments").select("id, scheduled_at, status, doctor_id").eq("patient_id", user!.id).eq("status", "completed").order("scheduled_at", { ascending: false }).limit(100),
+      db.from("prescriptions").select("id, created_at, diagnosis, doctor_id").eq("patient_id", user!.id).order("created_at", { ascending: false }).limit(100),
+      db.from("patient_documents").select("id, created_at, file_name, description").eq("patient_id", user!.id).order("created_at", { ascending: false }).limit(100),
+      db.from("medical_records").select("id, created_at, title, record_type, cid_code").eq("patient_id", user!.id).order("created_at", { ascending: false }).limit(100),
+      db.from("health_metrics").select("id, measured_at, type, value, unit, notes").eq("patient_id", user!.id).order("measured_at", { ascending: false }).limit(100),
+      db.from("symptom_diary").select("id, entry_date, mood, symptoms, notes").eq("patient_id", user!.id).order("entry_date", { ascending: false }).limit(100),
     ]);
 
     // Fetch doctor names
@@ -91,10 +91,10 @@ const HealthTimeline = () => {
     ];
     const docNames = new Map<string, string>();
     if (allDoctorIds.length > 0) {
-      const { data: docs } = await supabase.from("doctor_profiles").select("id, user_id").in("id", allDoctorIds);
+      const { data: docs } = await db.from("doctor_profiles").select("id, user_id").in("id", allDoctorIds);
       if (docs && docs.length > 0) {
         const userIds = docs.map(d => d.user_id);
-        const { data: profiles } = await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds);
+        const { data: profiles } = await db.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds);
         docs.forEach(d => {
           const p = profiles?.find(pr => pr.user_id === d.user_id);
           if (p) docNames.set(d.id, `Dr(a). ${p.first_name} ${p.last_name}`);

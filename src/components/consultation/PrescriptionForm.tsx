@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { warn, logError } from "@/lib/logger";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useConsultationStore } from "@/stores/consultationStore";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
@@ -331,7 +331,7 @@ const PrescriptionForm = () => {
       const documentHash = await gerarHashDocumento(docContent);
       const verificationCode = gerarCodigoVerificacao();
 
-      const { error } = await supabase.from("prescriptions").insert({
+      const { error } = await db.from("prescriptions").insert({
         appointment_id: appointmentId!,
         doctor_id: data.doctorId,
         patient_id: data.patientId,
@@ -342,7 +342,7 @@ const PrescriptionForm = () => {
       });
 
       // Also persist verification record
-      await supabase.from("document_verifications").insert({
+      await db.from("document_verifications").insert({
         verification_code: verificationCode,
         document_type: "prescription",
         patient_name: data.patientName,

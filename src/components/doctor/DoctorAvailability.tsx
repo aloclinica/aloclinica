@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -75,7 +75,7 @@ const DoctorAvailability = () => {
     setTogglingAvailability(true);
     try {
       const newVal = !availableNow;
-      const { error } = await supabase.from("doctor_profiles").update({
+      const { error } = await db.from("doctor_profiles").update({
         available_now: newVal,
         available_now_since: newVal ? new Date().toISOString() : null,
       }).eq("id", doctorProfileId);
@@ -128,7 +128,7 @@ const DoctorAvailability = () => {
       return;
     }
 
-    const { error } = await supabase.from("availability_slots").insert({
+    const { error } = await db.from("availability_slots").insert({
       doctor_id: doctorProfileId,
       day_of_week: dayNum,
       start_time: newStart,
@@ -143,13 +143,13 @@ const DoctorAvailability = () => {
   };
 
   const removeSlot = async (id: string) => {
-    await supabase.from("availability_slots").delete().eq("id", id);
+    await db.from("availability_slots").delete().eq("id", id);
     if (doctorProfileId) fetchSlots(doctorProfileId);
   };
 
   const addAbsence = async () => {
     if (!doctorProfileId || !absenceDate) return;
-    const { error } = await supabase.from("doctor_absences").insert({
+    const { error } = await db.from("doctor_absences").insert({
       doctor_id: doctorProfileId,
       absence_date: absenceDate,
       reason: absenceReason.trim() || null,
@@ -166,7 +166,7 @@ const DoctorAvailability = () => {
   };
 
   const removeAbsence = async (id: string) => {
-    await supabase.from("doctor_absences").delete().eq("id", id);
+    await db.from("doctor_absences").delete().eq("id", id);
     if (doctorProfileId) fetchAbsences(doctorProfileId);
   };
 

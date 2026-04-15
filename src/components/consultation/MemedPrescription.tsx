@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { warn } from "@/lib/logger";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -71,7 +71,7 @@ const MemedPrescription = ({
       }
 
       try {
-        const { data, error } = await supabase.functions.invoke("memed-prescriber", {});
+        const { data, error } = await db.functions.invoke("memed-prescriber", {});
 
         if (error) throw new Error(error.message);
         if (data?.error) throw new Error(data.error);
@@ -200,7 +200,7 @@ const MemedPrescription = ({
                       .single();
 
                     if (doctorProfile) {
-                      await supabase.from("prescriptions").insert({
+                      await db.from("prescriptions").insert({
                         appointment_id: appointmentId,
                         doctor_id: doctorProfile.id,
                         patient_id: patientId,

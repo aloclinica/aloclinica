@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { logError } from "@/lib/logger";
 import DashboardLayout from "./DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -65,7 +65,7 @@ const PartnerDashboard = () => {
 
   const fetchValidations = async () => {
     if (!user) return;
-    const { data } = await supabase.from("prescription_validations").select("id, prescription_id, status, notes, created_at").eq("validated_by", user.id).order("created_at", { ascending: false }).limit(50);
+    const { data } = await db.from("prescription_validations").select("id, prescription_id, status, notes, created_at").eq("validated_by", user.id).order("created_at", { ascending: false }).limit(50);
     setValidations(data ?? []);
     setLoading(false);
   };

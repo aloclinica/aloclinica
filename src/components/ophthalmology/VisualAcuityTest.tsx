@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -100,7 +100,7 @@ export default function VisualAcuityTest({ onComplete, appointmentId }: Props) {
   const saveResults = async () => {
     if (!user) return;
     setSaving(true);
-    await supabase.from("visual_acuity_results" as any).insert({
+    await db.from("visual_acuity_results" as any).insert({
       patient_id: user.id,
       appointment_id: appointmentId ?? null,
       right_eye_distance: results.right ?? null,

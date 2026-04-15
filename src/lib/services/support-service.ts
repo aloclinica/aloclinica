@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { logError } from "@/lib/logger";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -75,7 +75,7 @@ export const createTicket = async (params: CreateTicketParams): Promise<string |
     }
 
     // Insert the initial message
-    await supabase.from("support_messages").insert({
+    await db.from("support_messages").insert({
       ticket_id: data.id,
       sender_id: params.patientId,
       content: params.message,
@@ -83,7 +83,7 @@ export const createTicket = async (params: CreateTicketParams): Promise<string |
 
     // Link to appointment if provided — uses new columns added via migration
     if (params.appointmentId) {
-      await supabase.from("support_tickets").update({
+      await db.from("support_tickets").update({
         related_entity_id: params.appointmentId,
         related_entity_type: "appointment",
       } as any).eq("id", data.id);
@@ -156,11 +156,11 @@ export const getTicketDetail = async (ticketId: string, userId: string): Promise
     // Resolve sender names
     const senderIds = [...new Set((messages ?? []).map(m => m.sender_id))];
     const { data: senderProfiles } = senderIds.length
-      ? await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", senderIds)
+      ? await db.from("profiles").select("user_id, first_name, last_name").in("user_id", senderIds)
       : { data: [] };
 
     const { data: staffRoles } = senderIds.length
-      ? await supabase.from("user_roles").select("user_id, role").in("user_id", senderIds).in("role", ["support", "admin"])
+      ? await db.from("user_roles").select("user_id, role").in("user_id", senderIds).in("role", ["support", "admin"])
       : { data: [] };
 
     const nameMap = new Map<string, string>();
@@ -200,7 +200,7 @@ export const replyToTicket = async (
   content: string,
 ): Promise<boolean> => {
   try {
-    const { error } = await supabase.from("support_messages").insert({
+    const { error } = await db.from("support_messages").insert({
       ticket_id: ticketId,
       sender_id: senderId,
       content,
@@ -212,7 +212,7 @@ export const replyToTicket = async (
     }
 
     // Update ticket status and timestamp
-    await supabase.from("support_tickets").update({
+    await db.from("support_tickets").update({
       status: "in_progress",
       updated_at: new Date().toISOString(),
     }).eq("id", ticketId);
@@ -227,7 +227,7 @@ export const replyToTicket = async (
     if (ticket) {
       const recipientId = senderId === ticket.patient_id ? ticket.assigned_to : ticket.patient_id;
       if (recipientId) {
-        await supabase.from("notifications").insert({
+        await db.from("notifications").insert({
           user_id: recipientId,
           title: "💬 Nova resposta no ticket",
           message: "Seu ticket de suporte recebeu uma nova resposta.",
@@ -249,7 +249,7 @@ export const replyToTicket = async (
  */
 export const resolveTicket = async (ticketId: string, resolution?: string): Promise<boolean> => {
   try {
-    const { error } = await supabase.from("support_tickets").update({
+    const { error } = await db.from("support_tickets").update({
       status: "resolved",
       closed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -265,7 +265,7 @@ export const resolveTicket = async (ticketId: string, resolution?: string): Prom
       .single();
 
     if (ticket?.patient_id) {
-      await supabase.from("notifications").insert({
+      await db.from("notifications").insert({
         user_id: ticket.patient_id,
         title: "✅ Ticket resolvido",
         message: `Seu ticket "${ticket.subject}" foi resolvido.`,

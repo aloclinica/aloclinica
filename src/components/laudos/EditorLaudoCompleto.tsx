@@ -13,7 +13,7 @@ import {
   type AlocExame,
   type AlocLaudo,
 } from "@/lib/services/laudos-service";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { criarDocumentoParaAssinar, enviarParaAssinatura } from "@/lib/docuseal";
 import DocuSealSigningModal from "@/components/laudos/DocuSealSigningModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -163,7 +163,7 @@ export default function EditorLaudoCompleto() {
         }
 
         // Fetch medico email
-        const { data: { user: authUser } } = await supabase.auth.getUser();
+        const { data: { user: authUser } } = await db.auth.getUser();
         if (authUser?.email) setMedicoEmail(authUser.email);
 
         // Fetch or create laudo
@@ -276,28 +276,28 @@ export default function EditorLaudoCompleto() {
         const blob = await response.blob();
         const filePath = `${exame.id}/${laudo.id}_assinado.pdf`;
 
-        await supabase.storage.from("laudos-assinados").upload(filePath, blob, {
+        await db.storage.from("laudos-assinados").upload(filePath, blob, {
           contentType: "application/pdf",
           upsert: true,
         });
 
-        const { data: publicUrl } = supabase.storage.from("laudos-assinados").getPublicUrl(filePath);
+        const { data: publicUrl } = db.storage.from("laudos-assinados").getPublicUrl(filePath);
 
         // Update laudo record
-        await supabase.from("aloc_laudos").update({
+        await db.from("aloc_laudos").update({
           status: "assinado",
           pdf_url: publicUrl.publicUrl,
           assinado_em: new Date().toISOString(),
         }).eq("id", laudo.id);
 
         // Update exame status
-        await supabase.from("aloc_exames").update({
+        await db.from("aloc_exames").update({
           status: "concluido",
         }).eq("id", exame.id);
 
         // WhatsApp: notify patient that laudo is available
         if (exame.paciente_id) {
-          supabase.functions.invoke("whatsapp-notify", {
+          db.functions.invoke("whatsapp-notify", {
             body: {
               tipo: "laudo_disponivel",
               user_id: exame.paciente_id,
@@ -324,7 +324,7 @@ export default function EditorLaudoCompleto() {
     if (!exame || !editor) return;
     setSuggesting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("sugerir-laudo", {
+      const { data, error } = await db.functions.invoke("sugerir-laudo", {
         body: { tipo_exame: exame.tipo_exame },
       });
       if (error) throw error;

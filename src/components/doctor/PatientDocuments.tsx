@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getDoctorNav } from "./doctorNav";
@@ -40,11 +40,11 @@ const PatientDocuments = () => {
   useEffect(() => { if (user) fetchDocuments(); }, [user]);
 
   const fetchDocuments = async () => {
-    const { data: doc } = await supabase.from("doctor_profiles").select("id").eq("user_id", user!.id).single();
+    const { data: doc } = await db.from("doctor_profiles").select("id").eq("user_id", user!.id).single();
     if (!doc) { setLoading(false); return; }
 
     // Get all patients this doctor has appointments with
-    const { data: appts } = await supabase.from("appointments")
+    const { data: appts } = await db.from("appointments")
       .select("patient_id")
       .eq("doctor_id", doc.id);
 
@@ -52,14 +52,14 @@ const PatientDocuments = () => {
     if (patientIds.length === 0) { setLoading(false); return; }
 
     // Get patient profiles
-    const { data: profiles } = await supabase.from("profiles")
+    const { data: profiles } = await db.from("profiles")
       .select("user_id, first_name, last_name")
       .in("user_id", patientIds.filter((id): id is string => !!id));
     
     setPatients(profiles ?? []);
 
     // Get documents for these patients
-    const { data: docs } = await supabase.from("patient_documents")
+    const { data: docs } = await db.from("patient_documents")
       .select("*")
       .in("patient_id", patientIds.filter((id): id is string => !!id))
       .order("created_at", { ascending: false });
@@ -75,7 +75,7 @@ const PatientDocuments = () => {
   };
 
   const viewDocument = async (doc: PatientDoc) => {
-    const { data } = await supabase.storage.from("patient-documents").createSignedUrl(
+    const { data } = await db.storage.from("patient-documents").createSignedUrl(
       `${doc.patient_id}/${doc.file_name}`, 3600
     );
     if (data?.signedUrl) {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -75,12 +75,12 @@ const ClinicExamUpload = () => {
       for (const file of files) {
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
         const path = `${clinicProfile.id}/${requestId}/${safeName}`;
-        const { error: upErr } = await supabase.storage.from("exam-files").upload(path, file);
+        const { error: upErr } = await db.storage.from("exam-files").upload(path, file);
         if (upErr) throw upErr;
         fileUrls.push(path);
       }
 
-      const { error } = await supabase.from("exam_requests" as any).insert({
+      const { error } = await db.from("exam_requests" as any).insert({
         id: requestId,
         requesting_clinic_id: clinicProfile.id,
         requesting_doctor_id: null,

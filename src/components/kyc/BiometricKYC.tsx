@@ -3,7 +3,7 @@ import { logError } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Camera, RotateCcw, CheckCircle2, XCircle, Loader2, FileImage, User, ShieldCheck, Upload } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,12 +33,12 @@ async function verifyViaDeepSeek(
   documentDataUrl: string,
   selfieDataUrl: string
 ): Promise<{ match: boolean; score: number; nome: string | null; cpf: string | null; status: string }> {
-  const { data: sessionData } = await supabase.auth.getSession();
+  const { data: sessionData } = await db.auth.getSession();
   const token = sessionData?.session?.access_token;
 
   if (!token) throw new Error("Sessão expirada. Faça login novamente.");
 
-  const res = await supabase.functions.invoke("didit-kyc", {
+  const res = await db.functions.invoke("didit-kyc", {
     body: {
       document_image: documentDataUrl,
       selfie_image: selfieDataUrl,
@@ -145,7 +145,7 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
       const score = verification.score;
 
       // Save to kyc_verificacoes
-      await supabase.from("kyc_verificacoes" as any).insert({
+      await db.from("kyc_verificacoes" as any).insert({
         user_id: user.id,
         status: isApproved ? "approved" : "rejected",
         similarity: score / 100,

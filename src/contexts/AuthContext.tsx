@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useMemo, useCallback, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { warn } from "@/lib/logger";
 
 type AppRole = "patient" | "doctor" | "clinic" | "admin" | "receptionist" | "support" | "partner" | "laudista" | "ophthalmologist" | "affiliate" | "optician";
@@ -48,8 +48,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const fetchUserData = useCallback(async (userId: string) => {
     try {
       const [profileRes, rolesRes] = await Promise.all([
-        supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", userId),
+        db.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
+        db.from("user_roles").select("role").eq("user_id", userId),
       ]);
       if (profileRes.data) setProfile(profileRes.data as Profile);
       if (rolesRes.data) setRoles(rolesRes.data.map((r: { role: string }) => r.role as AppRole));
@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const safetyTimer = setTimeout(markLoaded, 1500);
 
     // 1. Primary init: getSession
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
+    db.auth.getSession().then(({ data: { session: s } }) => {
       if (!mounted) return;
       setSession(s);
       setUser(s?.user ?? null);
@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }).catch(markLoaded);
 
     // 2. Listen for subsequent auth changes (sign in/out/token refresh)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = db.auth.onAuthStateChange(
       (_event, s) => {
         if (!mounted) return;
         setSession(s);
@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [fetchUserData]);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    await db.auth.signOut();
     setUser(null);
     setSession(null);
     setProfile(null);

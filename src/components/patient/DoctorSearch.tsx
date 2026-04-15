@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import mascotWave from "@/assets/mascot-wave.png";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -120,7 +120,7 @@ const DoctorSearch = () => {
 
   const fetchFavorites = async () => {
     if (!user) return;
-    const { data } = await supabase.from("favorite_doctors").select("doctor_id").eq("patient_id", user.id);
+    const { data } = await db.from("favorite_doctors").select("doctor_id").eq("patient_id", user.id);
     if (data) setFavoriteIds(new Set(data.map(f => f.doctor_id)));
   };
 
@@ -128,16 +128,16 @@ const DoctorSearch = () => {
     e.stopPropagation();
     if (!user) return;
     if (favoriteIds.has(doctorId)) {
-      await supabase.from("favorite_doctors").delete().eq("patient_id", user.id).eq("doctor_id", doctorId);
+      await db.from("favorite_doctors").delete().eq("patient_id", user.id).eq("doctor_id", doctorId);
       setFavoriteIds(prev => { const n = new Set(prev); n.delete(doctorId); return n; });
     } else {
-      await supabase.from("favorite_doctors").insert({ patient_id: user.id, doctor_id: doctorId });
+      await db.from("favorite_doctors").insert({ patient_id: user.id, doctor_id: doctorId });
       setFavoriteIds(prev => new Set(prev).add(doctorId));
     }
   };
 
   const fetchSpecialties = async () => {
-    const { data } = await supabase.from("specialties").select("id, name").order("name");
+    const { data } = await db.from("specialties").select("id, name").order("name");
     if (data) setSpecialties(data);
   };
 
@@ -168,10 +168,10 @@ const DoctorSearch = () => {
     const userIds = doctorData.map(d => d.user_id);
 
     const [profilesRes, specRes, slotsRes, careAreasRes] = await Promise.all([
-      supabase.from("profiles").select("user_id, first_name, last_name, avatar_url").in("user_id", userIds),
-      supabase.from("doctor_specialties").select("doctor_id, specialty_id, specialties(name)").in("doctor_id", doctorIds),
-      supabase.from("availability_slots").select("doctor_id, day_of_week, start_time, end_time").eq("is_active", true).in("doctor_id", doctorIds),
-      supabase.from("doctor_care_areas" as any).select("doctor_id, area_name").in("doctor_id", doctorIds),
+      db.from("profiles").select("user_id, first_name, last_name, avatar_url").in("user_id", userIds),
+      db.from("doctor_specialties").select("doctor_id, specialty_id, specialties(name)").in("doctor_id", doctorIds),
+      db.from("availability_slots").select("doctor_id, day_of_week, start_time, end_time").eq("is_active", true).in("doctor_id", doctorIds),
+      db.from("doctor_care_areas" as any).select("doctor_id, area_name").in("doctor_id", doctorIds),
     ]);
 
     const now = new Date();

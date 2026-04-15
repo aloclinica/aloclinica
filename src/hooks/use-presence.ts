@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useLocation } from "react-router-dom";
 
 /**
@@ -16,7 +16,7 @@ export const usePresence = () => {
     if (!user) return;
 
     const upsert = async () => {
-      await supabase.from("user_presence").upsert(
+      await db.from("user_presence").upsert(
         {
           user_id: user.id,
           last_seen_at: new Date().toISOString(),
@@ -31,7 +31,7 @@ export const usePresence = () => {
     const interval = setInterval(upsert, 30000);
 
     const setOffline = async () => {
-      await supabase.from("user_presence").upsert(
+      await db.from("user_presence").upsert(
         { user_id: user.id, is_online: false, last_seen_at: new Date().toISOString() },
         { onConflict: "user_id" }
       );

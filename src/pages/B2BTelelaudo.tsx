@@ -8,7 +8,7 @@ import { CheckCircle2, ArrowRight, FileText, Brain, Fingerprint, Zap, Upload, Bu
 import { motion } from "framer-motion";
 import bannerTelelaudoWorkflow from "@/assets/banner-telelaudo-workflow.jpg";
 import bannerLaudoDigital from "@/assets/banner-laudo-digital.png";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
 import Header from "@/components/landing/Header";
@@ -41,9 +41,9 @@ const B2BTelelaudo = () => {
     if (!result.success) { toast.error(result.error.errors[0].message); return; }
     setSubmitting(true);
     const servicesInterested = ["telelaudo", "laudos_clinica"];
-    const { error } = await supabase.from("b2b_leads").insert({ ...form, company_type: "clinica", services_interested: String(servicesInterested) });
+    const { error } = await db.from("b2b_leads").insert({ ...form, company_type: "clinica", services_interested: String(servicesInterested) });
     if (error) { toast.error("Erro ao enviar: " + error.message); setSubmitting(false); return; }
-    await supabase.functions.invoke("b2b-lead-notification", { body: { ...form, services_interested: servicesInterested } }).catch(() => {});
+    await db.functions.invoke("b2b-lead-notification", { body: { ...form, services_interested: servicesInterested } }).catch(() => {});
     setSubmitted(true);
     setSubmitting(false);
   };

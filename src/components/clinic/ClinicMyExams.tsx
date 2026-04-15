@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getClinicNav } from "@/components/clinic/clinicNav";
 import { Card, CardContent } from "@/components/ui/card";
@@ -62,7 +62,7 @@ const ClinicMyExams = () => {
           const userIds = [...new Set(reports.map((r: any) => (r as any).doctor_profiles?.user_id).filter(Boolean))];
           const profileMap: Record<string, string> = {};
           if (userIds.length > 0) {
-            const { data: profiles } = await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds);
+            const { data: profiles } = await db.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds);
             if (profiles) profiles.forEach((p: any) => { profileMap[p.user_id] = `Dr(a). ${p.first_name} ${p.last_name}`.trim(); });
           }
           reports.forEach((r: any) => {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getLaudistaNav } from "@/components/laudista/laudistaNav";
@@ -83,7 +83,7 @@ const LaudistaReportQueue = () => {
   const { data: doctorProfile } = useQuery({
     queryKey: ["laudista-doctor-profile", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("doctor_profiles").select("id").eq("user_id", user!.id).maybeSingle();
+      const { data } = await db.from("doctor_profiles").select("id").eq("user_id", user!.id).maybeSingle();
       return data;
     },
     enabled: !!user,
@@ -110,14 +110,14 @@ const LaudistaReportQueue = () => {
       const patientIds = [...new Set((data || []).filter((e: any) => e.patient_id).map((e: any) => e.patient_id))];
       const patientMap: Record<string, string> = {};
       if (patientIds.length > 0) {
-        const { data: profiles } = await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds);
+        const { data: profiles } = await db.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds);
         if (profiles) profiles.forEach((p: any) => { patientMap[p.user_id] = `${p.first_name} ${p.last_name}`.trim(); });
       }
 
       const clinicIds = [...new Set((data || []).filter((e: any) => e.requesting_clinic_id).map((e: any) => e.requesting_clinic_id))];
       const clinicMap: Record<string, string> = {};
       if (clinicIds.length > 0) {
-        const { data: clinics } = await supabase.from("clinic_profiles").select("id, name").in("id", clinicIds);
+        const { data: clinics } = await db.from("clinic_profiles").select("id, name").in("id", clinicIds);
         if (clinics) clinics.forEach((c: any) => { clinicMap[c.id] = c.name; });
       }
 
@@ -146,7 +146,7 @@ const LaudistaReportQueue = () => {
         setRealtimeConnected(status === "SUBSCRIBED");
       });
 
-    return () => { supabase.removeChannel(channel); };
+    return () => { db.removeChannel(channel); };
   }, [queryClient]);
 
   const filteredExams = examRequests?.filter((exam: any) => {

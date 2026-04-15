@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { STALE } from "@/lib/constants";
 import type { AdminAppointmentRow, ApprovalItem } from "@/types/domain";
 
@@ -25,14 +25,14 @@ export function useAdminKpis() {
     queryFn: async (): Promise<AdminKpiData> => {
       const [patients, doctors, appts, pendingDocs, todayAppts, queue] =
         await Promise.all([
-          supabase.from("user_roles").select("id", { count: "exact", head: true }).eq("role", "patient"),
-          supabase.from("doctor_profiles").select("id", { count: "exact", head: true }).eq("is_approved", true),
-          supabase.from("appointments").select("id", { count: "exact", head: true }),
-          supabase.from("doctor_profiles").select("id", { count: "exact", head: true }).is("is_approved", null),
-          supabase.from("appointments").select("id", { count: "exact", head: true })
+          db.from("user_roles").select("id", { count: "exact", head: true }).eq("role", "patient"),
+          db.from("doctor_profiles").select("id", { count: "exact", head: true }).eq("is_approved", true),
+          db.from("appointments").select("id", { count: "exact", head: true }),
+          db.from("doctor_profiles").select("id", { count: "exact", head: true }).is("is_approved", null),
+          db.from("appointments").select("id", { count: "exact", head: true })
             .gte("scheduled_at", new Date().toISOString().split("T")[0])
             .lt("scheduled_at", new Date(Date.now() + 86400000).toISOString().split("T")[0]),
-          supabase.from("on_demand_queue").select("id", { count: "exact", head: true }).eq("status", "waiting"),
+          db.from("on_demand_queue").select("id", { count: "exact", head: true }).eq("status", "waiting"),
         ]);
 
       // Revenue from completed appointments

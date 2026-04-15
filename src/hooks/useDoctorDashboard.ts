@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 
 export const useDoctorStats = () => {
@@ -24,17 +24,17 @@ export const useDoctorStats = () => {
       todayEnd.setHours(23, 59, 59, 999);
 
       const [todayRes, totalPatientsRes, prescriptionsRes, completedRes, upcomingRes] = await Promise.all([
-        supabase.from("appointments")
+        db.from("appointments")
           .select("id, scheduled_at, status, patient_id, duration_minutes")
           .eq("doctor_id", doctorId)
           .gte("scheduled_at", todayStart.toISOString())
           .lte("scheduled_at", todayEnd.toISOString())
           .order("scheduled_at", { ascending: true }),
-        supabase.from("appointments").select("patient_id").eq("doctor_id", doctorId),
-        supabase.from("prescriptions").select("id", { count: "exact", head: true }).eq("doctor_id", doctorId),
-        supabase.from("appointments").select("id", { count: "exact", head: true })
+        db.from("appointments").select("patient_id").eq("doctor_id", doctorId),
+        db.from("prescriptions").select("id", { count: "exact", head: true }).eq("doctor_id", doctorId),
+        db.from("appointments").select("id", { count: "exact", head: true })
           .eq("doctor_id", doctorId).eq("status", "completed"),
-        supabase.from("appointments")
+        db.from("appointments")
           .select("id, scheduled_at, status, patient_id, duration_minutes")
           .eq("doctor_id", doctorId).eq("status", "scheduled")
           .gt("scheduled_at", todayEnd.toISOString())

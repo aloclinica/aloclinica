@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,7 @@ const DoctorEarnings = () => {
   useEffect(() => { if (user) fetchEarnings(); }, [user]);
 
   const fetchEarnings = async () => {
-    const { data: docProfile } = await supabase.from("doctor_profiles").select("id, consultation_price").eq("user_id", user!.id).single();
+    const { data: docProfile } = await db.from("doctor_profiles").select("id, consultation_price").eq("user_id", user!.id).single();
     if (!docProfile) { setLoading(false); return; }
 
     // Check clinic affiliation for commission percent (issue #16)
@@ -151,7 +151,7 @@ const DoctorEarnings = () => {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("withdrawal_requests").insert({
+    const { error } = await db.from("withdrawal_requests").insert({
       user_id: user!.id,
       amount,
       pix_key: pixKey,

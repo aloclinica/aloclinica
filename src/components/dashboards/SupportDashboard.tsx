@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -127,8 +127,8 @@ const SupportDashboard = () => {
       if (!data || data.length === 0) { setOnlineUsers([]); return; }
       const userIds = data.map(d => d.user_id);
       const [profilesRes, rolesRes] = await Promise.all([
-        supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds),
-        supabase.from("user_roles").select("user_id, role").in("user_id", userIds),
+        db.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds),
+        db.from("user_roles").select("user_id, role").in("user_id", userIds),
       ]);
       const pMap = new Map(profilesRes.data?.map(p => [p.user_id, p]) ?? []);
       const rMap = new Map<string, string[]>();
@@ -158,7 +158,7 @@ const SupportDashboard = () => {
         lastFetch.current = new Date();
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { db.removeChannel(channel); };
   }, []);
 
   const fetchData = async (silent = false) => {
@@ -166,14 +166,14 @@ const SupportDashboard = () => {
     else setRefreshing(true);
 
     const [logsRes, profilesRes] = await Promise.all([
-      supabase.from("activity_logs").select("*").order("created_at", { ascending: false }).limit(200),
-      supabase.from("profiles").select("user_id, first_name, last_name, phone, avatar_url, created_at"),
+      db.from("activity_logs").select("*").order("created_at", { ascending: false }).limit(200),
+      db.from("profiles").select("user_id, first_name, last_name, phone, avatar_url, created_at"),
     ]);
     setLogs(logsRes.data ?? []);
 
     const userIds = (profilesRes.data ?? []).map(p => p.user_id);
     const { data: rolesData } = userIds.length > 0
-      ? await supabase.from("user_roles").select("user_id, role").in("user_id", userIds)
+      ? await db.from("user_roles").select("user_id, role").in("user_id", userIds)
       : { data: [] };
     const roleMap = new Map<string, string[]>();
     (rolesData ?? []).forEach(r => {

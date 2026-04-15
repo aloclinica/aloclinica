@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { Button } from "@/components/ui/button";
 import { jsPDF } from "jspdf";
 import { format } from "date-fns";
@@ -19,11 +19,11 @@ const MedicalHistoryExport = () => {
     try {
       // Fetch all data in parallel
       const [appointmentsRes, prescriptionsRes, recordsRes, documentsRes, diaryRes] = await Promise.all([
-        supabase.from("appointments").select("id, scheduled_at, status, appointment_type, notes, doctor_id").eq("patient_id", user.id).order("scheduled_at", { ascending: false }),
-        supabase.from("prescriptions").select("id, created_at, diagnosis, medications, observations, doctor_id").eq("patient_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("medical_records").select("*").eq("patient_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("patient_documents").select("file_name, description, created_at").eq("patient_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("symptom_diary").select("*").eq("patient_id", user.id).order("entry_date", { ascending: false }).limit(30),
+        db.from("appointments").select("id, scheduled_at, status, appointment_type, notes, doctor_id").eq("patient_id", user.id).order("scheduled_at", { ascending: false }),
+        db.from("prescriptions").select("id, created_at, diagnosis, medications, observations, doctor_id").eq("patient_id", user.id).order("created_at", { ascending: false }),
+        db.from("medical_records").select("*").eq("patient_id", user.id).order("created_at", { ascending: false }),
+        db.from("patient_documents").select("file_name, description, created_at").eq("patient_id", user.id).order("created_at", { ascending: false }),
+        db.from("symptom_diary").select("*").eq("patient_id", user.id).order("entry_date", { ascending: false }).limit(30),
       ]);
 
       // Fetch doctor names
@@ -34,9 +34,9 @@ const MedicalHistoryExport = () => {
 
       const doctorNames: Record<string, string> = {};
       if (doctorIds.length > 0) {
-        const { data: docs } = await supabase.from("doctor_profiles").select("id, user_id").in("id", doctorIds);
+        const { data: docs } = await db.from("doctor_profiles").select("id, user_id").in("id", doctorIds);
         if (docs && docs.length > 0) {
-          const { data: profs } = await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", docs.map(d => d.user_id));
+          const { data: profs } = await db.from("profiles").select("user_id, first_name, last_name").in("user_id", docs.map(d => d.user_id));
           docs.forEach(d => {
             const p = profs?.find(pr => pr.user_id === d.user_id);
             if (p) doctorNames[d.id] = `Dr(a). ${p.first_name} ${p.last_name}`;

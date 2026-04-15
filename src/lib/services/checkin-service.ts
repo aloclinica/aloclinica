@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { logError } from "@/lib/logger";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -69,7 +69,7 @@ export const performCheckin = async (
     const checkinNote = `[CHECKIN:${new Date().toISOString()}]`;
     const updatedNotes = appt.notes ? `${appt.notes}\n${checkinNote}` : checkinNote;
 
-    await supabase.from("appointments").update({
+    await db.from("appointments").update({
       notes: updatedNotes,
       status: "confirmed",
     }).eq("id", appointmentId);
@@ -78,7 +78,7 @@ export const performCheckin = async (
     const { data: docProfile } = await supabase
       .from("doctor_profiles")
       .select("user_id")
-      .eq("id", (await supabase.from("appointments").select("doctor_id").eq("id", appointmentId).single()).data?.doctor_id ?? "")
+      .eq("id", (await db.from("appointments").select("doctor_id").eq("id", appointmentId).single()).data?.doctor_id ?? "")
       .single();
 
     if (docProfile?.user_id) {
@@ -88,7 +88,7 @@ export const performCheckin = async (
         .eq("user_id", patientId)
         .single();
 
-      await supabase.from("notifications").insert({
+      await db.from("notifications").insert({
         user_id: docProfile.user_id,
         title: "✅ Paciente fez check-in",
         message: `${patientProfile?.first_name || "Paciente"} confirmou presença para a consulta.`,
@@ -131,7 +131,7 @@ export const getUpcomingCheckins = async (patientId: string): Promise<Appointmen
 
     const docUserIds = doctorProfiles?.map(d => d.user_id) ?? [];
     const { data: profiles } = docUserIds.length
-      ? await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", docUserIds)
+      ? await db.from("profiles").select("user_id, first_name, last_name").in("user_id", docUserIds)
       : { data: [] };
 
     const nameMap = new Map<string, string>();

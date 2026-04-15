@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import pingoReception from "@/assets/pingo-reception.png";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -41,18 +41,18 @@ const ClinicSchedules = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const { data: clinic } = await supabase.from("clinic_profiles").select("id").eq("user_id", user!.id).single();
+    const { data: clinic } = await db.from("clinic_profiles").select("id").eq("user_id", user!.id).single();
     if (!clinic) { setLoading(false); return; }
 
-    const { data: affiliations } = await supabase.from("clinic_affiliations").select("doctor_id").eq("clinic_id", clinic.id).eq("status", "active");
+    const { data: affiliations } = await db.from("clinic_affiliations").select("doctor_id").eq("clinic_id", clinic.id).eq("status", "active");
     const doctorIds = (affiliations ?? []).map(a => a.doctor_id);
     if (doctorIds.length === 0) { setLoading(false); return; }
 
     // Fetch doctor names
-    const { data: docProfiles } = await supabase.from("doctor_profiles").select("id, user_id").in("id", doctorIds);
+    const { data: docProfiles } = await db.from("doctor_profiles").select("id, user_id").in("id", doctorIds);
     const userIds = (docProfiles ?? []).map(d => d.user_id);
     const { data: profiles } = userIds.length > 0
-      ? await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds)
+      ? await db.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds)
       : { data: [] };
     const docMap = new Map<string, string>();
     (docProfiles ?? []).forEach(dp => {
@@ -64,7 +64,7 @@ const ClinicSchedules = () => {
     // Fetch appointments for selected date
     const dayStart = startOfDay(selectedDate).toISOString();
     const dayEnd = endOfDay(selectedDate).toISOString();
-    const { data: appts } = await supabase.from("appointments")
+    const { data: appts } = await db.from("appointments")
       .select("*")
       .in("doctor_id", doctorIds)
       .gte("scheduled_at", dayStart)
@@ -76,7 +76,7 @@ const ClinicSchedules = () => {
     // Fetch patient names
     const patientIds = [...new Set((appts ?? []).map(a => a.patient_id).filter(Boolean))];
     if (patientIds.length > 0) {
-      const { data: patProfiles } = await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds.filter((id): id is string => id !== null));
+      const { data: patProfiles } = await db.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds.filter((id): id is string => id !== null));
       const patMap = new Map<string, string>();
       (patProfiles ?? []).forEach(p => patMap.set(p.user_id, `${p.first_name} ${p.last_name}`));
       setPatients(patMap);

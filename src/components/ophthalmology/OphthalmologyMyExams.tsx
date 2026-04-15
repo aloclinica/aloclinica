@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { ophthalmologyService } from "@/lib/services/ophthalmology-service";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getOphthalmologyNav } from "@/components/ophthalmology/ophthalmologyNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +35,7 @@ const OphthalmologyMyExams = () => {
   const { data: doctorProfile } = useQuery({
     queryKey: ["my-doctor-profile", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("doctor_profiles").select("id").eq("user_id", user!.id).single();
+      const { data } = await db.from("doctor_profiles").select("id").eq("user_id", user!.id).single();
       return data;
     },
     enabled: !!user?.id,

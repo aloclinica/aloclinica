@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { notifyAppointmentCancelled, notifyAppointmentRescheduled } from "@/lib/notifications";
 import { logError } from "@/lib/logger";
@@ -55,7 +55,7 @@ const CancelRescheduleDialog = ({ appointmentId, doctorId, currentDate, schedule
 
   useEffect(() => {
     if (mode === "reschedule" && doctorId) {
-      supabase.from("availability_slots").select("day_of_week, start_time, end_time")
+      db.from("availability_slots").select("day_of_week, start_time, end_time")
         .eq("doctor_id", doctorId).eq("is_active", true)
         .then(({ data }) => setSlots(data ?? []));
     }
@@ -69,7 +69,7 @@ const CancelRescheduleDialog = ({ appointmentId, doctorId, currentDate, schedule
     const fetchBooked = async () => {
       const dayStart = new Date(newDate); dayStart.setHours(0, 0, 0, 0);
       const dayEnd = new Date(newDate); dayEnd.setHours(23, 59, 59, 999);
-      const { data } = await supabase.from("appointments").select("scheduled_at")
+      const { data } = await db.from("appointments").select("scheduled_at")
         .eq("doctor_id", doctorId).gte("scheduled_at", dayStart.toISOString())
         .lte("scheduled_at", dayEnd.toISOString()).neq("status", "cancelled");
       const booked = data?.map(a => format(new Date(a.scheduled_at), "HH:mm")) ?? [];
@@ -102,7 +102,7 @@ const CancelRescheduleDialog = ({ appointmentId, doctorId, currentDate, schedule
     }
 
     setSubmitting(true);
-    const { error } = await supabase.from("appointments").update({
+    const { error } = await db.from("appointments").update({
       status: "cancelled",
       cancelled_by: user!.id,
       cancel_reason: finalReason + (isLateCancel ? " [cancelamento tardio <2h]" : ""),
@@ -127,14 +127,14 @@ const CancelRescheduleDialog = ({ appointmentId, doctorId, currentDate, schedule
     const newScheduledAt = setMinutes(setHours(new Date(newDate), h), m);
 
     // Cancel current appointment
-    await supabase.from("appointments").update({
+    await db.from("appointments").update({
       status: "cancelled",
       cancelled_by: user.id,
       cancel_reason: "Reagendado pelo paciente",
     }).eq("id", appointmentId);
 
     // Create new appointment
-    const { error } = await supabase.from("appointments").insert({
+    const { error } = await db.from("appointments").insert({
       patient_id: user.id,
       doctor_id: doctorId,
       scheduled_at: newScheduledAt.toISOString(),

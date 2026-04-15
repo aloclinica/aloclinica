@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   User, Heart, AlertTriangle, Droplets, FileText, Stethoscope,
@@ -78,22 +78,22 @@ const PatientInfoPanel = ({ patientId, appointmentId }: PatientInfoPanelProps) =
 
   const fetchAllData = async () => {
     const [profileRes, symptomsRes, pastRes, prescRes] = await Promise.all([
-      supabase.from("profiles")
+      db.from("profiles")
         .select("first_name, last_name, date_of_birth, blood_type, allergies, chronic_conditions, phone, cpf")
         .eq("user_id", patientId)
         .single(),
-      supabase.from("pre_consultation_symptoms")
+      db.from("pre_consultation_symptoms")
         .select("main_complaint, symptoms, severity, duration, additional_notes")
         .eq("appointment_id", appointmentId)
         .single(),
-      supabase.from("appointments")
+      db.from("appointments")
         .select("id, scheduled_at, status, notes")
         .eq("patient_id", patientId)
         .eq("status", "completed")
         .neq("id", appointmentId)
         .order("scheduled_at", { ascending: false })
         .limit(5),
-      supabase.from("prescriptions")
+      db.from("prescriptions")
         .select("id, diagnosis, medications, created_at")
         .eq("patient_id", patientId)
         .order("created_at", { ascending: false })

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import mascotWelcome from "@/assets/mascot-welcome.png";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,14 +32,14 @@ const ClinicPatients = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const { data: clinic } = await supabase.from("clinic_profiles").select("id").eq("user_id", user!.id).single();
+    const { data: clinic } = await db.from("clinic_profiles").select("id").eq("user_id", user!.id).single();
     if (!clinic) { setLoading(false); return; }
 
-    const { data: affiliations } = await supabase.from("clinic_affiliations").select("doctor_id").eq("clinic_id", clinic.id).eq("status", "active");
+    const { data: affiliations } = await db.from("clinic_affiliations").select("doctor_id").eq("clinic_id", clinic.id).eq("status", "active");
     const doctorIds = (affiliations ?? []).map(a => a.doctor_id);
     if (doctorIds.length === 0) { setLoading(false); return; }
 
-    const { data: appts } = await supabase.from("appointments")
+    const { data: appts } = await db.from("appointments")
       .select("patient_id, scheduled_at, status")
       .in("doctor_id", doctorIds)
       .not("patient_id", "is", null)
@@ -60,7 +60,7 @@ const ClinicPatients = () => {
     const patientIds = [...patientMap.keys()];
     if (patientIds.length === 0) { setPatients([]); setLoading(false); return; }
 
-    const { data: profiles } = await supabase.from("profiles").select("user_id, first_name, last_name, phone").in("user_id", patientIds);
+    const { data: profiles } = await db.from("profiles").select("user_id, first_name, last_name, phone").in("user_id", patientIds);
 
     const rows: PatientRow[] = patientIds.map(pid => {
       const profile = (profiles ?? []).find(p => p.user_id === pid);

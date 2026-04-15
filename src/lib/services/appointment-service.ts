@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { logError } from "@/lib/logger";
 import { triggerAppointmentConfirmed } from "@/lib/whatsapp";
 import {
@@ -62,7 +62,7 @@ export interface RescheduleParams {
  */
 export const bookAppointment = async (params: BookAppointmentParams): Promise<string | null> => {
   try {
-    const { data, error } = await supabase.from("appointments").insert({
+    const { data, error } = await db.from("appointments").insert({
       patient_id: params.patientId,
       doctor_id: params.doctorId,
       scheduled_at: params.scheduledAt.toISOString(),
@@ -108,7 +108,7 @@ export const processPayment = async (params: ProcessPaymentParams) => {
     payload.creditCardToken = params.creditCardToken;
   }
 
-  const { data, error } = await supabase.functions.invoke("create-asaas-payment", { body: payload });
+  const { data, error } = await db.functions.invoke("create-asaas-payment", { body: payload });
 
   if (error || !data?.success) {
     return { success: false, error: data?.error || "Falha no pagamento" };
@@ -138,7 +138,7 @@ export const confirmPaymentInstant = async (
   selectedTime: string,
 ) => {
   try {
-    await supabase.from("appointments").update({
+    await db.from("appointments").update({
       payment_status: "approved",
       payment_confirmed_at: new Date().toISOString(),
       status: "confirmed",
@@ -150,9 +150,9 @@ export const confirmPaymentInstant = async (
     // Get doctor name for WhatsApp
     let doctorDisplayName = "Médico";
     try {
-      const { data: docProfile } = await supabase.from("doctor_profiles").select("user_id").eq("id", doctorProfileId).single();
+      const { data: docProfile } = await db.from("doctor_profiles").select("user_id").eq("id", doctorProfileId).single();
       if (docProfile) {
-        const { data: docP } = await supabase.from("profiles").select("first_name, last_name").eq("user_id", docProfile.user_id).single();
+        const { data: docP } = await db.from("profiles").select("first_name, last_name").eq("user_id", docProfile.user_id).single();
         if (docP) doctorDisplayName = `${docP.first_name} ${docP.last_name}`;
       }
     } catch {}
@@ -163,7 +163,7 @@ export const confirmPaymentInstant = async (
       notifyPaymentConfirmed(patientId, "Médico", dateStr),
       sendPaymentConfirmationEmail(appointmentId),
       // WhatsApp: notify patient
-      supabase.functions.invoke("whatsapp-notify", {
+      db.functions.invoke("whatsapp-notify", {
         body: {
           tipo: "consulta_agendada",
           user_id: patientId,
@@ -171,10 +171,10 @@ export const confirmPaymentInstant = async (
         },
       }),
       // WhatsApp: notify doctor
-      supabase.functions.invoke("whatsapp-notify", {
+      db.functions.invoke("whatsapp-notify", {
         body: {
           tipo: "nova_consulta",
-          user_id: (await supabase.from("doctor_profiles").select("user_id").eq("id", doctorProfileId).single()).data?.user_id || "",
+          user_id: (await db.from("doctor_profiles").select("user_id").eq("id", doctorProfileId).single()).data?.user_id || "",
           dados: { nome_paciente: patientName, data: dateStr, hora: selectedTime },
         },
       }),
@@ -194,12 +194,12 @@ export const cancelAppointment = async (params: CancelAppointmentParams): Promis
       : params.reason;
 
     // Fetch appointment to determine who is cancelling
-    const { data: appt } = await supabase.from("appointments")
+    const { data: appt } = await db.from("appointments")
       .select("doctor_id, patient_id")
       .eq("id", params.appointmentId)
       .single();
 
-    const { error } = await supabase.from("appointments").update({
+    const { error } = await db.from("appointments").update({
       status: "cancelled",
       cancelled_by: params.cancelledBy,
       cancel_reason: reason,
@@ -216,7 +216,7 @@ export const cancelAppointment = async (params: CancelAppointmentParams): Promis
 
     if (isDoctorCancel) {
       // Doctor cancelled — full refund to patient
-      supabase.functions.invoke("process-refund", {
+      db.functions.invoke("process-refund", {
         body: {
           appointmentId: params.appointmentId,
           reason: "Cancelamento pelo médico — reembolso integral",
@@ -242,14 +242,14 @@ export const cancelAppointment = async (params: CancelAppointmentParams): Promis
 export const rescheduleAppointment = async (params: RescheduleParams): Promise<boolean> => {
   try {
     // Cancel old
-    await supabase.from("appointments").update({
+    await db.from("appointments").update({
       status: "cancelled",
       cancelled_by: params.patientId,
       cancel_reason: "Reagendado pelo paciente",
     }).eq("id", params.appointmentId);
 
     // Create new
-    const { error } = await supabase.from("appointments").insert({
+    const { error } = await db.from("appointments").insert({
       patient_id: params.patientId,
       doctor_id: params.doctorId,
       scheduled_at: params.newScheduledAt.toISOString(),
@@ -279,7 +279,7 @@ export const rescheduleAppointment = async (params: RescheduleParams): Promise<b
  */
 export const completeAppointment = async (appointmentId: string, doctorName: string) => {
   try {
-    await supabase.from("appointments").update({
+    await db.from("appointments").update({
       status: "completed",
       updated_at: new Date().toISOString(),
     }).eq("id", appointmentId);
@@ -367,7 +367,7 @@ const sendPaymentConfirmationEmail = async (appointmentId: string) => {
     const timeStr = format(scheduled, "HH:mm");
     const patientName = profile ? `${profile.first_name} ${profile.last_name}` : "Paciente";
 
-    await supabase.functions.invoke("send-email", {
+    await db.functions.invoke("send-email", {
       body: {
         type: "payment_confirmed",
         to: "resolve-from-user",
@@ -416,7 +416,7 @@ const sendPostConsultationEmail = async (appointmentId: string) => {
       if (docP) doctorName = `Dr(a). ${docP.first_name} ${docP.last_name}`;
     }
 
-    await supabase.functions.invoke("send-email", {
+    await db.functions.invoke("send-email", {
       body: {
         type: "consultation_completed",
         to: "resolve-from-user",

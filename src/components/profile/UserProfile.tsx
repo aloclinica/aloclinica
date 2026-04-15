@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -116,19 +116,19 @@ const UserProfile = () => {
   }, [user]);
 
   const fetchDoctorProfile = async () => {
-    const { data } = await supabase.from("doctor_profiles").select("id, bio, education, experience_years, consultation_price, display_name").eq("user_id", user!.id).single();
+    const { data } = await db.from("doctor_profiles").select("id, bio, education, experience_years, consultation_price, display_name").eq("user_id", user!.id).single();
     if (data) {
       setDoctorProfileId(data.id);
       setBio(data.bio || ""); setEducation(data.education || "");
       setDisplayName((data as any).display_name || "");
       setExperienceYears(data.experience_years || 0); setConsultationPrice(Number(data.consultation_price) || 89);
       const [specRes, careRes] = await Promise.all([
-        supabase.from("doctor_specialties").select("specialty_id").eq("doctor_id", data.id),
-        supabase.from("doctor_care_areas" as any).select("area_name").eq("doctor_id", data.id),
+        db.from("doctor_specialties").select("specialty_id").eq("doctor_id", data.id),
+        db.from("doctor_care_areas" as any).select("area_name").eq("doctor_id", data.id),
       ]);
       if (specRes.data?.length) {
         const specIds = specRes.data.map((s: any) => s.specialty_id);
-        const { data: specs } = await supabase.from("specialties").select("price_min, price_max").in("id", specIds);
+        const { data: specs } = await db.from("specialties").select("price_min, price_max").in("id", specIds);
         if (specs?.length) {
           const mins = (specs as any[]).map(s => s.price_min).filter((v: any) => v != null);
           const maxs = (specs as any[]).map(s => s.price_max).filter((v: any) => v != null);
@@ -146,11 +146,11 @@ const UserProfile = () => {
     setUploading(true);
     const ext = file.name.split(".").pop();
     const path = `${user.id}/avatar.${ext}`;
-    const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+    const { error } = await db.storage.from("avatars").upload(path, file, { upsert: true });
     if (error) { toast.error("Erro no upload", { description: error.message }); setUploading(false); return; }
-    const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+    const { data: { publicUrl } } = db.storage.from("avatars").getPublicUrl(path);
     setAvatarUrl(publicUrl);
-    await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("user_id", user.id);
+    await db.from("profiles").update({ avatar_url: publicUrl }).eq("user_id", user.id);
     toast.success("Foto atualizada!"); setUploading(false);
   };
 
@@ -159,14 +159,14 @@ const UserProfile = () => {
     setSaving(true);
     const allergyArr = allergies.split(",").map(s => s.trim()).filter(Boolean);
     const conditionArr = chronicConditions.split(",").map(s => s.trim()).filter(Boolean);
-    const { error } = await supabase.from("profiles").update({
+    const { error } = await db.from("profiles").update({
       first_name: firstName, last_name: lastName, phone, cpf, date_of_birth: dateOfBirth || null,
       allergies: allergyArr, blood_type: bloodType || null, chronic_conditions: conditionArr,
     }).eq("user_id", user.id);
     if (isDoctor) {
       if (priceMin !== null && consultationPrice < priceMin) { toast.error(`Preço mínimo: R$ ${priceMin.toFixed(0)}`); setSaving(false); return; }
       if (priceMax !== null && consultationPrice > priceMax) { toast.error(`Preço máximo: R$ ${priceMax.toFixed(0)}`); setSaving(false); return; }
-      await supabase.from("doctor_profiles").update({ bio, education, experience_years: experienceYears, consultation_price: consultationPrice, display_name: displayName.trim() || null } as any).eq("user_id", user.id);
+      await db.from("doctor_profiles").update({ bio, education, experience_years: experienceYears, consultation_price: consultationPrice, display_name: displayName.trim() || null } as any).eq("user_id", user.id);
     }
     setSaving(false);
     if (error) toast.error("Erro ao salvar", { description: error.message });
@@ -177,9 +177,9 @@ const UserProfile = () => {
     if (!user) return;
     setDeleting(true);
     try {
-      await supabase.from("activity_logs").insert({ action: "account_deletion_request", entity_type: "user", entity_id: user.id, user_id: user.id, details: { email: user.email, requested_at: new Date().toISOString() } });
-      await supabase.from("profiles").update({ first_name: "Usuário", last_name: "Removido", phone: null, cpf: null, date_of_birth: null, avatar_url: null, allergies: null, blood_type: null, chronic_conditions: null }).eq("user_id", user.id);
-      await supabase.auth.signOut();
+      await db.from("activity_logs").insert({ action: "account_deletion_request", entity_type: "user", entity_id: user.id, user_id: user.id, details: { email: user.email, requested_at: new Date().toISOString() } });
+      await db.from("profiles").update({ first_name: "Usuário", last_name: "Removido", phone: null, cpf: null, date_of_birth: null, avatar_url: null, allergies: null, blood_type: null, chronic_conditions: null }).eq("user_id", user.id);
+      await db.auth.signOut();
       toast.success("Conta excluída", { description: "Seus dados foram anonimizados conforme a LGPD." });
       navigate("/");
     } catch (err: unknown) { toast.error("Erro", { description: err instanceof Error ? err.message : "Erro desconhecido" }); }
@@ -187,7 +187,7 @@ const UserProfile = () => {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await db.auth.signOut();
     navigate("/");
   };
 
@@ -471,7 +471,7 @@ const UserProfile = () => {
                   {doctorCareAreas.map(a => (
                     <Badge key={a} className="bg-primary/10 text-primary border-primary/20 gap-1 text-xs py-1 px-2.5 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors" onClick={async () => {
                       if (!doctorProfileId) return;
-                      await supabase.from("doctor_care_areas" as any).delete().eq("doctor_id", doctorProfileId).eq("area_name", a);
+                      await db.from("doctor_care_areas" as any).delete().eq("doctor_id", doctorProfileId).eq("area_name", a);
                       setDoctorCareAreas(prev => prev.filter(x => x !== a));
                       toast.success("Área removida");
                     }}>
@@ -488,7 +488,7 @@ const UserProfile = () => {
                         e.preventDefault();
                         const val = (e.target as HTMLInputElement).value.trim();
                         if (!val || !doctorProfileId || doctorCareAreas.includes(val)) return;
-                        await supabase.from("doctor_care_areas" as any).insert({ doctor_id: doctorProfileId, area_name: val });
+                        await db.from("doctor_care_areas" as any).insert({ doctor_id: doctorProfileId, area_name: val });
                         setDoctorCareAreas(prev => [...prev, val]);
                         (e.target as HTMLInputElement).value = "";
                         toast.success("Área adicionada");

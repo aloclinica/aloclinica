@@ -1,7 +1,7 @@
 import { logError } from "@/lib/logger";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -164,7 +164,7 @@ const AIChatTab = ({ primaryRole }: Props) => {
   const saveConversation = async () => {
     if (!user || messages.length === 0) return;
     const title = messages[0]?.content.slice(0, 60) || "Nova conversa";
-    const { error } = await supabase.from("ai_conversations" as any).insert({
+    const { error } = await db.from("ai_conversations" as any).insert({
       user_id: user.id,
       title,
       messages: JSON.stringify(messages),

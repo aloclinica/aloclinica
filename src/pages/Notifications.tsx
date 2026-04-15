@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getPatientNav } from "@/components/patient/patientNav";
 import { Button } from "@/components/ui/button";
@@ -55,7 +55,7 @@ const Notifications = () => {
       .channel("patient-notifications")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, () => fetchNotifications())
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { db.removeChannel(channel); };
   }, [user]);
 
   const fetchNotifications = async () => {
@@ -72,12 +72,12 @@ const Notifications = () => {
 
   const markAllRead = async () => {
     if (!user) return;
-    await supabase.from("notifications").update({ is_read: true }).eq("user_id", user.id).eq("is_read", false);
+    await db.from("notifications").update({ is_read: true }).eq("user_id", user.id).eq("is_read", false);
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
   };
 
   const markRead = async (id: string) => {
-    await supabase.from("notifications").update({ is_read: true }).eq("id", id);
+    await db.from("notifications").update({ is_read: true }).eq("id", id);
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
   };
 

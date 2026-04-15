@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import mascotReading from "@/assets/mascot-reading.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -68,13 +68,13 @@ const MedicalHistory = () => {
 
     const doctorIds = [...new Set(appts.map(a => a.doctor_id))];
     const [docsRes, prescRes, notesRes] = await Promise.all([
-      supabase.from("doctor_profiles").select("id, user_id, crm, crm_state").in("id", doctorIds),
-      supabase.from("prescriptions").select("id, appointment_id, diagnosis, medications, observations, created_at").eq("patient_id", user!.id),
-      supabase.from("consultation_notes").select("id, appointment_id, content").in("doctor_id", doctorIds),
+      db.from("doctor_profiles").select("id, user_id, crm, crm_state").in("id", doctorIds),
+      db.from("prescriptions").select("id, appointment_id, diagnosis, medications, observations, created_at").eq("patient_id", user!.id),
+      db.from("consultation_notes").select("id, appointment_id, content").in("doctor_id", doctorIds),
     ]);
 
     const docUserIds = docsRes.data?.map(d => d.user_id) ?? [];
-    const { data: profiles } = await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", docUserIds);
+    const { data: profiles } = await db.from("profiles").select("user_id, first_name, last_name").in("user_id", docUserIds);
 
     const docMap = new Map<string, DoctorInfo>();
     docsRes.data?.forEach(d => {
@@ -112,7 +112,7 @@ const MedicalHistory = () => {
 
     try {
       const presc = appt.prescriptions?.[0];
-      const { data, error } = await supabase.functions.invoke("clinical-summary", {
+      const { data, error } = await db.functions.invoke("clinical-summary", {
         body: {
           notes: appt.consultation_notes || appt.notes || "",
           diagnosis: presc?.diagnosis || "",

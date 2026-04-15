@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getPatientNav } from "./patientNav";
@@ -87,10 +87,10 @@ export default function LGPDCenter() {
   const exportData = async () => {
     toast.info("Preparando exportação...");
     const [profileRes, appointmentsRes, prescriptionsRes, metricsRes] = await Promise.all([
-      supabase.from("profiles").select("*").eq("user_id", user!.id).single(),
-      supabase.from("appointments").select("*").eq("patient_id", user!.id),
-      supabase.from("prescriptions").select("*").eq("patient_id", user!.id),
-      supabase.from("health_metrics").select("*").eq("patient_id", user!.id),
+      db.from("profiles").select("*").eq("user_id", user!.id).single(),
+      db.from("appointments").select("*").eq("patient_id", user!.id),
+      db.from("prescriptions").select("*").eq("patient_id", user!.id),
+      db.from("health_metrics").select("*").eq("patient_id", user!.id),
     ]);
 
     const exportData = {
@@ -111,7 +111,7 @@ export default function LGPDCenter() {
     toast.success("Dados exportados com sucesso!");
 
     // Log the export
-    await supabase.from("lgpd_access_log" as any).insert({
+    await db.from("lgpd_access_log" as any).insert({
       data_owner_id: user!.id,
       accessor_id: user!.id,
       accessor_role: "patient",
@@ -123,7 +123,7 @@ export default function LGPDCenter() {
   const requestDeletion = async () => {
     if (!deleteReason.trim()) { toast.error("Por favor, informe o motivo"); return; }
     setSubmitting(true);
-    const { error } = await supabase.from("lgpd_deletion_requests" as any).insert({
+    const { error } = await db.from("lgpd_deletion_requests" as any).insert({
       user_id: user!.id,
       reason: deleteReason,
       status: "pending",

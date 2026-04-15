@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -66,7 +66,7 @@ const PreCallCheck = ({ appointmentId, doctorName, doctorSpecialty, scheduledAt,
   // Check if symptoms already submitted
   useEffect(() => {
     if (!appointmentId || isDoctor) return;
-    supabase.from("pre_consultation_symptoms")
+    db.from("pre_consultation_symptoms")
       .select("id")
       .eq("appointment_id", appointmentId)
       .limit(1)
@@ -136,7 +136,7 @@ const PreCallCheck = ({ appointmentId, doctorName, doctorSpecialty, scheduledAt,
       .subscribe();
 
     const checkNow = async () => {
-      const { data } = await supabase.from("appointments").select("status").eq("id", appointmentId).single();
+      const { data } = await db.from("appointments").select("status").eq("id", appointmentId).single();
       if (data && (data.status === "medico_presente" || data.status === "in_progress")) {
         setDoctorPresent(true);
         return true;
@@ -171,7 +171,7 @@ const PreCallCheck = ({ appointmentId, doctorName, doctorSpecialty, scheduledAt,
     return () => {
       pollActive = false;
       clearTimeout(statusPollTimeout);
-      supabase.removeChannel(channel);
+      db.removeChannel(channel);
     };
   }, [appointmentId, isDoctor]);
 
@@ -187,7 +187,7 @@ const PreCallCheck = ({ appointmentId, doctorName, doctorSpecialty, scheduledAt,
   // Waiting room chat
   useEffect(() => {
     if (!appointmentId || !user) return;
-    const roomChannel = supabase.channel(`waiting-chat-${appointmentId}`, {
+    const roomChannel = db.channel(`waiting-chat-${appointmentId}`, {
       config: { broadcast: { self: false } },
     });
     channelRef.current = roomChannel;
@@ -196,7 +196,7 @@ const PreCallCheck = ({ appointmentId, doctorName, doctorSpecialty, scheduledAt,
         setChatMessages(prev => [...prev, payload as WaitingMessage]);
       })
       .subscribe();
-    return () => { supabase.removeChannel(roomChannel); };
+    return () => { db.removeChannel(roomChannel); };
   }, [appointmentId, user]);
 
   useEffect(() => {
@@ -263,7 +263,7 @@ const PreCallCheck = ({ appointmentId, doctorName, doctorSpecialty, scheduledAt,
 
   const handleEnter = useCallback(async () => {
     if (appointmentId && !isDoctor) {
-      await supabase.from("appointments").update({ status: "waiting" }).eq("id", appointmentId);
+      await db.from("appointments").update({ status: "waiting" }).eq("id", appointmentId);
     }
     stream?.getTracks().forEach(t => t.stop());
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);

@@ -6,7 +6,7 @@
  *   const heroTitle = get("hero_title", "Saúde ao alcance de todos");
  */
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { warn } from "@/lib/logger";
 
 type ConfigMap = Record<string, string>;
@@ -18,7 +18,7 @@ async function fetchConfig(): Promise<ConfigMap> {
   if (_cache) return _cache;
   if (_promise) return _promise;
   _promise = (async () => {
-    const { data, error } = await supabase.from("site_config").select("key, value");
+    const { data, error } = await db.from("site_config").select("key, value");
     if (error) {
       warn("[site-config] fetch error", error);
       return {} as ConfigMap;

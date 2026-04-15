@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getDoctorNav } from "./doctorNav";
 import { Badge } from "@/components/ui/badge";
@@ -20,12 +20,12 @@ const DoctorWallet = () => {
   const { data, isLoading } = useQuery({
     queryKey: ["doctor-wallet", user?.id],
     queryFn: async () => {
-      const dpRes = await supabase.from("doctor_profiles").select("*").eq("user_id", user!.id).maybeSingle();
+      const dpRes = await db.from("doctor_profiles").select("*").eq("user_id", user!.id).maybeSingle();
       if (!dpRes.data) return null;
       const dpId = dpRes.data.id;
       const [specsRes, statsRes] = await Promise.all([
-        supabase.from("doctor_specialties").select("specialty_id, specialties(name)").eq("doctor_id", dpId),
-        supabase.from("appointments").select("id", { count: "exact", head: true }).eq("doctor_id", dpId).eq("status", "completed"),
+        db.from("doctor_specialties").select("specialty_id, specialties(name)").eq("doctor_id", dpId),
+        db.from("appointments").select("id", { count: "exact", head: true }).eq("doctor_id", dpId).eq("status", "completed"),
       ]);
       return {
         doctor: dpRes.data,

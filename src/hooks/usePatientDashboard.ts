@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 
 export type ServiceType = "telemedicina" | "oftalmologia" | "cartao" | "all";
@@ -209,8 +209,8 @@ export const useFavoriteDoctors = () => {
       // Fetch profiles + specialties in parallel
       const favUserIds = favDocs.map(d => d.user_id);
       const [{ data: favProfiles }, { data: favSpecs }] = await Promise.all([
-        supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", favUserIds),
-        supabase.from("doctor_specialties").select("doctor_id, specialties(name)").in("doctor_id", favDocIds),
+        db.from("profiles").select("user_id, first_name, last_name").in("user_id", favUserIds),
+        db.from("doctor_specialties").select("doctor_id, specialties(name)").in("doctor_id", favDocIds),
       ]);
 
       return favDocs.map(d => {

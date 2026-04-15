@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { securityMonitor } from "@/lib/security-monitor";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -218,7 +218,7 @@ const AuthMedico = () => {
         consultationType && `Tipo de atendimento: ${consultationType}`,
         howFound && `Como conheceu: ${howFound}`,
       ].filter(Boolean).join("\n");
-      const { error } = await supabase.from("doctor_applications" as any).insert({
+      const { error } = await db.from("doctor_applications" as any).insert({
         full_name: fullName,
         email,
         phone: phone || null,
@@ -240,7 +240,7 @@ const AuthMedico = () => {
     e.preventDefault();
     setValidating(true);
     try {
-      const res = await supabase.functions.invoke("validate-invite-code", { body: { code: inviteCode.trim().toUpperCase() } });
+      const res = await db.functions.invoke("validate-invite-code", { body: { code: inviteCode.trim().toUpperCase() } });
       if (res.data?.valid) {
         setValidatedCodeId(res.data.code_id);
         setStep("register");
@@ -261,7 +261,7 @@ const AuthMedico = () => {
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
     setLoading(false);
 
     if (error) {
@@ -279,14 +279,14 @@ const AuthMedico = () => {
         .single();
 
       if (!doctorProfile) {
-        await supabase.auth.signOut();
+        await db.auth.signOut();
         toast.error("Cadastro não encontrado", { description: "Seu perfil de médico não foi localizado. Solicite o cadastro primeiro." });
         setStep("quiz");
         return;
       }
 
       if (!doctorProfile.is_approved) {
-        await supabase.auth.signOut();
+        await db.auth.signOut();
         toast.error("Cadastro em análise", { description: "Seu cadastro está sendo analisado. Você receberá o código de acesso por email quando aprovado." });
         return;
       }
@@ -310,7 +310,7 @@ const AuthMedico = () => {
     if (!termsAccepted) { toast.error("Aceite os termos"); return; }
     if (!photoFile) { toast.error("Foto obrigatória", { description: "Adicione uma foto profissional para seu perfil público." }); return; }
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await db.auth.signUp({
       email, password,
       options: { emailRedirectTo: window.location.origin, data: { first_name: firstName, last_name: lastName } },
     });
@@ -319,24 +319,24 @@ const AuthMedico = () => {
       // Upload photo
       const ext = photoFile.name.split(".").pop() || "jpg";
       const path = `${data.user.id}/avatar.${ext}`;
-      const { error: uploadErr } = await supabase.storage.from("avatars").upload(path, photoFile, { upsert: true });
+      const { error: uploadErr } = await db.storage.from("avatars").upload(path, photoFile, { upsert: true });
       if (!uploadErr) {
-        const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
-        await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("user_id", data.user.id);
+        const { data: { publicUrl } } = db.storage.from("avatars").getPublicUrl(path);
+        await db.from("profiles").update({ avatar_url: publicUrl }).eq("user_id", data.user.id);
       }
 
-      await supabase.functions.invoke("assign-role", { body: { user_id: data.user.id, role: "doctor", profile_data: { crm, crm_state: crmState, invite_code_id: validatedCodeId } } });
+      await db.functions.invoke("assign-role", { body: { user_id: data.user.id, role: "doctor", profile_data: { crm, crm_state: crmState, invite_code_id: validatedCodeId } } });
       await registerConsent(data.user.id, "terms_and_privacy_doctor");
-      supabase.functions.invoke("send-email", { body: { type: "welcome_doctor", to: email, data: { name: `${firstName} ${lastName}`, crm: `${crm}/${crmState}` } } }).catch(() => {});
+      db.functions.invoke("send-email", { body: { type: "welcome_doctor", to: email, data: { name: `${firstName} ${lastName}`, crm: `${crm}/${crmState}` } } }).catch(() => {});
 
       // Save display name and care areas
-      const { data: docProfile } = await supabase.from("doctor_profiles").select("id").eq("user_id", data.user.id).maybeSingle();
+      const { data: docProfile } = await db.from("doctor_profiles").select("id").eq("user_id", data.user.id).maybeSingle();
       if (docProfile) {
         if (displayName.trim()) {
-          await supabase.from("doctor_profiles").update({ display_name: displayName.trim() } as any).eq("id", docProfile.id);
+          await db.from("doctor_profiles").update({ display_name: displayName.trim() } as any).eq("id", docProfile.id);
         }
         if (selectedCareAreas.length > 0) {
-          await supabase.from("doctor_care_areas" as any).insert(
+          await db.from("doctor_care_areas" as any).insert(
             selectedCareAreas.map(area => ({ doctor_id: docProfile.id, area_name: area }))
           );
         }

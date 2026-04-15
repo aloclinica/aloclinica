@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -70,7 +70,7 @@ const TermsReconsentDialog = () => {
     setSaving(true);
 
     try {
-      const { error } = await supabase.from("user_consents").insert({
+      const { error } = await db.from("user_consents").insert({
         user_id: user.id,
         consent_type: "terms_of_use",
         version: requiredVersion,

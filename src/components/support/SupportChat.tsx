@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { SUPABASE_FUNCTIONS_URL, SUPABASE_PUBLISHABLE_KEY } from "@/lib/supabase-config";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,8 +73,8 @@ const SupportChat = () => {
     typingChannelRef.current = typingChannel;
 
     return () => {
-      supabase.removeChannel(channel);
-      supabase.removeChannel(typingChannel);
+      db.removeChannel(channel);
+      db.removeChannel(typingChannel);
     };
   }, [user]);
 
@@ -84,7 +84,7 @@ const SupportChat = () => {
 
   const persistMessage = async (role: "user" | "assistant", content: string) => {
     if (!user) return;
-    await supabase.from("support_chat_messages").insert({
+    await db.from("support_chat_messages").insert({
       user_id: user.id,
       role,
       content,

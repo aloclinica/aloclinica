@@ -1,6 +1,6 @@
 import { logError } from "@/lib/logger";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -89,7 +89,7 @@ const ConsentTCLE = ({ appointmentId, doctorName, onConsented }: ConsentTCLEProp
     setSubmitting(true);
 
     try {
-      const { error } = await supabase.from("patient_consents").insert({
+      const { error } = await db.from("patient_consents").insert({
         patient_id: user.id,
         appointment_id: appointmentId,
         consent_type: "telemedicine_tcle",

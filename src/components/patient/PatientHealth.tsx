@@ -3,7 +3,7 @@ import mascotWave from "@/assets/mascot-wave.png";
 import mascotThumbsup from "@/assets/mascot-thumbsup.png";
 import mascotReading from "@/assets/mascot-reading.png";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getPatientNav } from "./patientNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,16 +68,16 @@ const PatientHealth = () => {
 
   const fetchAll = async () => {
     const [apptRes, prescRes, docsRes, metricsRes] = await Promise.all([
-      supabase.from("appointments")
+      db.from("appointments")
         .select("id, scheduled_at, status, doctor_id, notes, duration_minutes")
         .eq("patient_id", user!.id).eq("status", "completed")
         .order("scheduled_at", { ascending: false }),
-      supabase.from("prescriptions")
+      db.from("prescriptions")
         .select("id, appointment_id, diagnosis, medications, observations, created_at, doctor_id, pdf_url")
         .eq("patient_id", user!.id).order("created_at", { ascending: false }),
-      supabase.from("patient_documents")
+      db.from("patient_documents")
         .select("*").eq("patient_id", user!.id).order("created_at", { ascending: false }),
-      supabase.from("health_metrics")
+      db.from("health_metrics")
         .select("*").eq("patient_id", user!.id).order("measured_at", { ascending: true }),
     ]);
 
@@ -88,10 +88,10 @@ const PatientHealth = () => {
 
     const docNameMap = new Map<string, string>();
     if (allDoctorIds.length > 0) {
-      const { data: docs } = await supabase.from("doctor_profiles").select("id, user_id").in("id", allDoctorIds);
+      const { data: docs } = await db.from("doctor_profiles").select("id, user_id").in("id", allDoctorIds);
       if (docs && docs.length > 0) {
         const userIds = docs.map(d => d.user_id);
-        const { data: profiles } = await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds);
+        const { data: profiles } = await db.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds);
         docs.forEach(d => {
           const p = profiles?.find(pr => pr.user_id === d.user_id);
           if (p) docNameMap.set(d.id, `Dr(a). ${p.first_name} ${p.last_name}`);
@@ -101,7 +101,7 @@ const PatientHealth = () => {
 
     const apptIds = (apptRes.data ?? []).map(a => a.id);
     const { data: notes } = apptIds.length > 0
-      ? await supabase.from("consultation_notes").select("appointment_id, content").in("appointment_id", apptIds)
+      ? await db.from("consultation_notes").select("appointment_id, content").in("appointment_id", apptIds)
       : { data: [] };
     const notesMap = new Map((notes ?? []).map(n => [n.appointment_id, n.content]));
 
@@ -119,7 +119,7 @@ const PatientHealth = () => {
     if (!newMetric.value || !user) return;
     setSaving(true);
     const metricInfo = METRIC_TYPES.find(m => m.value === newMetric.type);
-    const { error } = await supabase.from("health_metrics").insert({
+    const { error } = await db.from("health_metrics").insert({
       patient_id: user.id,
       type: newMetric.type,
       value: parseFloat(newMetric.value),
@@ -160,7 +160,7 @@ const PatientHealth = () => {
   };
 
   const viewDocument = async (doc: any) => {
-    const { data } = await supabase.storage.from("patient-documents").createSignedUrl(doc.file_url, 3600);
+    const { data } = await db.storage.from("patient-documents").createSignedUrl(doc.file_url, 3600);
     if (data?.signedUrl) window.open(data.signedUrl, "_blank");
   };
 

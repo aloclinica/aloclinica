@@ -8,7 +8,7 @@ import {
   User, Stethoscope, DollarSign, CalendarDays, Video, ShieldCheck,
   CheckCircle2, ChevronRight, Sparkles, ArrowRight, Trophy, Clock
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import type { SpecialtyRow } from "@/types/domain";
@@ -80,19 +80,19 @@ const DoctorOnboarding = () => {
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-      const docRes = await supabase.from("doctor_profiles").select("id, bio, consultation_price, is_approved, crm_verified, crm").eq("user_id", user.id).single();
+      const docRes = await db.from("doctor_profiles").select("id, bio, consultation_price, is_approved, crm_verified, crm").eq("user_id", user.id).single();
 
       const docProfile = docRes.data as any;
       if (!docProfile) return;
 
       // Fetch kyc_status separately since it may not be in generated types yet
-      const { data: kycData } = await supabase.from("doctor_profiles").select("kyc_status" as any).eq("id", docProfile.id).single();
+      const { data: kycData } = await db.from("doctor_profiles").select("kyc_status" as any).eq("id", docProfile.id).single();
       if (kycData) docProfile.kyc_status = (kycData as any).kyc_status;
 
       const [specRes, slotRes, profileRes] = await Promise.all([
-        supabase.from("doctor_specialties").select("id", { count: "exact", head: true }).eq("doctor_id", docProfile.id),
-        supabase.from("availability_slots").select("id", { count: "exact", head: true }).eq("doctor_id", docProfile.id),
-        supabase.from("profiles").select("avatar_url").eq("user_id", user.id).single(),
+        db.from("doctor_specialties").select("id", { count: "exact", head: true }).eq("doctor_id", docProfile.id),
+        db.from("availability_slots").select("id", { count: "exact", head: true }).eq("doctor_id", docProfile.id),
+        db.from("profiles").select("avatar_url").eq("user_id", user.id).single(),
       ]);
 
       setData({

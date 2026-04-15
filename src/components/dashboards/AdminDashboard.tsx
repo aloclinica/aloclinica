@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -74,14 +74,14 @@ const AdminDashboard = () => {
         fetchLiveStats();
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { db.removeChannel(channel); };
   }, []);
 
   const fetchLiveStats = async () => {
     const [liveRes, waitRes, liveListRes] = await Promise.all([
-      supabase.from("appointments").select("id", { count: "exact", head: true }).eq("status", "in_progress"),
-      supabase.from("appointments").select("id", { count: "exact", head: true }).eq("status", "waiting"),
-      supabase.from("appointments")
+      db.from("appointments").select("id", { count: "exact", head: true }).eq("status", "in_progress"),
+      db.from("appointments").select("id", { count: "exact", head: true }).eq("status", "waiting"),
+      db.from("appointments")
         .select("id, scheduled_at, status, patient_id, doctor_id")
         .in("status", ["in_progress", "waiting"])
         .order("scheduled_at", { ascending: true })
@@ -95,14 +95,14 @@ const AdminDashboard = () => {
       const doctorIds = [...new Set(liveListRes.data.map((a: any) => a.doctor_id))];
       const [pRes, dRes] = await Promise.all([
         patientIds.length > 0
-          ? supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds.filter((id): id is string => id !== null))
+          ? db.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds.filter((id): id is string => id !== null))
           : Promise.resolve({ data: null as any[] | null }),
-        supabase.from("doctor_profiles").select("id, user_id").in("id", doctorIds),
+        db.from("doctor_profiles").select("id, user_id").in("id", doctorIds),
       ]);
       const pMap = new Map((pRes.data ?? []).map((p: any) => [p.user_id, `${p.first_name} ${p.last_name}`.trim()]));
       const docUserIds = (dRes.data ?? []).map((d: any) => d.user_id);
       const { data: docProfiles } = docUserIds.length > 0
-        ? await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", docUserIds)
+        ? await db.from("profiles").select("user_id, first_name, last_name").in("user_id", docUserIds)
         : { data: [] };
       const docMap = new Map<string, string>();
       (dRes.data ?? []).forEach(d => {
@@ -129,27 +129,27 @@ const AdminDashboard = () => {
     else { periodStart = new Date("2020-01-01"); }
 
     const [patientsRes, doctorsRes, activeSubsRes, expiredSubsRes, monthApptsRes, pendingRes, allSubsRes, cancelledRes, noShowRes, totalMonthRes, ratingsRes, laudosRes, npsRes] = await Promise.all([
-      supabase.from("user_roles").select("id", { count: "exact", head: true }).eq("role", "patient"),
-      supabase.from("doctor_profiles").select("id", { count: "exact", head: true }),
-      supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("status", "active"),
-      supabase.from("subscriptions").select("id, user_id, plan_id, expires_at, status")
+      db.from("user_roles").select("id", { count: "exact", head: true }).eq("role", "patient"),
+      db.from("doctor_profiles").select("id", { count: "exact", head: true }),
+      db.from("subscriptions").select("id", { count: "exact", head: true }).eq("status", "active"),
+      db.from("subscriptions").select("id, user_id, plan_id, expires_at, status")
         .in("status", ["expired", "cancelled"])
         .order("expires_at", { ascending: false }).limit(10),
-      supabase.from("appointments").select("id", { count: "exact", head: true })
+      db.from("appointments").select("id", { count: "exact", head: true })
         .gte("scheduled_at", periodStart.toISOString()),
-      supabase.from("doctor_profiles").select("id, user_id, crm, crm_state").eq("is_approved", false).limit(5),
-      supabase.from("subscriptions").select("id, user_id, plan_id, status, starts_at, expires_at, created_at")
+      db.from("doctor_profiles").select("id, user_id, crm, crm_state").eq("is_approved", false).limit(5),
+      db.from("subscriptions").select("id, user_id, plan_id, status, starts_at, expires_at, created_at")
         .order("created_at", { ascending: false }).limit(10),
-      supabase.from("appointments").select("id", { count: "exact", head: true })
+      db.from("appointments").select("id", { count: "exact", head: true })
         .eq("status", "cancelled").gte("scheduled_at", periodStart.toISOString()),
-      supabase.from("appointments").select("id", { count: "exact", head: true })
+      db.from("appointments").select("id", { count: "exact", head: true })
         .eq("status", "no_show").gte("scheduled_at", periodStart.toISOString()),
-      supabase.from("appointments").select("id", { count: "exact", head: true })
+      db.from("appointments").select("id", { count: "exact", head: true })
         .gte("scheduled_at", periodStart.toISOString()),
-      supabase.from("doctor_profiles").select("rating").gt("rating", 0),
-      supabase.from("exam_reports").select("id", { count: "exact", head: true })
+      db.from("doctor_profiles").select("rating").gt("rating", 0),
+      db.from("exam_reports").select("id", { count: "exact", head: true })
         .gte("created_at", periodStart.toISOString()),
-      supabase.from("satisfaction_surveys").select("nps_score")
+      db.from("satisfaction_surveys").select("nps_score")
         .gte("created_at", periodStart.toISOString()),
     ]);
 
@@ -161,10 +161,10 @@ const AdminDashboard = () => {
     const npsScores = (npsRes.data ?? []).map(s => Number(s.nps_score));
     const avgNps = npsScores.length > 0 ? npsScores.reduce((a, b) => a + b, 0) / npsScores.length : 0;
 
-    const activePlansRes = await supabase.from("subscriptions").select("plan_id").eq("status", "active");
+    const activePlansRes = await db.from("subscriptions").select("plan_id").eq("status", "active");
     let totalRevenue = 0;
     if (activePlansRes.data && activePlansRes.data.length > 0) {
-      const { data: plans } = await supabase.from("plans").select("id, price");
+      const { data: plans } = await db.from("plans").select("id, price");
       const planPriceMap = new Map(plans?.map(p => [p.id, Number(p.price)]) ?? []);
       activePlansRes.data.forEach(s => { totalRevenue += planPriceMap.get(s.plan_id) ?? 0; });
     }
@@ -181,8 +181,8 @@ const AdminDashboard = () => {
     const userIds = [...new Set(allSubs.map(s => s.user_id))];
     const planIds2 = [...new Set(allSubs.map(s => s.plan_id))];
     const [profilesRes, plansRes2] = await Promise.all([
-      userIds.length > 0 ? supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds) : { data: [] },
-      planIds2.length > 0 ? supabase.from("plans").select("id, name, price") : { data: [] },
+      userIds.length > 0 ? db.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds) : { data: [] },
+      planIds2.length > 0 ? db.from("plans").select("id, name, price") : { data: [] },
     ]);
     const pMap = new Map((profilesRes.data ?? []).map((p: any) => [p.user_id, `${p.first_name} ${p.last_name}`] as const));
     const planMap = new Map((plansRes2.data ?? []).map((p: any) => [p.id, p] as const));
@@ -195,7 +195,7 @@ const AdminDashboard = () => {
 
     if (pendingRes.data && pendingRes.data.length > 0) {
       const docUserIds = pendingRes.data.map(d => d.user_id);
-      const { data: docProfiles } = await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", docUserIds);
+      const { data: docProfiles } = await db.from("profiles").select("user_id, first_name, last_name").in("user_id", docUserIds);
       const dpMap = new Map(docProfiles?.map(p => [p.user_id, p]) ?? []);
       setPendingDoctors(pendingRes.data.map(d => ({
         ...d, name: dpMap.has(d.user_id) ? `${dpMap.get(d.user_id)!.first_name} ${dpMap.get(d.user_id)!.last_name}` : "—",
@@ -260,7 +260,7 @@ const AdminDashboard = () => {
   };
 
   const approveDoctor = async (id: string) => {
-    await supabase.from("doctor_profiles").update({ is_approved: true }).eq("id", id);
+    await db.from("doctor_profiles").update({ is_approved: true }).eq("id", id);
     fetchAll();
   };
 
@@ -354,7 +354,7 @@ const AdminDashboard = () => {
             <Button size="sm" variant="outline" className="h-9 rounded-xl gap-1.5 bg-background text-xs" onClick={async () => {
               toast.loading("Criando usuários de teste...");
               try {
-                const { data, error } = await supabase.functions.invoke("seed-test-users");
+                const { data, error } = await db.functions.invoke("seed-test-users");
                 toast.dismiss();
                 if (error) { toast.error("Erro: " + error.message); return; }
                 const created = data?.users?.filter((u: any) => u.status === "created").length ?? 0;

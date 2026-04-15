@@ -1,7 +1,7 @@
 import { logError } from "@/lib/logger";
 import { useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,22 +63,22 @@ const AISummaryTab = ({ primaryRole }: Props) => {
   const loadPatientDetails = async (patient: any) => {
     setIsFetching(true);
     const [recordsRes, appointmentsRes, prescriptionsRes, metricsRes] = await Promise.all([
-      supabase.from("medical_records")
+      db.from("medical_records")
         .select("title, record_type, description, cid_code, severity, start_date, is_active")
         .eq("patient_id", patient.user_id)
         .order("created_at", { ascending: false })
         .limit(20),
-      supabase.from("appointments")
+      db.from("appointments")
         .select("scheduled_at, status, notes, duration_minutes")
         .eq("patient_id", patient.user_id)
         .order("scheduled_at", { ascending: false })
         .limit(10),
-      supabase.from("prescriptions")
+      db.from("prescriptions")
         .select("diagnosis, medications, observations, created_at")
         .eq("patient_id", patient.user_id)
         .order("created_at", { ascending: false })
         .limit(5),
-      supabase.from("health_metrics")
+      db.from("health_metrics")
         .select("type, value, unit, measured_at")
         .eq("patient_id", patient.user_id)
         .order("measured_at", { ascending: false })

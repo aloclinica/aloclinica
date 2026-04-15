@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useLaudistaEarnings } from "@/hooks/useLaudistaEarnings";
 import { getLaudistaNav } from "@/components/laudista/laudistaNav";
 import { format } from "date-fns";
@@ -61,11 +61,11 @@ const LaudistaDashboard = () => {
     queryFn: async () => {
       const dpId = doctorProfile!.id;
       const [pendingRes, myInReviewRes, myReportedRes, todayRes, urgentRes] = await Promise.all([
-        supabase.from("exam_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
-        supabase.from("exam_requests").select("id", { count: "exact", head: true }).eq("assigned_to", dpId).eq("status", "in_review"),
-        supabase.from("exam_reports").select("id", { count: "exact", head: true }).eq("reporter_id", dpId),
-        supabase.from("exam_reports").select("id", { count: "exact", head: true }).eq("reporter_id", dpId).gte("created_at", new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()),
-        supabase.from("exam_requests").select("id", { count: "exact", head: true }).eq("status", "pending").eq("priority", "urgent"),
+        db.from("exam_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
+        db.from("exam_requests").select("id", { count: "exact", head: true }).eq("assigned_to", dpId).eq("status", "in_review"),
+        db.from("exam_reports").select("id", { count: "exact", head: true }).eq("reporter_id", dpId),
+        db.from("exam_reports").select("id", { count: "exact", head: true }).eq("reporter_id", dpId).gte("created_at", new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()),
+        db.from("exam_requests").select("id", { count: "exact", head: true }).eq("status", "pending").eq("priority", "urgent"),
       ]);
       return {
         pending: pendingRes.count ?? 0,

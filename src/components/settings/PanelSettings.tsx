@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -101,7 +101,7 @@ const PanelSettings = () => {
     if (!user) return;
     const load = async () => {
       setLoadingSettings(true);
-      const { data } = await supabase.from("profiles").select("settings").eq("user_id", user.id).maybeSingle();
+      const { data } = await db.from("profiles").select("settings").eq("user_id", user.id).maybeSingle();
       if (data?.settings && typeof data.settings === "object") {
         const saved = (data.settings as Record<string, any>)[activeRole];
         if (saved && typeof saved === "object") setSettings(prev => ({ ...prev, ...saved }));
@@ -118,17 +118,17 @@ const PanelSettings = () => {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    const { data: existing } = await supabase.from("profiles").select("settings").eq("user_id", user.id).maybeSingle();
+    const { data: existing } = await db.from("profiles").select("settings").eq("user_id", user.id).maybeSingle();
     const allSettings = (existing?.settings && typeof existing.settings === "object") ? { ...(existing.settings as Record<string, any>) } : {};
     allSettings[activeRole] = settings;
-    const { error } = await supabase.from("profiles").update({ settings: allSettings } as any).eq("user_id", user.id);
+    const { error } = await db.from("profiles").update({ settings: allSettings } as any).eq("user_id", user.id);
     setSaving(false);
     if (error) toast.error("Erro ao salvar", { description: error.message });
     else toast.success("Configurações salvas!");
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await db.auth.signOut();
     navigate("/");
   };
 

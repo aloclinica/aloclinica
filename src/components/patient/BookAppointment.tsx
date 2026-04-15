@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { triggerAppointmentConfirmed } from "@/lib/whatsapp";
 import { notifyNewAppointment, notifyPaymentConfirmed } from "@/lib/notifications";
 import { useAuth } from "@/contexts/AuthContext";
@@ -110,7 +110,7 @@ const BookAppointment = () => {
 
   useEffect(() => {
     if (user) {
-      supabase.from("dependents").select("id, name, relationship").eq("user_id", user.id)
+      db.from("dependents").select("id, name, relationship").eq("user_id", user.id)
         .then(({ data }) => setDependents(data ?? []));
     }
     const currentYear = new Date().getFullYear();
@@ -259,9 +259,9 @@ const BookAppointment = () => {
       }
 
       const [profileRes, specsRes, slotsRes] = await Promise.all([
-        supabase.from("profiles").select("first_name, last_name").eq("user_id", doc.user_id).single(),
-        supabase.from("doctor_specialties").select("specialties(name)").eq("doctor_id", doc.id),
-        supabase.from("availability_slots").select("day_of_week, start_time, end_time").eq("doctor_id", doc.id).eq("is_active", true),
+        db.from("profiles").select("first_name, last_name").eq("user_id", doc.user_id).single(),
+        db.from("doctor_specialties").select("specialties(name)").eq("doctor_id", doc.id),
+        db.from("availability_slots").select("day_of_week, start_time, end_time").eq("doctor_id", doc.id).eq("is_active", true),
       ]);
 
       setDoctor({
@@ -372,7 +372,7 @@ const BookAppointment = () => {
           ? doctor.doctor_type
           : appointmentType;
 
-      const { data: insertedAppt, error } = await supabase.from("appointments").insert({
+      const { data: insertedAppt, error } = await db.from("appointments").insert({
         patient_id: user.id,
         doctor_id: doctor.id,
         scheduled_at: dt.toISOString(),
@@ -443,7 +443,7 @@ const BookAppointment = () => {
       // Card tokenization
       if (paymentMethod === "card") {
         const [expiryMonth, expiryYear] = cardExpiry.split("/");
-        const { data: tokenData, error: tokenError } = await supabase.functions.invoke("tokenize-card", {
+        const { data: tokenData, error: tokenError } = await db.functions.invoke("tokenize-card", {
           body: {
             customerName,
             customerCpf: profile.cpf,
@@ -467,7 +467,7 @@ const BookAppointment = () => {
         payload.creditCardToken = tokenData.creditCardToken;
       }
 
-      const { data, error } = await supabase.functions.invoke("create-asaas-payment", { body: payload });
+      const { data, error } = await db.functions.invoke("create-asaas-payment", { body: payload });
 
       if (error || !data?.success) {
         toast.error("Erro no pagamento", { description: data?.error || "Tente novamente." });
@@ -501,7 +501,7 @@ const BookAppointment = () => {
 
       // Card — usually instant
       if (data.status === "CONFIRMED" || data.status === "RECEIVED") {
-        await supabase.from("appointments").update({
+        await db.from("appointments").update({
           payment_status: "approved",
           payment_confirmed_at: new Date().toISOString(),
         }).eq("id", appointmentId);
@@ -723,7 +723,7 @@ const BookAppointment = () => {
                     <p className="text-sm text-muted-foreground">Sem horários nesta data</p>
                     <Button variant="outline" size="sm" className="mt-3 rounded-xl"
                       onClick={async () => {
-                        const { error } = await supabase.from("appointment_waitlist").insert({
+                        const { error } = await db.from("appointment_waitlist").insert({
                           patient_id: user!.id, doctor_id: doctor.id,
                           desired_date: format(selectedDate, "yyyy-MM-dd"),
                         });

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
@@ -1236,7 +1236,7 @@ const ExamReportEditor = () => {
   const { data: doctorProfile } = useQuery({
     queryKey: ["doctor-profile-editor", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("doctor_profiles").select("id, crm, crm_state").eq("user_id", user!.id).maybeSingle();
+      const { data } = await db.from("doctor_profiles").select("id, crm, crm_state").eq("user_id", user!.id).maybeSingle();
       return data;
     },
     enabled: !!user,
@@ -1245,7 +1245,7 @@ const ExamReportEditor = () => {
   const { data: profile } = useQuery({
     queryKey: ["profile-editor", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("first_name, last_name").eq("user_id", user!.id).maybeSingle();
+      const { data } = await db.from("profiles").select("first_name, last_name").eq("user_id", user!.id).maybeSingle();
       return data;
     },
     enabled: !!user,
@@ -1254,7 +1254,7 @@ const ExamReportEditor = () => {
   const { data: examRequest, isLoading: loadingExam } = useQuery({
     queryKey: ["exam-request-detail", examId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("exam_requests" as never).select("*").eq("id", examId!).maybeSingle();
+      const { data, error } = await db.from("exam_requests" as never).select("*").eq("id", examId!).maybeSingle();
       if (error) throw error;
       return data as unknown as ExamRequest | null;
     },
@@ -1264,7 +1264,7 @@ const ExamReportEditor = () => {
   const { data: existingReport } = useQuery({
     queryKey: ["exam-report-existing", examId],
     queryFn: async () => {
-      const { data } = await supabase.from("exam_reports" as never).select("*").eq("exam_request_id", examId!).maybeSingle();
+      const { data } = await db.from("exam_reports" as never).select("*").eq("exam_request_id", examId!).maybeSingle();
       return data as unknown as ExamReport | null;
     },
     enabled: !!examId,
@@ -1273,7 +1273,7 @@ const ExamReportEditor = () => {
   const { data: templates } = useQuery({
     queryKey: ["report-templates"],
     queryFn: async () => {
-      const { data } = await supabase.from("report_templates" as never).select("*").eq("is_active", true).order("title");
+      const { data } = await db.from("report_templates" as never).select("*").eq("is_active", true).order("title");
       return (data ?? []) as unknown as ReportTemplate[];
     },
   });
@@ -1296,7 +1296,7 @@ const ExamReportEditor = () => {
   useEffect(() => {
     if (!examRequest || !doctorProfile?.id) return;
     if (examRequest.status === "pending" && !examRequest.assigned_to) {
-      supabase.from("exam_requests" as any)
+      db.from("exam_requests" as any)
         .update({ status: "in_review", assigned_to: doctorProfile.id } as any)
         .eq("id", examId!)
         .then(({ error }) => {
@@ -1307,7 +1307,7 @@ const ExamReportEditor = () => {
           }
         });
     } else if (examRequest.status === "pending" && examRequest.assigned_to === doctorProfile.id) {
-      supabase.from("exam_requests" as any)
+      db.from("exam_requests" as any)
         .update({ status: "in_review" } as any)
         .eq("id", examId!)
         .then(() => {
@@ -1322,9 +1322,9 @@ const ExamReportEditor = () => {
     setAutoSaveStatus("saving");
     try {
       if (existingReport?.id) {
-        await supabase.from("exam_reports" as any).update({ content_text: text } as any).eq("id", existingReport.id);
+        await db.from("exam_reports" as any).update({ content_text: text } as any).eq("id", existingReport.id);
       } else {
-        await supabase.from("exam_reports" as any).insert({ exam_request_id: examId, reporter_id: doctorProfile.id, content_text: text } as any);
+        await db.from("exam_reports" as any).insert({ exam_request_id: examId, reporter_id: doctorProfile.id, content_text: text } as any);
         queryClient.invalidateQueries({ queryKey: ["exam-report-existing", examId] });
       }
       setAutoSaveStatus("saved");
@@ -1370,7 +1370,7 @@ const ExamReportEditor = () => {
       urls.map(async (path: string) => {
         if (path.startsWith("http://") || path.startsWith("https://")) return path;
         if (path.startsWith("/")) return path;
-        const { data } = await supabase.storage.from("exam-files").createSignedUrl(path, 3600);
+        const { data } = await db.storage.from("exam-files").createSignedUrl(path, 3600);
         return data?.signedUrl || "";
       })
     ).then(resolved => setFileUrls(resolved.filter(Boolean)));
@@ -1389,7 +1389,7 @@ const ExamReportEditor = () => {
     if (!content.trim()) { toast.error("Texto vazio"); return; }
     setAiProcessing(true); setAiMode(mode);
     try {
-      const { data, error } = await supabase.functions.invoke("structure-report", {
+      const { data, error } = await db.functions.invoke("structure-report", {
         body: { raw_text: plainText, exam_type: examRequest?.exam_type || "", clinical_info: examRequest?.clinical_info || "", mode },
       });
       if (error) throw error;
@@ -1741,17 +1741,17 @@ const ExamReportEditor = () => {
 
       const pdfBlob = pdf.output("blob");
       const pdfPath = `reports/${examId}/${crypto.randomUUID()}.pdf`;
-      const { error: uploadError } = await supabase.storage.from("prescriptions").upload(pdfPath, pdfBlob, { contentType: "application/pdf" });
+      const { error: uploadError } = await db.storage.from("prescriptions").upload(pdfPath, pdfBlob, { contentType: "application/pdf" });
       if (uploadError) throw uploadError;
 
       if (existingReport?.id) {
-        const { error } = await supabase.from("exam_reports" as any).update({
+        const { error } = await db.from("exam_reports" as any).update({
           content_text: content, template_id: selectedTemplateId || null, pdf_url: pdfPath,
           document_hash: documentHash, verification_code: verificationCode, signed_at: new Date().toISOString(),
         } as any).eq("id", existingReport.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("exam_reports" as any).insert({
+        const { error } = await db.from("exam_reports" as any).insert({
           exam_request_id: examId, reporter_id: doctorProfile.id, content_text: content,
           template_id: selectedTemplateId || null, pdf_url: pdfPath, document_hash: documentHash,
           verification_code: verificationCode, signed_at: new Date().toISOString(),
@@ -1759,13 +1759,13 @@ const ExamReportEditor = () => {
         if (error) throw error;
       }
 
-      await supabase.from("exam_requests" as any).update({ status: "reported" } as any).eq("id", examId);
+      await db.from("exam_requests" as any).update({ status: "reported" } as any).eq("id", examId);
 
       // Try ICP-Brasil digital signature (only if VIDaaS token is available)
       try {
         const vidaasToken = sessionStorage.getItem("vidaas_access_token");
         if (vidaasToken) {
-          await supabase.functions.invoke("vidaas-sign", {
+          await db.functions.invoke("vidaas-sign", {
             body: {
               action: "sign",
               access_token: vidaasToken,
@@ -1780,25 +1780,25 @@ const ExamReportEditor = () => {
       } catch {}
 
       // Document verification record
-      await supabase.from("document_verifications").insert({
+      await db.from("document_verifications").insert({
         doctor_name: doctorName, doctor_crm: `${doctorProfile.crm}/${doctorProfile.crm_state}`,
         patient_name: patientDisplayName, document_type: "exam_report", document_hash: documentHash, verification_code: verificationCode,
       });
 
       // Notifications
       if (examRequest?.requesting_doctor_id) {
-        const { data: reqDoctor } = await supabase.from("doctor_profiles").select("user_id").eq("id", examRequest.requesting_doctor_id).maybeSingle();
+        const { data: reqDoctor } = await db.from("doctor_profiles").select("user_id").eq("id", examRequest.requesting_doctor_id).maybeSingle();
         if (reqDoctor?.user_id) {
-          await supabase.from("notifications").insert({ user_id: reqDoctor.user_id, title: "📋 Laudo Concluído", message: `O laudo do exame ${examRequest.exam_type} foi finalizado.`, type: "exam_report", link: `/dashboard/doctor/report-editor/${examId}?role=doctor` });
+          await db.from("notifications").insert({ user_id: reqDoctor.user_id, title: "📋 Laudo Concluído", message: `O laudo do exame ${examRequest.exam_type} foi finalizado.`, type: "exam_report", link: `/dashboard/doctor/report-editor/${examId}?role=doctor` });
         }
       }
       if (examRequest?.patient_id) {
-        const { data: patientProfile } = await supabase.from("profiles").select("user_id, first_name, phone").eq("user_id", examRequest.patient_id).maybeSingle();
+        const { data: patientProfile } = await db.from("profiles").select("user_id, first_name, phone").eq("user_id", examRequest.patient_id).maybeSingle();
         if (patientProfile) {
-          await supabase.from("notifications").insert({ user_id: patientProfile.user_id, title: "📋 Seu laudo está pronto!", message: `O laudo do exame ${examRequest.exam_type} foi concluído.`, type: "exam_report", link: "/dashboard/health" });
+          await db.from("notifications").insert({ user_id: patientProfile.user_id, title: "📋 Seu laudo está pronto!", message: `O laudo do exame ${examRequest.exam_type} foi concluído.`, type: "exam_report", link: "/dashboard/health" });
           if (patientProfile.phone) {
             const doctorNameForWA = doctorName;
-            supabase.functions.invoke("send-whatsapp", { body: { phone: patientProfile.phone, message: `🩺 *Allo Médico* — Laudo Pronto!\n\nOlá, ${patientProfile.first_name}!\nSeu laudo de *${examRequest.exam_type}* foi finalizado pelo Dr(a). ${doctorNameForWA}.\n\nCódigo: ${verificationCode}\nVerifique em: allomedico.com/validar` } }).catch((err) => { logError("[ExamReportEditor] send-whatsapp failed", err); });
+            db.functions.invoke("send-whatsapp", { body: { phone: patientProfile.phone, message: `🩺 *Allo Médico* — Laudo Pronto!\n\nOlá, ${patientProfile.first_name}!\nSeu laudo de *${examRequest.exam_type}* foi finalizado pelo Dr(a). ${doctorNameForWA}.\n\nCódigo: ${verificationCode}\nVerifique em: allomedico.com/validar` } }).catch((err) => { logError("[ExamReportEditor] send-whatsapp failed", err); });
           }
         }
       }
@@ -1811,7 +1811,7 @@ const ExamReportEditor = () => {
           .eq("id", examRequest!.requesting_clinic_id)
           .maybeSingle();
         if (clinicData?.user_id) {
-          await supabase.from("notifications").insert({
+          await db.from("notifications").insert({
             user_id: clinicData.user_id,
             title: "📋 Laudo Concluído",
             message: `O laudo do exame ${examRequest.exam_type}${examRequest?.patient_name ? ` — ${examRequest?.patient_name}` : ""} foi finalizado.`,
@@ -2172,7 +2172,7 @@ const ExamReportEditor = () => {
                     </p>
                     {existingReport?.pdf_url && (
                       <Button size="sm" variant="outline" onClick={async () => {
-                        const { data } = await supabase.storage.from("prescriptions").createSignedUrl(existingReport.pdf_url!, 3600);
+                        const { data } = await db.storage.from("prescriptions").createSignedUrl(existingReport.pdf_url!, 3600);
                         if (data?.signedUrl) window.open(data.signedUrl, "_blank");
                       }}>
                         <Download className="w-3 h-3 mr-1" /> Baixar PDF

@@ -2,7 +2,7 @@ import { logError } from "@/lib/logger";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { notifyCertificateSent } from "@/lib/notifications";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { gerarHashDocumento } from "@/lib/signature";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,9 +34,9 @@ const MedicalCertificate = () => {
 
   useEffect(() => {
     if (user) {
-      supabase.from("doctor_profiles").select("crm, crm_state").eq("user_id", user.id).single().then(({ data }) => {
+      db.from("doctor_profiles").select("crm, crm_state").eq("user_id", user.id).single().then(({ data }) => {
         if (data) {
-          supabase.from("doctor_specialties").select("specialties(name)").eq("doctor_id", data.crm).then(() => {});
+          db.from("doctor_specialties").select("specialties(name)").eq("doctor_id", data.crm).then(() => {});
           setDoctorInfo({ crm: data.crm, crm_state: data.crm_state, specialties: [] });
         }
       });
@@ -178,7 +178,7 @@ const MedicalCertificate = () => {
     const documentHash = await gerarHashDocumento(docContent);
 
     // Persist verification code to DB with hash
-    supabase.from("document_verifications").insert({
+    db.from("document_verifications").insert({
       verification_code: verificationCode,
       document_type: certType,
       patient_name: patientName,

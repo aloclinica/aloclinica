@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -91,8 +91,8 @@ const ClinicDoctorsManagement = () => {
 
     const userIds = docProfiles?.map(d => d.user_id) ?? [];
     const [profilesRes, specsRes] = await Promise.all([
-      supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds),
-      supabase.from("doctor_specialties").select("doctor_id, specialties(name)").in("doctor_id", doctorIds),
+      db.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds),
+      db.from("doctor_specialties").select("doctor_id, specialties(name)").in("doctor_id", doctorIds),
     ]);
 
     const profileMap = new Map(profilesRes.data?.map(p => [p.user_id, p]) ?? []);
@@ -156,7 +156,7 @@ const ClinicDoctorsManagement = () => {
   const addDoctor = async () => {
     if (!clinicProfileId || !searchResult) return;
 
-    const { error } = await supabase.from("clinic_affiliations").insert({
+    const { error } = await db.from("clinic_affiliations").insert({
       clinic_id: clinicProfileId,
       doctor_id: searchResult.id,
       status: "pending",
@@ -174,14 +174,14 @@ const ClinicDoctorsManagement = () => {
   };
 
   const updateStatus = async (affiliationId: string, status: string) => {
-    await supabase.from("clinic_affiliations").update({ status }).eq("id", affiliationId);
+    await db.from("clinic_affiliations").update({ status }).eq("id", affiliationId);
     if (clinicProfileId) fetchDoctors(clinicProfileId);
   };
 
   const sendInviteEmail = async () => {
     if (!inviteEmail.trim()) return;
     try {
-      await supabase.functions.invoke("send-email", {
+      await db.functions.invoke("send-email", {
         body: {
           to: inviteEmail,
           subject: `Convite para atender na ${clinicName}`,
@@ -205,7 +205,7 @@ const ClinicDoctorsManagement = () => {
 
   const saveCommission = async () => {
     if (!editingDoctor) return;
-    await supabase.from("clinic_affiliations")
+    await db.from("clinic_affiliations")
       .update({ commission_percent: commissionValue })
       .eq("id", editingDoctor.affiliation_id);
     toast.success(`Repasse atualizado: ${commissionValue}% para o médico`);

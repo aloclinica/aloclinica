@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   User, Star, GraduationCap, Stethoscope, Shield, FileText, Clock,
@@ -47,11 +47,11 @@ const DoctorInfoPanel = ({ doctorId, appointmentId }: DoctorInfoPanelProps) => {
 
   const fetchData = async () => {
     const [docRes, specRes] = await Promise.all([
-      supabase.from("doctor_profiles")
+      db.from("doctor_profiles")
         .select("crm, crm_state, bio, education, experience_years, rating, total_reviews, consultation_price, user_id")
         .eq("id", doctorId)
         .single(),
-      supabase.from("doctor_specialties")
+      db.from("doctor_specialties")
         .select("specialties(name)")
         .eq("doctor_id", doctorId),
     ]);

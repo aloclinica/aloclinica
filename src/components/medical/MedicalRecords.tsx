@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getPatientNav } from "../patient/patientNav";
 import { getDoctorNav } from "../doctor/doctorNav";
@@ -75,7 +75,7 @@ const MedicalRecords = ({ patientId, isDoctor = false }: { patientId?: string; i
       fetchRecords();
       // Log access for CFM compliance
       if (user && patientId && isDoctorRole) {
-        supabase.from("medical_record_access_logs" as any).insert({
+        db.from("medical_record_access_logs" as any).insert({
           patient_id: patientId,
           accessed_by: user.id,
           access_type: "view",
@@ -101,11 +101,11 @@ const MedicalRecords = ({ patientId, isDoctor = false }: { patientId?: string; i
 
     let doctorId: string | null = null;
     if (isDoctorRole && user) {
-      const { data: doc } = await supabase.from("doctor_profiles").select("id").eq("user_id", user.id).single();
+      const { data: doc } = await db.from("doctor_profiles").select("id").eq("user_id", user.id).single();
       doctorId = doc?.id ?? null;
     }
 
-    const { error } = await supabase.from("medical_records").insert({
+    const { error } = await db.from("medical_records").insert({
       patient_id: targetPatientId!,
       record_type: form.record_type,
       title: form.title.trim(),
@@ -127,7 +127,7 @@ const MedicalRecords = ({ patientId, isDoctor = false }: { patientId?: string; i
   };
 
   const toggleActive = async (id: string, currentActive: boolean) => {
-    await supabase.from("medical_records").update({ is_active: !currentActive }).eq("id", id);
+    await db.from("medical_records").update({ is_active: !currentActive }).eq("id", id);
     fetchRecords();
   };
 

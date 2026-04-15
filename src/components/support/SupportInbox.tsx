@@ -1,6 +1,6 @@
 import { logError } from "@/lib/logger";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -113,7 +113,7 @@ const SupportInbox = () => {
     // Get patient profiles
     const patientIds = [...new Set(ticketsData.map(t => t.patient_id))];
     const { data: profiles } = patientIds.length > 0
-      ? await supabase.from("profiles").select("user_id, first_name, last_name, cpf, phone").in("user_id", patientIds)
+      ? await db.from("profiles").select("user_id, first_name, last_name, cpf, phone").in("user_id", patientIds)
       : { data: [] };
 
     const profileMap = new Map<string, any>();
@@ -122,7 +122,7 @@ const SupportInbox = () => {
     // Get unread counts and last messages
     const ticketIds = ticketsData.map(t => t.id);
     const { data: allMessages } = ticketIds.length > 0
-      ? await supabase.from("support_messages").select("ticket_id, content, created_at, is_read, sender_role")
+      ? await db.from("support_messages").select("ticket_id, content, created_at, is_read, sender_role")
           .in("ticket_id", ticketIds).order("created_at", { ascending: false })
       : { data: [] };
 
@@ -165,7 +165,7 @@ const SupportInbox = () => {
 
     // Mark patient messages as read
     if (user) {
-      await supabase.from("support_messages")
+      await db.from("support_messages")
         .update({ is_read: true })
         .eq("ticket_id", ticketId)
         .eq("sender_role", "patient")
@@ -201,7 +201,7 @@ const SupportInbox = () => {
         fetchTickets();
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { db.removeChannel(channel); };
   }, [selectedTicket, fetchTickets, playNotificationSound]);
 
   useEffect((): (() => void) | void => {
@@ -219,7 +219,7 @@ const SupportInbox = () => {
         .subscribe();
       typingChannelRef.current = typingChannel;
       return () => {
-        supabase.removeChannel(typingChannel);
+        db.removeChannel(typingChannel);
         typingChannelRef.current = null;
         setOtherTyping(false);
       };
@@ -237,7 +237,7 @@ const SupportInbox = () => {
     setSending(true);
 
     // Insert message
-    const { error } = await supabase.from("support_messages").insert({
+    const { error } = await db.from("support_messages").insert({
       ticket_id: selectedTicket.id,
       sender_id: user.id,
       sender_role: "support",
@@ -252,7 +252,7 @@ const SupportInbox = () => {
 
     // Update ticket status to in_service
     if (selectedTicket.status === "waiting_human") {
-      await supabase.from("support_tickets")
+      await db.from("support_tickets")
         .update({ status: "in_service", assigned_to: user.id })
         .eq("id", selectedTicket.id);
       setSelectedTicket(prev => prev ? { ...prev, status: "in_service", assigned_to: user.id } : null);
@@ -264,7 +264,7 @@ const SupportInbox = () => {
 
   const closeTicket = async () => {
     if (!selectedTicket) return;
-    await supabase.from("support_tickets")
+    await db.from("support_tickets")
       .update({ status: "closed", closed_at: new Date().toISOString() })
       .eq("id", selectedTicket.id);
     setSelectedTicket(null);

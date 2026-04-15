@@ -1,5 +1,5 @@
 import { useState, forwardRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { Envelope, Phone, InstagramLogo, LinkedinLogo, YoutubeLogo, Heart, ShieldCheck, Lock, SealCheck, PaperPlaneTilt, FacebookLogo, TwitterLogo } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ const Footer = forwardRef<HTMLElement>((_, ref) => {
     if (!email.trim()) return;
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("newsletter_subscribers").insert({ email: email.trim().toLowerCase() });
+      const { error } = await db.from("newsletter_subscribers").insert({ email: email.trim().toLowerCase() });
       if (error) {
         if (error.code === "23505") toast.info("Você já está inscrito! 📬");
         else toast.error("Erro ao inscrever. Tente novamente.");

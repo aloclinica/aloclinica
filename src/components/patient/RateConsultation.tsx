@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -83,7 +83,7 @@ const RateConsultation = ({ appointmentId, doctorId, onClose }: RateConsultation
       comment.trim(),
     ].filter(Boolean).join(" | ");
 
-    const { error } = await supabase.from("satisfaction_surveys").insert({
+    const { error } = await db.from("satisfaction_surveys").insert({
       appointment_id: appointmentId,
       patient_id: user!.id,
       doctor_id: doctorId,

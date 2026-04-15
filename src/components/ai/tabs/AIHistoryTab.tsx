@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,7 +68,7 @@ const AIHistoryTab = ({ primaryRole }: Props) => {
   }, [user]);
 
   const deleteConversation = async (id: string) => {
-    const { error } = await supabase.from("ai_conversations" as any).delete().eq("id", id);
+    const { error } = await db.from("ai_conversations" as any).delete().eq("id", id);
     if (!error) {
       setConversations(prev => prev.filter(c => c.id !== id));
       if (selectedConv?.id === id) setSelectedConv(null);

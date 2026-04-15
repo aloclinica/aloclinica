@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getPatientNav } from "./patientNav";
 import { Card, CardContent } from "@/components/ui/card";
@@ -165,8 +165,8 @@ const UrgentCareQueue = () => {
 
   useEffect(() => {
     if (!user) return;
-    const channel = supabase.channel("urgent-care-queue").on("postgres_changes", { event: "*", schema: "public", table: "on_demand_queue", filter: `patient_id=eq.${user.id}` }, () => fetchMyEntry()).subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const channel = db.channel("urgent-care-queue").on("postgres_changes", { event: "*", schema: "public", table: "on_demand_queue", filter: `patient_id=eq.${user.id}` }, () => fetchMyEntry()).subscribe();
+    return () => { db.removeChannel(channel); };
   }, [user]);
 
   useEffect(() => {
@@ -180,7 +180,7 @@ const UrgentCareQueue = () => {
     const hasPending = pixQrCode || boletoUrl;
     if (!hasPending) return;
     const poll = setInterval(async () => {
-      const { data } = await supabase.from("on_demand_queue").select("status, payment_id").eq("id", pendingQueueId).single();
+      const { data } = await db.from("on_demand_queue").select("status, payment_id").eq("id", pendingQueueId).single();
       if (data && data.payment_id && data.status === "waiting") {
         clearInterval(poll);
         toast.success("✅ Pagamento confirmado! Você está na fila.");
@@ -211,16 +211,16 @@ const UrgentCareQueue = () => {
   }, [pixQrCode]);
 
   const fetchShiftPrice = async () => {
-    try { const { data } = await supabase.functions.invoke("calculate-shift-price"); if (data) setShiftInfo(data); } catch { setShiftInfo({ shift: "day", price: 75, label: "Diurno" }); }
+    try { const { data } = await db.functions.invoke("calculate-shift-price"); if (data) setShiftInfo(data); } catch { setShiftInfo({ shift: "day", price: 75, label: "Diurno" }); }
     setLoading(false);
   };
 
   const fetchMyEntry = async () => {
     if (!user) return;
-    const { data } = await supabase.from("on_demand_queue").select("*").eq("patient_id", user.id).in("status", ["waiting", "assigned", "in_progress"]).order("created_at", { ascending: false }).limit(1).maybeSingle();
+    const { data } = await db.from("on_demand_queue").select("*").eq("patient_id", user.id).in("status", ["waiting", "assigned", "in_progress"]).order("created_at", { ascending: false }).limit(1).maybeSingle();
     if (data) setMyEntry({ id: data.id, status: data.status, position: data.position ?? undefined, created_at: data.created_at });
     if (data?.status === "waiting") {
-      const { count } = await supabase.from("on_demand_queue").select("*", { count: "exact", head: true }).eq("status", "waiting").lt("created_at", data.created_at);
+      const { count } = await db.from("on_demand_queue").select("*", { count: "exact", head: true }).eq("status", "waiting").lt("created_at", data.created_at);
       setQueuePosition((count ?? 0) + 1);
     }
     if (data?.status === "in_progress" && data?.appointment_id) window.location.href = `/dashboard/consultation/${data.appointment_id}?role=patient`;
@@ -238,26 +238,26 @@ const UrgentCareQueue = () => {
     if (paymentMethod === "card") { const cardError = validateCard(cardName, cardNumber, cardExpiry, cardCvv); if (cardError) { toast.error(cardError); return; } }
     setProcessing(true);
     try {
-      const { data: profile } = await supabase.from("profiles").select("first_name, last_name, cpf, phone").eq("user_id", user.id).single();
+      const { data: profile } = await db.from("profiles").select("first_name, last_name, cpf, phone").eq("user_id", user.id).single();
       if (!profile?.cpf) { toast.error("CPF obrigatório", { description: "Complete seu perfil com o CPF antes de pagar." }); setProcessing(false); return; }
       const customerName = `${profile.first_name} ${profile.last_name}`.trim();
       const billingTypeMap: Record<PaymentMethod, string> = { pix: "PIX", card: "CREDIT_CARD", boleto: "BOLETO" };
-      const { data: queueEntry, error: queueError } = await supabase.from("on_demand_queue").insert({ patient_id: user.id, shift: shiftInfo.shift, price: priceWithDiscount, status: "pending_payment" }).select("id").single();
+      const { data: queueEntry, error: queueError } = await db.from("on_demand_queue").insert({ patient_id: user.id, shift: shiftInfo.shift, price: priceWithDiscount, status: "pending_payment" }).select("id").single();
       if (queueError || !queueEntry) { toast.error("Erro ao reservar lugar na fila"); setProcessing(false); return; }
       setPendingQueueId(queueEntry.id);
       const payload: Record<string, any> = { customerName, customerCpf: profile.cpf, customerEmail: user.email || "", customerMobilePhone: profile.phone || "", billingType: billingTypeMap[paymentMethod], value: priceWithDiscount, description: `Plantão 24h - AloClínica (${shiftInfo.label})`, appointmentId: `queue_${queueEntry.id}` };
       if (paymentMethod === "card") {
         const [expiryMonth, expiryYear] = cardExpiry.split("/");
-        const { data: tokenData, error: tokenError } = await supabase.functions.invoke("tokenize-card", { body: { customerName, customerCpf: profile.cpf, customerEmail: user.email, customerPhone: profile.phone, cardHolderName: cardName, cardNumber: cardNumber.replace(/\s/g, ""), cardExpiryMonth: expiryMonth, cardExpiryYear: `20${expiryYear}`, cardCcv: cardCvv, cardHolderCpf: profile.cpf, cardHolderPhone: profile.phone, remoteIp: "0.0.0.0" } });
-        if (tokenError || !tokenData?.success) { toast.error("Erro no cartão", { description: tokenData?.error }); await supabase.from("on_demand_queue").delete().eq("id", queueEntry.id); setProcessing(false); return; }
+        const { data: tokenData, error: tokenError } = await db.functions.invoke("tokenize-card", { body: { customerName, customerCpf: profile.cpf, customerEmail: user.email, customerPhone: profile.phone, cardHolderName: cardName, cardNumber: cardNumber.replace(/\s/g, ""), cardExpiryMonth: expiryMonth, cardExpiryYear: `20${expiryYear}`, cardCcv: cardCvv, cardHolderCpf: profile.cpf, cardHolderPhone: profile.phone, remoteIp: "0.0.0.0" } });
+        if (tokenError || !tokenData?.success) { toast.error("Erro no cartão", { description: tokenData?.error }); await db.from("on_demand_queue").delete().eq("id", queueEntry.id); setProcessing(false); return; }
         payload.creditCardToken = tokenData.creditCardToken;
       }
-      const { data, error } = await supabase.functions.invoke("create-asaas-payment", { body: payload });
-      if (error || !data?.success) { toast.error("Erro no pagamento", { description: data?.error || "Tente novamente." }); await supabase.from("on_demand_queue").delete().eq("id", queueEntry.id); setProcessing(false); return; }
+      const { data, error } = await db.functions.invoke("create-asaas-payment", { body: payload });
+      if (error || !data?.success) { toast.error("Erro no pagamento", { description: data?.error || "Tente novamente." }); await db.from("on_demand_queue").delete().eq("id", queueEntry.id); setProcessing(false); return; }
       if (paymentMethod === "pix") { setPixQrCode(data.pixQrCode || null); setPixCopyPaste(data.pixCopyPaste || null); setProcessing(false); toast.success("PIX gerado! 🎉"); return; }
       if (paymentMethod === "boleto") { setBoletoUrl(data.bankSlipUrl || data.invoiceUrl || null); setProcessing(false); toast.success("Boleto gerado! 📄"); return; }
       if (data.status === "CONFIRMED" || data.status === "RECEIVED") {
-        await supabase.from("on_demand_queue").update({ status: "waiting", payment_id: data.paymentId }).eq("id", queueEntry.id);
+        await db.from("on_demand_queue").update({ status: "waiting", payment_id: data.paymentId }).eq("id", queueEntry.id);
         toast.success("Pagamento confirmado! Você está na fila. 🚀"); setShowPayment(false);
         notifyDoctorsNewQueueEntry(profile.first_name || "Paciente", shiftInfo.shift, priceWithDiscount);
         fetchMyEntry();
@@ -268,7 +268,7 @@ const UrgentCareQueue = () => {
 
   const handleRequestRefund = async () => {
     if (!myEntry) return;
-    await supabase.from("on_demand_queue").update({ status: "refunded", completed_at: new Date().toISOString() }).eq("id", myEntry.id);
+    await db.from("on_demand_queue").update({ status: "refunded", completed_at: new Date().toISOString() }).eq("id", myEntry.id);
     toast.success("Reembolso solicitado com sucesso."); setMyEntry(null);
   };
 

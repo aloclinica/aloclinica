@@ -1,7 +1,7 @@
 import { logError } from "@/lib/logger";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { Button } from "@/components/ui/button";
 import { Bell, BellOff } from "lucide-react";
 import { toast } from "sonner";
@@ -49,7 +49,7 @@ const PushNotificationToggle = () => {
       });
 
       const json = sub.toJSON();
-      await supabase.from("push_subscriptions").upsert({
+      await db.from("push_subscriptions").upsert({
         user_id: user.id,
         endpoint: json.endpoint!,
         p256dh: json.keys?.p256dh ?? "",
@@ -74,7 +74,7 @@ const PushNotificationToggle = () => {
       const sub = await (reg as ServiceWorkerRegistration & { pushManager: PushManager }).pushManager.getSubscription();
       if (sub) {
         await sub.unsubscribe();
-        await supabase.from("push_subscriptions").delete()
+        await db.from("push_subscriptions").delete()
           .eq("user_id", user.id)
           .eq("endpoint", sub.endpoint);
       }

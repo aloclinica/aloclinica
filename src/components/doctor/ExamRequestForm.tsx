@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getDoctorNav } from "@/components/doctor/doctorNav";
@@ -183,7 +183,7 @@ const ExamRequestForm = () => {
       }
 
       if (isClinic) {
-        const { error } = await supabase.from("exam_requests" as any).insert({
+        const { error } = await db.from("exam_requests" as any).insert({
           requesting_clinic_id: clinicProfile!.id,
           requesting_doctor_id: null,
           patient_id: null,
@@ -203,7 +203,7 @@ const ExamRequestForm = () => {
         return;
       } else {
         const effectiveDoctorId = isReception ? receptionDoctorProfile?.id : doctorProfile?.id;
-        const { error } = await supabase.from("exam_requests" as any).insert({
+        const { error } = await db.from("exam_requests" as any).insert({
           requesting_doctor_id: effectiveDoctorId,
           patient_id: patientId || null,
           exam_type: finalExamType,

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import mascotWave from "@/assets/mascot-wave.png";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getDoctorNav } from "./doctorNav";
@@ -68,14 +68,14 @@ const DoctorConsultations = () => {
       .channel("doctor-consultations-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "appointments" }, () => fetchAppointments())
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { db.removeChannel(channel); };
   }, [user]);
 
   const fetchAppointments = async () => {
-    const { data: docProfile } = await supabase.from("doctor_profiles").select("id").eq("user_id", user!.id).single();
+    const { data: docProfile } = await db.from("doctor_profiles").select("id").eq("user_id", user!.id).single();
     if (!docProfile) { setLoading(false); return; }
 
-    const { data } = await supabase.from("appointments")
+    const { data } = await db.from("appointments")
       .select("id, scheduled_at, status, patient_id, duration_minutes, notes, guest_patient_id")
       .eq("doctor_id", docProfile.id)
       .order("scheduled_at", { ascending: false })
@@ -88,10 +88,10 @@ const DoctorConsultations = () => {
 
     const [profilesRes, guestsRes] = await Promise.all([
       patientIds.length > 0
-        ? supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds.filter((id): id is string => !!id))
+        ? db.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds.filter((id): id is string => !!id))
         : { data: [] },
       guestIds.length > 0
-        ? supabase.from("guest_patients").select("id, full_name").in("id", guestIds.filter((id): id is string => !!id))
+        ? db.from("guest_patients").select("id, full_name").in("id", guestIds.filter((id): id is string => !!id))
         : { data: [] },
     ]);
 

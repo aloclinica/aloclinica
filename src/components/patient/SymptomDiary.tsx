@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getPatientNav } from "./patientNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -85,9 +85,9 @@ const SymptomDiary = () => {
     const existing = entries.find(e => e.entry_date === dateStr);
 
     if (existing) {
-      await supabase.from("symptom_diary").update({ mood, symptoms, notes: notes || null }).eq("id", existing.id);
+      await db.from("symptom_diary").update({ mood, symptoms, notes: notes || null }).eq("id", existing.id);
     } else {
-      await supabase.from("symptom_diary").insert({
+      await db.from("symptom_diary").insert({
         patient_id: user.id,
         entry_date: dateStr,
         mood,

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -55,7 +55,7 @@ export default function SecondOpinionManager({ examRequestId, originalReport, on
   const { data: opinions = [], isLoading } = useQuery({
     queryKey: ["second-opinions", examRequestId, user?.id],
     queryFn: async () => {
-      let query = supabase.from("second_opinion_requests" as any).select("*").order("created_at", { ascending: false });
+      let query = db.from("second_opinion_requests" as any).select("*").order("created_at", { ascending: false });
       if (examRequestId) query = query.eq("exam_request_id", examRequestId);
       const { data } = await query;
       return (data ?? []) as unknown as SecondOpinion[];
@@ -66,7 +66,7 @@ export default function SecondOpinionManager({ examRequestId, originalReport, on
   const requestOpinion = async () => {
     if (!form.reason.trim()) { toast.error("Descreva o motivo"); return; }
     setSaving(true);
-    const { error } = await supabase.from("second_opinion_requests" as any).insert({
+    const { error } = await db.from("second_opinion_requests" as any).insert({
       exam_request_id: examRequestId ?? null,
       requesting_user_id: user!.id,
       reason: form.reason,
@@ -85,7 +85,7 @@ export default function SecondOpinionManager({ examRequestId, originalReport, on
   };
 
   const acceptOpinion = async (opinion: SecondOpinion) => {
-    await supabase.from("second_opinion_requests" as any)
+    await db.from("second_opinion_requests" as any)
       .update({ status: "accepted", assigned_laudista_id: user!.id, accepted_at: new Date().toISOString() })
       .eq("id", opinion.id);
     qc.invalidateQueries({ queryKey: ["second-opinions"] });
@@ -95,7 +95,7 @@ export default function SecondOpinionManager({ examRequestId, originalReport, on
   const submitResponse = async () => {
     if (!responseText.trim() || !showRespond) return;
     setSaving(true);
-    await supabase.from("second_opinion_requests" as any)
+    await db.from("second_opinion_requests" as any)
       .update({
         status: "completed",
         second_report: responseText,

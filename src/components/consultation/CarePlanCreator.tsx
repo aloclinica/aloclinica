@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,7 +68,7 @@ export default function CarePlanCreator({ patientId, appointmentId, doctorProfil
   const save = async () => {
     if (!title.trim()) { toast.error("Informe o título do plano"); return; }
     setSaving(true);
-    const { error } = await supabase.from("care_plans" as any).insert({
+    const { error } = await db.from("care_plans" as any).insert({
       patient_id: patientId,
       doctor_id: doctorProfileId,
       appointment_id: appointmentId ?? null,
@@ -85,7 +85,7 @@ export default function CarePlanCreator({ patientId, appointmentId, doctorProfil
     else {
       toast.success("Plano de cuidado criado!");
       // Send notification to patient
-      await supabase.from("notifications").insert({
+      await db.from("notifications").insert({
         user_id: patientId,
         title: "📋 Novo plano de cuidado",
         message: `Seu médico criou o plano: ${title}`,

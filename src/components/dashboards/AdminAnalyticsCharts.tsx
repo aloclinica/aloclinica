@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, AreaChart, Area, ComposedChart,
@@ -63,14 +63,14 @@ const AdminAnalyticsCharts = () => {
     const startDate = startOfDay(subDays(new Date(), days));
 
     const [apptsRes, specsRes, docSpecsRes, subsRes, profilesRes, allApptsRes, surveysRes, allApptsHeatRes] = await Promise.all([
-      supabase.from("appointments").select("id, scheduled_at, status").gte("scheduled_at", startDate.toISOString()).order("scheduled_at", { ascending: true }),
-      supabase.from("specialties").select("id, name"),
-      supabase.from("doctor_specialties").select("doctor_id, specialty_id"),
-      supabase.from("subscriptions").select("id, created_at, status, plan_id").order("created_at", { ascending: true }),
-      supabase.from("profiles").select("id, created_at").order("created_at", { ascending: true }),
-      supabase.from("appointments").select("id, status, patient_id").order("scheduled_at", { ascending: false }).limit(500),
-      supabase.from("satisfaction_surveys").select("nps_score, created_at").order("created_at", { ascending: true }),
-      supabase.from("appointments").select("scheduled_at").gte("scheduled_at", subDays(new Date(), 90).toISOString()),
+      db.from("appointments").select("id, scheduled_at, status").gte("scheduled_at", startDate.toISOString()).order("scheduled_at", { ascending: true }),
+      db.from("specialties").select("id, name"),
+      db.from("doctor_specialties").select("doctor_id, specialty_id"),
+      db.from("subscriptions").select("id, created_at, status, plan_id").order("created_at", { ascending: true }),
+      db.from("profiles").select("id, created_at").order("created_at", { ascending: true }),
+      db.from("appointments").select("id, status, patient_id").order("scheduled_at", { ascending: false }).limit(500),
+      db.from("satisfaction_surveys").select("nps_score, created_at").order("created_at", { ascending: true }),
+      db.from("appointments").select("scheduled_at").gte("scheduled_at", subDays(new Date(), 90).toISOString()),
     ]);
 
     // Daily appointments
@@ -99,7 +99,7 @@ const AdminAnalyticsCharts = () => {
     setSpecialtyData(Object.entries(specCount).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([name, count]) => ({ name, count })));
 
     // Revenue
-    const { data: plans } = await supabase.from("plans").select("id, price");
+    const { data: plans } = await db.from("plans").select("id, price");
     const planPriceMap = new Map(plans?.map(p => [p.id, Number(p.price)]) ?? []);
     const revenueByMonth = new Map<string, number>();
     for (let i = 5; i >= 0; i--) { revenueByMonth.set(format(subDays(new Date(), i * 30), "MMM/yy", { locale: ptBR }), 0); }
@@ -178,7 +178,7 @@ const AdminAnalyticsCharts = () => {
 
   const fetchNewFlowsData = async () => {
     // Urgent care (on_demand_queue)
-    const { data: queueData } = await supabase.from("on_demand_queue").select("*").order("created_at", { ascending: true });
+    const { data: queueData } = await db.from("on_demand_queue").select("*").order("created_at", { ascending: true });
     const queueItems = queueData ?? [];
     
     // KPIs
@@ -208,7 +208,7 @@ const AdminAnalyticsCharts = () => {
     setUrgentCareData(Object.entries(shiftCount).slice(-14).map(([date, shifts]) => ({ date, ...shifts })));
 
     // Prescription renewals
-    const { data: renewals } = await supabase.from("prescription_renewals").select("*").order("created_at", { ascending: true });
+    const { data: renewals } = await db.from("prescription_renewals").select("*").order("created_at", { ascending: true });
     const renewalItems = renewals ?? [];
     
     const rnTotal = renewalItems.length;
@@ -233,12 +233,12 @@ const AdminAnalyticsCharts = () => {
   const fetchSpecialtyReports = async () => {
     // Specialty revenue: appointments by specialty with revenue estimation
     const [apptsRes, docSpecsRes, specsRes, surveysRes, docsRes, profilesRes] = await Promise.all([
-      supabase.from("appointments").select("id, doctor_id, status, scheduled_at").order("scheduled_at", { ascending: false }).limit(1000),
-      supabase.from("doctor_specialties").select("doctor_id, specialty_id"),
-      supabase.from("specialties").select("id, name, consultation_price"),
-      supabase.from("satisfaction_surveys").select("doctor_id, nps_score, quality_score, ease_score"),
-      supabase.from("doctor_profiles").select("id, user_id, consultation_price, rating, total_reviews"),
-      supabase.from("profiles").select("user_id, first_name, last_name"),
+      db.from("appointments").select("id, doctor_id, status, scheduled_at").order("scheduled_at", { ascending: false }).limit(1000),
+      db.from("doctor_specialties").select("doctor_id, specialty_id"),
+      db.from("specialties").select("id, name, consultation_price"),
+      db.from("satisfaction_surveys").select("doctor_id, nps_score, quality_score, ease_score"),
+      db.from("doctor_profiles").select("id, user_id, consultation_price, rating, total_reviews"),
+      db.from("profiles").select("user_id, first_name, last_name"),
     ]);
 
     const appts = apptsRes.data ?? [];

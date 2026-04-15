@@ -3,7 +3,7 @@ import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, ComposedChart, Line, PieChart, Pie, Cell } from "recharts";
 import { format, subDays, startOfDay, getDay, getHours, subMonths, startOfMonth } from "date-fns";
@@ -55,10 +55,10 @@ const DoctorAnalyticsCharts = () => {
     const startDate = startOfDay(subDays(new Date(), days));
 
     const [apptsRes, surveysRes, allApptsRes, sixMonthRes] = await Promise.all([
-      supabase.from("appointments").select("id, scheduled_at, status").eq("doctor_id", docProfile.id).gte("scheduled_at", startDate.toISOString()),
-      supabase.from("satisfaction_surveys").select("nps_score, created_at").eq("doctor_id", docProfile.id).order("created_at", { ascending: true }).limit(20),
-      supabase.from("appointments").select("scheduled_at, status, patient_id").eq("doctor_id", docProfile.id).gte("scheduled_at", subDays(new Date(), 60).toISOString()),
-      supabase.from("appointments").select("scheduled_at, status, patient_id").eq("doctor_id", docProfile.id).gte("scheduled_at", subMonths(new Date(), 6).toISOString()),
+      db.from("appointments").select("id, scheduled_at, status").eq("doctor_id", docProfile.id).gte("scheduled_at", startDate.toISOString()),
+      db.from("satisfaction_surveys").select("nps_score, created_at").eq("doctor_id", docProfile.id).order("created_at", { ascending: true }).limit(20),
+      db.from("appointments").select("scheduled_at, status, patient_id").eq("doctor_id", docProfile.id).gte("scheduled_at", subDays(new Date(), 60).toISOString()),
+      db.from("appointments").select("scheduled_at, status, patient_id").eq("doctor_id", docProfile.id).gte("scheduled_at", subMonths(new Date(), 6).toISOString()),
     ]);
 
     // Weekly appointments

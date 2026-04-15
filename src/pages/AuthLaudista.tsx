@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, lazy, Suspense } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -125,7 +125,7 @@ const AuthLaudista = () => {
         examTypes && `Tipos de exame: ${examTypes}`,
         howFound && `Como conheceu: ${howFound}`,
       ].filter(Boolean).join("\n");
-      const { error } = await supabase.from("doctor_applications" as any).insert({
+      const { error } = await db.from("doctor_applications" as any).insert({
         full_name: fullName,
         email,
         phone: phone || null,
@@ -147,7 +147,7 @@ const AuthLaudista = () => {
     e.preventDefault();
     setValidating(true);
     try {
-      const res = await supabase.functions.invoke("validate-invite-code", {
+      const res = await db.functions.invoke("validate-invite-code", {
         body: { code: inviteCode.trim().toUpperCase() },
       });
       const data = res.data;
@@ -167,7 +167,7 @@ const AuthLaudista = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await db.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
       toast.error("Erro ao entrar", { description: error.message });
@@ -183,7 +183,7 @@ const AuthLaudista = () => {
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await db.auth.signUp({
       email, password,
       options: { emailRedirectTo: window.location.origin, data: { first_name: firstName, last_name: lastName } },
     });
@@ -193,7 +193,7 @@ const AuthLaudista = () => {
       return;
     }
     if (data.user) {
-      await supabase.functions.invoke("assign-role", {
+      await db.functions.invoke("assign-role", {
         body: { user_id: data.user.id, role: "doctor", profile_data: { crm, crm_state: crmState, invite_code_id: validatedCodeId } },
       });
       await registerConsent(data.user.id, "terms_and_privacy_doctor");

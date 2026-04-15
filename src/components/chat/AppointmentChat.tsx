@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -99,7 +99,7 @@ const AppointmentChat = ({ appointmentId, otherUserName }: AppointmentChatProps)
             return [...prev, newMsg];
           });
           if (newMsg.sender_id !== user.id) {
-            supabase.from("messages").update({ is_read: true }).eq("id", newMsg.id).then(() => {});
+            db.from("messages").update({ is_read: true }).eq("id", newMsg.id).then(() => {});
             setOtherTyping(false);
           }
         }
@@ -115,7 +115,7 @@ const AppointmentChat = ({ appointmentId, otherUserName }: AppointmentChatProps)
       .subscribe();
 
     // Presence channel for typing indicators
-    const presenceChannel = supabase.channel(`typing-${appointmentId}`)
+    const presenceChannel = db.channel(`typing-${appointmentId}`)
       .on("broadcast", { event: "typing" }, (payload) => {
         if (payload.payload.user_id !== user.id) {
           setOtherTyping(true);
@@ -127,8 +127,8 @@ const AppointmentChat = ({ appointmentId, otherUserName }: AppointmentChatProps)
     channelRef.current = presenceChannel;
 
     return () => {
-      supabase.removeChannel(channel);
-      supabase.removeChannel(presenceChannel);
+      db.removeChannel(channel);
+      db.removeChannel(presenceChannel);
     };
   }, [user, appointmentId]);
 
@@ -146,7 +146,7 @@ const AppointmentChat = ({ appointmentId, otherUserName }: AppointmentChatProps)
 
     const unread = (data ?? []).filter((m: { is_read: boolean; sender_id: string }) => !m.is_read && m.sender_id !== user!.id);
     if (unread.length > 0) {
-      await supabase.from("messages").update({ is_read: true }).in("id", unread.map((m: any) => m.id));
+      await db.from("messages").update({ is_read: true }).in("id", unread.map((m: any) => m.id));
     }
   };
 
@@ -174,7 +174,7 @@ const AppointmentChat = ({ appointmentId, otherUserName }: AppointmentChatProps)
     setSending(true);
     setIsTyping(false);
     const content = input.trim();
-    const { error } = await supabase.from("messages").insert({
+    const { error } = await db.from("messages").insert({
       appointment_id: appointmentId,
       sender_id: user.id,
       content,
@@ -204,7 +204,7 @@ const AppointmentChat = ({ appointmentId, otherUserName }: AppointmentChatProps)
             recipientUserId = appt.patient_id;
           }
           if (recipientUserId) {
-            supabase.functions.invoke("send-push-notification", {
+            db.functions.invoke("send-push-notification", {
               body: {
                 user_id: recipientUserId,
                 title: `💬 Nova mensagem${otherUserName ? ` de ${otherUserName}` : ""}`,
@@ -242,9 +242,9 @@ const AppointmentChat = ({ appointmentId, otherUserName }: AppointmentChatProps)
         .upload(path, pendingFile, { contentType: pendingFile.type });
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage.from("chat-attachments").getPublicUrl(path);
+      const { data: { publicUrl } } = db.storage.from("chat-attachments").getPublicUrl(path);
 
-      const { error: msgError } = await supabase.from("messages").insert({
+      const { error: msgError } = await db.from("messages").insert({
         appointment_id: appointmentId,
         sender_id: user.id,
         content: input.trim() || "",

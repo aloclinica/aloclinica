@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import pingoSupport from "@/assets/pingo-support.png";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -44,14 +44,14 @@ const PatientSupportChat = () => {
 
   const fetchTickets = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase.from("support_tickets").select("*").eq("patient_id", user.id).order("updated_at", { ascending: false });
+    const { data } = await db.from("support_tickets").select("*").eq("patient_id", user.id).order("updated_at", { ascending: false });
     setTickets(data ?? []); setLoading(false);
   }, [user]);
 
   const fetchMessages = useCallback(async (ticketId: string) => {
-    const { data } = await supabase.from("support_messages").select("*").eq("ticket_id", ticketId).order("created_at", { ascending: true });
+    const { data } = await db.from("support_messages").select("*").eq("ticket_id", ticketId).order("created_at", { ascending: true });
     setMessages(data ?? []);
-    if (user) await supabase.from("support_messages").update({ is_read: true }).eq("ticket_id", ticketId).eq("sender_role", "support").eq("is_read", false);
+    if (user) await db.from("support_messages").update({ is_read: true }).eq("ticket_id", ticketId).eq("sender_role", "support").eq("is_read", false);
   }, [user]);
 
   useEffect(() => { fetchTickets(); }, [fetchTickets]);
@@ -59,30 +59,30 @@ const PatientSupportChat = () => {
 
   useEffect(() => {
     if (!user) return;
-    const channel = supabase.channel("patient-support-realtime")
+    const channel = db.channel("patient-support-realtime")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "support_messages" }, (payload) => {
         const msg = payload.new as TicketMessage;
         if (selectedTicket && msg.ticket_id === selectedTicket.id) setMessages(prev => [...prev, msg]);
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "support_tickets" }, () => fetchTickets())
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { db.removeChannel(channel); };
   }, [user, selectedTicket, fetchTickets]);
 
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current?.scrollHeight, behavior: "smooth" }); }, [messages]);
 
   const createNewTicket = async () => {
     if (!user) return;
-    const { data, error } = await supabase.from("support_tickets").insert({ patient_id: user.id, subject: "Novo atendimento", status: "waiting_human" }).select().single();
+    const { data, error } = await db.from("support_tickets").insert({ patient_id: user.id, subject: "Novo atendimento", status: "waiting_human" }).select().single();
     if (error) { toast.error("Erro ao criar ticket"); return; }
-    await supabase.from("support_messages").insert({ ticket_id: data.id, sender_id: user.id, sender_role: "patient", content: "Olá! Preciso de ajuda humana." });
+    await db.from("support_messages").insert({ ticket_id: data.id, sender_id: user.id, sender_role: "patient", content: "Olá! Preciso de ajuda humana." });
     toast.success("Solicitação enviada!"); setSelectedTicket(data as Ticket); fetchTickets();
   };
 
   const sendMessage = async () => {
     if (!input.trim() || !selectedTicket || !user || sending) return;
     setSending(true);
-    const { error } = await supabase.from("support_messages").insert({ ticket_id: selectedTicket.id, sender_id: user.id, sender_role: "patient", content: input.trim() });
+    const { error } = await db.from("support_messages").insert({ ticket_id: selectedTicket.id, sender_id: user.id, sender_role: "patient", content: input.trim() });
     if (error) toast.error("Erro ao enviar mensagem"); else setInput("");
     setSending(false);
   };
