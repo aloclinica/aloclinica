@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getAdminNav } from "@/components/admin/adminNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,8 +42,8 @@ const AdminReports = () => {
     const now = new Date();
 
     // Revenue by month
-    const { data: subs } = await supabase.from("subscriptions").select("plan_id, created_at, status");
-    const { data: plans } = await supabase.from("plans").select("id, price");
+    const { data: subs } = await db.from("subscriptions").select("plan_id, created_at, status");
+    const { data: plans } = await db.from("plans").select("id, price");
     const planPriceMap = new Map(plans?.map(p => [p.id, Number(p.price)]) ?? []);
 
     const revChart: ChartDataPoint[] = [];
@@ -63,7 +63,7 @@ const AdminReports = () => {
     setRevenueData(revChart);
 
     // User growth
-    const { data: roles } = await supabase.from("user_roles").select("role, created_at");
+    const { data: roles } = await db.from("user_roles").select("role, created_at");
     const growthChart: ChartDataPoint[] = [];
     for (let i = monthsBack - 1; i >= 0; i--) {
       const m = subMonths(now, i);
@@ -75,13 +75,13 @@ const AdminReports = () => {
     setUserGrowth(growthChart);
 
     // Appointments
-    const { data: appts } = await supabase.from("appointments").select("doctor_id, status, scheduled_at");
+    const { data: appts } = await db.from("appointments").select("doctor_id, status, scheduled_at");
     const completedAppts = (appts ?? []).filter(a => a.status === "completed");
     const doctorIds = [...new Set(completedAppts.map(a => a.doctor_id))];
     if (doctorIds.length > 0) {
-      const { data: docSpecs } = await supabase.from("doctor_specialties").select("doctor_id, specialty_id").in("doctor_id", doctorIds);
+      const { data: docSpecs } = await db.from("doctor_specialties").select("doctor_id, specialty_id").in("doctor_id", doctorIds);
       const specIds = [...new Set((docSpecs ?? []).map(ds => ds.specialty_id))];
-      const { data: specs } = await supabase.from("specialties").select("id, name").in("id", specIds.length > 0 ? specIds : ["none"]);
+      const { data: specs } = await db.from("specialties").select("id, name").in("id", specIds.length > 0 ? specIds : ["none"]);
       const specMap = new Map(specs?.map(s => [s.id, s.name]) ?? []);
       const docSpecMap = new Map<string, string>();
       (docSpecs ?? []).forEach(ds => docSpecMap.set(ds.doctor_id, specMap.get(ds.specialty_id) ?? "Outros"));
@@ -119,14 +119,14 @@ const AdminReports = () => {
     setCancellationData(cancelChart);
 
     // Top doctors
-    const { data: docProfiles } = await supabase.from("doctor_profiles")
+    const { data: docProfiles } = await db.from("doctor_profiles")
       .select("id, user_id, rating, total_reviews, consultation_price")
       .gt("total_reviews", 0)
       .order("rating", { ascending: false })
       .limit(5);
     if (docProfiles && docProfiles.length > 0) {
       const userIds = docProfiles.map(d => d.user_id);
-      const { data: profiles } = await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds);
+      const { data: profiles } = await db.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds);
       const pMap = new Map(profiles?.map(p => [p.user_id, `Dr(a). ${p.first_name} ${p.last_name}`]) ?? []);
       setTopDoctors(docProfiles.map(d => ({
         ...d, name: pMap.get(d.user_id) ?? "—",
@@ -134,7 +134,7 @@ const AdminReports = () => {
     }
 
     // Average NPS
-    const { data: surveys } = await supabase.from("satisfaction_surveys").select("nps_score");
+    const { data: surveys } = await db.from("satisfaction_surveys").select("nps_score");
     const avgNps = surveys && surveys.length > 0
       ? surveys.reduce((a, s) => a + s.nps_score, 0) / surveys.length
       : 0;

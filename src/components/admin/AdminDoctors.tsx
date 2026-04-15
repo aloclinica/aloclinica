@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import type { DoctorWithProfile } from "@/types/domain";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,19 +28,19 @@ const AdminDoctors = () => {
   useEffect(() => { fetchDoctors(); }, []);
 
   const fetchDoctors = async () => {
-    const { data } = await supabase.from("doctor_profiles")
+    const { data } = await db.from("doctor_profiles")
       .select("id, user_id, crm, crm_state, is_approved, bio, consultation_price, experience_years, education, rating, total_reviews, created_at")
       .order("created_at", { ascending: false });
     if (!data) { setLoading(false); return; }
     const userIds = data.map(d => d.user_id);
-    const { data: profiles } = await supabase.from("profiles").select("user_id, first_name, last_name, phone").in("user_id", userIds);
+    const { data: profiles } = await db.from("profiles").select("user_id, first_name, last_name, phone").in("user_id", userIds);
     const pMap = new Map(profiles?.map(p => [p.user_id, p]) ?? []);
     setDoctors(data.map(d => ({ ...d, ...pMap.get(d.user_id) })));
     setLoading(false);
   };
 
   const toggleApproval = async (id: string, current: boolean) => {
-    await supabase.from("doctor_profiles").update({ is_approved: !current }).eq("id", id);
+    await db.from("doctor_profiles").update({ is_approved: !current }).eq("id", id);
     toast.success(current ? "Médico desativado" : "Médico aprovado! ✅");
     fetchDoctors();
   };
@@ -52,7 +52,7 @@ const AdminDoctors = () => {
 
   const saveEdit = async () => {
     if (!selected) return;
-    const { error } = await supabase.from("doctor_profiles").update({
+    const { error } = await db.from("doctor_profiles").update({
       crm: editForm.crm,
       crm_state: editForm.crm_state,
       bio: editForm.bio || null,

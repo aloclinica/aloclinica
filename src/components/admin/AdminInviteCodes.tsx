@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getAdminNav } from "@/components/admin/adminNav";
@@ -36,7 +36,7 @@ const AdminInviteCodes = () => {
     if (!user) return;
     setGenerating(true);
     const code = `MED-${randomBlock()}-${randomBlock()}`;
-    const { error } = await supabase.from("doctor_invite_codes").insert({
+    const { error } = await db.from("doctor_invite_codes").insert({
       code,
       created_by: user.id,
     });

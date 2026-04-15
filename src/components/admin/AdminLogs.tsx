@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,7 @@ const AdminLogs = () => {
   useEffect(() => { fetchLogs(); }, []);
 
   const fetchLogs = async () => {
-    const { data } = await supabase.from("activity_logs")
+    const { data } = await db.from("activity_logs")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(100);

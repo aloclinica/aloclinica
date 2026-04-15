@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -45,7 +45,7 @@ const AdminAppointments = () => {
   }, []);
 
   const fetchAppointments = async () => {
-    const { data } = await supabase.from("appointments")
+    const { data } = await db.from("appointments")
       .select("id, scheduled_at, status, patient_id, doctor_id, duration_minutes, notes, appointment_type")
       .order("scheduled_at", { ascending: false }).limit(200);
     if (!data) { setLoading(false); return; }
@@ -56,13 +56,13 @@ const AdminAppointments = () => {
     const patientIds = [...new Set(data.map(a => a.patient_id).filter((id): id is string => Boolean(id)))];
     const doctorIds = [...new Set(data.map(a => a.doctor_id))];
     const [pRes, dRes] = await Promise.all([
-      patientIds.length > 0 ? supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds.filter((id): id is string => id !== null)) : { data: [] as any[] },
-      supabase.from("doctor_profiles").select("id, user_id").in("id", doctorIds),
+      patientIds.length > 0 ? db.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds.filter((id): id is string => id !== null)) : { data: [] as any[] },
+      db.from("doctor_profiles").select("id, user_id").in("id", doctorIds),
     ]);
     const pMap = new Map((pRes.data ?? []).map(p => [p.user_id, `${p.first_name} ${p.last_name}`]));
     const docUserIds = (dRes.data ?? []).map(d => d.user_id);
     const { data: docProfiles } = docUserIds.length > 0
-      ? await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", docUserIds)
+      ? await db.from("profiles").select("user_id, first_name, last_name").in("user_id", docUserIds)
       : { data: [] };
     const docMap = new Map<string, string>();
     (dRes.data ?? []).forEach(d => {

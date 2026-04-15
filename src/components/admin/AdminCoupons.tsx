@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getAdminNav } from "./adminNav";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,7 +33,7 @@ const AdminCoupons = () => {
   useEffect(() => { fetchCoupons(); }, []);
 
   const fetchCoupons = async () => {
-    const { data } = await supabase.from("coupons").select("*").order("created_at", { ascending: false });
+    const { data } = await db.from("coupons").select("*").order("created_at", { ascending: false });
     setCoupons(data ?? []);
     setLoading(false);
   };
@@ -44,7 +44,7 @@ const AdminCoupons = () => {
       return;
     }
 
-    const { error } = await supabase.from("coupons").insert({
+    const { error } = await db.from("coupons").insert({
       code: form.code.toUpperCase().trim(),
       discount_percentage: Number(form.discount_percentage),
       max_uses: form.max_uses ? Number(form.max_uses) : null,
@@ -63,12 +63,12 @@ const AdminCoupons = () => {
   };
 
   const toggleActive = async (id: string, currentActive: boolean) => {
-    await supabase.from("coupons").update({ is_active: !currentActive }).eq("id", id);
+    await db.from("coupons").update({ is_active: !currentActive }).eq("id", id);
     fetchCoupons();
   };
 
   const deleteCoupon = async (id: string) => {
-    await supabase.from("coupons").delete().eq("id", id);
+    await db.from("coupons").delete().eq("id", id);
     toast.success("Cupom excluído");
     fetchCoupons();
   };

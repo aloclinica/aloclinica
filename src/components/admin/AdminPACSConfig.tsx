@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Copy, CheckCircle2, Server, FileText, AlertTriangle, RefreshCw, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { SUPABASE_FUNCTIONS_URL } from "@/lib/supabase-config";
 
 const WEBHOOK_URL = `${SUPABASE_FUNCTIONS_URL}/pacs-integration`;
@@ -65,7 +65,7 @@ const AdminPACSConfig = () => {
   const pingWebhook = async () => {
     setPinging(true);
     try {
-      const res = await supabase.functions.invoke("pacs-integration", {
+      const res = await db.functions.invoke("pacs-integration", {
         body: { action: "search_studies" },
       });
       if (res.error) throw res.error;

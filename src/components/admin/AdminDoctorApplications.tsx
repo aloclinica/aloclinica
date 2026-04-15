@@ -1,7 +1,7 @@
 import { logError } from "@/lib/logger";
 import pingoAdmin from "@/assets/pingo-admin.png";
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,7 +44,7 @@ const AdminDoctorApplications = () => {
 
   const fetchApplications = async () => {
     setLoading(true);
-    let query = supabase.from("doctor_applications" as never).select("*").order("created_at", { ascending: false });
+    let query = db.from("doctor_applications" as never).select("*").order("created_at", { ascending: false });
     if (filter !== "all") query = query.eq("status", filter);
     if (search.trim()) query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%,crm.ilike.%${search}%`);
     const { data, error } = await query;
@@ -64,10 +64,10 @@ const AdminDoctorApplications = () => {
       const code = `MED-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-      const { data: session } = await supabase.auth.getSession();
+      const { data: session } = await db.auth.getSession();
       const adminId = session?.session?.user?.id;
 
-      const { data: codeData, error: codeError } = await supabase.from("doctor_invite_codes").insert({
+      const { data: codeData, error: codeError } = await db.from("doctor_invite_codes").insert({
         code,
         created_by: adminId!,
         expires_at: expiresAt,
@@ -76,7 +76,7 @@ const AdminDoctorApplications = () => {
       if (codeError) throw codeError;
 
       // Update application
-      await (supabase.from("doctor_applications" as any)).update({
+      await (db.from("doctor_applications" as any)).update({
         status: "approved",
         admin_notes: adminNotes || null,
         reviewed_by: adminId,
@@ -85,7 +85,7 @@ const AdminDoctorApplications = () => {
       } as any).eq("id", selectedApp.id);
 
       // Send email with the code
-      await supabase.functions.invoke("send-email", {
+      await db.functions.invoke("send-email", {
         body: {
           type: "welcome",
           to: selectedApp.email,
@@ -110,8 +110,8 @@ const AdminDoctorApplications = () => {
     if (!selectedApp) return;
     setProcessing(true);
     try {
-      const { data: session } = await supabase.auth.getSession();
-      await (supabase.from("doctor_applications" as any)).update({
+      const { data: session } = await db.auth.getSession();
+      await (db.from("doctor_applications" as any)).update({
         status: "rejected",
         admin_notes: adminNotes || null,
         reviewed_by: session?.session?.user?.id,
@@ -119,7 +119,7 @@ const AdminDoctorApplications = () => {
       } as any).eq("id", selectedApp.id);
 
       // Notify by email
-      await supabase.functions.invoke("send-email", {
+      await db.functions.invoke("send-email", {
         body: {
           type: "welcome",
           to: selectedApp.email,

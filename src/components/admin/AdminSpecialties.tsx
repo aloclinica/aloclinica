@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ const AdminSpecialties = () => {
   useEffect(() => { fetchSpecialties(); }, []);
 
   const fetchSpecialties = async () => {
-    const { data } = await supabase.from("specialties").select("*").order("name");
+    const { data } = await db.from("specialties").select("*").order("name");
     setSpecialties((data as SpecialtyRow[] | null) ?? []);
     setLoading(false);
   };
@@ -35,7 +35,7 @@ const AdminSpecialties = () => {
       toast.error("O valor mínimo não pode ser maior que o máximo");
       return;
     }
-    const { error } = await supabase.from("specialties").insert({
+    const { error } = await db.from("specialties").insert({
       name: newName.trim(),
       description: newDesc.trim() || null,
       price_min: min,
@@ -51,13 +51,13 @@ const AdminSpecialties = () => {
   };
 
   const removeSpecialty = async (id: string) => {
-    await supabase.from("specialties").delete().eq("id", id);
+    await db.from("specialties").delete().eq("id", id);
     fetchSpecialties();
   };
 
   const updateField = async (id: string, field: string, value: string) => {
     const numValue = value ? Number(value) : null;
-    await supabase.from("specialties").update({ [field]: numValue } as any).eq("id", id);
+    await db.from("specialties").update({ [field]: numValue } as any).eq("id", id);
     fetchSpecialties();
     toast.success("Atualizado!");
   };

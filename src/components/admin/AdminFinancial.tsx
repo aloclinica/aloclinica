@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -249,7 +249,7 @@ const AdminFinancial = () => {
   ) => {
     setActionLoading(withdrawal.id);
     try {
-      const { data, error } = await supabase.functions.invoke("process-withdrawal", {
+      const { data, error } = await db.functions.invoke("process-withdrawal", {
         body: {
           withdrawal_id: withdrawal.id,
           action,

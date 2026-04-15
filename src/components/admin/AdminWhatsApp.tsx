@@ -1,6 +1,6 @@
 import { logError } from "@/lib/logger";
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getAdminNav } from "@/components/admin/adminNav";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -213,7 +213,7 @@ const AdminWhatsApp = () => {
       });
 
       for (const item of upserts) {
-        await supabase.from("app_settings").upsert(
+        await db.from("app_settings").upsert(
           { key: item.key, value: item.value, updated_at: new Date().toISOString() },
           { onConflict: "key" }
         );
@@ -248,7 +248,7 @@ const AdminWhatsApp = () => {
         .replace(/\{\{return_date\}\}/g, "15/04/2026")
         .replace(/\{\{doctor_id\}\}/g, "doctor-test-id");
 
-      const { data, error } = await supabase.functions.invoke("send-whatsapp", {
+      const { data, error } = await db.functions.invoke("send-whatsapp", {
         body: { phone: testPhone.trim(), message },
       });
 
@@ -266,7 +266,7 @@ const AdminWhatsApp = () => {
   };
 
   const callApi = async (action: string, instanceName?: string) => {
-    const { data, error } = await supabase.functions.invoke("whatsapp-qr", {
+    const { data, error } = await db.functions.invoke("whatsapp-qr", {
       body: { action, instanceName },
     });
     if (error) throw error;

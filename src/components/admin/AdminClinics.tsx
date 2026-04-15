@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,7 @@ const AdminClinics = () => {
   useEffect(() => { fetchClinics(); }, []);
 
   const fetchClinics = async () => {
-    const { data } = await supabase.from("clinic_profiles")
+    const { data } = await db.from("clinic_profiles")
       .select("id, user_id, name, cnpj, phone, address, is_approved, created_at")
       .order("created_at", { ascending: false });
     setClinics(data ?? []);
@@ -44,7 +44,7 @@ const AdminClinics = () => {
   };
 
   const toggleApproval = async (id: string, current: boolean) => {
-    await supabase.from("clinic_profiles").update({ is_approved: !current }).eq("id", id);
+    await db.from("clinic_profiles").update({ is_approved: !current }).eq("id", id);
     toast.success(current ? "Clínica desativada" : "Clínica aprovada!");
     fetchClinics();
   };
@@ -56,7 +56,7 @@ const AdminClinics = () => {
 
   const saveEdit = async () => {
     if (!selected) return;
-    const { error } = await supabase.from("clinic_profiles").update({
+    const { error } = await db.from("clinic_profiles").update({
       name: editForm.name, cnpj: editForm.cnpj || null, phone: editForm.phone || null, address: editForm.address || null,
     }).eq("id", selected.id);
     if (error) toast.error("Erro", { description: error.message });

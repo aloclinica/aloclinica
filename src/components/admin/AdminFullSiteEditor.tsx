@@ -6,7 +6,7 @@
  * Right: live preview iframe of "/".
  */
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -292,9 +292,9 @@ function ImageField({ label, value, onChange }: { label: string; value: string; 
   const onFile = async (file: File) => {
     setUploading(true);
     const path = `${Date.now()}-${file.name}`;
-    const { error: upErr } = await supabase.storage.from("site-media").upload(path, file, { upsert: false });
+    const { error: upErr } = await db.storage.from("site-media").upload(path, file, { upsert: false });
     if (upErr) { toast.error(upErr.message); setUploading(false); return; }
-    const { data: pub } = supabase.storage.from("site-media").getPublicUrl(path);
+    const { data: pub } = db.storage.from("site-media").getPublicUrl(path);
     const url = pub.publicUrl;
     await (supabase as any).from("site_media").insert({ url, path, name: file.name, mime_type: file.type, size_bytes: file.size });
     onChange(url);

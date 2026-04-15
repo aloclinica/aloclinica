@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getAdminNav } from "@/components/admin/adminNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +27,7 @@ const AdminNPS = () => {
   useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
-    const { data } = await supabase.from("satisfaction_surveys")
+    const { data } = await db.from("satisfaction_surveys")
       .select("*")
       .order("created_at", { ascending: false });
 
@@ -93,11 +93,11 @@ const AdminNPS = () => {
 
     const doctorIds = [...byDoctor.keys()].filter(Boolean);
     const { data: docs } = doctorIds.length > 0
-      ? await supabase.from("doctor_profiles").select("id, user_id").in("id", doctorIds)
+      ? await db.from("doctor_profiles").select("id, user_id").in("id", doctorIds)
       : { data: [] };
     const userIds = docs?.map(d => d.user_id) ?? [];
     const { data: profiles } = userIds.length > 0
-      ? await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds)
+      ? await db.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds)
       : { data: [] };
 
     const docNameMap = new Map<string, string>();

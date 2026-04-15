@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { notifyDoctorApproval, notifyClinicApproval } from "@/lib/notifications";
 import { logError } from "@/lib/logger";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
@@ -37,18 +37,18 @@ const AdminApprovals = () => {
   };
 
   const fetchDoctors = async () => {
-    const { data } = await supabase.from("doctor_profiles")
+    const { data } = await db.from("doctor_profiles")
       .select("id, user_id, crm, crm_state, is_approved, crm_verified, crm_verified_at, bio, consultation_price, experience_years, education, created_at")
       .order("created_at", { ascending: false });
     if (!data) return;
     const userIds = data.map(d => d.user_id);
     const [profilesRes, specsRes, kycRes] = await Promise.all([
-      supabase.from("profiles").select("user_id, first_name, last_name, phone, cpf").in("user_id", userIds),
-      supabase.from("doctor_specialties").select("doctor_id, specialty_id").in("doctor_id", data.map(d => d.id)),
+      db.from("profiles").select("user_id, first_name, last_name, phone, cpf").in("user_id", userIds),
+      db.from("doctor_specialties").select("doctor_id, specialty_id").in("doctor_id", data.map(d => d.id)),
       supabase.rpc("fn_admin_doctor_kyc_list" as any),
     ]);
     const specIds = [...new Set((specsRes.data ?? []).map(s => s.specialty_id))];
-    const { data: specNames } = specIds.length > 0 ? await supabase.from("specialties").select("id, name").in("id", specIds) : { data: [] };
+    const { data: specNames } = specIds.length > 0 ? await db.from("specialties").select("id, name").in("id", specIds) : { data: [] };
     const specMap = new Map((specNames ?? []).map(s => [s.id, s.name] as const));
     const pMap = new Map(profilesRes.data?.map(p => [p.user_id, p] as const) ?? []);
     const kycMap = new Map<string, { kyc_status: string; kyc_face_match_score: number | null; kyc_verified_at: string | null }>(
@@ -65,10 +65,10 @@ const AdminApprovals = () => {
   };
 
   const fetchClinics = async () => {
-    const { data } = await supabase.from("clinic_profiles").select("*").order("created_at", { ascending: false });
+    const { data } = await db.from("clinic_profiles").select("*").order("created_at", { ascending: false });
     if (!data) return;
     const userIds = data.map(c => c.user_id);
-    const { data: profiles } = await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds);
+    const { data: profiles } = await db.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds);
     const pMap = new Map(profiles?.map(p => [p.user_id, p] as const) ?? []);
     const enriched = data.map(c => ({ ...c, owner_name: pMap.has(c.user_id) ? `${pMap.get(c.user_id)!.first_name} ${pMap.get(c.user_id)!.last_name}` : "—" }));
     setPendingClinics(enriched.filter(c => !c.is_approved));
@@ -76,10 +76,10 @@ const AdminApprovals = () => {
   };
 
   const fetchPartners = async () => {
-    const { data } = await supabase.from("partner_profiles").select("*").order("created_at", { ascending: false });
+    const { data } = await db.from("partner_profiles").select("*").order("created_at", { ascending: false });
     if (!data) return;
     const userIds = data.map(p => p.user_id);
-    const { data: profiles } = await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds);
+    const { data: profiles } = await db.from("profiles").select("user_id, first_name, last_name").in("user_id", userIds);
     const pMap = new Map(profiles?.map(p => [p.user_id, p] as const) ?? []);
     const enriched = data.map(p => ({ ...p, owner_name: pMap.has(p.user_id) ? `${pMap.get(p.user_id)!.first_name} ${pMap.get(p.user_id)!.last_name}` : "—" }));
     setPendingPartners(enriched.filter(p => !p.is_approved));
@@ -89,7 +89,7 @@ const AdminApprovals = () => {
 
   const approve = async (id: string, type: "doctor" | "clinic" | "partner") => {
     const table = type === "doctor" ? "doctor_profiles" : type === "clinic" ? "clinic_profiles" : "partner_profiles";
-    await supabase.from(table).update({ is_approved: true }).eq("id", id);
+    await db.from(table).update({ is_approved: true }).eq("id", id);
 
     if (type === "doctor") {
       const doc = [...pendingDoctors, ...approvedDoctors].find(d => d.id === id);
@@ -119,7 +119,7 @@ const AdminApprovals = () => {
       crm_verified: !currentValue,
       crm_verified_at: !currentValue ? new Date().toISOString() : null,
     };
-    await supabase.from("doctor_profiles").update(updateData).eq("id", id);
+    await db.from("doctor_profiles").update(updateData).eq("id", id);
     toast.success(!currentValue ? "CRM verificado ✅" : "Verificação de CRM removida");
     fetchAll();
   };
@@ -129,7 +129,7 @@ const AdminApprovals = () => {
   const autoVerifyCrm = useCallback(async (item: ApprovalItem) => {
     setVerifyingCrmId(item.id);
     try {
-      const { data, error } = await supabase.functions.invoke("verify-crm", {
+      const { data, error } = await db.functions.invoke("verify-crm", {
         body: { crm: item.crm, uf: item.crm_state, doctor_profile_id: item.id },
       });
       if (error) throw error;
@@ -150,7 +150,7 @@ const AdminApprovals = () => {
     if (!rejectTarget) return;
     
     const table = rejectTarget.type === "doctor" ? "doctor_profiles" : rejectTarget.type === "clinic" ? "clinic_profiles" : "partner_profiles";
-    await supabase.from(table).update({ is_approved: false }).eq("id", rejectTarget.id);
+    await db.from(table).update({ is_approved: false }).eq("id", rejectTarget.id);
 
     if (rejectTarget.type === "doctor") {
       const doc = [...pendingDoctors, ...approvedDoctors].find(d => d.id === rejectTarget.id);

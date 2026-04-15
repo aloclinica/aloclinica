@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -49,10 +49,10 @@ const AdminPatients = () => {
   useEffect(() => { fetchPatients(); }, []);
 
   const fetchPatients = async () => {
-    const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "patient");
+    const { data: roles } = await db.from("user_roles").select("user_id").eq("role", "patient");
     if (!roles || roles.length === 0) { setLoading(false); return; }
     const userIds = roles.map(r => r.user_id);
-    const { data: profiles } = await supabase.from("profiles")
+    const { data: profiles } = await db.from("profiles")
       .select("user_id, first_name, last_name, phone, cpf, date_of_birth, created_at")
       .in("user_id", userIds)
       .order("created_at", { ascending: false });
@@ -95,7 +95,7 @@ const AdminPatients = () => {
   const openDetail = async (p: PatientProfile) => {
     setSelected(p);
     setEditForm({ first_name: p.first_name, last_name: p.last_name, phone: p.phone || "", cpf: p.cpf || "" });
-    const { data } = await supabase.from("appointments")
+    const { data } = await db.from("appointments")
       .select("id, scheduled_at, status, doctor_id")
       .eq("patient_id", p.user_id)
       .order("scheduled_at", { ascending: false })
@@ -105,7 +105,7 @@ const AdminPatients = () => {
 
   const saveEdit = async () => {
     if (!selected) return;
-    const { error } = await supabase.from("profiles").update({
+    const { error } = await db.from("profiles").update({
       first_name: editForm.first_name,
       last_name: editForm.last_name,
       phone: editForm.phone || null,

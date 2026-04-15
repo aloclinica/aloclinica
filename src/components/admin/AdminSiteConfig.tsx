@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getAdminNav } from "./adminNav";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -293,7 +293,7 @@ const AdminSiteConfig = () => {
   // ── Data loading ───────────────────────────────────────────────────────────
 
   const loadConfig = useCallback(async () => {
-    const { data, error } = await supabase.from("site_config").select("*").order("category").order("key");
+    const { data, error } = await db.from("site_config").select("*").order("category").order("key");
     if (error) { warn("[SiteConfig] config error", error); return; }
     setConfigRows(data ?? []);
     const map: ConfigMap = {};
@@ -303,7 +303,7 @@ const AdminSiteConfig = () => {
   }, []);
 
   const loadPlans = useCallback(async () => {
-    const { data, error } = await supabase.from("plans").select("*").order("price");
+    const { data, error } = await db.from("plans").select("*").order("price");
     if (error) { warn("[SiteConfig] plans error", error); return; }
     setPlans((data ?? []).map((p: Record<string, unknown>) => ({
       ...p,
@@ -312,13 +312,13 @@ const AdminSiteConfig = () => {
   }, []);
 
   const loadTestimonials = useCallback(async () => {
-    const { data, error } = await supabase.from("testimonials").select("*").order("order_index");
+    const { data, error } = await db.from("testimonials").select("*").order("order_index");
     if (error) { warn("[SiteConfig] testimonials error", error); return; }
     setTestimonials(data ?? []);
   }, []);
 
   const loadFaq = useCallback(async () => {
-    const { data, error } = await supabase.from("faq_items").select("*").order("order_index");
+    const { data, error } = await db.from("faq_items").select("*").order("order_index");
     if (error) { warn("[SiteConfig] faq error", error); return; }
     setFaqItems(data ?? []);
   }, []);
@@ -343,7 +343,7 @@ const AdminSiteConfig = () => {
       return;
     }
     await Promise.all(changedRows.map((r) =>
-      supabase.from("site_config").update({ value: values[r.key] ?? "" }).eq("key", r.key)
+      db.from("site_config").update({ value: values[r.key] ?? "" }).eq("key", r.key)
     ));
     toast.success(`${changedRows.length} configuração${changedRows.length > 1 ? "ões" : ""} salva${changedRows.length > 1 ? "s" : ""}!`);
     invalidateSiteConfig();
@@ -406,9 +406,9 @@ const AdminSiteConfig = () => {
     };
     let error;
     if (editingPlan.id) {
-      ({ error } = await supabase.from("plans").update(payload).eq("id", editingPlan.id));
+      ({ error } = await db.from("plans").update(payload).eq("id", editingPlan.id));
     } else {
-      ({ error } = await supabase.from("plans").insert(payload));
+      ({ error } = await db.from("plans").insert(payload));
     }
     if (error) { toast.error("Erro ao salvar plano", { description: error.message }); }
     else { toast.success(editingPlan.id ? "Plano atualizado!" : "Plano criado!"); setPlanDialog(false); loadPlans(); }
@@ -419,14 +419,14 @@ const AdminSiteConfig = () => {
     if (!deleteTarget) return;
     const { type, id } = deleteTarget;
     if (type === "plan") {
-      const { error } = await supabase.from("plans").delete().eq("id", id);
+      const { error } = await db.from("plans").delete().eq("id", id);
       if (error) toast.error("Erro ao excluir plano");
       else { toast.success("Plano excluído"); loadPlans(); }
     } else if (type === "testimonial") {
-      await supabase.from("testimonials").delete().eq("id", id);
+      await db.from("testimonials").delete().eq("id", id);
       toast.success("Depoimento excluído"); loadTestimonials();
     } else if (type === "faq") {
-      await supabase.from("faq_items").delete().eq("id", id);
+      await db.from("faq_items").delete().eq("id", id);
       toast.success("Item excluído"); loadFaq();
     }
     setDeleteTarget(null);
@@ -435,7 +435,7 @@ const AdminSiteConfig = () => {
   const deletePlan = (id: string, name: string) => setDeleteTarget({ type: "plan", id, label: name });
 
   const togglePlanActive = async (p: Plan) => {
-    await supabase.from("plans").update({ is_active: !p.is_active }).eq("id", p.id);
+    await db.from("plans").update({ is_active: !p.is_active }).eq("id", p.id);
     loadPlans();
   };
 
@@ -464,9 +464,9 @@ const AdminSiteConfig = () => {
     };
     let error;
     if (editingTestimonial.id) {
-      ({ error } = await supabase.from("testimonials").update(payload).eq("id", editingTestimonial.id));
+      ({ error } = await db.from("testimonials").update(payload).eq("id", editingTestimonial.id));
     } else {
-      ({ error } = await supabase.from("testimonials").insert(payload));
+      ({ error } = await db.from("testimonials").insert(payload));
     }
     if (error) { toast.error("Erro ao salvar depoimento", { description: error.message }); }
     else { toast.success(editingTestimonial.id ? "Depoimento atualizado!" : "Depoimento criado!"); setTestimonialDialog(false); loadTestimonials(); }
@@ -476,7 +476,7 @@ const AdminSiteConfig = () => {
   const deleteTestimonial = (id: string, name: string) => setDeleteTarget({ type: "testimonial", id, label: name });
 
   const toggleTestimonialActive = async (t: Testimonial) => {
-    await supabase.from("testimonials").update({ is_active: !t.is_active }).eq("id", t.id);
+    await db.from("testimonials").update({ is_active: !t.is_active }).eq("id", t.id);
     loadTestimonials();
   };
 
@@ -502,9 +502,9 @@ const AdminSiteConfig = () => {
     };
     let error;
     if (editingFaq.id) {
-      ({ error } = await supabase.from("faq_items").update(payload).eq("id", editingFaq.id));
+      ({ error } = await db.from("faq_items").update(payload).eq("id", editingFaq.id));
     } else {
-      ({ error } = await supabase.from("faq_items").insert(payload));
+      ({ error } = await db.from("faq_items").insert(payload));
     }
     if (error) { toast.error("Erro ao salvar FAQ", { description: error.message }); }
     else { toast.success(editingFaq.id ? "FAQ atualizado!" : "FAQ criado!"); setFaqDialog(false); loadFaq(); }
@@ -514,7 +514,7 @@ const AdminSiteConfig = () => {
   const deleteFaq = (id: string, question: string) => setDeleteTarget({ type: "faq", id, label: question });
 
   const toggleFaqActive = async (f: FaqItem) => {
-    await supabase.from("faq_items").update({ is_active: !f.is_active }).eq("id", f.id);
+    await db.from("faq_items").update({ is_active: !f.is_active }).eq("id", f.id);
     loadFaq();
   };
 

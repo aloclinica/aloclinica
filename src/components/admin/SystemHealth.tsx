@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getAdminNav } from "@/components/admin/adminNav";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,13 +42,13 @@ const SystemHealth = () => {
 
   const fetchDbStats = async () => {
     const [patients, doctors, appts, prescriptions, reports, subs, queue] = await Promise.all([
-      supabase.from("user_roles").select("id", { count: "exact", head: true }).eq("role", "patient"),
-      supabase.from("doctor_profiles").select("id", { count: "exact", head: true }),
-      supabase.from("appointments").select("id", { count: "exact", head: true }),
-      supabase.from("prescriptions").select("id", { count: "exact", head: true }),
-      supabase.from("exam_reports").select("id", { count: "exact", head: true }),
-      supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("status", "active"),
-      supabase.from("on_demand_queue").select("id", { count: "exact", head: true }).eq("status", "waiting"),
+      db.from("user_roles").select("id", { count: "exact", head: true }).eq("role", "patient"),
+      db.from("doctor_profiles").select("id", { count: "exact", head: true }),
+      db.from("appointments").select("id", { count: "exact", head: true }),
+      db.from("prescriptions").select("id", { count: "exact", head: true }),
+      db.from("exam_reports").select("id", { count: "exact", head: true }),
+      db.from("subscriptions").select("id", { count: "exact", head: true }).eq("status", "active"),
+      db.from("on_demand_queue").select("id", { count: "exact", head: true }).eq("status", "waiting"),
     ]);
     setDbStats({
       patients: patients.count ?? 0,
@@ -69,7 +69,7 @@ const SystemHealth = () => {
     // 1. Database
     const dbStart = performance.now();
     try {
-      const { error } = await supabase.from("specialties").select("id").limit(1);
+      const { error } = await db.from("specialties").select("id").limit(1);
       const latency = Math.round(performance.now() - dbStart);
       results.push({
         name: "Banco de Dados (PostgreSQL)",
@@ -85,7 +85,7 @@ const SystemHealth = () => {
     // 2. Auth
     const authStart = performance.now();
     try {
-      const { data } = await supabase.auth.getSession();
+      const { data } = await db.auth.getSession();
       const latency = Math.round(performance.now() - authStart);
       results.push({
         name: "Autenticação (GoTrue)",
@@ -149,7 +149,7 @@ const SystemHealth = () => {
     // 5. Storage
     const stStart = performance.now();
     try {
-      const { error } = await supabase.storage.from("avatars").list("", { limit: 1 });
+      const { error } = await db.storage.from("avatars").list("", { limit: 1 });
       const latency = Math.round(performance.now() - stStart);
       results.push({
         name: "Storage (S3)",

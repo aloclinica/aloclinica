@@ -5,7 +5,7 @@ import { getAdminNav } from "./adminNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { Video, Clock, AlertTriangle, RefreshCw, Users, CheckCircle2 } from "lucide-react";
 import { format, differenceInMinutes } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -47,12 +47,12 @@ const AdminLiveConsultations = () => {
     const doctorIds = [...new Set(data.map(a => a.doctor_id))];
     const patientIds = [...new Set(data.map(a => a.patient_id).filter(Boolean))];
 
-    const { data: docs } = await supabase.from("doctor_profiles").select("id, user_id").in("id", doctorIds);
+    const { data: docs } = await db.from("doctor_profiles").select("id, user_id").in("id", doctorIds);
     const allUserIds = [
       ...(docs?.map(d => d.user_id) ?? []),
       ...(patientIds.filter((id): id is string => id !== null)),
     ];
-    const { data: profiles } = await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", allUserIds);
+    const { data: profiles } = await db.from("profiles").select("user_id, first_name, last_name").in("user_id", allUserIds);
 
     const getName = (userId: string) => {
       const p = profiles?.find(pr => pr.user_id === userId);

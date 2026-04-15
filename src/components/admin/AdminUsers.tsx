@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,12 +68,12 @@ const AdminUsers = () => {
 
   const fetchUsers = async () => {
     // Get all profiles
-    const { data: profiles } = await supabase.from("profiles")
+    const { data: profiles } = await db.from("profiles")
       .select("user_id, first_name, last_name, phone, cpf, created_at")
       .order("created_at", { ascending: false });
 
     // Get all roles
-    const { data: roles } = await supabase.from("user_roles").select("user_id, role");
+    const { data: roles } = await db.from("user_roles").select("user_id, role");
 
     const roleMap = new Map<string, string[]>();
     (roles ?? []).forEach(r => {
@@ -109,10 +109,10 @@ const AdminUsers = () => {
     const toRemove = currentRoles.filter(r => !userRoles.includes(r));
 
     for (const role of toAdd) {
-      await supabase.from("user_roles").upsert({ user_id: selected.user_id, role: role as "admin" | "clinic" | "doctor" | "partner" | "patient" | "receptionist" | "support" });
+      await db.from("user_roles").upsert({ user_id: selected.user_id, role: role as "admin" | "clinic" | "doctor" | "partner" | "patient" | "receptionist" | "support" });
     }
     for (const role of toRemove) {
-      await supabase.from("user_roles").delete().eq("user_id", selected.user_id).eq("role", role as "admin" | "clinic" | "doctor" | "partner" | "patient" | "receptionist" | "support");
+      await db.from("user_roles").delete().eq("user_id", selected.user_id).eq("role", role as "admin" | "clinic" | "doctor" | "partner" | "patient" | "receptionist" | "support");
     }
 
     toast.success("Roles atualizadas! ✅");

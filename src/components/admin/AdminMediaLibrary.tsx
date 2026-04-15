@@ -2,7 +2,7 @@
  * AdminMediaLibrary — grid of uploaded images. Upload + copy URL.
  */
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/supabase/untyped";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -29,9 +29,9 @@ export default function AdminMediaLibrary() {
     setUploading(true);
     for (const file of Array.from(files)) {
       const path = `${Date.now()}-${file.name}`;
-      const { error } = await supabase.storage.from("site-media").upload(path, file);
+      const { error } = await db.storage.from("site-media").upload(path, file);
       if (error) { toast.error(error.message); continue; }
-      const { data: pub } = supabase.storage.from("site-media").getPublicUrl(path);
+      const { data: pub } = db.storage.from("site-media").getPublicUrl(path);
       await (supabase as any).from("site_media").insert({
         url: pub.publicUrl, path, name: file.name, mime_type: file.type, size_bytes: file.size,
       });
@@ -48,7 +48,7 @@ export default function AdminMediaLibrary() {
 
   const remove = async (m: Media) => {
     if (!confirm(`Remover ${m.name}?`)) return;
-    await supabase.storage.from("site-media").remove([m.path]);
+    await db.storage.from("site-media").remove([m.path]);
     await (supabase as any).from("site_media").delete().eq("id", m.id);
     load();
   };
