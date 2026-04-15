@@ -80,11 +80,11 @@ const AdminReports = () => {
     const doctorIds = [...new Set(completedAppts.map(a => a.doctor_id))];
     if (doctorIds.length > 0) {
       const { data: docSpecs } = await db.from("doctor_specialties").select("doctor_id, specialty_id").in("doctor_id", doctorIds);
-      const specIds = [...new Set((docSpecs ?? []).map(ds => ds.specialty_id))];
+      const specIds = [...new Set((docSpecs ?? []).map((ds: any) => ds.specialty_id))];
       const { data: specs } = await db.from("specialties").select("id, name").in("id", specIds.length > 0 ? specIds : ["none"]);
-      const specMap = new Map(specs?.map(s => [s.id, s.name]) ?? []);
+      const specMap = new Map((specs as any[])?.map((s: any) => [s.id, s.name]) ?? []);
       const docSpecMap = new Map<string, string>();
-      (docSpecs ?? []).forEach(ds => docSpecMap.set(ds.doctor_id, specMap.get(ds.specialty_id as any) ?? "Outros"));
+      (docSpecs ?? []).forEach((ds: any) => docSpecMap.set(ds.doctor_id, specMap.get(ds.specialty_id) ?? "Outros"));
       const specCount: Record<string, number> = {};
       completedAppts.forEach(a => {
         const spec = docSpecMap.get(a.doctor_id) ?? "Sem especialidade";

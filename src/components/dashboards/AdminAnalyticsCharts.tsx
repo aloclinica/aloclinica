@@ -95,7 +95,7 @@ const AdminAnalyticsCharts = () => {
     // Specialty distribution
     const specMap = new Map((specsRes.data ?? []).map((s: any) => [s.id, s.name]));
     const specCount: Record<string, number> = {};
-    (docSpecsRes.data ?? []).forEach((ds: any) => { const name = specMap.get(ds.specialty_id) || "Outro"; specCount[name] = (specCount[name] || 0) + 1; });
+    (docSpecsRes.data ?? []).forEach((ds: any) => { const name = specMap.get(ds.specialty_id as string) || "Outro"; specCount[name as string] = ((specCount[name as string]) || 0) + 1; });
     setSpecialtyData(Object.entries(specCount).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([name, count]) => ({ name, count })));
 
     // Revenue

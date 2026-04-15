@@ -62,26 +62,28 @@ const OphthalmologyEditExam = () => {
     enabled: !!examId,
   });
 
+  const examAny = exam as any;
+
   const form = useForm<ExamFormValues>({
     resolver: zodResolver(examSchema),
-    values: exam
+    values: examAny
       ? {
-          patient_name: exam.patient_name,
-          patient_cpf: exam.patient_cpf ?? "",
-          patient_birth_date: exam.patient_birth_date ?? "",
-          exam_type: exam.exam_type,
-          od_spherical: exam.od_spherical ?? undefined,
-          od_cylindrical: exam.od_cylindrical ?? undefined,
-          od_axis: exam.od_axis ?? undefined,
-          od_acuity: exam.od_acuity ?? "",
-          oe_spherical: exam.oe_spherical ?? undefined,
-          oe_cylindrical: exam.oe_cylindrical ?? undefined,
-          oe_axis: exam.oe_axis ?? undefined,
-          oe_acuity: exam.oe_acuity ?? "",
-          intraocular_pressure_od: exam.intraocular_pressure_od ?? undefined,
-          intraocular_pressure_oe: exam.intraocular_pressure_oe ?? undefined,
-          notes: exam.notes ?? "",
-          status: exam.status,
+          patient_name: examAny.patient_name ?? "",
+          patient_cpf: examAny.patient_cpf ?? "",
+          patient_birth_date: examAny.patient_birth_date ?? "",
+          exam_type: examAny.exam_type ?? "refraction",
+          od_spherical: examAny.od_spherical ?? undefined,
+          od_cylindrical: examAny.od_cylindrical ?? undefined,
+          od_axis: examAny.od_axis ?? undefined,
+          od_acuity: examAny.od_acuity ?? "",
+          oe_spherical: examAny.oe_spherical ?? undefined,
+          oe_cylindrical: examAny.oe_cylindrical ?? undefined,
+          oe_axis: examAny.oe_axis ?? undefined,
+          oe_acuity: examAny.oe_acuity ?? "",
+          intraocular_pressure_od: examAny.intraocular_pressure_od ?? undefined,
+          intraocular_pressure_oe: examAny.intraocular_pressure_os ?? undefined,
+          notes: examAny.notes ?? "",
+          status: examAny.status ?? "draft",
         }
       : undefined,
   });
@@ -114,7 +116,7 @@ const OphthalmologyEditExam = () => {
         <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2"><ArrowLeft className="w-4 h-4" /> Voltar</Button>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((v) => updateMutation.mutate(v))} className="space-y-6">
+          <form onSubmit={form.handleSubmit((v) => updateMutation.mutate(v as any))} className="space-y-6">
             {/* Patient Info */}
             <Card>
               <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><Eye className="w-5 h-5 text-primary" /> Dados do Paciente</CardTitle></CardHeader>
