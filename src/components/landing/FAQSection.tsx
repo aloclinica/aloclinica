@@ -1,5 +1,5 @@
 import { useEffect, useState, forwardRef, useCallback } from "react";
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 import { motion, AnimatePresence } from "framer-motion";
 import { MagnifyingGlass, ChatCircleDots, Question, ArrowRight, CaretDown, Stethoscope, FileText, CreditCard, ShieldCheck, UserGear } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";

@@ -9,7 +9,7 @@
  * render its hardcoded default ordering.
  */
 import { useEffect, useState } from "react";
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 import { warn } from "@/lib/logger";
 
 export type SiteSection = {

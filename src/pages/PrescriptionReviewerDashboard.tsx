@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";

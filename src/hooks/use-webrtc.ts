@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 import { logError } from "@/lib/logger";
 
 // ─── Fallback ICE Servers (usados se edge function falhar) ────────────────────

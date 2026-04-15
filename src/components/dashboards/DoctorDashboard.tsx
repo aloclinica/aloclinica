@@ -4,7 +4,7 @@ import DashboardLayout from "./DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 import { getDoctorNav } from "@/components/doctor/doctorNav";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";

@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import mascotReading from "@/assets/mascot-reading.png";
 import { useAuth } from "@/contexts/AuthContext";
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getLaudistaNav } from "@/components/laudista/laudistaNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

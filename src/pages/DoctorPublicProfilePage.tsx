@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 import SEOHead from "@/components/SEOHead";
 import DoctorPublicProfile from "@/components/doctor/DoctorPublicProfile";
 import { Loader2 } from "lucide-react";

@@ -1,4 +1,4 @@
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 
 export async function criarDocumentoParaAssinar(
   pdfBase64: string,

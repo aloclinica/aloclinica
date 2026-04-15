@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { uploadDICOM } from "@/lib/orthanc";
 import { Button } from "@/components/ui/button";

@@ -1,4 +1,4 @@
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 
 const OHIF_URL = "http://72.62.138.208:3001";
 

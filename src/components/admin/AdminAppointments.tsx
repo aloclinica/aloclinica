@@ -35,13 +35,13 @@ const AdminAppointments = () => {
 
   // Realtime updates
   useEffect(() => {
-    const channel = supabase
+    const channel = db
       .channel("admin-appts-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "appointments" }, () => {
         fetchAppointments();
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { db.removeChannel(channel); };
   }, []);
 
   const fetchAppointments = async () => {

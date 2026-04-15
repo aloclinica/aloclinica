@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Video, Users, Lightbulb } from "lucide-react";
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 import { useNavigate } from "react-router-dom";
 import mascotWave from "@/assets/mascot-wave.png";
 

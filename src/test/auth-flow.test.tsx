@@ -36,7 +36,7 @@ vi.mock("framer-motion", () => ({
 vi.mock("@/assets/logo.png", () => ({ default: "logo.png" }));
 
 import Auth from "@/pages/Auth";
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 
 describe("Auth Flow", () => {
   beforeEach(() => {

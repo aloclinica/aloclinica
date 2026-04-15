@@ -3,7 +3,7 @@ import { Navigate, Routes, Route, useSearchParams, useNavigate, useParams } from
 import { usePresence } from "@/hooks/use-presence";
 import { prefetchOnIdle } from "@/hooks/use-prefetch-route";
 import { lazy, Suspense, ReactNode, useEffect } from "react";
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 import { warn } from "@/lib/logger";
 
 import PingoLoader from "@/components/PingoLoader";

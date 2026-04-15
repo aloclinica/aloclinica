@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 import { logError } from "@/lib/logger";
 
 interface Exam {

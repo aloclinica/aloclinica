@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles } from "lucide-react";
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 
 interface MedicalAutocompleteProps {
   value: string;

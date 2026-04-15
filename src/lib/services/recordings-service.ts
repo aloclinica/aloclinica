@@ -1,4 +1,4 @@
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 import { logError } from "@/lib/logger";
 
 export interface RecordingMetadata {

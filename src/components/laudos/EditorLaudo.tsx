@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Save, CheckCircle, ExternalLink, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import { useDigitalSignature } from "@/hooks/useDigitalSignature";
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 
 export default function EditorLaudo() {
   const { exameId } = useParams<{ exameId: string }>();

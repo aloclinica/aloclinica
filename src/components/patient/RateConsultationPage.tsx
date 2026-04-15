@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 import RateConsultation from "@/components/patient/RateConsultation";
 import { Loader2 } from "lucide-react";
 

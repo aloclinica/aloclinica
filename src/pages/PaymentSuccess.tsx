@@ -5,7 +5,7 @@ import { Calendar, ArrowRight, Home, Loader2, Shield, Sparkles } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 
 /* CSS-only confetti */
 const ConfettiPiece = ({ i }: { i: number }) => {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { db } from "@/integrations/db/untyped";
+import { db } from "@/integrations/supabase/untyped";
 import BiometricKYC from "@/components/kyc/BiometricKYC";
 import { ShieldCheck, AlertTriangle, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
