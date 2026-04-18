@@ -9,86 +9,87 @@ import {
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 
-import specCardiology from "@/assets/spec-cardiology.png";
-import specDermatology from "@/assets/spec-dermatology.png";
-import specNeurology from "@/assets/spec-neurology.png";
-import specPediatrics from "@/assets/spec-pediatrics.png";
-import specOrthopedics from "@/assets/spec-orthopedics.png";
-import specOphthalmology from "@/assets/spec-ophthalmology.png";
-import specGeneral from "@/assets/spec-general.png";
-import specEndocrinology from "@/assets/spec-endocrinology.png";
-import specAcupuntura from "@/assets/spec-acupuntura.png";
-import specAlergia from "@/assets/spec-alergia.png";
+// Pingo specialty mascots (transparent PNGs)
+import specCardiology from "@/assets/spec-cardiologista.png";
+import specNeurology from "@/assets/spec-neurologista.png";
+import specPediatrics from "@/assets/spec-pediatra.png";
+import specOrthopedics from "@/assets/spec-ortopedista.png";
+import specOphthalmology from "@/assets/spec-oftalmologista.png";
+import specDermatology from "@/assets/spec-dermatologista.png";
+import specGeneral from "@/assets/spec-clinico-geral.png";
+import specEndocrinology from "@/assets/spec-endocrinologista.png";
+import specAcupuntura from "@/assets/spec-acupunturista.png";
+import specAlergia from "@/assets/spec-alergologista.png";
 import specAngiologia from "@/assets/spec-angiologia.png";
-import specCirurgia from "@/assets/spec-cirurgia.png";
+import specCirurgia from "@/assets/spec-cirurgiao-geral.png";
 import specColoproctologia from "@/assets/spec-coloproctologia.png";
-import specGastro from "@/assets/spec-gastro.png";
-import specGeriatria from "@/assets/spec-geriatria.png";
-import specGinecologia from "@/assets/spec-ginecologia.png";
+import specGastro from "@/assets/spec-gastroenterologista.png";
+import specGeriatria from "@/assets/spec-geriatra.png";
+import specGinecologia from "@/assets/spec-ginecologista.png";
 import specHematologia from "@/assets/spec-hematologia.png";
-import specInfectologia from "@/assets/spec-infectologia.png";
+import specInfectologia from "@/assets/spec-infectologista.png";
 import specMastologia from "@/assets/spec-mastologia.png";
-import specFamilia from "@/assets/spec-familia.png";
+import specFamilia from "@/assets/spec-medico-familia.png";
 import specEsporte from "@/assets/spec-esporte.png";
 import specNefrologia from "@/assets/spec-nefrologia.png";
-import specNutrologia from "@/assets/spec-nutrologia.png";
-import specOncologia from "@/assets/spec-oncologia.png";
+import specNutrologia from "@/assets/spec-nutricionista.png";
+import specOncologia from "@/assets/spec-cirurgiao-onco.png";
 import specOtorrino from "@/assets/spec-otorrino.png";
-import specPneumologia from "@/assets/spec-pneumologia.png";
-import specPsiquiatria from "@/assets/spec-psiquiatria.png";
+import specPneumologia from "@/assets/spec-pneumologista.png";
+import specPsiquiatria from "@/assets/spec-psiquiatra.png";
 import specRadiologia from "@/assets/spec-radiologia.png";
-import specReumatologia from "@/assets/spec-reumatologia.png";
-import specUrologia from "@/assets/spec-urologia.png";
-import specAnestesiologia from "@/assets/spec-anestesiologia.png";
+import specReumatologia from "@/assets/spec-reumatologista.png";
+import specUrologia from "@/assets/spec-urologista.png";
+import specAnestesiologia from "@/assets/spec-anestesiologista.png";
 import specEndoscopia from "@/assets/spec-endoscopia.png";
 import specGenetica from "@/assets/spec-genetica.png";
-import specHomeopatia from "@/assets/spec-homeopatia.png";
-import specPlastica from "@/assets/spec-plastica.png";
-import specCirurgiaCardio from "@/assets/spec-cirurgia-cardio.png";
+import specHomeopatia from "@/assets/spec-homeopata.png";
+import specPlastica from "@/assets/spec-cirurgiao-plastico.png";
+import specCirurgiaCardio from "@/assets/spec-cirurgiao-vascular.png";
 import specIntensiva from "@/assets/spec-intensiva.png";
 import specCabecaPescoco from "@/assets/spec-cabeca-pescoco.png";
-import specCirurgiaVascular from "@/assets/spec-cirurgia-vascular.png";
+import specCirurgiaVascular from "@/assets/spec-cirurgiao-vascular.png";
 
 const specialties = [
-  { name: "Cardiologia", icon: Heart, image: specCardiology, color: "from-rose-500/20 to-rose-500/5" },
-  { name: "Neurologia", icon: Brain, image: specNeurology, color: "from-violet-500/20 to-violet-500/5" },
-  { name: "Pediatria", icon: Baby, image: specPediatrics, color: "from-sky-500/20 to-sky-500/5" },
-  { name: "Ortopedia", icon: Bone, image: specOrthopedics, color: "from-amber-500/20 to-amber-500/5" },
-  { name: "Oftalmologia", icon: Eye, image: specOphthalmology, color: "from-emerald-500/20 to-emerald-500/5" },
-  { name: "Dermatologia", icon: FirstAidKit, image: specDermatology, color: "from-pink-500/20 to-pink-500/5" },
-  { name: "Clínico Geral", icon: Syringe, image: specGeneral, color: "from-primary/20 to-primary/5" },
-  { name: "Endocrinologia", icon: Tooth, image: specEndocrinology, color: "from-teal-500/20 to-teal-500/5" },
-  { name: "Acupuntura", icon: Sparkle, image: specAcupuntura, color: "from-orange-500/20 to-orange-500/5" },
-  { name: "Alergia e Imunologia", icon: Drop, image: specAlergia, color: "from-cyan-500/20 to-cyan-500/5" },
-  { name: "Angiologia", icon: Heartbeat, image: specAngiologia, color: "from-red-500/20 to-red-500/5" },
-  { name: "Cirurgia Geral", icon: Knife, image: specCirurgia, color: "from-slate-500/20 to-slate-500/5" },
-  { name: "Coloproctologia", icon: Stethoscope, image: specColoproctologia, color: "from-yellow-600/20 to-yellow-600/5" },
-  { name: "Gastroenterologia", icon: Flask, image: specGastro, color: "from-lime-500/20 to-lime-500/5" },
-  { name: "Geriatria", icon: Wheelchair, image: specGeriatria, color: "from-stone-500/20 to-stone-500/5" },
-  { name: "Ginecologia e Obstetrícia", icon: HandHeart, image: specGinecologia, color: "from-fuchsia-500/20 to-fuchsia-500/5" },
-  { name: "Hematologia", icon: Drop, image: specHematologia, color: "from-red-600/20 to-red-600/5" },
-  { name: "Infectologia", icon: Virus, image: specInfectologia, color: "from-green-600/20 to-green-600/5" },
-  { name: "Mastologia", icon: Heart, image: specMastologia, color: "from-pink-600/20 to-pink-600/5" },
-  { name: "Med. Família", icon: Person, image: specFamilia, color: "from-blue-500/20 to-blue-500/5" },
-  { name: "Med. do Esporte", icon: Lightning, image: specEsporte, color: "from-emerald-600/20 to-emerald-600/5" },
-  { name: "Nefrologia", icon: Scales, image: specNefrologia, color: "from-indigo-500/20 to-indigo-500/5" },
-  { name: "Nutrologia", icon: Leaf, image: specNutrologia, color: "from-green-500/20 to-green-500/5" },
-  { name: "Oncologia", icon: Flask, image: specOncologia, color: "from-orange-600/20 to-orange-600/5" },
-  { name: "Otorrinolaringologia", icon: Ear, image: specOtorrino, color: "from-purple-500/20 to-purple-500/5" },
-  { name: "Pneumologia", icon: Wind, image: specPneumologia, color: "from-sky-600/20 to-sky-600/5" },
-  { name: "Psiquiatria", icon: Brain, image: specPsiquiatria, color: "from-violet-600/20 to-violet-600/5" },
-  { name: "Radiologia", icon: ChartLine, image: specRadiologia, color: "from-gray-500/20 to-gray-500/5" },
-  { name: "Reumatologia", icon: Bone, image: specReumatologia, color: "from-amber-600/20 to-amber-600/5" },
-  { name: "Urologia", icon: UserCircle, image: specUrologia, color: "from-teal-600/20 to-teal-600/5" },
-  { name: "Anestesiologia", icon: Pill, image: specAnestesiologia, color: "from-cyan-600/20 to-cyan-600/5" },
-  { name: "Endoscopia", icon: Eye, image: specEndoscopia, color: "from-indigo-600/20 to-indigo-600/5" },
-  { name: "Genética Médica", icon: Dna, image: specGenetica, color: "from-blue-600/20 to-blue-600/5" },
-  { name: "Homeopatia", icon: Leaf, image: specHomeopatia, color: "from-lime-600/20 to-lime-600/5" },
-  { name: "Cirurgia Plástica", icon: Sparkle, image: specPlastica, color: "from-rose-400/20 to-rose-400/5" },
-  { name: "Cir. Cardiovascular", icon: Heartbeat, image: specCirurgiaCardio, color: "from-red-700/20 to-red-700/5" },
-  { name: "Med. Intensiva", icon: ChartLine, image: specIntensiva, color: "from-slate-600/20 to-slate-600/5" },
-  { name: "Cir. Cabeça e Pescoço", icon: Skull, image: specCabecaPescoco, color: "from-stone-600/20 to-stone-600/5" },
-  { name: "Cirurgia Vascular", icon: Heartbeat, image: specCirurgiaVascular, color: "from-red-400/20 to-red-400/5" },
+  { name: "Cardiologia", icon: Heart, image: specCardiology, color: "from-rose-500/15 to-rose-500/[0.03]" },
+  { name: "Neurologia", icon: Brain, image: specNeurology, color: "from-violet-500/15 to-violet-500/[0.03]" },
+  { name: "Pediatria", icon: Baby, image: specPediatrics, color: "from-sky-500/15 to-sky-500/[0.03]" },
+  { name: "Ortopedia", icon: Bone, image: specOrthopedics, color: "from-amber-500/15 to-amber-500/[0.03]" },
+  { name: "Oftalmologia", icon: Eye, image: specOphthalmology, color: "from-emerald-500/15 to-emerald-500/[0.03]" },
+  { name: "Dermatologia", icon: FirstAidKit, image: specDermatology, color: "from-pink-500/15 to-pink-500/[0.03]" },
+  { name: "Clínico Geral", icon: Syringe, image: specGeneral, color: "from-primary/15 to-primary/[0.03]" },
+  { name: "Endocrinologia", icon: Tooth, image: specEndocrinology, color: "from-teal-500/15 to-teal-500/[0.03]" },
+  { name: "Acupuntura", icon: Sparkle, image: specAcupuntura, color: "from-orange-500/15 to-orange-500/[0.03]" },
+  { name: "Alergia e Imunologia", icon: Drop, image: specAlergia, color: "from-cyan-500/15 to-cyan-500/[0.03]" },
+  { name: "Angiologia", icon: Heartbeat, image: specAngiologia, color: "from-red-500/15 to-red-500/[0.03]" },
+  { name: "Cirurgia Geral", icon: Knife, image: specCirurgia, color: "from-slate-500/15 to-slate-500/[0.03]" },
+  { name: "Coloproctologia", icon: Stethoscope, image: specColoproctologia, color: "from-yellow-600/15 to-yellow-600/[0.03]" },
+  { name: "Gastroenterologia", icon: Flask, image: specGastro, color: "from-lime-500/15 to-lime-500/[0.03]" },
+  { name: "Geriatria", icon: Wheelchair, image: specGeriatria, color: "from-stone-500/15 to-stone-500/[0.03]" },
+  { name: "Ginecologia e Obstetrícia", icon: HandHeart, image: specGinecologia, color: "from-fuchsia-500/15 to-fuchsia-500/[0.03]" },
+  { name: "Hematologia", icon: Drop, image: specHematologia, color: "from-red-600/15 to-red-600/[0.03]" },
+  { name: "Infectologia", icon: Virus, image: specInfectologia, color: "from-green-600/15 to-green-600/[0.03]" },
+  { name: "Mastologia", icon: Heart, image: specMastologia, color: "from-pink-600/15 to-pink-600/[0.03]" },
+  { name: "Med. Família", icon: Person, image: specFamilia, color: "from-blue-500/15 to-blue-500/[0.03]" },
+  { name: "Med. do Esporte", icon: Lightning, image: specEsporte, color: "from-emerald-600/15 to-emerald-600/[0.03]" },
+  { name: "Nefrologia", icon: Scales, image: specNefrologia, color: "from-indigo-500/15 to-indigo-500/[0.03]" },
+  { name: "Nutrologia", icon: Leaf, image: specNutrologia, color: "from-green-500/15 to-green-500/[0.03]" },
+  { name: "Oncologia", icon: Flask, image: specOncologia, color: "from-orange-600/15 to-orange-600/[0.03]" },
+  { name: "Otorrinolaringologia", icon: Ear, image: specOtorrino, color: "from-purple-500/15 to-purple-500/[0.03]" },
+  { name: "Pneumologia", icon: Wind, image: specPneumologia, color: "from-sky-600/15 to-sky-600/[0.03]" },
+  { name: "Psiquiatria", icon: Brain, image: specPsiquiatria, color: "from-violet-600/15 to-violet-600/[0.03]" },
+  { name: "Radiologia", icon: ChartLine, image: specRadiologia, color: "from-gray-500/15 to-gray-500/[0.03]" },
+  { name: "Reumatologia", icon: Bone, image: specReumatologia, color: "from-amber-600/15 to-amber-600/[0.03]" },
+  { name: "Urologia", icon: UserCircle, image: specUrologia, color: "from-teal-600/15 to-teal-600/[0.03]" },
+  { name: "Anestesiologia", icon: Pill, image: specAnestesiologia, color: "from-cyan-600/15 to-cyan-600/[0.03]" },
+  { name: "Endoscopia", icon: Eye, image: specEndoscopia, color: "from-indigo-600/15 to-indigo-600/[0.03]" },
+  { name: "Genética Médica", icon: Dna, image: specGenetica, color: "from-blue-600/15 to-blue-600/[0.03]" },
+  { name: "Homeopatia", icon: Leaf, image: specHomeopatia, color: "from-lime-600/15 to-lime-600/[0.03]" },
+  { name: "Cirurgia Plástica", icon: Sparkle, image: specPlastica, color: "from-rose-400/15 to-rose-400/[0.03]" },
+  { name: "Cir. Cardiovascular", icon: Heartbeat, image: specCirurgiaCardio, color: "from-red-700/15 to-red-700/[0.03]" },
+  { name: "Med. Intensiva", icon: ChartLine, image: specIntensiva, color: "from-slate-600/15 to-slate-600/[0.03]" },
+  { name: "Cir. Cabeça e Pescoço", icon: Skull, image: specCabecaPescoco, color: "from-stone-600/15 to-stone-600/[0.03]" },
+  { name: "Cirurgia Vascular", icon: Heartbeat, image: specCirurgiaVascular, color: "from-red-400/15 to-red-400/[0.03]" },
 ];
 
 const INITIAL_VISIBLE = 8;
@@ -135,24 +136,23 @@ function SpecialtiesShowcase() {
                 onClick={() => navigate("/paciente")}
               >
                 <div className="relative bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-xl hover:border-primary/20 transition-all duration-300">
-                  {/* Image */}
-                  <div className={`relative h-32 sm:h-36 overflow-hidden bg-gradient-to-br ${spec.color}`}>
+                  {/* Pingo (transparent) on a soft tinted backdrop */}
+                  <div className={`relative h-40 sm:h-44 overflow-hidden bg-gradient-to-br ${spec.color} flex items-center justify-center`}>
                     <img
                       src={spec.image}
-                      alt={spec.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      alt={`Pingo - ${spec.name}`}
+                      className="h-full w-auto object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                       decoding="async"
                       width={512}
                       height={512}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent opacity-60" />
-                    {/* Shimmer */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
+                    {/* Soft shimmer */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
                   </div>
 
                   {/* Content */}
-                  <div className="p-4 flex items-center gap-3">
+                  <div className="p-4 flex items-center gap-3 border-t border-border/30">
                     <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:shadow-lg group-hover:shadow-primary/20 transition-all duration-300">
                       <spec.icon className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" weight="fill" />
                     </div>
