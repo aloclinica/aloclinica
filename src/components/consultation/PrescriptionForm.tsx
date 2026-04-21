@@ -297,7 +297,7 @@ const PrescriptionForm = () => {
     return { doc, prescriptionId };
   };
 
-  const handleSave = async () => {
+  const handleSave = async (skipRedirect = false) => {
     // Validação centralizada no hook
     if (!prescription.validate()) {
       prescription.errors.forEach(err => {
