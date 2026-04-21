@@ -179,6 +179,9 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
         </div>
       </section>
 
+      {/* ═══════════════ TECNOLOGIA ═══════════════ */}
+      <TechnologySection />
+
       {/* ═══════════════ ESPECIALIDADES ═══════════════ */}
       <SpecialtiesSection />
 
