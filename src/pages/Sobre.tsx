@@ -6,10 +6,10 @@ import { useNavigate } from "react-router-dom";
 import Header from "@/components/landing/Header";
 import SEOHead from "@/components/SEOHead";
 
-import doctorConfianca from "@/assets/doctor-confianca.png";
-import doctorTecnologia from "@/assets/doctor-tecnologia.png";
-import doctorPacientes from "@/assets/doctor-pacientes.png";
-import doctorSeguranca from "@/assets/doctor-seguranca.png";
+import heroDoctor from "@/assets/hero-doctor.png";
+import heroTeleconsulta from "@/assets/hero-teleconsulta.png";
+import bannerPatient from "@/assets/banner-teleconsulta-patient.jpg";
+import heroTelelaudo from "@/assets/hero-telelaudo.png";
 import pingoVideocall from "@/assets/pingo-videocall.png";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
@@ -78,12 +78,21 @@ const Sobre = forwardRef<HTMLDivElement>((_, ref) => {
             </motion.div>
 
             <motion.div
-              className="flex justify-center"
+              className="relative flex justify-center"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <img src={doctorConfianca} alt="Dra. Lila mascote da AloClínica" width={400} height={400} className="w-[280px] sm:w-[340px] lg:w-[400px] drop-shadow-2xl" />
+              {/* Soft gradient behind image */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.08] to-secondary/[0.05] blur-[80px] rounded-full scale-90 -z-10" />
+              
+              <img 
+                src={heroDoctor} 
+                alt="Médico AloClínica" 
+                width={500} 
+                height={500} 
+                className="w-full max-w-[420px] lg:max-w-[480px] drop-shadow-2xl relative z-10" 
+              />
             </motion.div>
           </div>
         </div>
@@ -117,8 +126,16 @@ const Sobre = forwardRef<HTMLDivElement>((_, ref) => {
       <section className="py-20 md:py-28 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            <motion.div className="flex justify-center order-2 lg:order-1" {...fadeUp} transition={{ duration: 0.6 }}>
-              <img src={doctorTecnologia} alt="Dra. Lila com tecnologia médica" loading="lazy" width={512} height={512} className="w-[260px] sm:w-[320px] lg:w-[380px] drop-shadow-xl" />
+            <motion.div className="relative flex justify-center order-2 lg:order-1" {...fadeUp} transition={{ duration: 0.6 }}>
+              <div className="absolute inset-0 bg-primary/[0.05] blur-[60px] rounded-full scale-75 -z-10" />
+              <img 
+                src={heroTeleconsulta} 
+                alt="Tecnologia Médica" 
+                loading="lazy" 
+                width={512} 
+                height={512} 
+                className="w-full max-w-[400px] lg:max-w-[450px] drop-shadow-xl relative z-10" 
+              />
             </motion.div>
 
             <motion.div className="order-1 lg:order-2" {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }}>
@@ -249,8 +266,16 @@ const Sobre = forwardRef<HTMLDivElement>((_, ref) => {
               </div>
             </motion.div>
 
-            <motion.div className="flex justify-center" {...fadeUp} transition={{ duration: 0.6, delay: 0.2 }}>
-              <img src={doctorPacientes} alt="Dra. Lila com pacientes felizes" loading="lazy" width={512} height={512} className="w-[280px] sm:w-[340px] lg:w-[420px] drop-shadow-xl" />
+            <motion.div className="relative flex justify-center" {...fadeUp} transition={{ duration: 0.6, delay: 0.2 }}>
+              <div className="absolute inset-0 bg-secondary/[0.05] blur-[60px] rounded-full scale-75 -z-10" />
+              <img 
+                src={bannerPatient} 
+                alt="Pacientes utilizando a AloClínica" 
+                loading="lazy" 
+                width={512} 
+                height={512} 
+                className="w-full max-w-[420px] lg:max-w-[480px] rounded-3xl shadow-2xl relative z-10" 
+              />
             </motion.div>
           </div>
         </div>
@@ -298,8 +323,16 @@ const Sobre = forwardRef<HTMLDivElement>((_, ref) => {
       <section className="py-20 md:py-28 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            <motion.div className="flex justify-center order-2 lg:order-1" {...fadeUp} transition={{ duration: 0.6 }}>
-              <img src={doctorSeguranca} alt="Dra. Lila segurança de dados" loading="lazy" width={512} height={512} className="w-[260px] sm:w-[300px] lg:w-[360px] drop-shadow-xl" />
+            <motion.div className="relative flex justify-center order-2 lg:order-1" {...fadeUp} transition={{ duration: 0.6 }}>
+              <div className="absolute inset-0 bg-primary/[0.05] blur-[60px] rounded-full scale-75 -z-10" />
+              <img 
+                src={heroTelelaudo} 
+                alt="Segurança de Dados" 
+                loading="lazy" 
+                width={512} 
+                height={512} 
+                className="w-full max-w-[380px] lg:max-w-[420px] drop-shadow-xl relative z-10" 
+              />
             </motion.div>
 
             <motion.div className="order-1 lg:order-2" {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }}>
