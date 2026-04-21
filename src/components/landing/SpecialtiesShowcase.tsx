@@ -135,9 +135,9 @@ function SpecialtiesShowcase() {
                 className="group cursor-pointer"
                 onClick={() => navigate("/paciente")}
               >
-                <div className="relative bg-card rounded-2xl border border-border/40 overflow-hidden hover:shadow-xl hover:border-primary/20 transition-all duration-300">
+                <div className="relative bg-card rounded-2xl border border-border/40 hover:shadow-xl hover:border-primary/20 transition-all duration-300">
                   {/* Pingo (transparent) on a soft tinted backdrop */}
-                  <div className={`relative h-40 sm:h-44 overflow-hidden bg-gradient-to-br ${spec.color} flex items-center justify-center`}>
+                  <div className={`relative h-40 sm:h-44 bg-gradient-to-br ${spec.color} flex items-center justify-center rounded-t-2xl`}>
                     <img
                       src={spec.image}
                       alt={`Pingo - ${spec.name}`}
