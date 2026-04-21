@@ -33,6 +33,10 @@ const specialties = [
   { name: "Nefrologia", emoji: "🫘", image: "/src/assets/spec-nefrologia.png", desc: "Rins e sistema urinário", doctors: 16 },
   { name: "Hepatologia", emoji: "🫀", image: "/src/assets/pingo-gastro.png", desc: "Fígado e doenças hepáticas", doctors: 14 },
   { name: "Alergologia", emoji: "🤧", image: "/src/assets/pingo-alergologista.png", desc: "Alergias e reações adversas", doctors: 23 },
+  { name: "Psiquiatria", emoji: "🧠", image: "/src/assets/pingo-psiquiatra.png", desc: "Tratamento de transtornos mentais", doctors: 33 },
+  { name: "Geriatria", emoji: "👴", image: "/src/assets/pingo-geriatra.png", desc: "Saúde do idoso e envelhecimento", doctors: 19 },
+  { name: "Cirurgia Plástica", emoji: "✨", image: "/src/assets/pingo-cirurgiao-plastico.png", desc: "Procedimentos estéticos e reparadores", doctors: 15 },
+  { name: "Acupuntura", emoji: "📍", image: "/src/assets/pingo-acupunturista.png", desc: "Medicina tradicional chinesa", doctors: 12 },
   { name: "Telemedicina 24h", emoji: "📞", image: "/src/assets/pingo-videocall.png", desc: "Atendimento de emergência anytime", doctors: 150 },
 ];
 
