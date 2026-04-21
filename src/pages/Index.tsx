@@ -7,8 +7,9 @@ import HeroSection from "@/components/landing/HeroSection";
 import SpecialtiesSection from "@/components/landing/SpecialtiesSection";
 import CTABanner from "@/components/landing/CTABanner";
 import Footer from "@/components/landing/Footer";
+import TechnologySection from "@/components/landing/TechnologySection";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Video, Star } from "lucide-react";
+import { ArrowRight, Video, Star, Cpu } from "lucide-react";
 import { useSiteSections } from "@/lib/site-sections";
 import { motion } from "framer-motion";
 import doctorTeleconsulta from "@/assets/doctor-phone-teleconsulta.png";
@@ -177,6 +178,9 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
           </div>
         </div>
       </section>
+
+      {/* ═══════════════ TECNOLOGIA ═══════════════ */}
+      <TechnologySection />
 
       {/* ═══════════════ ESPECIALIDADES ═══════════════ */}
       <SpecialtiesSection />
