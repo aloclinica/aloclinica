@@ -151,11 +151,18 @@ function SpecialtiesShowcase() {
                   </div>
 
                   {/* Content */}
-                  <div className="p-4 flex items-center gap-3 border-t border-border/30">
-                    <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:shadow-lg group-hover:shadow-primary/20 transition-all duration-300">
-                      <spec.icon className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" weight="fill" />
+                  <div className="p-4 flex flex-col gap-1.5 border-t border-border/30">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:shadow-lg group-hover:shadow-primary/20 transition-all duration-300">
+                        <spec.icon className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" weight="fill" />
+                      </div>
+                      <span className="text-xs sm:text-sm font-bold text-foreground leading-tight">{spec.name}</span>
                     </div>
-                    <span className="text-xs sm:text-sm font-bold text-foreground leading-tight">{spec.name}</span>
+                    {spec.desc && (
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground leading-tight opacity-0 group-hover:opacity-100 transition-opacity duration-300 line-clamp-2">
+                        {spec.desc}
+                      </p>
+                    )}
                   </div>
                 </div>
               </motion.div>
