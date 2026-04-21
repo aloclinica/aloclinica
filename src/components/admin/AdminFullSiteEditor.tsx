@@ -1,11 +1,4 @@
-/**
- * AdminFullSiteEditor — Three-column CMS editor for all landing sections.
- *
- * Left: section list (toggle, edit).
- * Middle: dynamic form generated from each section's `schema`.
- * Right: live preview iframe of "/".
- */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { db } from "@/integrations/supabase/untyped";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,11 +7,16 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { invalidateSiteSections } from "@/lib/site-sections";
-import { ArrowUp, ArrowDown, Save, RefreshCw, Monitor, Tablet, Smartphone, History, Upload, Plus, Trash2 } from "lucide-react";
+import { 
+  ArrowUp, ArrowDown, Save, RefreshCw, Monitor, Tablet, Smartphone, 
+  History, Upload, Plus, Trash2, Layout, Image as ImageIcon, 
+  Type, Settings, Eye, Search, AlertCircle
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 type Field = {
   key: string;
@@ -52,10 +50,12 @@ export default function AdminFullSiteEditor() {
   const [viewport, setViewport] = useState<keyof typeof VIEWPORTS>("desktop");
   const [previewKey, setPreviewKey] = useState(0);
   const [history, setHistory] = useState<Array<{ id: string; saved_at: string; config: any }>>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isDirty, setIsDirty] = useState(false);
 
   const selected = useMemo(() => sections.find((s) => s.key === selectedKey), [sections, selectedKey]);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     const { data, error } = await (db as any)
       .from("site_sections")
@@ -68,13 +68,21 @@ export default function AdminFullSiteEditor() {
       if (!selectedKey && data && data[0]) setSelectedKey(data[0].key);
     }
     setLoading(false);
-  };
+  }, [selectedKey]);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
-    if (selected) setEditing(selected.config ?? {});
+    if (selected) {
+      setEditing(selected.config ?? {});
+      setIsDirty(false);
+    }
   }, [selectedKey]); // eslint-disable-line
+
+  const handleConfigChange = (newConfig: Record<string, any>) => {
+    setEditing(newConfig);
+    setIsDirty(true);
+  };
 
   const saveConfig = async () => {
     if (!selected) return;
@@ -86,18 +94,19 @@ export default function AdminFullSiteEditor() {
       toast.error("Erro ao salvar: " + error.message);
       return;
     }
-    toast.success("Seção salva");
+    toast.success("Seção salva com sucesso!");
+    setIsDirty(false);
     invalidateSiteSections();
     setPreviewKey((k) => k + 1);
     await load();
   };
 
-  const toggleEnabled = async (s: Section): Promise<void> => {
+  const toggleEnabled = async (s: Section) => {
     const { error } = await (db as any)
       .from("site_sections")
       .update({ is_enabled: !s.is_enabled })
       .eq("id", s.id);
-    if (error) { toast.error("Erro"); return; }
+    if (error) { toast.error("Erro ao alternar status"); return; }
     invalidateSiteSections();
     setPreviewKey((k) => k + 1);
     await load();
@@ -125,109 +134,177 @@ export default function AdminFullSiteEditor() {
     setHistory(data ?? []);
   };
 
-  const restoreHistory = (cfg: any) => {
-    setEditing(cfg ?? {});
-    toast.info("Versão carregada — clique Salvar para aplicar");
-  };
+  const filteredSections = sections.filter(s => 
+    s.display_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    s.key.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const fields = selected?.schema?.fields ?? [];
   const VpIcon = VIEWPORTS[viewport].icon;
 
   return (
-    <div className="h-[calc(100vh-120px)] flex flex-col">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between gap-2 mb-3 px-2">
-        <h1 className="text-2xl font-bold">Editor do site</h1>
-        <div className="flex items-center gap-2">
-          {(Object.keys(VIEWPORTS) as Array<keyof typeof VIEWPORTS>).map((k) => {
-            const Icon = VIEWPORTS[k].icon;
-            return (
-              <Button key={k} size="sm" variant={viewport === k ? "default" : "outline"} onClick={() => setViewport(k)}>
-                <Icon className="w-4 h-4" />
-              </Button>
-            );
-          })}
-          <Button size="sm" variant="outline" onClick={() => setPreviewKey((k) => k + 1)}>
-            <RefreshCw className="w-4 h-4 mr-1" /> Recarregar
-          </Button>
+    <div className="h-[calc(100vh-120px)] flex flex-col gap-4">
+      {/* Header Toolbar */}
+      <div className="flex items-center justify-between bg-card p-3 rounded-xl border shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Layout className="w-5 h-5 text-primary" />
+            <h1 className="text-xl font-bold tracking-tight">Editor Visual</h1>
+          </div>
+          {isDirty && (
+            <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 animate-pulse">
+              <AlertCircle className="w-3 h-3 mr-1" /> Alterações não salvas
+            </Badge>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-muted rounded-lg p-1 mr-2">
+            {(Object.keys(VIEWPORTS) as Array<keyof typeof VIEWPORTS>).map((k) => {
+              const Icon = VIEWPORTS[k].icon;
+              return (
+                <Button 
+                  key={k} 
+                  size="sm" 
+                  variant="ghost" 
+                  className={`h-8 w-10 p-0 ${viewport === k ? "bg-background shadow-sm" : "text-muted-foreground"}`}
+                  onClick={() => setViewport(k)}
+                  title={VIEWPORTS[k].label}
+                >
+                  <Icon className="w-4 h-4" />
+                </Button>
+              );
+            })}
+          </div>
+
           <DropdownMenu onOpenChange={(o) => { if (o) loadHistory(); }}>
             <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="outline"><History className="w-4 h-4 mr-1" /> Histórico</Button>
+              <Button size="sm" variant="outline" className="h-9">
+                <History className="w-4 h-4 mr-2" /> Histórico
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-72">
-              {history.length === 0 && <DropdownMenuItem disabled>Sem versões anteriores</DropdownMenuItem>}
+              {history.length === 0 && <DropdownMenuItem disabled>Nenhum histórico disponível</DropdownMenuItem>}
               {history.map((h) => (
-                <DropdownMenuItem key={h.id} onClick={() => restoreHistory(h.config)}>
+                <DropdownMenuItem key={h.id} onClick={() => { setEditing(h.config); setIsDirty(true); }}>
                   {new Date(h.saved_at).toLocaleString("pt-BR")}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button size="sm" onClick={saveConfig} disabled={!selected}>
-            <Save className="w-4 h-4 mr-1" /> Salvar
+
+          <Button size="sm" variant="outline" className="h-9" onClick={() => setPreviewKey(k => k + 1)}>
+            <RefreshCw className="w-4 h-4 mr-2" /> Recarregar
+          </Button>
+
+          <Button size="sm" className="h-9 px-6 font-bold" onClick={saveConfig} disabled={!selected || !isDirty}>
+            <Save className="w-4 h-4 mr-2" /> Salvar Alterações
           </Button>
         </div>
       </div>
 
-      <div className="flex-1 grid grid-cols-12 gap-3 min-h-0">
-        {/* Left: sections list */}
-        <Card className="col-span-3 p-2 overflow-y-auto">
-          {loading && <div className="p-4 text-sm text-muted-foreground">Carregando...</div>}
-          {sections.map((s) => (
-            <div
-              key={s.id}
-              className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-muted ${selectedKey === s.key ? "bg-muted" : ""}`}
-              onClick={() => setSelectedKey(s.key)}
-            >
-              <div className="flex flex-col gap-0">
-                <button className="p-0.5 hover:bg-background rounded" onClick={(e) => { e.stopPropagation(); move(s, -1); }}>
-                  <ArrowUp className="w-3 h-3" />
-                </button>
-                <button className="p-0.5 hover:bg-background rounded" onClick={(e) => { e.stopPropagation(); move(s, 1); }}>
-                  <ArrowDown className="w-3 h-3" />
-                </button>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate">{s.display_name}</div>
-                <div className="text-xs text-muted-foreground truncate">{s.key}</div>
-              </div>
-              <Switch checked={s.is_enabled} onClick={(e) => e.stopPropagation()} onCheckedChange={() => toggleEnabled(s)} />
+      <div className="flex-1 grid grid-cols-12 gap-4 min-h-0">
+        {/* Left: Sections List */}
+        <Card className="col-span-3 flex flex-col shadow-sm">
+          <div className="p-3 border-b">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Buscar seções..." 
+                className="pl-9 h-9" 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-          ))}
+          </div>
+          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+            {loading && [1,2,3,4].map(i => <div key={i} className="h-12 bg-muted/50 rounded-lg animate-pulse" />)}
+            {filteredSections.map((s) => (
+              <div
+                key={s.id}
+                className={`group flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${selectedKey === s.key ? "bg-primary text-primary-foreground shadow-md" : "hover:bg-muted"}`}
+                onClick={() => setSelectedKey(s.key)}
+              >
+                <div className="flex flex-col gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
+                  <button className="p-0.5 hover:bg-white/20 rounded" onClick={(e) => { e.stopPropagation(); move(s, -1); }}>
+                    <ArrowUp className="w-3 h-3" />
+                  </button>
+                  <button className="p-0.5 hover:bg-white/20 rounded" onClick={(e) => { e.stopPropagation(); move(s, 1); }}>
+                    <ArrowDown className="w-3 h-3" />
+                  </button>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className={`text-sm font-bold truncate ${selectedKey === s.key ? "text-white" : "text-foreground"}`}>{s.display_name}</div>
+                  <div className={`text-[10px] truncate ${selectedKey === s.key ? "text-white/70" : "text-muted-foreground"}`}>{s.key}</div>
+                </div>
+                <Switch 
+                  checked={s.is_enabled} 
+                  onClick={(e) => e.stopPropagation()} 
+                  onCheckedChange={() => toggleEnabled(s)} 
+                  className={selectedKey === s.key ? "data-[state=checked]:bg-white data-[state=unchecked]:bg-white/30" : ""}
+                />
+              </div>
+            ))}
+          </div>
         </Card>
 
-        {/* Middle: form */}
-        <Card className="col-span-4 p-4 overflow-y-auto">
-          {!selected && <div className="text-sm text-muted-foreground">Selecione uma seção</div>}
-          {selected && (
-            <div className="space-y-4">
-              <h2 className="font-bold">{selected.display_name}</h2>
-              {fields.length === 0 && <div className="text-xs text-muted-foreground">Esta seção não tem campos configuráveis.</div>}
-              {fields.map((f) => (
-                <FieldEditor
-                  key={f.key}
-                  field={f}
-                  value={editing[f.key]}
-                  onChange={(v) => setEditing((e) => ({ ...e, [f.key]: v }))}
-                />
-              ))}
+        {/* Middle: Editor Form */}
+        <Card className="col-span-4 flex flex-col shadow-sm overflow-hidden">
+          {!selected ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8 text-center">
+              <Settings className="w-12 h-12 mb-4 opacity-20" />
+              <p className="font-medium">Selecione uma seção no painel esquerdo para começar a editar.</p>
+            </div>
+          ) : (
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div className="flex items-center justify-between pb-2 border-b">
+                <h2 className="text-lg font-bold flex items-center gap-2">
+                  <Type className="w-4 h-4" /> {selected.display_name}
+                </h2>
+                <Badge variant="outline">{selected.key}</Badge>
+              </div>
+              
+              {selected.schema?.fields?.length === 0 ? (
+                <div className="py-12 text-center text-muted-foreground">
+                  <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">Esta seção não possui campos editáveis.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {selected.schema?.fields?.map((f) => (
+                    <FieldEditor
+                      key={f.key}
+                      field={f}
+                      value={editing[f.key]}
+                      onChange={(v) => handleConfigChange({ ...editing, [f.key]: v })}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </Card>
 
-        {/* Right: preview */}
-        <Card className="col-span-5 p-2 flex flex-col">
-          <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-            <VpIcon className="w-3 h-3" /> {VIEWPORTS[viewport].label}
+        {/* Right: Preview */}
+        <Card className="col-span-5 flex flex-col shadow-sm overflow-hidden bg-muted/20 border-none">
+          <div className="p-2 px-4 bg-background border-b flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+              <VpIcon className="w-3.5 h-3.5" /> 
+              {VIEWPORTS[viewport].label} — Visualização em tempo real
+            </div>
+            <Eye className="w-4 h-4 text-primary/60" />
           </div>
-          <div className="flex-1 bg-muted rounded overflow-hidden flex justify-center">
-            <iframe
-              key={previewKey}
-              src="/?preview=1"
-              className="h-full border-0 bg-white"
-              style={{ width: VIEWPORTS[viewport].w, maxWidth: "100%" }}
-              title="preview"
-            />
+          <div className="flex-1 p-4 flex justify-center">
+            <div 
+              className="bg-white shadow-2xl rounded-lg overflow-hidden transition-all duration-300 ease-in-out border"
+              style={{ width: VIEWPORTS[viewport].w, maxWidth: "100%", height: "100%" }}
+            >
+              <iframe
+                key={previewKey}
+                src="/?preview=1"
+                className="w-full h-full border-0"
+                title="Preview"
+              />
+            </div>
           </div>
         </Card>
       </div>
@@ -238,39 +315,65 @@ export default function AdminFullSiteEditor() {
 /* -------- Field editors -------- */
 
 function FieldEditor({ field, value, onChange }: { field: Field; value: any; onChange: (v: any) => void }) {
+  const labelEl = <Label className="text-[13px] font-bold mb-1.5 block">{field.label}</Label>;
+
   if (field.type === "text" || field.type === "url") {
     return (
       <div className="space-y-1">
-        <Label>{field.label}</Label>
-        <Input value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
+        {labelEl}
+        <Input 
+          value={value ?? ""} 
+          onChange={(e) => onChange(e.target.value)} 
+          className="bg-background focus:ring-1 focus:ring-primary/20"
+        />
       </div>
     );
   }
+  
   if (field.type === "textarea") {
     return (
       <div className="space-y-1">
-        <Label>{field.label}</Label>
-        <Textarea rows={3} value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
+        {labelEl}
+        <Textarea 
+          rows={4} 
+          value={value ?? ""} 
+          onChange={(e) => onChange(e.target.value)} 
+          className="bg-background resize-none focus:ring-1 focus:ring-primary/20"
+        />
       </div>
     );
   }
+
   if (field.type === "color") {
     return (
       <div className="space-y-1">
-        <Label>{field.label}</Label>
-        <div className="flex gap-2 items-center">
-          <input type="color" value={value || "#000000"} onChange={(e) => onChange(e.target.value)} className="h-9 w-14 rounded border" />
-          <Input value={value ?? ""} onChange={(e) => onChange(e.target.value)} placeholder="#RRGGBB ou hsl(...)" />
+        {labelEl}
+        <div className="flex gap-2">
+          <div className="relative w-10 h-10 shrink-0 overflow-hidden rounded-md border">
+            <input 
+              type="color" 
+              value={value || "#000000"} 
+              onChange={(e) => onChange(e.target.value)} 
+              className="absolute inset-[-5px] cursor-pointer" 
+            />
+          </div>
+          <Input 
+            value={value ?? ""} 
+            onChange={(e) => onChange(e.target.value)} 
+            placeholder="#HEX ou HSL" 
+            className="font-mono text-sm"
+          />
         </div>
       </div>
     );
   }
+
   if (field.type === "select") {
     return (
       <div className="space-y-1">
-        <Label>{field.label}</Label>
+        {labelEl}
         <Select value={value ?? ""} onValueChange={onChange}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
           <SelectContent>
             {(field.options ?? []).map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
           </SelectContent>
@@ -278,39 +381,77 @@ function FieldEditor({ field, value, onChange }: { field: Field; value: any; onC
       </div>
     );
   }
+
   if (field.type === "image") {
     return <ImageField label={field.label} value={value ?? ""} onChange={onChange} />;
   }
+
   if (field.type === "array") {
     return <ArrayField field={field} value={value ?? []} onChange={onChange} />;
   }
+
   return null;
 }
 
 function ImageField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   const [uploading, setUploading] = useState(false);
+  
   const onFile = async (file: File) => {
     setUploading(true);
-    const path = `${Date.now()}-${file.name}`;
-    const { error: upErr } = await db.storage.from("site-media").upload(path, file, { upsert: false });
-    if (upErr) { toast.error(upErr.message); setUploading(false); return; }
-    const { data: pub } = db.storage.from("site-media").getPublicUrl(path);
-    const url = pub.publicUrl;
-    await (db as any).from("site_media").insert({ url, path, name: file.name, mime_type: file.type, size_bytes: file.size });
-    onChange(url);
+    const path = `site-assets/${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
+    const { error: upErr } = await db.storage.from("files").upload(path, file, { upsert: false });
+    
+    if (upErr) { 
+      toast.error("Erro no upload: " + upErr.message); 
+      setUploading(false); 
+      return; 
+    }
+    
+    const { data: pub } = db.storage.from("files").getPublicUrl(path);
+    onChange(pub.publicUrl);
     setUploading(false);
-    toast.success("Imagem enviada");
+    toast.success("Imagem enviada!");
   };
+
   return (
-    <div className="space-y-1">
-      <Label>{label}</Label>
-      {value && <img src={value} alt="" className="h-24 w-auto rounded border object-cover" />}
+    <div className="space-y-2">
+      <Label className="text-[13px] font-bold block">{label}</Label>
+      
+      {value ? (
+        <div className="relative aspect-video w-full rounded-lg overflow-hidden border group bg-muted/50">
+          <img src={value} alt="" className="w-full h-full object-contain" />
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <Button size="sm" variant="secondary" onClick={() => onChange("")} className="h-8">Remover</Button>
+          </div>
+        </div>
+      ) : (
+        <div className="aspect-video w-full rounded-lg border-2 border-dashed flex flex-col items-center justify-center text-muted-foreground bg-muted/20">
+          <ImageIcon className="w-8 h-8 mb-2 opacity-20" />
+          <p className="text-xs">Nenhuma imagem selecionada</p>
+        </div>
+      )}
+
       <div className="flex gap-2">
-        <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder="URL" />
-        <label className="inline-flex items-center gap-1 border rounded px-3 py-2 cursor-pointer hover:bg-muted text-sm">
-          <Upload className="w-4 h-4" /> {uploading ? "..." : "Upload"}
-          <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
-        </label>
+        <Input 
+          value={value} 
+          onChange={(e) => onChange(e.target.value)} 
+          placeholder="URL da imagem..." 
+          className="text-xs h-9"
+        />
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="h-9 relative overflow-hidden" 
+          disabled={uploading}
+        >
+          {uploading ? "..." : <><Upload className="w-4 h-4 mr-1" /> Upload</>}
+          <input 
+            type="file" 
+            accept="image/*" 
+            className="absolute inset-0 opacity-0 cursor-pointer" 
+            onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} 
+          />
+        </Button>
         <MediaPickerButton onPick={onChange} />
       </div>
     </div>
@@ -320,27 +461,46 @@ function ImageField({ label, value, onChange }: { label: string; value: string; 
 function MediaPickerButton({ onPick }: { onPick: (url: string) => void }) {
   const [open, setOpen] = useState(false);
   const [media, setMedia] = useState<any[]>([]);
-  useEffect(() => {
-    if (!open) return;
-    (db as any).from("site_media").select("*").order("created_at", { ascending: false }).limit(60)
-      .then(({ data }: any) => setMedia(data ?? []));
-  }, [open]);
+  const [loading, setLoading] = useState(false);
+
+  const loadMedia = async () => {
+    setLoading(true);
+    const { data } = await (db as any).from("site_media").select("*").order("created_at", { ascending: false }).limit(60);
+    setMedia(data ?? []);
+    setLoading(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v) loadMedia(); }}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" type="button">Biblioteca</Button>
+        <Button variant="outline" size="sm" className="h-9"><Settings className="w-4 h-4 mr-1" /> Biblioteca</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader><DialogTitle>Biblioteca de mídia</DialogTitle></DialogHeader>
-        <div className="grid grid-cols-4 gap-2 max-h-[60vh] overflow-y-auto">
-          {media.map((m) => (
-            <button key={m.id} onClick={() => { onPick(m.url); setOpen(false); }} className="border rounded p-1 hover:border-primary">
-              <img src={m.url} alt={m.name} className="w-full h-24 object-cover rounded" />
-              <div className="text-[10px] truncate mt-1">{m.name}</div>
-            </button>
-          ))}
-          {media.length === 0 && <div className="col-span-4 text-sm text-muted-foreground p-4 text-center">Nenhuma imagem</div>}
-        </div>
+      <DialogContent className="max-w-4xl">
+        <DialogHeader><DialogTitle>Biblioteca de Mídia</DialogTitle></DialogHeader>
+        {loading ? (
+          <div className="h-64 flex items-center justify-center">Carregando...</div>
+        ) : (
+          <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 max-h-[60vh] overflow-y-auto p-1">
+            {media.map((m) => (
+              <button 
+                key={m.id} 
+                onClick={() => { onPick(m.url); setOpen(false); }} 
+                className="aspect-square border rounded-lg overflow-hidden hover:ring-2 ring-primary transition-all group relative bg-muted"
+              >
+                <img src={m.url} alt="" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <span className="text-[10px] text-white font-bold">Selecionar</span>
+                </div>
+              </button>
+            ))}
+            {media.length === 0 && (
+              <div className="col-span-full py-12 text-center text-muted-foreground">
+                <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-10" />
+                <p>Nenhuma mídia encontrada na biblioteca.</p>
+              </div>
+            )}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -349,40 +509,64 @@ function MediaPickerButton({ onPick }: { onPick: (url: string) => void }) {
 function ArrayField({ field, value, onChange }: { field: Field; value: any[]; onChange: (v: any[]) => void }) {
   const items = Array.isArray(value) ? value : [];
   const itemFields = field.item_schema?.fields ?? [];
+  
   const addItem = () => {
     const blank: Record<string, any> = {};
     for (const f of itemFields) blank[f.key] = "";
     onChange([...items, blank]);
   };
+
+  const removeItem = (idx: number) => {
+    onChange(items.filter((_, i) => i !== idx));
+  };
+
   return (
-    <div className="space-y-2 border rounded p-3">
-      <div className="flex items-center justify-between">
-        <Label>{field.label}</Label>
-        <Button size="sm" variant="outline" onClick={addItem}><Plus className="w-3 h-3 mr-1" /> Adicionar</Button>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between border-b pb-1.5">
+        <Label className="text-[13px] font-bold">{field.label}</Label>
+        <Button size="sm" variant="ghost" onClick={addItem} className="h-7 text-xs text-primary font-bold hover:text-primary hover:bg-primary/10">
+          <Plus className="w-3.5 h-3.5 mr-1" /> Adicionar Item
+        </Button>
       </div>
-      {items.map((item, i) => (
-        <div key={i} className="border rounded p-2 space-y-2 bg-muted/30">
-          <div className="flex justify-between items-center">
-            <div className="text-xs font-semibold">Item {i + 1}</div>
-            <Button size="sm" variant="ghost" onClick={() => onChange(items.filter((_, j) => j !== i))}>
-              <Trash2 className="w-3 h-3" />
-            </Button>
+
+      <div className="space-y-3">
+        {items.map((item, i) => (
+          <div key={i} className="border rounded-xl p-4 bg-muted/30 space-y-4 relative group/item">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Item #{i + 1}</span>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={() => removeItem(i)} 
+                className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+            
+            <div className="grid gap-4">
+              {itemFields.map((f) => (
+                <FieldEditor
+                  key={f.key}
+                  field={f}
+                  value={item?.[f.key]}
+                  onChange={(v) => {
+                    const next = [...items];
+                    next[i] = { ...next[i], [f.key]: v };
+                    onChange(next);
+                  }}
+                />
+              ))}
+            </div>
           </div>
-          {itemFields.map((f) => (
-            <FieldEditor
-              key={f.key}
-              field={f}
-              value={item?.[f.key]}
-              onChange={(v) => {
-                const next = [...items];
-                next[i] = { ...next[i], [f.key]: v };
-                onChange(next);
-              }}
-            />
-          ))}
-        </div>
-      ))}
-      {items.length === 0 && <div className="text-xs text-muted-foreground">Vazio</div>}
+        ))}
+        
+        {items.length === 0 && (
+          <div className="py-8 text-center border-2 border-dashed rounded-xl text-muted-foreground bg-muted/10">
+            <p className="text-xs">Clique em "Adicionar Item" para começar.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
