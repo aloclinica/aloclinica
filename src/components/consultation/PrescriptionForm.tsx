@@ -331,7 +331,7 @@ const PrescriptionForm = () => {
       const documentHash = await gerarHashDocumento(docContent);
       const verificationCode = gerarCodigoVerificacao();
 
-      const { error } = await db.from("prescriptions").insert({
+      const { data: insertedPrescription, error } = await db.from("prescriptions").insert({
         appointment_id: appointmentId!,
         doctor_id: data.doctorId,
         patient_id: data.patientId,
@@ -339,7 +339,8 @@ const PrescriptionForm = () => {
         diagnosis: data.diagnosis || null,
         observations: data.observations || null,
         document_hash: documentHash,
-      });
+        status: "finalized",
+      }).select("id").single();
 
       // Also persist verification record
       await db.from("document_verifications").insert({
