@@ -74,7 +74,7 @@ const moreSpecialties = [
   { name: "Reumatologista", img: specReumatologista, desc: "Tratamento especializado para doenças autoimunes e articulares." },
 ];
 
-const SpecialtyCard = ({ name, img, index }: { name: string; img: string; index: number }) => {
+const SpecialtyCard = ({ name, img, desc, index }: { name: string; img: string; desc?: string; index: number }) => {
   const navigate = useNavigate();
   return (
     <motion.button
@@ -82,7 +82,7 @@ const SpecialtyCard = ({ name, img, index }: { name: string; img: string; index:
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.04, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="group flex flex-col items-center gap-3 p-4 rounded-2xl bg-card/80 border border-border/40 hover:shadow-lg hover:border-primary/25 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+      className="group flex flex-col items-center gap-3 p-4 rounded-2xl bg-card/80 border border-border/40 hover:shadow-lg hover:border-primary/25 hover:-translate-y-1 transition-all duration-300 cursor-pointer h-full"
       onClick={() => navigate("/dashboard/doctors")}
     >
       <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
@@ -94,9 +94,16 @@ const SpecialtyCard = ({ name, img, index }: { name: string; img: string; index:
           className="w-full h-full object-contain drop-shadow-xl group-hover:scale-110 transition-transform duration-300"
         />
       </div>
-      <span className="text-xs md:text-sm font-semibold text-foreground text-center leading-tight group-hover:text-primary transition-colors">
-        {name}
-      </span>
+      <div className="flex flex-col items-center gap-1.5">
+        <span className="text-xs md:text-sm font-bold text-foreground text-center leading-tight group-hover:text-primary transition-colors">
+          {name}
+        </span>
+        {desc && (
+          <p className="text-[10px] md:text-[11px] text-muted-foreground text-center leading-tight opacity-0 group-hover:opacity-100 transition-opacity duration-300 line-clamp-2">
+            {desc}
+          </p>
+        )}
+      </div>
     </motion.button>
   );
 };
