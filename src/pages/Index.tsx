@@ -89,8 +89,8 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
               {/* Glow behind image */}
               <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.08] to-secondary/[0.06] blur-[100px] rounded-full scale-75 -z-10" />
               <img
-                src="https://cvbgrjauqjawrsyknhyj.supabase.co/storage/v1/object/public/files/uploads/0XILPRqqUbSOh99ow53X5OBDOCC3/1776794584229-hum3c-hero-doctor__4_-removebg-preview.png"
-                alt="Médico AloClínica pronto para sua teleconsulta"
+                src={doctorTeleconsulta}
+                alt="Pingo, mascote da AloClínica, pronto para sua teleconsulta"
                 loading="lazy"
                 width={1024}
                 height={1280}
