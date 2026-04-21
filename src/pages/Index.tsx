@@ -24,9 +24,11 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
 
   const sectionData = useMemo(() => {
     const map: Record<string, any> = {};
-    sections.forEach(s => {
-      map[s.key] = s.config;
-    });
+    if (sections) {
+      sections.forEach(s => {
+        map[s.key] = s.config;
+      });
+    }
     return map;
   }, [sections]);
 
