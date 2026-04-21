@@ -5,73 +5,72 @@ import { ArrowRight, CaretDown } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import OptimizedImage from "@/components/ui/optimized-image";
 
-import specClinicoGeral from "@/assets/spec-clinico-geral.png";
-import specDermatologista from "@/assets/spec-dermatologista.png";
-import specGinecologista from "@/assets/spec-ginecologista.png";
-import specOrtopedista from "@/assets/spec-ortopedista.png";
-import specCardiologista from "@/assets/spec-cardiologista.png";
-import specPediatra from "@/assets/spec-pediatra.png";
-import specPsiquiatra from "@/assets/spec-psiquiatra.png";
-import specNeurologista from "@/assets/spec-neurologista.png";
-import specOftalmologista from "@/assets/spec-oftalmologista.png";
-import specEndocrinologista from "@/assets/spec-endocrinologista.png";
-import specUrologista from "@/assets/spec-urologista.png";
-import specGastroenterologista from "@/assets/spec-gastroenterologista.png";
+import pingoClinicoGeral from "@/assets/pingo-clinico-geral.png";
+import pingoDermatologista from "@/assets/pingo-dermatologista.png";
+import pingoGinecologista from "@/assets/pingo-ginecologista.png";
+import pingoOrtopedista from "@/assets/pingo-ortopedista.png";
+import pingoCardiologista from "@/assets/pingo-cardiologista.png";
+import pingoPediatra from "@/assets/pingo-pediatra.png";
+import pingoPsiquiatra from "@/assets/pingo-psiquiatra.png";
+import pingoNeurologista from "@/assets/pingo-neurologista.png";
+import pingoOftalmologista from "@/assets/pingo-oftalmologista.png";
+import pingoEndocrinologista from "@/assets/pingo-endocrinologista.png";
+import pingoUrologista from "@/assets/pingo-urologista.png";
+import pingoGastroenterologista from "@/assets/pingo-gastroenterologista.png";
 
-import specAcupunturista from "@/assets/spec-acupunturista.png";
-import specAnestesiologista from "@/assets/spec-anestesiologista.png";
-import specCirurgiaoGeral from "@/assets/spec-cirurgiao-geral.png";
-import specCirurgiaoOnco from "@/assets/spec-cirurgiao-onco.png";
-import specCirurgiaoPlastico from "@/assets/spec-cirurgiao-plastico.png";
-import specCirurgiaoVascular from "@/assets/spec-cirurgiao-vascular.png";
-import specClinicaMedica from "@/assets/spec-clinico-geral.png";
-import specGeriatra from "@/assets/spec-geriatra.png";
-import specHomeopata from "@/assets/spec-homeopata.png";
-import specInfectologista from "@/assets/spec-infectologista.png";
-import specMedicoFamilia from "@/assets/spec-medico-familia.png";
-import specNefrologia from "@/assets/spec-nefrologia.png";
-import specNutricionista from "@/assets/spec-nutricionista.png";
-import specOtorrino from "@/assets/spec-otorrino.png";
-import specPneumologista from "@/assets/spec-pneumologista.png";
-import specReumatologista from "@/assets/spec-reumatologista.png";
+import pingoAcupunturista from "@/assets/pingo-acupunturista.png";
+import pingoAnestesiologista from "@/assets/pingo-anestesiologista.png";
+import pingoCirurgiaoGeral from "@/assets/pingo-cirurgiao-geral.png";
+import pingoCirurgiaoOnco from "@/assets/pingo-cirurgiao-onco.png";
+import pingoCirurgiaoPlastico from "@/assets/pingo-cirurgiao-plastico.png";
+import pingoCirurgiaoVascular from "@/assets/pingo-cirurgiao-vascular.png";
+import pingoGeriatra from "@/assets/pingo-geriatra.png";
+import pingoHomeopata from "@/assets/pingo-homeopata.png";
+import pingoInfectologista from "@/assets/pingo-infectologista.png";
+import pingoMedicoFamilia from "@/assets/pingo-medico-familia.png";
+import pingoClinicaMedica from "@/assets/pingo-clinica-medica.png";
+import pingoNefrologia from "@/assets/pingo-nefrologia.png";
+import pingoNutricionista from "@/assets/pingo-nutricionista.png";
+import pingoOtorrino from "@/assets/pingo-otorrino.png";
+import pingoPneumologista from "@/assets/pingo-pneumologista.png";
+import pingoReumatologista from "@/assets/pingo-reumatologista.png";
 
-// Reuse some icons for remaining specialties that don't have unique ones yet
 const topSpecialties = [
-  { name: "Clínico geral", img: specClinicoGeral, desc: "Seu primeiro contato para qualquer sintoma. Eu te ajudo a começar!" },
-  { name: "Dermatologista", img: specDermatologista, desc: "Cuidando da sua pele, cabelos e unhas com todo carinho." },
-  { name: "Ginecologista-obstetra", img: specGinecologista, desc: "Saúde da mulher em todas as fases da vida, com acolhimento." },
-  { name: "Ortopedista", img: specOrtopedista, desc: "Para dores nos ossos, articulações e músculos. Vamos nos mexer!" },
-  { name: "Cardiologista", img: specCardiologista, desc: "Cuidando do seu coração para ele bater sempre forte e feliz." },
-  { name: "Pediatra", img: specPediatra, desc: "Cuidado especial para os nossos pequenos crescerem saudáveis." },
-  { name: "Psiquiatra", img: specPsiquiatra, desc: "Sua saúde mental é prioridade. Vamos conversar e cuidar da mente." },
-  { name: "Neurologista", img: specNeurologista, desc: "Especialista em cérebro e sistema nervoso. Conexão total!" },
-  { name: "Oftalmologista", img: specOftalmologista, desc: "Para você enxergar o mundo com clareza e cores vibrantes." },
-  { name: "Endocrinologista", img: specEndocrinologista, desc: "Equilibrando seus hormônios e metabolismo para mais energia." },
-  { name: "Urologista", img: specUrologista, desc: "Saúde do sistema urinário e reprodutor com total discrição." },
-  { name: "Gastroenterologista", img: specGastroenterologista, desc: "Cuidando do seu sistema digestivo para você se sentir leve." },
+  { name: "Clínico geral", img: pingoClinicoGeral, desc: "Seu primeiro contato para qualquer sintoma. Eu te ajudo a começar!" },
+  { name: "Dermatologista", img: pingoDermatologista, desc: "Cuidando da sua pele, cabelos e unhas com todo carinho." },
+  { name: "Ginecologista-obstetra", img: pingoGinecologista, desc: "Saúde da mulher em todas as fases da vida, com acolhimento." },
+  { name: "Ortopedista", img: pingoOrtopedista, desc: "Para dores nos ossos, articulações e músculos. Vamos nos mexer!" },
+  { name: "Cardiologista", img: pingoCardiologista, desc: "Cuidando do seu coração para ele bater sempre forte e feliz." },
+  { name: "Pediatra", img: pingoPediatra, desc: "Cuidado especial para os nossos pequenos crescerem saudáveis." },
+  { name: "Psiquiatra", img: pingoPsiquiatra, desc: "Sua saúde mental é prioridade. Vamos conversar e cuidar da mente." },
+  { name: "Neurologista", img: pingoNeurologista, desc: "Especialista em cérebro e sistema nervoso. Conexão total!" },
+  { name: "Oftalmologista", img: pingoOftalmologista, desc: "Para você enxergar o mundo com clareza e cores vibrantes." },
+  { name: "Endocrinologista", img: pingoEndocrinologista, desc: "Equilibrando seus hormônios e metabolismo para mais energia." },
+  { name: "Urologista", img: pingoUrologista, desc: "Saúde do sistema urinário e reprodutor com total discrição." },
+  { name: "Gastroenterologista", img: pingoGastroenterologista, desc: "Cuidando do seu sistema digestivo para você se sentir leve." },
 ];
 
 const moreSpecialties = [
-  { name: "Acupunturista", img: specAcupunturista, desc: "Equilíbrio e bem-estar através de técnicas tradicionais." },
-  { name: "Anestesiologista", img: specAnestesiologista, desc: "Segurança e conforto durante seus procedimentos." },
-  { name: "Cirurgião geral", img: specCirurgiaoGeral, desc: "Especialista em diversos procedimentos cirúrgicos essenciais." },
-  { name: "Cirurgião oncológico", img: specCirurgiaoOnco, desc: "Tratamento especializado e focado no combate ao câncer." },
-  { name: "Cirurgião plástico", img: specCirurgiaoPlastico, desc: "Harmonia e estética com foco na sua autoestima." },
-  { name: "Cirurgião vascular", img: specCirurgiaoVascular, desc: "Cuidando da sua circulação e saúde das veias e artérias." },
-  { name: "Clínica médica", img: specClinicaMedica, desc: "Visão integral da sua saúde para diagnósticos precisos." },
-  { name: "Geriatra", img: specGeriatra, desc: "Cuidado dedicado e especializado para a melhor idade." },
-  { name: "Homeopata", img: specHomeopata, desc: "Abordagem natural e holística para o seu equilíbrio." },
-  { name: "Infectologista", img: specInfectologista, desc: "Prevenção e tratamento de doenças infecciosas." },
-  { name: "Médico de família", img: specMedicoFamilia, desc: "Cuidado contínuo para você e todos os seus familiares." },
-  { name: "Médico de tráfego", img: specClinicoGeral, desc: "Avaliações necessárias para sua jornada no trânsito." },
-  { name: "Médico do trabalho", img: specClinicoGeral, desc: "Saúde e segurança para sua vida profissional." },
-  { name: "Nefrologista", img: specNefrologia, desc: "Cuidado vital para a saúde e função dos seus rins." },
-  { name: "Nutricionista", img: specNutricionista, desc: "Alimentação balanceada para uma vida muito mais saudável." },
-  { name: "Nutrólogo", img: specNutricionista, desc: "Foco médico na sua nutrição e prevenção de doenças." },
-  { name: "Otorrinolaringologista", img: specOtorrino, desc: "Cuidando de ouvidos, nariz e garganta com precisão." },
-  { name: "Pneumologista", img: specPneumologista, desc: "Para você respirar melhor e cuidar dos seus pulmões." },
-  { name: "Psicólogo", img: specPsiquiatra, desc: "Apoio emocional para enfrentar os desafios do dia a dia." },
-  { name: "Reumatologista", img: specReumatologista, desc: "Tratamento especializado para doenças autoimunes e articulares." },
+  { name: "Acupunturista", img: pingoAcupunturista, desc: "Equilíbrio e bem-estar através de técnicas tradicionais." },
+  { name: "Anestesiologista", img: pingoAnestesiologista, desc: "Segurança e conforto durante seus procedimentos." },
+  { name: "Cirurgião geral", img: pingoCirurgiaoGeral, desc: "Especialista em diversos procedimentos cirúrgicos essenciais." },
+  { name: "Cirurgião oncológico", img: pingoCirurgiaoOnco, desc: "Tratamento especializado e focado no combate ao câncer." },
+  { name: "Cirurgião plástico", img: pingoCirurgiaoPlastico, desc: "Harmonia e estética com foco na sua autoestima." },
+  { name: "Cirurgião vascular", img: pingoCirurgiaoVascular, desc: "Cuidando da sua circulação e saúde das veias e artérias." },
+  { name: "Clínica médica", img: pingoClinicaMedica, desc: "Visão integral da sua saúde para diagnósticos precisos." },
+  { name: "Geriatra", img: pingoGeriatra, desc: "Cuidado dedicado e especializado para a melhor idade." },
+  { name: "Homeopata", img: pingoHomeopata, desc: "Abordagem natural e holística para o seu equilíbrio." },
+  { name: "Infectologista", img: pingoInfectologista, desc: "Prevenção e tratamento de doenças infecciosas." },
+  { name: "Médico de família", img: pingoMedicoFamilia, desc: "Cuidado contínuo para você e todos os seus familiares." },
+  { name: "Médico de tráfego", img: pingoClinicoGeral, desc: "Avaliações necessárias para sua jornada no trânsito." },
+  { name: "Médico do trabalho", img: pingoClinicoGeral, desc: "Saúde e segurança para sua vida profissional." },
+  { name: "Nefrologista", img: pingoNefrologia, desc: "Cuidado vital para a saúde e função dos seus rins." },
+  { name: "Nutricionista", img: pingoNutricionista, desc: "Alimentação balanceada para uma vida muito mais saudável." },
+  { name: "Nutrólogo", img: pingoNutricionista, desc: "Foco médico na sua nutrição e prevenção de doenças." },
+  { name: "Otorrinolaringologista", img: pingoOtorrino, desc: "Cuidando de ouvidos, nariz e garganta com precisão." },
+  { name: "Pneumologista", img: pingoPneumologista, desc: "Para você respirar melhor e cuidar dos seus pulmões." },
+  { name: "Psicólogo", img: pingoPsiquiatra, desc: "Apoio emocional para enfrentar os desafios do dia a dia." },
+  { name: "Reumatologista", img: pingoReumatologista, desc: "Tratamento especializado para doenças autoimunes e articulares." },
 ];
 
 const SpecialtyCard = ({ name, img, desc, index }: { name: string; img: string; desc?: string; index: number }) => {
@@ -87,7 +86,7 @@ const SpecialtyCard = ({ name, img, desc, index }: { name: string; img: string; 
     >
       <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
         <OptimizedImage
-          src="https://cvbgrjauqjawrsyknhyj.supabase.co/storage/v1/object/public/files/uploads/0XILPRqqUbSOh99ow53X5OBDOCC3/1776788772275-bngbf-hero-doctor__4_-removebg-preview.png"
+          src={img}
           alt={`Especialista ${name}`}
           width={80}
           height={80}
