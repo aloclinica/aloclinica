@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Video, ShieldCheck, Cpu, Lock } from "lucide-react";
 import technologyDoctor from "@/assets/technology-doctor.png";
 
@@ -31,13 +30,7 @@ const TechnologySection = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Left — Image */}
-          <motion.div
-            className="flex justify-center relative"
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          >
+          <div className="flex justify-center relative">
             <div className="absolute inset-0 bg-primary/5 blur-[120px] rounded-full scale-75 -z-10" />
             <img
               src={technologyDoctor}
@@ -45,16 +38,11 @@ const TechnologySection = () => {
               className="w-full max-w-[500px] h-auto drop-shadow-2xl"
               loading="lazy"
             />
-          </motion.div>
+          </div>
 
           {/* Right — Content */}
           <div className="flex flex-col">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mb-10"
-            >
+            <div className="mb-10">
               <span className="inline-flex items-center gap-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-primary bg-primary/[0.08] px-4 py-1.5 rounded-full mb-6">
                 <Cpu className="w-3.5 h-3.5" />
                 NOSSA TECNOLOGIA
@@ -65,17 +53,13 @@ const TechnologySection = () => {
               <p className="text-muted-foreground text-base md:text-lg leading-relaxed max-w-xl">
                 Utilizamos tecnologia de ponta para oferecer uma experiência médica segura e eficiente. Cada detalhe foi pensado para garantir qualidade no atendimento.
               </p>
-            </motion.div>
+            </div>
 
             <div className="space-y-6">
-              {features.map((feature, i) => (
-                <motion.div
+              {features.map((feature) => (
+                <div
                   key={feature.title}
                   className="flex items-start gap-4 p-5 rounded-2xl bg-card border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all duration-300"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.1 * i }}
                 >
                   <div className="w-12 h-12 rounded-xl bg-primary/[0.08] flex items-center justify-center shrink-0">
                     {feature.icon}
@@ -86,7 +70,7 @@ const TechnologySection = () => {
                       {feature.description}
                     </p>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
