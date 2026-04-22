@@ -40,7 +40,7 @@ const Sobre = forwardRef<HTMLDivElement>((_, ref) => {
       <Header />
 
       {/* ═══════════════ HERO ═══════════════ */}
-      <section className="pt-32 pb-16 md:pb-24 px-4">
+      <section id="quem-somos" className="pt-32 pb-16 md:pb-24 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
@@ -218,7 +218,7 @@ const Sobre = forwardRef<HTMLDivElement>((_, ref) => {
       </section>
 
       {/* ═══════════════ PACIENTES SATISFEITOS ═══════════════ */}
-      <section className="py-20 md:py-28 px-4">
+      <section id="depoimentos" className="py-20 md:py-28 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             <motion.div {...fadeUp} transition={{ duration: 0.5 }}>
@@ -377,7 +377,7 @@ const Sobre = forwardRef<HTMLDivElement>((_, ref) => {
       </section>
 
       {/* ═══════════════ DIFERENCIAIS ═══════════════ */}
-      <section className="py-20 px-4 bg-muted/30">
+      <section id="porque-nos" className="py-20 px-4 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <motion.div className="text-center mb-14" {...fadeUp}>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-4">
