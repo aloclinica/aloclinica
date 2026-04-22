@@ -62,10 +62,9 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
 
   const logoUrl = config?.logo_url || mascot;
   const menuItems = config?.menu_items || [
-    { label: "Início", href: "/" },
-    { label: "Plantão", href: "/plantao" },
-    { label: "Teleconsulta", href: "/teleconsulta" },
-    { label: "Receita", href: "/receita" },
+    { label: "Especialidades", href: "/#especialidades" },
+    { label: "Para Médicos", href: "/#para-medicos" },
+    { label: "Ajuda", href: "/ajuda" },
   ];
 
   useEffect(() => {
@@ -78,8 +77,8 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const triggerCls = "group/trigger text-[12px] xl:text-[13px] font-medium text-muted-foreground hover:text-foreground bg-transparent data-[state=open]:text-foreground data-[state=open]:bg-muted/40 px-2.5 xl:px-3.5 h-9 rounded-full transition-colors duration-150 gap-1 xl:gap-1.5 whitespace-nowrap";
-  const linkBtnCls = "text-[12px] xl:text-[13px] font-medium px-3.5 xl:px-4 h-9 rounded-full border border-border/60 bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/60 hover:border-border transition-all duration-150 inline-flex items-center justify-center whitespace-nowrap cursor-pointer";
+  const triggerCls = "group/trigger text-[14px] font-medium text-muted-foreground hover:text-foreground bg-transparent data-[state=open]:text-foreground px-4 h-10 rounded-full transition-colors duration-150 gap-1.5 whitespace-nowrap";
+  const linkBtnCls = "text-[14px] font-medium px-4 h-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all duration-150 inline-flex items-center justify-center whitespace-nowrap cursor-pointer";
 
   return (
     <header
@@ -91,17 +90,17 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
           : "bg-background/80 backdrop-blur-sm border-transparent"
       )}
     >
-      <div className="max-w-[1800px] mx-auto flex items-center justify-between h-14 lg:h-[56px] px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
-        <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
-          <img src={logoUrl} alt="Logo" className="w-8 h-8 rounded-xl object-contain transition-transform duration-200 group-hover:scale-105" width={32} height={32} />
-          <span className="text-lg font-extrabold text-foreground tracking-tight">
-            Alo<span className="text-primary">Clinica</span>
+      <div className="max-w-[1800px] mx-auto flex items-center h-14 lg:h-[64px] px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
+        <Link to="/" className="flex items-center gap-2.5 shrink-0 group mr-8">
+          <img src={logoUrl} alt="Logo" className="w-9 h-9 rounded-xl object-contain transition-transform duration-200 group-hover:scale-105" width={36} height={36} />
+          <span className="text-xl font-extrabold text-[#1a1c1e] tracking-tight">
+            Alo<span className="text-[#1a4fcf]">Clinica</span>
           </span>
         </Link>
 
-        <div className="hidden lg:flex items-center">
+        <div className="hidden lg:flex items-center flex-1 justify-center">
           <NavigationMenu>
-            <NavigationMenuList className="gap-0.5">
+            <NavigationMenuList className="gap-1">
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
                   <Link to="/" className={linkBtnCls}>Início</Link>
@@ -158,15 +157,15 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
         </div>
 
         {/* Right actions */}
-        <div className="hidden lg:flex items-center gap-2.5">
+        <div className="hidden lg:flex items-center gap-3">
           <LanguageSwitcher />
 
           {user ? (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-full gap-2 h-9 border-border/60 bg-card/80 transition-all duration-150 group"
+                className="rounded-full gap-2 h-10 border-border/60 bg-card/80 transition-all duration-150 group"
                 onClick={() => navigate("/dashboard")}
               >
                 <span className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground">
@@ -178,11 +177,11 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
               </Button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" className="rounded-full h-9 border-primary/20 bg-primary/[0.05] text-primary" onClick={() => navigate("/agendar")}>
+            <div className="flex items-center gap-3">
+              <Button size="sm" variant="outline" className="rounded-full h-10 px-6 border-[#1a4fcf] text-[#1a4fcf] hover:bg-[#1a4fcf]/5 font-semibold" onClick={() => navigate("/agendar")}>
                 Agendar
               </Button>
-              <Button size="sm" className="rounded-full h-9 bg-primary text-primary-foreground" onClick={() => navigate("/paciente")}>
+              <Button size="sm" className="rounded-full h-10 px-6 bg-[#1a4fcf] text-white hover:bg-[#1a4fcf]/90 font-semibold" onClick={() => navigate("/paciente")}>
                 Entrar
               </Button>
             </div>
