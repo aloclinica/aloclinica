@@ -11,7 +11,8 @@ import {
   Eye, EyeOff, Sparkles, LogIn, ShieldCheck,
 } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
-import logo from "@/assets/logo.png";
+import { PINGO_LOGO_URL } from "@/lib/constants";
+const logo = PINGO_LOGO_URL;
 import mascotWelcome from "@/assets/mascot-welcome.png";
 
 const fadeUp = {
