@@ -53,17 +53,19 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
       {isOn("hero") && <HeroSection config={sectionData.hero} />}
 
       {/* ═══════════════ AGENDAR CONSULTA ═══════════════ */}
-      <section className="relative py-20 md:py-32 overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/[0.03] via-primary/[0.08] to-background" />
+      <section className="relative py-24 md:py-40 overflow-hidden">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/[0.02] via-primary/[0.05] to-background" />
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-[1fr_1.1fr] gap-8 lg:gap-20 items-center">
+          <div className="grid lg:grid-cols-[1fr_1.1fr] gap-12 lg:gap-24 items-center">
             <motion.div
               className="flex justify-center relative order-2 lg:order-1"
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
             >
-              <img src={doctorTeleconsulta} alt="Médico Teleconsulta" className="w-[340px] lg:w-[500px] h-auto drop-shadow-2xl" />
+              <div className="absolute inset-0 bg-primary/10 rounded-full blur-[80px] scale-75 animate-pulse" />
+              <img src={doctorTeleconsulta} alt="Médico Teleconsulta" className="relative z-10 w-[380px] lg:w-[540px] h-auto drop-shadow-2xl" />
             </motion.div>
 
             <motion.div
@@ -71,34 +73,34 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <h2 className="text-3xl lg:text-5xl font-extrabold text-foreground leading-[1.1] mb-5">
-                Agende sua <span className="text-gradient">consulta online</span>
+              <h2 className="text-4xl lg:text-6xl font-black text-foreground leading-[1.05] mb-6">
+                Agende sua <span className="text-gradient">consulta online</span> em minutos
               </h2>
-              <p className="text-muted-foreground text-lg mb-10">
-                Consulte-se com médicos especialistas verificados sem sair de casa.
-                Receitas digitais válidas em todo o Brasil.
+              <p className="text-muted-foreground text-lg sm:text-xl mb-12 max-w-xl">
+                Acesso imediato a médicos especialistas de qualquer lugar. Receitas, atestados e exames entregues digitalmente com total segurança.
               </p>
 
-              <div className="space-y-4 mb-10">
+              <div className="grid sm:grid-cols-1 gap-5 mb-12">
                 {[
-                  { img: pingoCalendar, title: "Agende em segundos", desc: "Escolha o horário que melhor se encaixa" },
-                  { img: pingoVideocall, title: "Consulta por vídeo HD", desc: "Atendimento seguro e criptografado" },
-                  { img: pingoPrescription, title: "Receita digital", desc: "Aceita em qualquer farmácia" },
+                  { img: pingoCalendar, title: "Agende em segundos", desc: "Escolha o melhor horário para você" },
+                  { img: pingoVideocall, title: "Consulta por vídeo HD", desc: "Atendimento humano e seguro por vídeo" },
+                  { img: pingoPrescription, title: "Receita digital", desc: "Válida em todas as farmácias do país" },
                 ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-4 p-4 rounded-2xl bg-card/80 border border-border/40 shadow-sm">
-                    <img src={item.img} alt={item.title} className="w-12 h-12 object-contain" />
+                  <div key={i} className="flex items-center gap-5 p-5 rounded-2xl bg-card/40 border border-border/50 shadow-sm backdrop-blur-sm transition-all hover:bg-card/60">
+                    <img src={item.img} alt={item.title} className="w-14 h-14 object-contain" />
                     <div>
-                      <p className="font-bold text-foreground">{item.title}</p>
-                      <p className="text-sm text-muted-foreground">{item.desc}</p>
+                      <p className="font-extrabold text-foreground text-lg">{item.title}</p>
+                      <p className="text-sm text-muted-foreground font-medium">{item.desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button size="lg" className="rounded-2xl h-[54px] px-10 font-bold shadow-lg shadow-primary/25" onClick={() => navigate("/agendar")}>
-                  Agendar consulta <ArrowRight className="w-4 h-4 ml-1.5" />
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button size="lg" className="rounded-2xl h-[60px] px-12 text-lg font-bold shadow-2xl shadow-primary/25 transition-transform hover:scale-105" onClick={() => navigate("/agendar")}>
+                  Agendar consulta <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </div>
             </motion.div>
