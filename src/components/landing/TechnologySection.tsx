@@ -3,7 +3,32 @@ import { Video, ShieldCheck, Cpu, Lock } from "lucide-react";
 import pingoTecnologia from "@/assets/pingo-tecnologia.png";
 
 const TechnologySection = ({ config }: { config?: any }) => {
-// ... keep existing code
+  const title = config?.title || "Inovação a serviço da sua saúde";
+  const subtitle = config?.subtitle || "Utilizamos tecnologia de ponta para oferecer uma experiência médica segura e eficiente. Cada detalhe foi pensado para garantir qualidade no atendimento.";
+  
+  const features = [
+    {
+      icon: <Video className="w-5 h-5 text-primary" />,
+      title: "Videochamada em HD",
+      description: "Conexão estável com criptografia ponta a ponta para consultas seguras e sem interrupção.",
+    },
+    {
+      icon: <ShieldCheck className="w-5 h-5 text-primary" />,
+      title: "Receita Digital Válida",
+      description: "Prescrições com assinatura digital certificada ICP-Brasil, aceitas em qualquer farmácia do país.",
+    },
+    {
+      icon: <Cpu className="w-5 h-5 text-primary" />,
+      title: "Inteligência Artificial",
+      description: "IA para auxiliar médicos em diagnósticos, otimizar laudos e melhorar a experiência do paciente.",
+    },
+    {
+      icon: <Lock className="w-5 h-5 text-primary" />,
+      title: "Proteção de Dados (LGPD)",
+      description: "Seus dados são protegidos com os mais altos padrões de segurança e em total conformidade com the LGPD.",
+    },
+  ];
+
   return (
     <section className="relative py-24 md:py-32 overflow-hidden bg-[#F8FAFC]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
