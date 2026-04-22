@@ -74,3 +74,6 @@ export const FEATURES = {
   GA:                Boolean(import.meta.env.VITE_GA_MEASUREMENT_ID),
   META_PIXEL:        Boolean(import.meta.env.VITE_META_PIXEL_ID),
 } as const;
+
+// ─── Assets ───────────────────────────────────────────────────────────────────
+export const PINGO_LOGO_URL = "https://cvbgrjauqjawrsyknhyj.supabase.co/storage/v1/object/public/files/uploads/0XILPRqqUbSOh99ow53X5OBDOCC3/1776898097184-ed3gr-image.png";
