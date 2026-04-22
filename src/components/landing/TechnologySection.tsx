@@ -55,12 +55,16 @@ const TechnologySection = ({ config }: { config?: any }) => {
                   <Cpu className="w-3.5 h-3.5" /> NOSSA TECNOLOGIA
                 </span>
                 <h2 className="text-3xl md:text-5xl font-extrabold text-[#1E3A8A] leading-[1.1] mb-6">
-                  {title.split("sua").map((part, i) => (
-                    <span key={i}>
-                      {part}
-                      {i === 0 && <span className="text-[#3B82F6]">sua</span>}
-                    </span>
-                  ))}
+                  {title.includes("sua") ? (
+                    title.split("sua").map((part, i) => (
+                      <span key={i}>
+                        {part}
+                        {i === 0 && <span className="text-[#3B82F6]">sua</span>}
+                      </span>
+                    ))
+                  ) : (
+                    title
+                  )}
                 </h2>
                 <p className="text-[#64748B] text-lg leading-relaxed max-w-xl">{subtitle}</p>
               </motion.div>
