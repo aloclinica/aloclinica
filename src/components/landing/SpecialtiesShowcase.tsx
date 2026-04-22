@@ -9,6 +9,8 @@ import {
 
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
+import { PINGO_SPECIALTIES } from "@/constants/specialties-assets";
+import { Stethoscope as FallbackIcon } from "@phosphor-icons/react";
 
 const specialties = [
   { name: "Cardiologia", icon: Heart, color: "from-rose-500/10 to-rose-500/[0.02]", desc: "Cuidando do seu coração para ele bater sempre forte e feliz." },
