@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { CaretDown, Heart, Baby, Bone, Eye, Brain, Syringe, UserCircle, Drop, FirstAidKit, Sparkle, Wind, User, HandHeart, Virus, Stethoscope } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
+import { PINGO_SPECIALTIES } from "@/constants/specialties-assets";
 
 const specialtyIcons: Record<string, any> = {
   "Clínico geral": Syringe,
