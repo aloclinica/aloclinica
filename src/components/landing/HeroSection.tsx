@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { usePrefetchRoute } from "@/hooks/use-prefetch-route";
 import OptimizedImage from "@/components/ui/optimized-image";
 import { ArrowRight, ShieldCheck, Lock, Star, CheckCircle } from "@phosphor-icons/react";
+import heroPingoFamily from "@/assets/hero-pingo-family.png";
 
 const trustItems = [
   { label: "Regulamentado CFM", icon: ShieldCheck },
