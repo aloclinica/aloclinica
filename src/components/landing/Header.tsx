@@ -178,10 +178,10 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <Button size="sm" variant="outline" className="rounded-full h-10 px-6 border-[#1a4fcf]/30 text-[#1a4fcf] hover:bg-[#1a4fcf]/5" onClick={() => navigate("/agendar")}>
+              <Button size="sm" variant="outline" className="rounded-full h-10 px-6 border-[#1a4fcf] text-[#1a4fcf] hover:bg-[#1a4fcf]/5 font-semibold" onClick={() => navigate("/agendar")}>
                 Agendar
               </Button>
-              <Button size="sm" className="rounded-full h-10 px-6 bg-[#1a4fcf] text-white hover:bg-[#1a4fcf]/90" onClick={() => navigate("/paciente")}>
+              <Button size="sm" className="rounded-full h-10 px-6 bg-[#1a4fcf] text-white hover:bg-[#1a4fcf]/90 font-semibold" onClick={() => navigate("/paciente")}>
                 Entrar
               </Button>
             </div>
