@@ -14,7 +14,8 @@ import TermsConsentCheckbox from "@/components/auth/TermsConsentCheckbox";
 import { registerConsent } from "@/lib/consent";
 import SEOHead from "@/components/SEOHead";
 import PasswordStrength from "@/components/ui/password-strength";
-import logo from "@/assets/logo.png";
+import { PINGO_LOGO_URL } from "@/lib/constants";
+const logo = PINGO_LOGO_URL;
 import pingoOftalmo from "@/assets/pingo-oftalmo.png";
 
 type Step = "welcome" | "register" | "login";

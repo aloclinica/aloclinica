@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { memo, useEffect, useState } from "react";
-import logo from "@/assets/logo.png";
+import { PINGO_LOGO_URL } from "@/lib/constants";
+const logo = PINGO_LOGO_URL;
 
 const Bone = ({ className = "" }: { className?: string }) => (
   <div className={`shimmer-v2 rounded-xl ${className}`} aria-hidden="true" />

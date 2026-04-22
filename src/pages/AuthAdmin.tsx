@@ -9,7 +9,8 @@ import { motion } from "framer-motion";
 import { Mail, Lock, ArrowLeft, Shield, Sparkles, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import pingoAdmin from "@/assets/pingo-admin.png";
-import logo from "@/assets/logo.png";
+import { PINGO_LOGO_URL } from "@/lib/constants";
+const logo = PINGO_LOGO_URL;
 
 const AuthAdmin = () => {
   const [email, setEmail] = useState("");
