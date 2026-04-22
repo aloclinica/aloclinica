@@ -11,34 +11,43 @@ import { PINGO_SPECIALTIES } from "@/constants/specialties-assets";
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
 const specialties = [
-  { name: "Cardiologia", emoji: "❤️", image: PINGO_SPECIALTIES["Cardiologia"], desc: "Coração, circulação e saúde cardiovascular", doctors: 45 },
-  { name: "Dermatologia", emoji: "🔬", image: PINGO_SPECIALTIES["Dermatologia"], desc: "Pele, acne, envelhecimento e estética", doctors: 38 },
-  { name: "Oftalmologia", emoji: "👁️", image: PINGO_SPECIALTIES["Oftalmologia"], desc: "Visão, exames e prescrição de óculos", doctors: 52 },
-  { name: "Pediatria", emoji: "👶", image: PINGO_SPECIALTIES["Pediatria"], desc: "Saúde infantil e desenvolvimento", doctors: 41 },
-  { name: "Psicologia", emoji: "🧠", image: PINGO_SPECIALTIES["Psiquiatria"], desc: "Saúde mental, terapia e bem-estar", doctors: 67 },
-  { name: "Neurologia", emoji: "⚡", image: PINGO_SPECIALTIES["Neurologia"], desc: "Sistema nervoso, dores e distúrbios", doctors: 34 },
-  { name: "Gastroenterologia", emoji: "🍽️", image: PINGO_SPECIALTIES["Gastroenterologia"], desc: "Digestão, estômago e intestinos", doctors: 29 },
-  { name: "Endocrinologia", emoji: "🔬", image: PINGO_SPECIALTIES["Endocrinologia"], desc: "Diabetes, hormônios e metabolismo", doctors: 26 },
-  { name: "Urologia", emoji: "💧", image: PINGO_SPECIALTIES["Urologia"], desc: "Sistema urinário e saúde sexual", doctors: 32 },
-  { name: "Otorrinolaringologia", emoji: "👂", image: PINGO_SPECIALTIES["Otorrinolaringologia"], desc: "Ouvidos, nariz e garganta", doctors: 28 },
-  { name: "Reumatologia", emoji: "🦴", image: PINGO_SPECIALTIES["Reumatologia"], desc: "Articulações, ossos e inflamação", doctors: 21 },
-  { name: "Pneumologia", emoji: "💨", image: PINGO_SPECIALTIES["Pneumologia"], desc: "Pulmões e sistema respiratório", doctors: 25 },
-  { name: "Clínica Geral", emoji: "🏥", image: PINGO_SPECIALTIES["Clínica Geral"], desc: "Atendimento geral e primeiro acolhimento", doctors: 89 },
-  { name: "Ginecologia", emoji: "♀️", image: PINGO_SPECIALTIES["Ginecologista-obstetra"], desc: "Saúde da mulher e reprodutiva", doctors: 44 },
-  { name: "Nutrição", emoji: "🥗", image: PINGO_SPECIALTIES["Nutricionista"], desc: "Dietas, emagrecimento e nutrientes", doctors: 36 },
-  { name: "Fisioterapia", emoji: "💪", image: PINGO_SPECIALTIES["Fisioterapia"], desc: "Reabilitação e movimento", doctors: 42 },
-  { name: "Fonoaudiologia", emoji: "🗣️", image: PINGO_SPECIALTIES["Fonoaudiologia"], desc: "Fala, audição e comunicação", doctors: 18 },
-  { name: "Ortopedia", emoji: "🦵", image: PINGO_SPECIALTIES["Ortopedia"], desc: "Ossos, articulações e esportes", doctors: 51 },
-  { name: "Infectologia", emoji: "🦠", image: PINGO_SPECIALTIES["Infectologia"], desc: "Infecções e doenças infecciosas", doctors: 19 },
-  { name: "Oncologia", emoji: "⚕️", image: PINGO_SPECIALTIES["Oncologia"], desc: "Câncer e tratamentos oncológicos", doctors: 22 },
-  { name: "Nefrologia", emoji: "🫘", image: PINGO_SPECIALTIES["Nefrologia"], desc: "Rins e sistema urinário", doctors: 16 },
-  { name: "Hepatologia", emoji: "🫀", image: PINGO_SPECIALTIES["Gastroenterologia"], desc: "Fígado e doenças hepáticas", doctors: 14 },
-  { name: "Alergologia", emoji: "🤧", image: PINGO_SPECIALTIES["Alergologista"], desc: "Alergias e reações adversas", doctors: 23 },
-  { name: "Psiquiatria", emoji: "🧠", image: PINGO_SPECIALTIES["Psiquiatria"], desc: "Tratamento de transtornos mentais", doctors: 33 },
-  { name: "Geriatria", emoji: "👴", image: PINGO_SPECIALTIES["Geriatria"], desc: "Saúde do idoso e envelhecimento", doctors: 19 },
-  { name: "Cirurgia Plástica", emoji: "✨", image: PINGO_SPECIALTIES["Cirurgia Plástica"], desc: "Procedimentos estéticos e reparadores", doctors: 15 },
-  { name: "Acupuntura", emoji: "📍", image: PINGO_SPECIALTIES["Acupuntura"], desc: "Medicina tradicional chinesa", doctors: 12 },
-  { name: "Telemedicina 24h", emoji: "📞", image: "/src/assets/pingo-videocall.png", desc: "Atendimento de emergência anytime", doctors: 150 },
+  { name: "Cardiologia", image: PINGO_SPECIALTIES["Cardiologia"], desc: "Coração, circulação e saúde cardiovascular", doctors: 45 },
+  { name: "Dermatologia", image: PINGO_SPECIALTIES["Dermatologia"], desc: "Pele, acne, envelhecimento e estética", doctors: 38 },
+  { name: "Oftalmologia", image: PINGO_SPECIALTIES["Oftalmologia"], desc: "Visão, exames e prescrição de óculos", doctors: 52 },
+  { name: "Pediatria", image: PINGO_SPECIALTIES["Pediatria"], desc: "Saúde infantil e desenvolvimento", doctors: 41 },
+  { name: "Psiquiatria", image: PINGO_SPECIALTIES["Psiquiatria"], desc: "Transtornos mentais e equilíbrio emocional", doctors: 33 },
+  { name: "Neurologia", image: PINGO_SPECIALTIES["Neurologia"], desc: "Sistema nervoso, dores e distúrbios", doctors: 34 },
+  { name: "Gastroenterologia", image: PINGO_SPECIALTIES["Gastroenterologia"], desc: "Digestão, estômago e intestinos", doctors: 29 },
+  { name: "Endocrinologia", image: PINGO_SPECIALTIES["Endocrinologia"], desc: "Diabetes, hormônios e metabolismo", doctors: 26 },
+  { name: "Urologia", image: PINGO_SPECIALTIES["Urologia"], desc: "Sistema urinário e saúde sexual", doctors: 32 },
+  { name: "Otorrinolaringologia", image: PINGO_SPECIALTIES["Otorrinolaringologia"], desc: "Ouvidos, nariz e garganta", doctors: 28 },
+  { name: "Reumatologia", image: PINGO_SPECIALTIES["Reumatologia"], desc: "Articulações, ossos e inflamação", doctors: 21 },
+  { name: "Pneumologia", image: PINGO_SPECIALTIES["Pneumologia"], desc: "Pulmões e sistema respiratório", doctors: 25 },
+  { name: "Clínico Geral", image: PINGO_SPECIALTIES["Clínico Geral"], desc: "Atendimento geral e primeiro acolhimento", doctors: 89 },
+  { name: "Ginecologia", image: PINGO_SPECIALTIES["Ginecologista-obstetra"], desc: "Saúde da mulher e reprodutiva", doctors: 44 },
+  { name: "Nutricionista", image: PINGO_SPECIALTIES["Nutricionista"], desc: "Dietas, emagrecimento e alimentação saudável", doctors: 36 },
+  { name: "Fisioterapia", image: PINGO_SPECIALTIES["Fisioterapia"], desc: "Reabilitação, movimento e dores físicas", doctors: 42 },
+  { name: "Fonoaudiologia", image: PINGO_SPECIALTIES["Fonoaudiologia"], desc: "Fala, audição e comunicação oral", doctors: 18 },
+  { name: "Ortopedia", image: PINGO_SPECIALTIES["Ortopedia"], desc: "Ossos, articulações e lesões esportivas", doctors: 51 },
+  { name: "Infectologia", image: PINGO_SPECIALTIES["Infectologia"], desc: "Tratamento de infecções e vírus", doctors: 19 },
+  { name: "Oncologia", image: PINGO_SPECIALTIES["Oncologia"], desc: "Diagnóstico e tratamento de câncer", doctors: 22 },
+  { name: "Nefrologia", image: PINGO_SPECIALTIES["Nefrologia"], desc: "Saúde dos rins e sistema urinário", doctors: 16 },
+  { name: "Alergologia", image: PINGO_SPECIALTIES["Alergologista"], desc: "Alergias e reações do sistema imune", doctors: 23 },
+  { name: "Geriatria", image: PINGO_SPECIALTIES["Geriatria"], desc: "Saúde do idoso e envelhecimento ativo", doctors: 19 },
+  { name: "Cirurgia Plástica", image: PINGO_SPECIALTIES["Cirurgia Plástica"], desc: "Procedimentos estéticos e reparadores", doctors: 15 },
+  { name: "Acupuntura", image: PINGO_SPECIALTIES["Acupuntura"], desc: "Alívio de dores e equilíbrio energético", doctors: 12 },
+  { name: "Angiologia", image: PINGO_SPECIALTIES["Angiologia"], desc: "Saúde dos vasos sanguíneos e linfáticos", doctors: 14 },
+  { name: "Hematologia", image: PINGO_SPECIALTIES["Hematologia"], desc: "Doenças do sangue e medula óssea", doctors: 11 },
+  { name: "Mastologia", image: PINGO_SPECIALTIES["Mastologia"], desc: "Saúde das mamas e prevenção", doctors: 13 },
+  { name: "Médico de Família", image: PINGO_SPECIALTIES["Médico de família"], desc: "Acompanhamento integral da família", doctors: 27 },
+  { name: "Med. do Esporte", image: PINGO_SPECIALTIES["Med. do Esporte"], desc: "Performance e saúde no exercício", doctors: 10 },
+  { name: "Cirurgia Vascular", image: PINGO_SPECIALTIES["Cirurgia Vascular"], desc: "Tratamento cirúrgico de veias e artérias", doctors: 9 },
+  { name: "Psicologia", image: PINGO_SPECIALTIES["Psiquiatria"], desc: "Saúde mental, terapia e bem-estar", doctors: 67 },
+  { name: "Anestesiologia", image: PINGO_SPECIALTIES["Anestesiologia"], desc: "Controle de dor e sedação em cirurgias", doctors: 12 },
+  { name: "Cirurgião Dentista", image: PINGO_SPECIALTIES["Cirurgião Dentista"], desc: "Saúde bucal e procedimentos odontológicos", doctors: 24 },
+  { name: "Fisiatra", image: PINGO_SPECIALTIES["Fisiatra"], desc: "Medicina física e reabilitação", doctors: 8 },
+  { name: "Hepatologia", image: PINGO_SPECIALTIES["Gastroenterologia"], desc: "Diagnóstico e tratamento de doenças do fígado", doctors: 14 },
+  { name: "Telemedicina 24h", image: "/src/assets/pingo-videocall.png", desc: "Atendimento imediato a qualquer hora", doctors: 150 },
 ];
 
 const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
@@ -50,7 +59,7 @@ const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
     return specialties.filter((spec) => {
       const matchesSearch = spec.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         spec.desc.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = !selectedCategory || spec.name === selectedCategory;
+      const matchesCategory = !selectedCategory || spec.name.charAt(0).toUpperCase() === selectedCategory.toUpperCase();
       return matchesSearch && matchesCategory;
     });
   }, [searchTerm, selectedCategory]);
@@ -71,21 +80,29 @@ const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
 
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4">
-        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
+        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28 relative">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55 }}
-            className="text-center max-w-3xl mx-auto"
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="text-center max-w-4xl mx-auto"
           >
-            <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full mb-4">
-              30+ Especialidades
-            </span>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground leading-tight mb-6">
-              Encontre o <span className="text-primary">Especialista Ideal</span>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-8">
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
+                30+ Especialidades Disponíveis
+              </span>
+            </div>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-foreground leading-[1.1] mb-8 tracking-tight">
+              O <span className="text-primary italic">Pingo</span> que faltava na sua <span className="relative">
+                saúde
+                <svg className="absolute -bottom-2 left-0 w-full h-3 text-primary/30" viewBox="0 0 100 10" preserveAspectRatio="none">
+                  <path d="M0 5 Q 25 0, 50 5 T 100 5" stroke="currentColor" strokeWidth="4" fill="none" strokeLinecap="round" />
+                </svg>
+              </span>
             </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              De Cardiologia a Psicologia, temos médicos especializados em todas as áreas de saúde.
+            <p className="text-xl sm:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed font-medium">
+              Conectamos você aos melhores especialistas através de um atendimento humanizado e tecnologia de ponta.
             </p>
           </motion.div>
         </div>
@@ -94,23 +111,31 @@ const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
       {/* Search & Filter */}
       <section className="py-12 px-4 bg-muted/30">
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
-          <div className="max-w-2xl mx-auto">
-            <div className="relative mb-6">
-              <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" weight="bold" />
+          <div className="max-w-4xl mx-auto relative">
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="absolute -right-20 -top-20 hidden 2xl:block pointer-events-none"
+            >
+              <img src="/src/assets/pingo-medico-teleconsulta.png" alt="Pingo Médico" className="w-32 h-32 object-contain pingo-float drop-shadow-xl" />
+            </motion.div>
+            
+            <div className="relative mb-8 shadow-sm">
+              <MagnifyingGlass className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground/60" weight="bold" />
               <Input
                 type="text"
                 placeholder="Procure por especialidade ou sintoma..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-12 rounded-xl text-base"
+                className="pl-14 h-16 rounded-2xl text-lg border-2 border-border/40 focus:border-primary transition-all shadow-subtle placeholder:text-muted-foreground/40"
               />
             </div>
 
-            <div className="flex flex-wrap gap-2 justify-center">
+            <div className="flex flex-wrap gap-2.5 justify-center">
               <Button
-                variant={selectedCategory === null ? "default" : "outline"}
+                variant={selectedCategory === null ? "default" : "secondary"}
                 size="sm"
-                className="rounded-full"
+                className={`rounded-xl px-5 py-5 font-bold transition-all ${selectedCategory === null ? 'shadow-md scale-105' : 'hover:scale-105 opacity-60 hover:opacity-100'}`}
                 onClick={() => setSelectedCategory(null)}
               >
                 Todas ({specialties.length})
@@ -120,9 +145,9 @@ const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
                 .map((letter) => (
                   <Button
                     key={letter}
-                    variant="outline"
+                    variant={selectedCategory === letter ? "default" : "secondary"}
                     size="sm"
-                    className="rounded-full"
+                    className={`rounded-xl w-10 h-10 p-0 font-bold transition-all ${selectedCategory === letter ? 'shadow-md scale-110' : 'hover:scale-110 opacity-60 hover:opacity-100'}`}
                     onClick={() =>
                       setSelectedCategory(
                         selectedCategory === letter ? null : letter
@@ -161,26 +186,27 @@ const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
                     <img 
                       src={specialty.image} 
                       alt={`Pingo ${specialty.name}`}
-                      className="w-full h-full object-contain pingo-float"
+                      className="w-full h-full object-contain pingo-float drop-shadow-sm group-hover:drop-shadow-md transition-all"
                       onError={(e) => {
-                        // Fallback to emoji if image fails to load
                         e.currentTarget.style.display = 'none';
-                        const emojiSpan = e.currentTarget.parentElement?.querySelector('.emoji-fallback');
-                        if (emojiSpan) emojiSpan.classList.remove('hidden');
+                        const fallbackIcon = e.currentTarget.parentElement?.querySelector('.fallback-icon');
+                        if (fallbackIcon) fallbackIcon.classList.remove('hidden');
                       }}
                     />
-                    <span className="emoji-fallback hidden text-4xl">{specialty.emoji}</span>
+                    <div className="fallback-icon hidden text-primary/40">
+                      <ArrowRight className="w-10 h-10" weight="thin" />
+                    </div>
                   </div>
                   <ArrowRight className="w-5 h-5 text-primary opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" weight="bold" />
                 </div>
-                <h3 className="font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
+                <h3 className="font-bold text-foreground mb-1 group-hover:text-primary transition-colors text-lg">
                   {specialty.name}
                 </h3>
-                <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
+                <p className="text-[13px] text-muted-foreground line-clamp-2 mb-4 leading-snug">
                   {specialty.desc}
                 </p>
-                <div className="inline-flex items-center gap-1 text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded-full">
-                  {specialty.doctors}+ médicos
+                <div className="inline-flex items-center gap-1.5 text-[11px] font-bold bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-wider">
+                  {specialty.doctors}+ especialistas
                 </div>
               </motion.button>
             ))}

@@ -1,10 +1,12 @@
 
 import pingoAcupuntura from "@/assets/pingo-acupunturista.png";
 import pingoAlergia from "@/assets/pingo-alergologista.png";
+import pingoAnestesiologia from "@/assets/pingo-anestesiologista.png";
 import pingoCardiologia from "@/assets/pingo-cardiologista.png";
 import pingoClinicoGeral from "@/assets/pingo-clinico-geral.png";
 import pingoDermatologia from "@/assets/pingo-dermatologista.png";
 import pingoEndocrinologia from "@/assets/pingo-endocrinologista.png";
+import pingoFisiatra from "@/assets/pingo-fisiatra.png";
 import pingoGastro from "@/assets/pingo-gastroenterologista.png";
 import pingoGeriatria from "@/assets/pingo-geriatra.png";
 import pingoGinecologia from "@/assets/pingo-ginecologista.png";
@@ -26,6 +28,8 @@ import pingoFonoaudiologia from "@/assets/pingo-fonoaudiologo.png";
 import pingoPlastica from "@/assets/pingo-cirurgiao-plastico.png";
 import pingoVascular from "@/assets/pingo-cirurgiao-vascular.png";
 import pingoCirurgiaGeral from "@/assets/pingo-cirurgiao-geral.png";
+import pingoDentista from "@/assets/pingo-cirurgiao-dentista.png";
+import pingoHomeopata from "@/assets/pingo-homeopata.png";
 
 // New spec- prefixed ones
 import specAngiologia from "@/assets/spec-angiologia.png";
@@ -78,10 +82,10 @@ export const PINGO_SPECIALTIES: Record<string, string> = {
   "Radiologia": specRadiologia,
   "Reumatologia": pingoReumatologia,
   "Urologia": pingoUrologia,
-  "Anestesiologia": pingoAlergia, // Fallback if no specific pingo
+  "Anestesiologia": pingoAnestesiologia,
   "Endoscopia": specEndoscopia,
   "Genética Médica": specGenetica,
-  "Homeopatia": specHomeopatia,
+  "Homeopatia": pingoHomeopata,
   "Cirurgia Plástica": pingoPlastica,
   "Cir. Cardiovascular": specCardiovascular,
   "Med. Intensiva": specIntensiva,
@@ -89,4 +93,6 @@ export const PINGO_SPECIALTIES: Record<string, string> = {
   "Fisioterapia": pingoFisioterapia,
   "Fonoaudiologia": pingoFonoaudiologia,
   "Cirurgia Vascular": pingoVascular,
+  "Fisiatra": pingoFisiatra,
+  "Cirurgião Dentista": pingoDentista,
 };
