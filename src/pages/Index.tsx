@@ -63,7 +63,7 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
             >
-              <img src={doctorTeleconsulta} alt="Médico Teleconsulta" className="w-[340px] lg:w-[500px] h-auto drop-shadow-2xl" />
+              <img src="https://cvbgrjauqjawrsyknhyj.supabase.co/storage/v1/object/public/files/uploads/0XILPRqqUbSOh99ow53X5OBDOCC3/1776864829357-bsszd-image.png" alt="Médico Teleconsulta" className="w-[340px] lg:w-[500px] h-auto drop-shadow-2xl" />
             </motion.div>
 
             <motion.div

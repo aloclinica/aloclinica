@@ -92,7 +92,7 @@ const HeroSection = memo(
               transition={{ duration: 0.5 }}
             >
               <OptimizedImage
-                src={heroImgUrl || "https://cvbgrjauqjawrsyknhyj.supabase.co/storage/v1/object/public/files/uploads/0XILPRqqUbSOh99ow53X5OBDOCC3/1776819381125-d2yec-image.png"}
+                src={heroImgUrl || "https://cvbgrjauqjawrsyknhyj.supabase.co/storage/v1/object/public/files/uploads/0XILPRqqUbSOh99ow53X5OBDOCC3/1776864826984-178bx-doctor-tecnologia-removebg-preview.png"}
                 alt="Hero"
                 className="w-full h-auto drop-shadow-xl"
               />
