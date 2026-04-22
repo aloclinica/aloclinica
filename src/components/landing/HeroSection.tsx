@@ -28,7 +28,7 @@ const HeroSection = memo(
     const ctaText    = config?.cta_text || "Agendar consulta";
     const ctaUrl     = config?.cta_url || "/agendar";
     const badgeText  = config?.badge_text || "Médicos disponíveis agora";
-    const heroImgUrl = config?.image_url || "https://cvbgrjauqjawrsyknhyj.supabase.co/storage/v1/object/public/files/uploads/0XILPRqqUbSOh99ow53X5OBDOCC3/1776900279622-idr4l-doctor-pacientes-removebg-preview.png";
+    const heroImgUrl = config?.image_url || "https://cvbgrjauqjawrsyknhyj.supabase.co/storage/v1/object/public/files/uploads/public/1776900477087-k2u1c-image.png";
 
     return (
       <section
