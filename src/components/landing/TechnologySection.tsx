@@ -40,11 +40,47 @@ const TechnologySection = ({ config }: { config?: any }) => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <img 
-                src={pingoTecnologia} 
-                alt="Pingo Tecnologia" 
-                className="w-full max-w-[450px] h-auto drop-shadow-2xl select-none" 
-              />
+              <div className="relative">
+                <img 
+                  src={pingoTecnologia} 
+                  alt="Pingo Tecnologia" 
+                  className="w-full max-w-[450px] h-auto drop-shadow-2xl select-none" 
+                />
+                
+                {/* Phone Screen Overlay to translate English text */}
+                <div 
+                  className="absolute top-[32%] left-[19.5%] w-[18%] h-[28%] bg-white rounded-[2px] overflow-hidden flex flex-col pt-[2px] px-[2px]"
+                  style={{
+                    transform: 'perspective(500px) rotateY(15deg) rotateX(2deg) rotateZ(-12deg)',
+                    boxShadow: 'inset 0 0 5px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  <div className="bg-[#1E3A8A] text-[4px] text-white py-[1px] px-[2px] flex justify-between items-center rounded-t-[1px]">
+                    <span>AloClínica</span>
+                    <span>12:45</span>
+                  </div>
+                  <div className="p-[2px] bg-white flex-1 flex flex-col gap-[2px]">
+                    <div className="text-[5px] font-bold text-[#1E3A8A]">Perfil do Paciente</div>
+                    <div className="flex flex-col gap-[1px] mt-[1px]">
+                      <div className="bg-slate-50 p-[1px] rounded-[1px] flex items-center gap-[2px]">
+                        <div className="w-[3px] h-[3px] bg-blue-500 rounded-full"></div>
+                        <div className="text-[3px] text-slate-600">Histórico</div>
+                      </div>
+                      <div className="bg-slate-50 p-[1px] rounded-[1px] flex items-center gap-[2px]">
+                        <div className="w-[3px] h-[3px] bg-green-500 rounded-full"></div>
+                        <div className="text-[3px] text-slate-600">Medicamentos</div>
+                      </div>
+                    </div>
+                    <div className="mt-auto border-t border-slate-100 pt-[1px]">
+                      <div className="text-[3px] font-bold text-slate-400 uppercase">Sinais Vitais</div>
+                      <div className="flex justify-between mt-[1px]">
+                        <div className="text-[4px] text-[#1E3A8A] font-bold">120 BPM</div>
+                        <div className="text-[4px] text-[#1E3A8A] font-bold">37°C</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </motion.div>
 
             <div className="flex flex-col">
