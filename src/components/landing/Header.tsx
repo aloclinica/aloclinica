@@ -101,7 +101,49 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
         <div className="hidden lg:flex items-center">
           <NavigationMenu>
             <NavigationMenuList className="gap-0.5">
-              {menuItems.map((item: any, idx: number) => (
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link to="/" className={linkBtnCls}>Início</Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className={triggerCls}>Sobre Nós</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[400px] gap-2 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] bg-popover/95 backdrop-blur-xl rounded-2xl border border-border/20 shadow-elevated">
+                    <ListItem
+                      title="Quem somos"
+                      href="/sobre#quem-somos"
+                      icon={Users}
+                    >
+                      Nossa história, missão e compromisso com sua saúde.
+                    </ListItem>
+                    <ListItem
+                      title="Porque nós"
+                      href="/sobre#porque-nos"
+                      icon={Heart}
+                    >
+                      Diferenciais que fazem da AloClínica sua melhor escolha.
+                    </ListItem>
+                    <ListItem
+                      title="Depoimentos"
+                      href="/sobre#depoimentos"
+                      icon={Star}
+                    >
+                      O que nossos pacientes dizem sobre nosso atendimento.
+                    </ListItem>
+                    <ListItem
+                      title="Fale conosco"
+                      href="/contato"
+                      icon={ChatsCircle}
+                    >
+                      Dúvidas ou sugestões? Nossa equipe está pronta para ajudar.
+                    </ListItem>
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              {menuItems.filter((item: any) => item.label !== "Início").map((item: any, idx: number) => (
                 <NavigationMenuItem key={idx}>
                   <NavigationMenuLink asChild>
                     <Link to={item.href || item.url} className={linkBtnCls}>
