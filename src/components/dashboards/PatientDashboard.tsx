@@ -275,7 +275,7 @@ const PatientDashboard = () => {
 
   if (loading) {
     return (
-      <DashboardLayout title="Paciente" nav={getPatientNav("home")} role="patient">
+      <DashboardLayout title="Perfil do Paciente" nav={getPatientNav("home")} role="patient">
         <div className="space-y-6 pb-24 md:pb-8">
           <div className="-mx-4 -mt-5 md:-mx-6 md:-mt-5 lg:-mx-8 lg:-mt-6">
             <Skeleton className="h-56 rounded-b-[2rem] md:rounded-[2rem]" />
@@ -298,7 +298,7 @@ const PatientDashboard = () => {
   }
 
   return (
-    <DashboardLayout title="Paciente" nav={getPatientNav("home")} role="patient">
+    <DashboardLayout title="Perfil do Paciente" nav={getPatientNav("home")} role="patient">
       {showOnboarding && <PatientOnboarding onComplete={() => setShowOnboarding(false)} />}
 
       <div ref={scrollRef} className="space-y-5 pb-24 md:pb-8">
@@ -507,7 +507,7 @@ const PatientDashboard = () => {
             <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-[hsl(var(--p-primary))]/8">
               <TrendUp size={13} weight="fill" className="text-[hsl(var(--p-primary))]" />
             </div>
-            <h2 className="font-[Manrope] text-[15px] font-bold text-foreground tracking-tight">Resumo</h2>
+            <h2 className="font-[Manrope] text-[15px] font-bold text-foreground tracking-tight">Histórico e Resumo</h2>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {[
@@ -644,7 +644,7 @@ const PatientDashboard = () => {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <Heartbeat size={16} weight="fill" className="text-destructive" />
-                    <span className="font-[Manrope] text-[14px] font-bold text-foreground">Métricas de Saúde</span>
+                    <span className="font-[Manrope] text-[14px] font-bold text-foreground">Sinais Vitais Recentes</span>
                   </div>
                   <Button
                     variant="ghost"
@@ -656,18 +656,30 @@ const PatientDashboard = () => {
                   </Button>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {typedMetrics.slice(0, 4).map((m, i) => (
-                    <div key={i} className="kpi-card rounded-xl bg-muted/40 border border-border/5 p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider capitalize">{m.type}</p>
+                  {typedMetrics.slice(0, 4).map((m, i) => {
+                    const metricLabel = {
+                      blood_pressure_sys: "Pressão Sistólica",
+                      blood_pressure_dia: "Pressão Diastólica",
+                      heart_rate: "Freq. Cardíaca",
+                      temperature: "Temperatura",
+                      weight: "Peso",
+                      glucose: "Glicose",
+                      oxygen_saturation: "Saturação O2",
+                    }[m.type] || m.type;
+
+                    return (
+                      <div key={i} className="kpi-card rounded-xl bg-muted/40 border border-border/5 p-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{metricLabel}</p>
+                        </div>
+                        <p className="text-[20px] font-extrabold font-[Manrope] text-foreground leading-none">{m.value}</p>
+                        <p className="text-[10px] text-muted-foreground/70 mt-0.5">{m.unit}</p>
+                        <div className="mt-2 -mx-1">
+                          <Sparkline data={[m.value * 0.9, m.value * 0.95, m.value * 1.02, m.value * 0.98, m.value]} height={32} color="hsl(var(--p-primary))" />
+                        </div>
                       </div>
-                      <p className="text-[20px] font-extrabold font-[Manrope] text-foreground leading-none">{m.value}</p>
-                      <p className="text-[10px] text-muted-foreground/70 mt-0.5">{m.unit}</p>
-                      <div className="mt-2 -mx-1">
-                        <Sparkline data={[m.value * 0.9, m.value * 0.95, m.value * 1.02, m.value * 0.98, m.value]} height={32} color="hsl(var(--p-primary))" />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </motion.div>
             )}
