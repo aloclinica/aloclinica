@@ -257,7 +257,7 @@ const SupportDashboard = () => {
         <HeroBanner
           gradient="from-[#2D1B00] via-[#854F0B] to-[#B45309]"
           pingoSrc={pingoSupport}
-          pingoAlt="Dra. Lila"
+          pingoAlt="Pingo"
           liveDot={false}
           liveColor="green"
           bubble={{
@@ -330,10 +330,10 @@ const SupportDashboard = () => {
 
         <motion.div variants={fadeUp}>
           
-        {/* Dra. Lila Banner */}
+        {/* Pingo Banner */}
         <PingoBannerCard
           pingImg={pingoSupport}
-          pingAlt="Dra. Lila"
+          pingAlt="Pingo"
           pingSize={82}
           bgClass="bg-amber-50 dark:bg-amber-950/20"
           borderClass="border-amber-100 dark:border-amber-900/30"

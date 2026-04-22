@@ -61,7 +61,7 @@ const ResetPassword = () => {
         <div className="relative z-10 flex flex-col items-center justify-center w-full px-12 text-center">
           <motion.img
             src={mascotImg}
-            alt="Dra. Lila"
+            alt="Pingo"
             className="w-40 h-40 object-contain mb-8 drop-shadow-2xl"
             animate={{ y: [0, -8, 0] }}
             transition={{ duration: 2, ease: "easeInOut", repeat: Infinity }}

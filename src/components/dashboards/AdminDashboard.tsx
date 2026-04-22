@@ -275,7 +275,7 @@ const AdminDashboard = () => {
         <HeroBanner
           gradient="from-[#3B0000] via-[#8B1515] to-[#C41A1A]"
           pingoSrc={pingoAdmin}
-          pingoAlt="Dra. Lila"
+          pingoAlt="Pingo"
           liveDot={true}
           liveColor="red"
           bubble={{
@@ -315,10 +315,10 @@ const AdminDashboard = () => {
           { label: "Laudos emitidos", value: stats.total_laudos, icon: "📋", iconBg: "bg-violet-50 dark:bg-violet-950/30", valueClass: "text-violet-600 dark:text-violet-400", trend: 31 , accentClass: "bg-violet-500" },
         ]} />
 
-        {/* Dra. Lila Admin Banner */}
+        {/* Pingo Admin Banner */}
         <PingoBannerCard
           pingImg={pingoAdmin}
-          pingAlt="Dra. Lila"
+          pingAlt="Pingo"
           pingSize={82}
           bgClass="bg-red-50 dark:bg-red-950/20"
           borderClass="border-red-100 dark:border-red-900/30"

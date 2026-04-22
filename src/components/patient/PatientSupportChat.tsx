@@ -210,7 +210,7 @@ const PatientSupportChat = () => {
 
         {tickets.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card py-12 text-center">
-            <img src={pingoSupport} alt="Dra. Lila" className="w-20 h-20 object-contain mx-auto drop-shadow-md mb-3 select-none" loading="lazy" decoding="async" width={80} height={80} />
+            <img src={pingoSupport} alt="Pingo" className="w-20 h-20 object-contain mx-auto drop-shadow-md mb-3 select-none" loading="lazy" decoding="async" width={80} height={80} />
             <p className="text-[13px] font-semibold text-foreground">Nenhum atendimento aberto</p>
             <p className="text-xs text-muted-foreground mt-1">Clique em "Novo Atendimento" para falar com nossa equipe.</p>
           </div>

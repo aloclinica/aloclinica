@@ -237,7 +237,7 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
     return groups;
   }, [nav]);
 
-  // Bottom nav: first 5 items + Dra. Lila + More
+  // Bottom nav: first 5 items + Pingo + More
   const BOTTOM_COUNT = 5;
   const bottomNav = nav?.slice(0, BOTTOM_COUNT) ?? [];
   const moreNav  = nav && nav.length > BOTTOM_COUNT ? nav.slice(BOTTOM_COUNT) : [];

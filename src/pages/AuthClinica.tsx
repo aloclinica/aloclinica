@@ -164,7 +164,7 @@ const AuthClinica = () => {
           <motion.div className="flex justify-center mt-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.6 }}>
             <motion.img
               src={pingoReception}
-              alt="Dra. Lila recepção"
+              alt="Pingo recepção"
               className="w-44 h-44 object-contain select-none"
               style={{ filter: "drop-shadow(0 8px 32px rgba(0,0,50,.4))" }}
               animate={{ y: [0, -8, 0] }}

@@ -423,7 +423,7 @@ const Sobre = forwardRef<HTMLDivElement>((_, ref) => {
             <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary-foreground)/0.22),transparent_38%),radial-gradient(circle_at_bottom_right,hsl(var(--primary-foreground)/0.14),transparent_34%)]" />
             <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8 px-8 sm:px-12 py-14 sm:py-16">
               <div className="flex items-center gap-6">
-                <img src={pingoVideocall} alt="Dra. Lila" loading="lazy" width={100} height={100} className="w-20 h-20 hidden sm:block drop-shadow-lg" />
+                <img src={pingoVideocall} alt="Pingo" loading="lazy" width={100} height={100} className="w-20 h-20 hidden sm:block drop-shadow-lg" />
                 <div>
                   <h2 className="text-2xl sm:text-3xl font-extrabold text-primary-foreground mb-2">
                     Comece a cuidar da sua saúde hoje

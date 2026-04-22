@@ -127,7 +127,7 @@ const Notifications = () => {
           <p className="text-sm text-muted-foreground">Fique por dentro das suas atualizações de saúde e consultas.</p>
         </div>
 
-        {/* Dra. Lila health tip hero — dark gradient banner */}
+        {/* Pingo health tip hero — dark gradient banner */}
         <div className="relative rounded-2xl bg-gradient-to-br from-primary to-[hsl(215,60%,38%)] p-6 overflow-hidden shadow-xl mb-6">
           <div className="relative z-10 pr-20">
             <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-white text-[10px] font-bold tracking-widest uppercase mb-3">
@@ -138,7 +138,7 @@ const Notifications = () => {
               Pingu avisou: Manter a hidratação é essencial para sua concentração hoje. Que tal uma pausa para um copo d'água?
             </p>
           </div>
-          <img src={mascotWave} alt="Dra. Lila" className="absolute -right-4 -bottom-4 w-36 h-36 object-contain opacity-90 -rotate-12 drop-shadow-xl" loading="lazy" decoding="async" />
+          <img src={mascotWave} alt="Pingo" className="absolute -right-4 -bottom-4 w-36 h-36 object-contain opacity-90 -rotate-12 drop-shadow-xl" loading="lazy" decoding="async" />
         </div>
 
         {unreadCount > 0 && (

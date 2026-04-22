@@ -81,7 +81,7 @@ const PartnerDashboard = () => {
         <HeroBanner
           gradient="from-[#022B1C] via-[#065f46] to-[#059669]"
           pingoSrc={pingoPartner}
-          pingoAlt="Dra. Lila"
+          pingoAlt="Pingo"
           liveDot={true}
           liveColor="green"
           bubble={{
@@ -109,10 +109,10 @@ const PartnerDashboard = () => {
           { label: "Hoje", value: validations.filter(v => new Date(v.created_at).toDateString() === new Date().toDateString()).length, icon: "📅", iconBg: "bg-violet-50 dark:bg-violet-950/30", valueClass: "text-violet-600 dark:text-violet-400", accentClass: "bg-violet-500" },
         ]} />
 
-        {/* Dra. Lila Banner */}
+        {/* Pingo Banner */}
         <PingoBannerCard
           pingImg={pingoPartner}
-          pingAlt="Dra. Lila"
+          pingAlt="Pingo"
           pingSize={82}
           bgClass="bg-teal-50 dark:bg-teal-950/20"
           borderClass="border-teal-100 dark:border-teal-900/30"

@@ -1,5 +1,5 @@
 /**
- * PingoBannerCard — Banner com imagem real da Dra. Lila
+ * PingoBannerCard — Banner com imagem real da Pingo
  * Mesmo padrão de renderização do Header.tsx ListItem
  */
 import { cn } from "@/lib/utils";
@@ -26,7 +26,7 @@ interface PingoBannerCardProps {
 }
 
 export function PingoBannerCard({
-  pingImg, pingAlt = "Dra. Lila", pingSize = 88,
+  pingImg, pingAlt = "Pingo", pingSize = 88,
   bgClass = "bg-blue-50 dark:bg-blue-950/30",
   borderClass = "border-blue-100 dark:border-blue-900/30",
   label, labelColor = "text-blue-600 dark:text-blue-400",
@@ -44,7 +44,7 @@ export function PingoBannerCard({
       {/* Top shine line */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
 
-      {/* Dra. Lila — real PNG */}
+      {/* Pingo — real PNG */}
       <div
         className={cn("flex shrink-0 items-end justify-center", animate && "pingo-float-slow")}
         style={{ width: pingSize, height: pingSize }}

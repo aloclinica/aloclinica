@@ -177,7 +177,7 @@ const ReceptionDashboard = () => {
         <HeroBanner
           gradient="from-[#451a03] via-[#b45309] to-[#d97706]"
           pingoSrc={pingoReception}
-          pingoAlt="Dra. Lila"
+          pingoAlt="Pingo"
           liveDot={false}
           liveColor="green"
           bubble={{
@@ -216,12 +216,12 @@ const ReceptionDashboard = () => {
           { label: "Concluídas", value: stats.completed, icon: "✅", iconBg: "bg-blue-50 dark:bg-blue-950/30", valueClass: "text-[#1255C8] dark:text-blue-400", accentClass: "bg-blue-500" },
         ]} />
 
-        {/* Dra. Lila Banner */}
+        {/* Pingo Banner */}
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:items-start">
         <div className="space-y-5">
         <PingoBannerCard
           pingImg={pingoReception}
-          pingAlt="Dra. Lila"
+          pingAlt="Pingo"
           pingSize={82}
           bgClass="bg-amber-50 dark:bg-amber-950/20"
           borderClass="border-amber-100 dark:border-amber-900/30"

@@ -110,7 +110,7 @@ const en: Record<TranslationKeys, string> = {
   "dashboard.profile": "Profile",
   "dashboard.notifications": "Notifications",
 
-  "pingo.greeting": "Hi! I'm Dra. Lila, your virtual assistant. How can I help?",
+  "pingo.greeting": "Hi! I'm Pingo, your virtual assistant. How can I help?",
   "pingo.placeholder": "Type your question...",
   "pingo.newConversation": "New conversation",
 };

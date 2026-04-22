@@ -165,7 +165,7 @@ const MedicalHistory = () => {
 
         {loading ? <div className="shimmer-v2 h-20 rounded-2xl"/> :
         appointments.length === 0 ? (
-          <div className="text-center py-8 rounded-2xl border border-dashed border-border/40 bg-muted/10"><img src={mascotReading} alt="Dra. Lila" className="w-20 h-20 object-contain mx-auto drop-shadow-md mb-3 select-none" loading="lazy" decoding="async" width={80} height={80} /><p className="text-[13px] font-semibold text-foreground mb-1">Nenhuma consulta realizada ainda</p><p className="text-[11px] text-muted-foreground">Seu histórico médico aparecerá aqui após sua primeira consulta</p></div>
+          <div className="text-center py-8 rounded-2xl border border-dashed border-border/40 bg-muted/10"><img src={mascotReading} alt="Pingo" className="w-20 h-20 object-contain mx-auto drop-shadow-md mb-3 select-none" loading="lazy" decoding="async" width={80} height={80} /><p className="text-[13px] font-semibold text-foreground mb-1">Nenhuma consulta realizada ainda</p><p className="text-[11px] text-muted-foreground">Seu histórico médico aparecerá aqui após sua primeira consulta</p></div>
         ) : (
           <div className="space-y-4">
             {appointments.map(a => (

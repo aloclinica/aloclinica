@@ -65,7 +65,7 @@ const NotFound = () => {
         {/* Mascot */}
         <motion.img
           src={mascotImg}
-          alt="Dra. Lila confusa"
+          alt="Pingo confusa"
           className="w-32 h-32 mx-auto mb-6 object-contain"
           animate={{ rotate: [-5, 5, -5] }}
           transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}

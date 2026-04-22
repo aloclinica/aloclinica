@@ -248,7 +248,7 @@ const PaymentHistory = () => {
                 Todos os pagamentos são protegidos com criptografia de ponta a ponta.
               </p>
             </div>
-            <img src={mascotWave} alt="Dra. Lila" className="w-20 h-20 object-contain shrink-0" loading="lazy" />
+            <img src={mascotWave} alt="Pingo" className="w-20 h-20 object-contain shrink-0" loading="lazy" />
           </motion.div>
         )}
 

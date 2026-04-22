@@ -384,9 +384,9 @@ const DoctorSearch = () => {
         {/* Specialties grid view (default) */}
         {viewMode === "specialties" && !loading && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            {/* Dra. Lila speech bubble */}
+            {/* Pingo speech bubble */}
             <div className="flex items-start gap-3 mb-6 p-4 rounded-2xl bg-[hsl(var(--p-primary))]/10 border border-[hsl(var(--p-primary))]/20">
-              <img src={mascotWave} alt="Dra. Lila" className="w-12 h-12 rounded-full object-cover shrink-0" loading="lazy" decoding="async" width={48} height={48} />
+              <img src={mascotWave} alt="Pingo" className="w-12 h-12 rounded-full object-cover shrink-0" loading="lazy" decoding="async" width={48} height={48} />
               <p className="text-sm text-foreground leading-relaxed">
                 "Olá! Eu posso te ajudar a encontrar o melhor especialista para você hoje."
               </p>
@@ -513,7 +513,7 @@ const DoctorSearch = () => {
               </div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-16 rounded-2xl border border-dashed border-border/40 bg-muted/10">
-                <img src={mascotWave} alt="Dra. Lila" className="w-20 h-20 object-contain mx-auto drop-shadow-md mb-3 select-none" loading="lazy" decoding="async" width={80} height={80} />
+                <img src={mascotWave} alt="Pingo" className="w-20 h-20 object-contain mx-auto drop-shadow-md mb-3 select-none" loading="lazy" decoding="async" width={80} height={80} />
                 <p className="text-[13px] font-semibold text-foreground">Nenhum médico encontrado</p>
                 <p className="text-sm text-muted-foreground mt-1">Ajuste os filtros de busca</p>
               </div>

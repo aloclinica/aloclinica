@@ -215,7 +215,7 @@ const Teleconsulta = () => {
                 </motion.div>
               </motion.div>
 
-              {/* Right — Dra. Lila */}
+              {/* Right — Pingo */}
               <motion.div
                 className="flex items-center justify-center lg:justify-end"
                 initial={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -225,7 +225,7 @@ const Teleconsulta = () => {
                 <div className="relative w-[280px] md:w-[380px] lg:w-[440px]">
                   <img
                     src={heroTeleconsultaPhone}
-                    alt="Dra. Lila — sua assistente de teleconsulta saindo do celular"
+                    alt="Pingo — sua assistente de teleconsulta saindo do celular"
                     width={1024}
                     height={1024}
                     className="w-full h-auto drop-shadow-[0_20px_50px_rgba(0,0,0,0.12)]"
@@ -404,7 +404,7 @@ const Teleconsulta = () => {
                 >
                   <img
                     src={doctorTeleconsulta}
-                    alt="Dra. Lila fazendo teleconsulta"
+                    alt="Pingo fazendo teleconsulta"
                     loading="lazy"
                     width={400}
                     height={400}

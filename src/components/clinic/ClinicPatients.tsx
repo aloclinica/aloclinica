@@ -100,7 +100,7 @@ const ClinicPatients = () => {
                 <div className="p-4 space-y-3 pb-24 md:pb-8">{[1,2,3,4,5].map(i => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
               ) : filtered.length === 0 ? (
                 <div className="text-center py-8">
-              <img src={mascotWelcome} alt="Dra. Lila" className="w-20 h-20 object-contain mx-auto mb-3 select-none" style={{ filter: "drop-shadow(0 6px 14px rgba(0,0,0,.15))" }} loading="lazy" decoding="async" width={80} height={80} />
+              <img src={mascotWelcome} alt="Pingo" className="w-20 h-20 object-contain mx-auto mb-3 select-none" style={{ filter: "drop-shadow(0 6px 14px rgba(0,0,0,.15))" }} loading="lazy" decoding="async" width={80} height={80} />
                   <Users className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
                   <p className="text-sm text-muted-foreground">Nenhum paciente encontrado</p>
                 </div>

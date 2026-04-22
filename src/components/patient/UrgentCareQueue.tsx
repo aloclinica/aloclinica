@@ -424,7 +424,7 @@ const UrgentCareQueue = () => {
                   <Zap className="w-4 h-4" /> Entrar na Fila
                 </Button>
               </div>
-              <img src={mascotWave} alt="Dra. Lila" className="absolute right-2 bottom-0 w-28 h-28 object-contain opacity-90" loading="lazy" decoding="async" width={112} height={112} />
+              <img src={mascotWave} alt="Pingo" className="absolute right-2 bottom-0 w-28 h-28 object-contain opacity-90" loading="lazy" decoding="async" width={112} height={112} />
               <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/[0.06] blur-[40px]" />
             </div>
 

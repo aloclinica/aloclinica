@@ -154,7 +154,7 @@ const AuthOftalmologista = () => {
           <motion.div className="flex justify-center mt-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.6 }}>
             <motion.img
               src={pingoOftalmo}
-              alt="Dra. Lila oftalmologista"
+              alt="Pingo oftalmologista"
               className="w-48 h-48 object-contain select-none"
               style={{ filter: "drop-shadow(0 12px 40px rgba(0,0,50,.35))" }}
               animate={{ y: [0, -10, 0] }}

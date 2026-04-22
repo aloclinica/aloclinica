@@ -621,7 +621,7 @@ const AuthLaudista = () => {
 
       {/* Mascot */}
       <section className="py-10 text-center">
-        <img src={mascotThumbsup} alt="Dra. Lila mascote" className="w-24 mx-auto opacity-80" loading="lazy" decoding="async" width={96} />
+        <img src={mascotThumbsup} alt="Pingo mascote" className="w-24 mx-auto opacity-80" loading="lazy" decoding="async" width={96} />
       </section>
 
       <Suspense fallback={null}><Footer /></Suspense>

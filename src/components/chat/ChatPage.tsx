@@ -147,9 +147,9 @@ const ChatPage = () => {
         <div className="md:hidden">
           {!showChat ? (
             <div>
-              {/* Header with Dra. Lila avatar */}
+              {/* Header with Pingo avatar */}
               <div className="flex items-center gap-3 mb-6">
-                <img src={mascotWave} alt="Dra. Lila" className="w-10 h-10 rounded-full object-cover" />
+                <img src={mascotWave} alt="Pingo" className="w-10 h-10 rounded-full object-cover" />
                 <div>
                   <h1 className="font-[Manrope] text-xl font-bold text-foreground">AloClínica</h1>
                   <p className="text-xs text-muted-foreground">Suas conversas</p>
@@ -180,7 +180,7 @@ const ChatPage = () => {
                 <button onClick={() => setSelected(null)} className="text-muted-foreground">
                   <ArrowLeft className="w-5 h-5" />
                 </button>
-                <img src={mascotWave} alt="Dra. Lila" className="w-8 h-8 rounded-full object-cover" />
+                <img src={mascotWave} alt="Pingo" className="w-8 h-8 rounded-full object-cover" />
                 <div>
                   <p className="text-sm font-bold text-foreground">{selected.otherName}</p>
                   <p className="text-[11px] text-muted-foreground">
@@ -219,7 +219,7 @@ const ChatPage = () => {
     if (conversations.length === 0) {
       return (
         <div className="text-center py-12">
-          <img src={mascotWave} alt="Dra. Lila" className="w-20 h-20 mx-auto mb-3 opacity-60" />
+          <img src={mascotWave} alt="Pingo" className="w-20 h-20 mx-auto mb-3 opacity-60" />
           <p className="text-sm font-semibold text-foreground">Nenhuma conversa</p>
           <p className="text-xs text-muted-foreground mt-1">
             Suas conversas com médicos aparecerão aqui após agendar uma consulta.

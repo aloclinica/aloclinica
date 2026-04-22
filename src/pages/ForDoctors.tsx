@@ -112,7 +112,7 @@ const ForDoctors = forwardRef<HTMLDivElement>((_, ref) => {
             >
               <img
                 src={doctorTeleconsulta}
-                alt="Dra. Lila em teleconsulta"
+                alt="Pingo em teleconsulta"
                 width={440}
                 height={440}
                 className="w-[280px] sm:w-[360px] lg:w-[440px] drop-shadow-2xl"
@@ -169,7 +169,7 @@ const ForDoctors = forwardRef<HTMLDivElement>((_, ref) => {
             <motion.div className="flex justify-center order-2 lg:order-1" {...fadeUp} transition={{ duration: 0.6 }}>
               <img
                 src={doctorFerramentas}
-                alt="Dra. Lila com ferramentas médicas"
+                alt="Pingo com ferramentas médicas"
                 loading="lazy"
                 width={512}
                 height={512}
@@ -313,7 +313,7 @@ const ForDoctors = forwardRef<HTMLDivElement>((_, ref) => {
             <motion.div className="flex justify-center" {...fadeUp} transition={{ duration: 0.6, delay: 0.2 }}>
               <img
                 src={doctorRenda}
-                alt="Dra. Lila renda extra"
+                alt="Pingo renda extra"
                 loading="lazy"
                 width={512}
                 height={512}

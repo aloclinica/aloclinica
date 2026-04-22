@@ -597,7 +597,7 @@ const PatientHealth = () => {
 
 const EmptyState = ({ img, text }: { img: string; text: string }) => (
   <div className="text-center py-10 rounded-2xl border border-dashed border-border/40 bg-muted/5">
-    <img src={img} alt="Dra. Lila" className="w-16 h-16 object-contain mx-auto drop-shadow-md mb-3 select-none" loading="lazy" decoding="async" width={64} height={64} />
+    <img src={img} alt="Pingo" className="w-16 h-16 object-contain mx-auto drop-shadow-md mb-3 select-none" loading="lazy" decoding="async" width={64} height={64} />
     <p className="text-xs font-semibold text-foreground">{text}</p>
     <p className="text-[10px] text-muted-foreground mt-1">Seus dados aparecerão aqui</p>
   </div>

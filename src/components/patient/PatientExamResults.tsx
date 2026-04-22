@@ -133,7 +133,7 @@ const PatientExamResults = () => {
           </div>
           <img
             src={mascotReading}
-            alt="Dra. Lila lendo"
+            alt="Pingo lendo"
             className="absolute right-2 bottom-0 w-28 h-28 object-contain select-none opacity-90"
             loading="lazy" decoding="async" width={112} height={112}
           />
@@ -174,7 +174,7 @@ const PatientExamResults = () => {
           </div>
         ) : !filtered?.length ? (
           <div className="text-center py-16 rounded-2xl border border-dashed border-border/40 bg-muted/10">
-            <img src={mascotReading} alt="Dra. Lila" className="w-20 h-20 object-contain mx-auto drop-shadow-md mb-3 select-none" loading="lazy" decoding="async" width={80} height={80} />
+            <img src={mascotReading} alt="Pingo" className="w-20 h-20 object-contain mx-auto drop-shadow-md mb-3 select-none" loading="lazy" decoding="async" width={80} height={80} />
             <p className="text-sm font-semibold text-foreground mb-1">Nenhum exame encontrado</p>
             <p className="text-xs text-muted-foreground">Quando seu médico solicitar exames, eles aparecerão aqui.</p>
           </div>

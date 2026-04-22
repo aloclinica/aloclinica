@@ -74,7 +74,7 @@ const LeftPanel = () => (
       <img src={logo} alt="AloClínica" className="w-12 h-12 rounded-2xl shadow-lg ring-2 ring-white/20 mb-8" />
       <motion.img
         src={mascotWave}
-        alt="Dra. Lila"
+        alt="Pingo"
         className="w-[180px] h-[180px] xl:w-[210px] xl:h-[210px] object-contain select-none mb-8"
         style={{ filter: "drop-shadow(0 12px 40px rgba(0,0,50,.35))" }}
         animate={{ y: [0, -10, 0] }}
@@ -725,7 +725,7 @@ const AuthPaciente = () => {
           </div>
           <motion.img
             src={mascotWave}
-            alt="Dra. Lila"
+            alt="Pingo"
             className="w-[70px] h-[70px] object-contain select-none"
             style={{ filter: "drop-shadow(0 4px 16px rgba(0,0,50,.25))" }}
             animate={{ y: [0, -4, 0] }}

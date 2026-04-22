@@ -27,7 +27,7 @@ const EmptyState = ({ icon, mascot, title, description, action, size = "md", cla
       {mascot ? (
         <motion.img
           src="/assets/mascot.png"
-          alt="Dra. Lila"
+          alt="Pingo"
           initial={{ scale: 0.7, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 200, damping: 15 }}

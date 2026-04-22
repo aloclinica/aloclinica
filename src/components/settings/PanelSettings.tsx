@@ -231,7 +231,7 @@ const PanelSettings = () => {
               transition={{ delay: 0.4 }}
               className="flex items-center gap-3 p-4 rounded-2xl bg-primary/[0.04] border border-primary/10"
             >
-              <img src={mascotWave} alt="Dra. Lila" className="w-16 h-16 object-contain shrink-0" loading="lazy" />
+              <img src={mascotWave} alt="Pingo" className="w-16 h-16 object-contain shrink-0" loading="lazy" />
               <div className="relative bg-card rounded-2xl rounded-bl-sm px-4 py-3 border border-border/20 shadow-sm">
                 <p className="text-[13px] font-medium text-foreground">Precisa de ajuda com o app?</p>
                 <p className="text-[11px] text-muted-foreground mt-0.5">Fale com nosso suporte a qualquer momento</p>

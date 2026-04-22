@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import LazyAvatar from "@/components/ui/lazy-avatar";
 
-/* ─── Dr. Lila specialty images ─── */
+/* ─── Pingo specialty images ─── */
 import pingoClinicoGeral from "@/assets/pingo-clinico-geral.png";
 import pingoCardiologista from "@/assets/pingo-cardiologista.png";
 import pingoDermatologista from "@/assets/pingo-dermatologista.png";

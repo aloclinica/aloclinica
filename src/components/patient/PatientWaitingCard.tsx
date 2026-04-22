@@ -130,7 +130,7 @@ const PatientWaitingCard = ({ appointment }: Props) => {
             /* Waiting */
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <img src={mascotWave} alt="Dra. Lila" className="w-12 h-12 object-contain" loading="lazy" decoding="async" width={48} height={48} />
+                <img src={mascotWave} alt="Pingo" className="w-12 h-12 object-contain" loading="lazy" decoding="async" width={48} height={48} />
                 <div className="flex-1">
                   <p className="text-sm font-bold text-foreground">Sala de Espera</p>
                   <p className="text-xs text-muted-foreground">{appointment.doctor_name}</p>

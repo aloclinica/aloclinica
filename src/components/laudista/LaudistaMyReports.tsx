@@ -166,7 +166,7 @@ const LaudistaMyReports = () => {
               <div className="text-center py-10">
                 <img
                   src={mascotReading}
-                  alt="Dra. Lila"
+                  alt="Pingo"
                   className="w-20 h-20 object-contain mx-auto mb-4 select-none"
                   style={{ filter: "drop-shadow(0 6px 14px rgba(0,0,0,.15))" }}
                   loading="lazy"

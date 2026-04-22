@@ -426,7 +426,7 @@ const AuthMedico = () => {
               <motion.div variants={fadeUp} className="text-center mb-14 relative">
                 <Badge variant="outline" className="mb-3 text-sm px-4 py-1 rounded-full"><HelpCircle className="w-3.5 h-3.5 mr-1.5" /> Passo a passo</Badge>
                 <h2 className="text-3xl sm:text-4xl font-black text-foreground tracking-tight">Como funciona?</h2>
-                <motion.img src={mascotWave} alt="Dra. Lila" className="absolute -right-2 sm:right-4 -bottom-6 w-14 sm:w-18 object-contain drop-shadow-lg" initial={{ opacity: 0, scale: 0.5 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.3, type: "spring", stiffness: 200 }} />
+                <motion.img src={mascotWave} alt="Pingo" className="absolute -right-2 sm:right-4 -bottom-6 w-14 sm:w-18 object-contain drop-shadow-lg" initial={{ opacity: 0, scale: 0.5 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.3, type: "spring", stiffness: 200 }} />
               </motion.div>
               <div className="grid md:grid-cols-3 gap-5">
                 {howItWorks.map((item, i) => (

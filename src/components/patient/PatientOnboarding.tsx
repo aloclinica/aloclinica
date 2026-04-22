@@ -149,7 +149,7 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
             <p className="text-sm text-muted-foreground leading-relaxed mb-6">
               Bem-vindo à AloClínica. O santuário digital para cuidar de você e de quem você ama.
             </p>
-            <img src={mascotWelcome} alt="Dra. Lila" className="w-40 h-40 mx-auto object-contain drop-shadow-lg mb-4" loading="lazy" decoding="async" width={160} height={160} />
+            <img src={mascotWelcome} alt="Pingo" className="w-40 h-40 mx-auto object-contain drop-shadow-lg mb-4" loading="lazy" decoding="async" width={160} height={160} />
             <div className="relative bg-card rounded-2xl border border-border/50 p-3 max-w-[200px] ml-auto -mt-8 mr-4 shadow-lg">
               <p className="text-xs text-foreground leading-relaxed">
                 "Olá! Sou seu guia para uma vida saudável."

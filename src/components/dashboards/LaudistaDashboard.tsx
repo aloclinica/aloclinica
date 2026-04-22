@@ -126,7 +126,7 @@ const LaudistaDashboard = () => {
           <HeroBanner
             gradient="from-[#040D24] via-[#0F2B5E] to-[#1e40af]"
             pingoSrc={mascotReading}
-            pingoAlt="Dra. Lila"
+            pingoAlt="Pingo"
             liveDot={true}
             liveColor={urgentCount > 0 ? "red" : "green"}
             bubble={{

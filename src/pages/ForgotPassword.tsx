@@ -46,7 +46,7 @@ const ForgotPassword = () => {
         <div className="relative z-10 flex flex-col items-center justify-center w-full px-12 text-center">
           <motion.img
             src={mascotImg}
-            alt="Dra. Lila"
+            alt="Pingo"
             className="w-40 h-40 object-contain mb-8 drop-shadow-2xl"
             animate={{ y: [0, -8, 0] }}
             transition={{ duration: 2, ease: "easeInOut", repeat: Infinity }}
@@ -79,7 +79,7 @@ const ForgotPassword = () => {
 
           {/* Mobile hero */}
           <div className="lg:hidden flex items-center gap-3 mb-6">
-            <img src={mascotImg} alt="Dra. Lila" className="w-12 h-12 object-contain" />
+            <img src={mascotImg} alt="Pingo" className="w-12 h-12 object-contain" />
             <div>
               <h1 className="text-lg font-bold text-foreground">Recuperar Senha</h1>
               <p className="text-xs text-muted-foreground">AloClínica</p>

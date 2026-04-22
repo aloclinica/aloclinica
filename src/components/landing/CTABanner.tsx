@@ -127,7 +127,7 @@ const CTABanner = forwardRef<HTMLElement>((_, ref) => {
               {/* Mascot */}
               <motion.img
                 src={mascotThumbsup}
-                alt="Dra. Lila mascote"
+                alt="Pingo mascote"
                 className="w-28 h-28 md:w-32 md:h-32 object-contain drop-shadow-2xl mb-5 hidden lg:block"
                 initial={{ opacity: 0, y: -20, rotate: -8 }}
                 whileInView={{ opacity: 1, y: 0, rotate: 0 }}
