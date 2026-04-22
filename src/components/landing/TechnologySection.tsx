@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { Video, ShieldCheck, Cpu, Lock } from "lucide-react";
-// Removido import local para usar URL externa conforme solicitado
-const technologyImage = "https://cvbgrjauqjawrsyknhyj.supabase.co/storage/v1/object/public/files/uploads/public/1776900477087-k2u1c-image.png";
+import technologyImage from "@/assets/technology-doctor.png";
 
 const TechnologySection = ({ config }: { config?: any }) => {
   const title = config?.title || "Inovação a serviço da sua saúde";
