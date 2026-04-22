@@ -79,8 +79,16 @@ const SpecialtyCard = ({ name, desc, index }: { name: string; desc?: string; ind
       className="group flex flex-col items-center gap-3 p-4 rounded-2xl bg-card/80 border border-border/40 hover:shadow-lg hover:border-primary/25 hover:-translate-y-1 transition-all duration-300 cursor-pointer h-full w-full"
       onClick={() => navigate("/dashboard/doctors")}
     >
-      <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors duration-300">
-        <Icon className="w-6 h-6 md:w-7 md:h-7 text-primary group-hover:text-white transition-colors" weight="duotone" />
+      <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-primary/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors duration-300 overflow-hidden">
+        {PINGO_SPECIALTIES[name] ? (
+          <img 
+            src={PINGO_SPECIALTIES[name]} 
+            alt={`Pingo ${name}`}
+            className="w-full h-full object-contain pingo-float"
+          />
+        ) : (
+          <Icon className="w-6 h-6 md:w-7 md:h-7 text-primary group-hover:text-primary transition-colors" weight="duotone" />
+        )}
       </div>
       <div className="flex flex-col items-center gap-1.5">
         <span className="text-xs md:text-sm font-bold text-foreground text-center leading-tight group-hover:text-primary transition-colors">
