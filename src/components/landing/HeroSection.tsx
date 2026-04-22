@@ -105,7 +105,6 @@ const HeroSection = memo(
               animate={{ opacity: 1, scale: 1, rotate: 0 }}
               transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
             >
-              <div className="absolute inset-0 bg-primary/5 rounded-full blur-[100px] scale-75 animate-pulse" />
               <motion.div
                 animate={{ y: [0, -15, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
@@ -114,7 +113,7 @@ const HeroSection = memo(
                 <OptimizedImage
                   src={heroImgUrl}
                   alt="Médico e pacientes"
-                  className="w-full h-auto drop-shadow-[0_25px_50px_rgba(0,0,0,0.15)] max-w-[600px] mx-auto"
+                  className="w-full h-auto max-w-[600px] mx-auto mix-blend-multiply"
                 />
               </motion.div>
             </motion.div>
