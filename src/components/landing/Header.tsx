@@ -60,7 +60,7 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
   const { user, profile, signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
 
-  const logoUrl = mascot; // Use mascot always to fix the "wrong" logo issue
+  const logoUrl = config?.logo_url || mascot;
   const menuItems = config?.menu_items || [
     { label: "Especialidades", href: "/#especialidades" },
     { label: "Para Médicos", href: "/#para-medicos" },
