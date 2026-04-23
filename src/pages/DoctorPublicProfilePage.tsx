@@ -96,21 +96,19 @@ const DoctorPublicProfilePage = () => {
         <SEOHead
           title={`${doctorMeta.name} — ${doctorMeta.specialty} | AloClinica`}
           description={`Agende uma consulta online com ${doctorMeta.name}, especialista em ${doctorMeta.specialty}. Atendimento por videochamada na AloClinica.`}
+          jsonLd={{
+            "@context": "https://schema.org",
+            "@type": "Physician",
+            "name": doctorMeta.name,
+            "medicalSpecialty": doctorMeta.specialty,
+            "url": window.location.href,
+            "availableService": {
+              "@type": "MedicalProcedure",
+              "name": "Teleconsulta",
+              "procedureType": "https://schema.org/NoninvasiveProcedure"
+            }
+          }}
         />
-      )}
-      {doctorMeta && (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Physician",
-          "name": doctorMeta.name,
-          "medicalSpecialty": doctorMeta.specialty,
-          "url": window.location.href,
-          "availableService": {
-            "@type": "MedicalProcedure",
-            "name": "Teleconsulta",
-            "procedureType": "https://schema.org/NoninvasiveProcedure"
-          }
-        })}} />
       )}
       <DoctorPublicProfile />
     </>
