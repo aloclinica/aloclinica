@@ -114,6 +114,8 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
       </section>
 
       <TechnologySection config={sectionData.technology} />
+      {isOn("how_it_works") !== false && <HowItWorksSection />}
+      {isOn("benefits") !== false && <BenefitsGrid />}
       <SpecialtiesSection config={sectionData.specialties} />
 
       {/* ═══════════════ DEPOIMENTOS ═══════════════ */}
@@ -156,6 +158,10 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
           </div>
         </section>
       )}
+
+      {isOn("for_doctors") !== false && <ForDoctorsSection />}
+      {isOn("faq") !== false && <FAQSection />}
+      {isOn("cta_banner") !== false && <CTABanner />}
 
       {isOn("footer") && <Footer config={sectionData.footer} />}
     </div>
