@@ -60,7 +60,7 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
   const { user, profile, signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
 
-  const logoUrl = config?.logo_url || mascot;
+  const logoUrl = (config?.logo_url && !config.logo_url.includes("pwa-")) ? config.logo_url : mascot;
   const menuItems = config?.menu_items || [
     { label: "Especialidades", href: "/#especialidades" },
     { label: "Para Médicos", href: "/#para-medicos" },
