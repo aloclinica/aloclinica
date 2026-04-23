@@ -8,7 +8,8 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Mail, Lock, ArrowLeft, Sparkles, LucideIcon, CheckCircle2, Shield, Eye, EyeOff } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
-import logo from "@/assets/logo-pingo.png";
+import { PINGO_LOGO_URL } from "@/lib/constants";
+const logo = PINGO_LOGO_URL;
 
 interface AuthSimpleRoleProps {
   role: string;
