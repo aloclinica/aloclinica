@@ -76,4 +76,4 @@ export const FEATURES = {
 } as const;
 
 // ─── Assets ───────────────────────────────────────────────────────────────────
-export const PINGO_LOGO_URL = "/pingo-loader.png";
+export const PINGO_LOGO_URL = "https://cvbgrjauqjawrsyknhyj.supabase.co/storage/v1/object/public/files/uploads/0XILPRqqUbSOh99ow53X5OBDOCC3/1776902434741-yu841-1776788772275-bngbf-hero-doctor__4_-removebg-preview.png";
