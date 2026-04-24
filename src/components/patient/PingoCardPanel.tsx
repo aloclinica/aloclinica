@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import QRCode from "react-qr-code";
-import { Heart, QrCode, Sparkle, Crown, Check, ArrowRight, Storefront, FlaskConical, Eyeglasses, MapPin, MagnifyingGlass, Lightning } from "@phosphor-icons/react";
+import { QRCodeSVG } from "qrcode.react";
+import { Heart, QrCode, Sparkle, Crown, Check, ArrowRight, Storefront, Flask, Eyeglasses, MapPin, MagnifyingGlass, Lightning } from "@phosphor-icons/react";
 import { useAuth } from "@/contexts/AuthContext";
 import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
@@ -48,7 +48,7 @@ interface Partner {
 
 const categoryIcons: Record<string, React.ReactNode> = {
   farmacia: <Storefront size={18} weight="fill" />,
-  laboratorio: <FlaskConical size={18} weight="fill" />,
+  laboratorio: <Flask size={18} weight="fill" />,
   otica: <Eyeglasses size={18} weight="fill" />,
   academia: <Lightning size={18} weight="fill" />,
 };
@@ -259,7 +259,7 @@ const PingoCardPanel = () => {
                 </div>
 
                 <div className="bg-white p-4 rounded-xl shadow-lg">
-                  <QRCode value={cardPayload} size={120} />
+                  <QRCodeSVG value={cardPayload} size={120} />
                   <p className="text-center text-xs text-foreground mt-2 font-medium">Apresente em parceiros</p>
                 </div>
               </div>

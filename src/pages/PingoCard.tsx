@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Heart, User, Star, Shield, Check, ArrowRight, QrCode, Sparkle, MapPin, Storefront, FlaskConical, Eyeglasses } from "@phosphor-icons/react";
+import { Heart, User, Star, Shield, Check, ArrowRight, QrCode, Sparkle, MapPin, Storefront, Flask, Eyeglasses } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -44,7 +44,7 @@ interface PingoPartner {
 
 const categoryIcons: Record<string, React.ReactNode> = {
   farmacia: <Storefront size={20} weight="fill" />,
-  laboratorio: <FlaskConical size={20} weight="fill" />,
+  laboratorio: <Flask size={20} weight="fill" />,
   otica: <Eyeglasses size={20} weight="fill" />,
   academia: <Sparkle size={20} weight="fill" />,
 };

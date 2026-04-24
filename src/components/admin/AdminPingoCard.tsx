@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Pencil, Trash2, Heart, Storefront, Users, TrendUp } from "@phosphor-icons/react";
+import { Plus, Pencil, Trash, Storefront, Users, TrendUp } from "@phosphor-icons/react";
+import { Heart } from "lucide-react";
 import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getAdminNav } from "./adminNav";
@@ -160,7 +161,7 @@ const AdminPingoCard = () => {
   const totalSavings = subscriptions.reduce((sum, s) => sum + Number(s.total_savings ?? 0), 0);
 
   return (
-    <DashboardLayout activeItem="pingo-card" navItems={nav} role="admin">
+    <DashboardLayout title="Pingo Card" nav={nav} role="admin">
       <div className="space-y-6">
         <AdminPageHeader
           icon={<Heart size={20} weight="fill" />}
