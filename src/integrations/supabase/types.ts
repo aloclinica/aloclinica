@@ -1918,7 +1918,10 @@ export type Database = {
           address_state: string | null
           address_street: string | null
           address_zip: string | null
+          allergies: string[] | null
           avatar_url: string | null
+          blood_type: string | null
+          chronic_conditions: string[] | null
           cpf: string | null
           created_at: string
           date_of_birth: string | null
@@ -1936,7 +1939,10 @@ export type Database = {
           address_state?: string | null
           address_street?: string | null
           address_zip?: string | null
+          allergies?: string[] | null
           avatar_url?: string | null
+          blood_type?: string | null
+          chronic_conditions?: string[] | null
           cpf?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -1954,7 +1960,10 @@ export type Database = {
           address_state?: string | null
           address_street?: string | null
           address_zip?: string | null
+          allergies?: string[] | null
           avatar_url?: string | null
+          blood_type?: string | null
+          chronic_conditions?: string[] | null
           cpf?: string | null
           created_at?: string
           date_of_birth?: string | null
