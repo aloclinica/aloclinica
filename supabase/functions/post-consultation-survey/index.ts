@@ -102,7 +102,7 @@ serve(async (req) => {
           });
           sent++;
         } catch (error: any) {
-          console.error(`Survey email failed for ${appt.id}:`, e);
+          console.error(`Survey email failed for ${appt.id}:`, error);
         }
       }
 
@@ -119,7 +119,7 @@ serve(async (req) => {
             body: JSON.stringify({ phone: profile.phone, message: msg }),
           });
         } catch (error: any) {
-          console.error(`Survey WhatsApp failed for ${appt.id}:`, e);
+          console.error(`Survey WhatsApp failed for ${appt.id}:`, error);
         }
       }
 

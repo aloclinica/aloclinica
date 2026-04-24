@@ -68,7 +68,7 @@ NUNCA faça diagnóstico. Apenas sugira a especialidade mais adequada.`,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: any) {
-    console.error("Triage error:", e);
+    console.error("Triage error:", error);
     return new Response(JSON.stringify({ 
       specialty: "Clínico Geral", 
       reason: "Recomendamos uma avaliação geral com um clínico.", 

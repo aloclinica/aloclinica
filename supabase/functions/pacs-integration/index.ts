@@ -168,7 +168,7 @@ serve(async (req) => {
       if (error) return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
       const withUrls = await Promise.all(
-        (files || []).map(async (f: { name: string }) => {
+        (files || []).map(async (f: any) => {
           const filePath = `${folder}/${f.name}`;
           const { data: signedData } = await supabase.storage.from("exam-files").createSignedUrl(filePath, 3600);
           return { name: f.name, size: f.metadata?.size || 0, type: f.metadata?.mimetype || "application/octet-stream", created_at: f.created_at, path: filePath, url: signedData?.signedUrl || null };
