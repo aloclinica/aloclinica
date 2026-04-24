@@ -64,6 +64,9 @@ const SignupLaudista = lazy(() => import("./pages/SignupLaudista"));
 const ForDoctors = lazy(() => import("./pages/ForDoctors"));
 const ForClinics = lazy(() => import("./pages/ForClinics"));
 const Sobre = lazy(() => import("./pages/Sobre"));
+const SobreQuemSomos = lazy(() => import("./pages/sobre/QuemSomos"));
+const SobrePorqueNos = lazy(() => import("./pages/sobre/PorqueNos"));
+const SobreDepoimentos = lazy(() => import("./pages/sobre/Depoimentos"));
 const Seguranca = lazy(() => import("./pages/Seguranca"));
 const Contato = lazy(() => import("./pages/Contato"));
 const ComoFunciona = lazy(() => import("./pages/ComoFunciona"));
@@ -169,6 +172,9 @@ const AnimatedRoutes = () => {
       <Route path="/profissionais" element={<ForDoctors />} />
       <Route path="/para-clinicas" element={<ForClinics />} />
       <Route path="/sobre" element={<Sobre />} />
+      <Route path="/sobre/quem-somos" element={<SobreQuemSomos />} />
+      <Route path="/sobre/porque-nos" element={<SobrePorqueNos />} />
+      <Route path="/sobre/depoimentos" element={<SobreDepoimentos />} />
       <Route path="/seguranca" element={<Seguranca />} />
       <Route path="/contato" element={<Contato />} />
       <Route path="/como-funciona" element={<ComoFunciona />} />

@@ -113,21 +113,21 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
                   <ul className="grid w-[400px] gap-2 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] bg-popover/95 backdrop-blur-xl rounded-2xl border border-border/20 shadow-elevated">
                     <ListItem
                       title="Quem somos"
-                      href="/sobre#quem-somos"
+                      href="/sobre/quem-somos"
                       icon={Users}
                     >
                       Nossa história, missão e compromisso com sua saúde.
                     </ListItem>
                     <ListItem
                       title="Porque nós"
-                      href="/sobre#porque-nos"
+                      href="/sobre/porque-nos"
                       icon={Heart}
                     >
                       Diferenciais que fazem da AloClínica sua melhor escolha.
                     </ListItem>
                     <ListItem
                       title="Depoimentos"
-                      href="/sobre#depoimentos"
+                      href="/sobre/depoimentos"
                       icon={Star}
                     >
                       O que nossos pacientes dizem sobre nosso atendimento.
@@ -229,9 +229,9 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
                         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-2 px-1">Sobre Nós</p>
                         <div className="grid grid-cols-1 gap-1">
                           {[
-                            { label: "Quem somos", href: "/sobre#quem-somos", icon: Users },
-                            { label: "Porque nós", href: "/sobre#porque-nos", icon: Heart },
-                            { label: "Depoimentos", href: "/sobre#depoimentos", icon: Star },
+                            { label: "Quem somos", href: "/sobre/quem-somos", icon: Users },
+                            { label: "Porque nós", href: "/sobre/porque-nos", icon: Heart },
+                            { label: "Depoimentos", href: "/sobre/depoimentos", icon: Star },
                             { label: "Fale conosco", href: "/contato", icon: ChatsCircle }
                           ].map((subItem, sIdx) => (
                             <button
