@@ -77,29 +77,49 @@ const NotificationBell = () => {
     fetchNotifications();
     fetchUnreadMessages();
 
-    // Realtime subscription for notifications
-    const channel = db
-      .channel(`notifications-realtime-${user.id}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-        (payload) => {
-          const newNotif = payload.new as Notification;
-          setNotifications(prev => [newNotif, ...prev]);
-          showRealtimeToastRef.current(newNotif);
+    // Defensive cleanup: remove any leftover channel instances with the same
+    // names (HMR or unmount races can leave orphan channels in the client,
+    // which causes "cannot add postgres_changes after subscribe()" on remount).
+    const notifChannelName = `notifications-realtime-${user.id}`;
+    const msgChannelName = `unread-messages-count-${user.id}`;
+    try {
+      const existing = db.getChannels?.() ?? [];
+      existing.forEach((ch: { topic?: string }) => {
+        const topic = ch?.topic ?? "";
+        if (
+          topic === `realtime:${notifChannelName}` ||
+          topic === `realtime:${msgChannelName}` ||
+          topic === "realtime:notifications-realtime" || // legacy
+          topic === "realtime:unread-messages-count"     // legacy
+        ) {
+          db.removeChannel(ch);
         }
-      )
-      .subscribe();
+      });
+    } catch {
+      /* noop */
+    }
 
-    // Realtime subscription for unread messages (issue #12 rodada 3)
-    const msgChannel = db
-      .channel(`unread-messages-count-${user.id}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages" },
-        () => fetchUnreadMessages()
-      )
-      .subscribe();
+    // Realtime subscription for notifications — chain .on() BEFORE .subscribe()
+    const channel = db.channel(notifChannelName);
+    channel.on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+      (payload: { new: Notification }) => {
+        const newNotif = payload.new;
+        setNotifications((prev) => [newNotif, ...prev]);
+        showRealtimeToastRef.current(newNotif);
+      }
+    );
+    channel.subscribe();
+
+    // Realtime subscription for unread messages
+    const msgChannel = db.channel(msgChannelName);
+    msgChannel.on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "messages" },
+      () => fetchUnreadMessages()
+    );
+    msgChannel.subscribe();
 
     return () => {
       db.removeChannel(channel);
