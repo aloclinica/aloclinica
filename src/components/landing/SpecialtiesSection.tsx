@@ -2,10 +2,11 @@ import { memo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { CaretDown, Heart, Baby, Bone, Eye, Brain, Syringe, UserCircle, Drop, FirstAidKit, Sparkle, Wind, User, HandHeart, Virus, Stethoscope } from "@phosphor-icons/react";
+import type { Icon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { PINGO_SPECIALTIES } from "@/constants/specialties-assets";
 
-const specialtyIcons: Record<string, any> = {
+const specialtyIcons: Record<string, Icon> = {
   "Clínico geral": Syringe,
   "Dermatologista": User,
   "Ginecologista-obstetra": HandHeart,
@@ -21,6 +22,51 @@ const specialtyIcons: Record<string, any> = {
   "Acupunturista": Sparkle,
   "Alergologista": Virus,
   "Pneumologista": Wind,
+};
+
+const specialtyImageAliases: Record<string, string> = {
+  "Clínico geral": "Clínico Geral",
+  "Dermatologista": "Dermatologia",
+  "Ginecologista-obstetra": "Ginecologista-obstetra",
+  "Ortopedista": "Ortopedia",
+  "Cardiologista": "Cardiologia",
+  "Pediatra": "Pediatria",
+  "Psiquiatra": "Psiquiatria",
+  "Neurologista": "Neurologia",
+  "Oftalmologia": "Oftalmologia",
+  "Endocrinologista": "Endocrinologia",
+  "Urologista": "Urologia",
+  "Gastroenterologista": "Gastroenterologia",
+  "Acupunturista": "Acupuntura",
+  "Alergologista": "Alergologista",
+  "Anestesiologista": "Anestesiologia",
+  "Cirurgião dentista": "Cirurgião Dentista",
+  "Cirurgião geral": "Cirurgia Geral",
+  "Cirurgião oncológico": "Oncologia",
+  "Cirurgião plástico": "Cirurgia Plástica",
+  "Cirurgião vascular": "Cirurgia Vascular",
+  "Clínica médica": "Clínico Geral",
+  "Fisiatra": "Fisiatra",
+  "Fisioterapeuta": "Fisioterapia",
+  "Fonoaudiólogo": "Fonoaudiologia",
+  "Geriatra": "Geriatria",
+  "Homeopata": "Homeopatia",
+  "Infectologista": "Infectologia",
+  "Médico de família": "Médico de família",
+  "Médico de tráfego": "Clínico Geral",
+  "Médico do trabalho": "Clínico Geral",
+  "Nefrologista": "Nefrologia",
+  "Nutricionista": "Nutricionista",
+  "Nutrólogo": "Nutrologia",
+  "Otorrinolaringologista": "Otorrinolaringologia",
+  "Pneumologista": "Pneumologia",
+  "Psicólogo": "Psiquiatria",
+  "Reumatologista": "Reumatologia",
+};
+
+const getSpecialtyImage = (name: string) => {
+  const alias = specialtyImageAliases[name] ?? name;
+  return PINGO_SPECIALTIES[alias] ?? PINGO_SPECIALTIES["Clínico Geral"];
 };
 
 const topSpecialties = [
@@ -69,6 +115,7 @@ const moreSpecialties = [
 const SpecialtyCard = ({ name, desc, index }: { name: string; desc?: string; index: number }) => {
   const navigate = useNavigate();
   const Icon = specialtyIcons[name] || Stethoscope;
+  const imageSrc = getSpecialtyImage(name);
   
   return (
     <motion.button
@@ -80,11 +127,12 @@ const SpecialtyCard = ({ name, desc, index }: { name: string; desc?: string; ind
       onClick={() => navigate("/dashboard/doctors")}
     >
       <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-primary/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors duration-300 overflow-hidden">
-        {PINGO_SPECIALTIES[name] ? (
+        {imageSrc ? (
           <img 
-            src={PINGO_SPECIALTIES[name]} 
+            src={imageSrc}
             alt={`Pingo ${name}`}
             className="w-full h-full object-contain pingo-float"
+            loading="lazy"
           />
         ) : (
           <Icon className="w-6 h-6 md:w-7 md:h-7 text-primary group-hover:text-primary transition-colors" weight="duotone" />
