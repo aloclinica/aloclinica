@@ -44,6 +44,7 @@ const ValidateDocument = lazy(() => import("./pages/ValidateDocument"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const DoctorPublicProfilePage = lazy(() => import("./pages/DoctorPublicProfilePage"));
 const PrescriptionVerification = lazy(() => import("./pages/PrescriptionVerification"));
+const KycMobile = lazy(() => import("./pages/KycMobile"));
 
 const B2BTelelaudo = lazy(() => import("./pages/B2BTelelaudo"));
 const Teleconsulta = lazy(() => import("./pages/Teleconsulta"));
@@ -158,6 +159,7 @@ const AnimatedRoutes = () => {
       <Route path="/validar/:id" element={<ValidateDocument />} />
       <Route path="/validar" element={<ValidateDocument />} />
       <Route path="/validar-receita/:prescriptionId" element={<PrescriptionVerification />} />
+      <Route path="/kyc-mobile" element={<KycMobile />} />
 
       <Route path="/para-empresas/telelaudo" element={<B2BTelelaudo />} />
       <Route path="/servicos" element={<Servicos />} />
