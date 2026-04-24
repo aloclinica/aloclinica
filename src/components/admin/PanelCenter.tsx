@@ -48,23 +48,6 @@ const SERVICES_CONFIG: Record<string, { name: string; emoji: string; color: stri
       { id: "doctor", label: "Médico", description: "Consultas, prontuários e receitas", icon: Stethoscope, gradient: "from-emerald-500 to-teal-600", iconBg: "bg-emerald-500/12", accentRing: "ring-emerald-500/20", route: "/dashboard?role=doctor", roleKey: "doctor" },
     ]
   },
-  oftalmologia: {
-    name: "Oftalmologia 👁️",
-    emoji: "👁️",
-    color: "from-purple-500 to-pink-500",
-    description: "Exames de visão, prescrições e laudos",
-    roles: []
-  },
-  telelaudo: {
-    name: "Telelaudo 📋",
-    emoji: "📋",
-    color: "from-cyan-500 to-teal-500",
-    description: "Laudos digitais, clínicas e laudistas",
-    roles: [
-      { id: "laudista", label: "Médico Laudista", description: "Fila de exames e laudos", icon: FileSearch, gradient: "from-cyan-500 to-sky-600", iconBg: "bg-cyan-500/12", accentRing: "ring-cyan-500/20", route: "/dashboard?role=laudista", roleKey: "doctor" },
-      { id: "clinic", label: "Clínica", description: "Gestão de médicos e afiliações", icon: Building2, gradient: "from-violet-500 to-purple-600", iconBg: "bg-violet-500/12", accentRing: "ring-violet-500/20", route: "/dashboard?role=clinic", roleKey: "clinic" },
-    ]
-  },
   cartao: {
     name: "Cartão Benefícios 💳",
     emoji: "💳",
@@ -78,9 +61,6 @@ const PANELS: Omit<PanelInfo, "onlineCount" | "totalUsers" | "recentUsers">[] = 
   // Telemedicina
   { id: "patient", label: "Paciente", description: "Agendamentos, consultas e saúde", icon: Users, gradient: "from-blue-500 to-blue-600", iconBg: "bg-blue-500/12", accentRing: "ring-blue-500/20", route: "/dashboard?role=patient", roleKey: "patient" },
   { id: "doctor", label: "Médico", description: "Consultas, prontuários e receitas", icon: Stethoscope, gradient: "from-emerald-500 to-teal-600", iconBg: "bg-emerald-500/12", accentRing: "ring-emerald-500/20", route: "/dashboard?role=doctor", roleKey: "doctor" },
-  // Telelaudo
-  { id: "laudista", label: "Médico Laudista", description: "Fila de exames e laudos", icon: FileSearch, gradient: "from-cyan-500 to-sky-600", iconBg: "bg-cyan-500/12", accentRing: "ring-cyan-500/20", route: "/dashboard?role=laudista", roleKey: "doctor" },
-  { id: "clinic", label: "Clínica", description: "Gestão de médicos e afiliações", icon: Building2, gradient: "from-violet-500 to-purple-600", iconBg: "bg-violet-500/12", accentRing: "ring-violet-500/20", route: "/dashboard?role=clinic", roleKey: "clinic" },
   // Support
   { id: "receptionist", label: "Recepção", description: "Agendas, check-in e cobranças", icon: Monitor, gradient: "from-amber-500 to-orange-600", iconBg: "bg-amber-500/12", accentRing: "ring-amber-500/20", route: "/dashboard?role=receptionist", roleKey: "receptionist" },
   { id: "support", label: "Suporte", description: "Tickets, logs e monitoramento", icon: Headphones, gradient: "from-rose-500 to-pink-600", iconBg: "bg-rose-500/12", accentRing: "ring-rose-500/20", route: "/dashboard?role=support", roleKey: "support" },
