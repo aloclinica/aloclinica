@@ -1,5 +1,5 @@
 import { logError } from "@/lib/logger";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { securityMonitor } from "@/lib/security-monitor";
 import { useNavigate, Link } from "react-router-dom";
 import { db } from "@/integrations/supabase/untyped";
@@ -30,6 +30,9 @@ import {
   LockKey,
   VideoCamera,
   SignIn,
+  User,
+  Confetti,
+  WarningCircle,
 } from "@phosphor-icons/react";
 import TermsConsentCheckbox from "@/components/auth/TermsConsentCheckbox";
 import { registerConsent } from "@/lib/consent";
