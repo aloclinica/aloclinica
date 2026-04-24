@@ -1084,6 +1084,48 @@ export type Database = {
         }
         Relationships: []
       }
+      kyc_sessions: {
+        Row: {
+          created_at: string
+          device_info: Json | null
+          expires_at: string
+          failure_reason: string | null
+          id: string
+          match_score: number | null
+          role: string
+          status: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_info?: Json | null
+          expires_at?: string
+          failure_reason?: string | null
+          id?: string
+          match_score?: number | null
+          role?: string
+          status?: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_info?: Json | null
+          expires_at?: string
+          failure_reason?: string | null
+          id?: string
+          match_score?: number | null
+          role?: string
+          status?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       medical_records: {
         Row: {
           appointment_id: string | null
