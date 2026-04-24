@@ -132,7 +132,7 @@ serve(async (req) => {
           }),
         });
         sent++;
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Email fail ${appt.id}:`, error);
       }
 
@@ -141,7 +141,7 @@ serve(async (req) => {
         try {
           const msg = `⏰ *Lembrete: consulta em ${timeUntil}!*\n\nOlá ${patient.first_name},\nSua consulta com ${doctorName} ${diffMin <= 18 ? "está prestes a começar" : `é em ${timeUntil}`}.\n\n📹 Sala: ${jitsiLink}\n\nEntre com antecedência. 🏥`;
           await fetch(sendWhatsAppUrl, { method: "POST", headers, body: JSON.stringify({ phone: patient.phone, message: msg }) });
-        } catch (error) {
+        } catch (error: any) {
           console.error(`WhatsApp patient fail ${appt.id}:`, error);
         }
       }
@@ -152,7 +152,7 @@ serve(async (req) => {
         try {
           const msg = `⏰ *Lembrete: consulta em ${timeUntil}!*\n\nDr(a). ${docProfile.first_name},\nSua consulta com ${patientName} ${diffMin <= 18 ? "está prestes a começar" : `é em ${timeUntil}`}.\n\n📹 Sala: ${jitsiLink}`;
           await fetch(sendWhatsAppUrl, { method: "POST", headers, body: JSON.stringify({ phone: docProfile.phone, message: msg }) });
-        } catch (error) {
+        } catch (error: any) {
           console.error(`WhatsApp doctor fail ${appt.id}:`, error);
         }
       }
@@ -168,7 +168,7 @@ serve(async (req) => {
             link: `/dashboard/consultation/${appt.id}`,
           }),
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Push patient fail ${appt.id}:`, error);
       }
 
@@ -185,7 +185,7 @@ serve(async (req) => {
               link: `/dashboard/consultation/${appt.id}`,
             }),
           });
-        } catch (error) {
+        } catch (error: any) {
           console.error(`Push doctor fail ${appt.id}:`, error);
         }
       }
@@ -218,7 +218,7 @@ serve(async (req) => {
             link: `/dashboard/consultation/${appt.id}`,
           }] : []),
         ]);
-      } catch (error) {
+      } catch (error: any) {
         console.error(`In-app notification fail ${appt.id}:`, error);
       }
     }
@@ -227,7 +227,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ sent, appointments: appointments.length }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,

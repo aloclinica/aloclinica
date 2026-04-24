@@ -76,7 +76,7 @@ async function logAudit(params: {
       user_agent: params.userAgent ?? null,
       consent_reference: params.consentReference ?? null,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Audit log error:", error);
   }
 }
@@ -126,7 +126,7 @@ serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
     await supabase.rpc("cleanup_rate_limits");
-  } catch (error) {
+  } catch (error: any) {
     console.error("Cleanup error:", error);
   }
 

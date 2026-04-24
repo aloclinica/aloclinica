@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
           }).catch((e) => console.warn("Email failed:", e));
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.warn("Email send failed:", e);
     }
 
@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
       JSON.stringify({ success: true, notified }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error:", error);
     return new Response(
       JSON.stringify({ error: "Internal server error" }),

@@ -221,7 +221,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       error: "Ação inválida. Use: orthanc_webhook, search_studies, get_files, upload_file, delete_file, get_signed_url",
     }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  } catch (error) {
+  } catch (error: any) {
     console.error("PACS integration error:", error);
     return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }

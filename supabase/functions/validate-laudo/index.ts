@@ -149,7 +149,7 @@ Tipo de exame: ${exam_type || "Não especificado"}`;
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("validate-laudo error:", error);
     return new Response(
       JSON.stringify({

@@ -101,7 +101,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ success: waRes.ok, status, data: waResult }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("whatsapp-notify error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,

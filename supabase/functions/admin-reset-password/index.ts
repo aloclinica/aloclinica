@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ ok: true, user_id: user.id, email: user.email }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (e) {
+  } catch (e: any) {
     const msg = e instanceof Error ? e.message : String(e);
     return new Response(JSON.stringify({ error: msg }), {
       status: 500,

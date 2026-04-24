@@ -72,7 +72,7 @@ async function extractDocumentData(documentImageDataUrl: string): Promise<{ nome
     const raw = (j.choices?.[0]?.message?.content || "").replace(/```json\s*|```/g, "").trim();
     const parsed = JSON.parse(raw);
     return { nome: parsed?.nome ?? null, cpf: parsed?.cpf ?? null };
-  } catch (e) {
+  } catch (e: any) {
     console.warn("[didit-kyc] OCR failed:", e);
     return { nome: null, cpf: null };
   }
@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
         detectFaces(document_image),
         detectFaces(selfie_image),
       ]);
-    } catch (e) {
+    } catch (e: any) {
       console.error("[didit-kyc] detect failure:", e);
       return new Response(JSON.stringify({
         error: "Falha ao detectar faces. Tente novamente com fotos nítidas e bem iluminadas.",
@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
     let verifyResult;
     try {
       verifyResult = await verifyFaces(document_image, selfie_image);
-    } catch (e) {
+    } catch (e: any) {
       console.error("[didit-kyc] verify failure:", e);
       return new Response(JSON.stringify({
         error: "Falha na verificação biométrica. Tente novamente.",

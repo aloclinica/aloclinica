@@ -457,7 +457,7 @@ serve(async (req) => {
         if (pixRes.ok) {
           pixData = await safeJson(pixRes);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.warn("PIX QR code fetch failed, payment still created:", error);
       }
     }
@@ -479,7 +479,7 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error:", error);
     return new Response(
       JSON.stringify({ error: error.message }),

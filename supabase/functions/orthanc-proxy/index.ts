@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
           const studyData = await studyRes.json();
           studyInstanceUID = studyData?.MainDicomTags?.StudyInstanceUID || studyInstanceUID;
         }
-      } catch (e) {
+      } catch (e: any) {
         console.warn("Could not fetch StudyInstanceUID:", e);
       }
     }
@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("orthanc-proxy error:", error);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
