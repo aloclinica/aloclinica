@@ -17,7 +17,7 @@ import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import {
   DollarSign, TrendingUp, TrendingDown, AlertTriangle, Search, Download,
-  CreditCard, Receipt, Clock, CheckCircle2, XCircle, RefreshCw, Banknote
+  CreditCard, Receipt, Clock, CheckCircle2, XCircle, RefreshCw, Banknote, Wallet
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, Area, AreaChart } from "recharts";
 
