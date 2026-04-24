@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Smartphone, Monitor, ShieldCheck, CheckCircle2, RefreshCw, Loader2, Camera, Copy, Check } from "lucide-react";
+import { Monitor, ShieldCheck, CheckCircle2, RefreshCw, Loader2, Camera, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { db } from "@/integrations/supabase/untyped";
@@ -195,7 +195,7 @@ const KycCrossDevice = ({ onComplete, variant = "full", className = "", tipo = "
           <h3 className="text-lg font-bold text-foreground">Preparando verificação…</h3>
           <p className="text-xs text-muted-foreground mt-1">Gerando QR code seguro</p>
         </div>
-        <Skeleton className="w-56 h-56 rounded-2xl mx-auto" />
+        <Skeleton className="w-56 h-56 rounded-3xl mx-auto" />
       </div>
     );
   }
@@ -206,23 +206,32 @@ const KycCrossDevice = ({ onComplete, variant = "full", className = "", tipo = "
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className={`text-center py-6 space-y-4 ${className}`}
+        className={`relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-card p-8 text-center space-y-5 ${className}`}
       >
-        <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-          <CheckCircle2 className="w-8 h-8 text-primary" />
-        </div>
-        <div>
-          <h3 className="text-lg font-bold text-foreground">Identidade verificada! ✅</h3>
-          <p className="text-xs text-muted-foreground mt-1">
-            Concluída no seu celular. Você já pode prosseguir.
+        {/* Decorative glow */}
+        <div className="pointer-events-none absolute -top-16 -right-16 w-40 h-40 rounded-full bg-primary/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-16 -left-16 w-40 h-40 rounded-full bg-primary/10 blur-3xl" />
+
+        <motion.div
+          initial={{ scale: 0, rotate: -90 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.1 }}
+          className="relative w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/30"
+        >
+          <CheckCircle2 className="w-10 h-10 text-primary-foreground" strokeWidth={2.5} />
+        </motion.div>
+        <div className="relative space-y-1.5">
+          <h3 className="text-2xl font-bold text-foreground">Identidade verificada!</h3>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+            Verificação concluída no seu celular. Você já pode prosseguir aqui no computador.
           </p>
         </div>
         {(completedResult?.score ?? session.match_score) != null && (
-          <div className="rounded-2xl border border-border/50 p-4 bg-card text-left max-w-xs mx-auto">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Similaridade</span>
-              <span className="font-bold text-foreground">
-                {completedResult?.score ?? session.match_score}%
+          <div className="relative rounded-2xl border border-primary/20 bg-card/80 backdrop-blur p-4 max-w-xs mx-auto">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground font-medium">Similaridade facial</span>
+              <span className="font-bold text-primary text-lg">
+                {Math.round(Number(completedResult?.score ?? session.match_score))}%
               </span>
             </div>
           </div>
@@ -232,79 +241,119 @@ const KycCrossDevice = ({ onComplete, variant = "full", className = "", tipo = "
   }
 
   return (
-    <div className={`space-y-4 ${className}`}>
-      <div className="text-center">
-        <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-primary/10 flex items-center justify-center">
-          <Smartphone className="w-7 h-7 text-primary" />
+    <div className={`relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-card via-card to-primary/5 p-6 sm:p-8 space-y-6 ${className}`}>
+      {/* Decorative gradient blobs */}
+      <div className="pointer-events-none absolute -top-20 -right-20 w-48 h-48 rounded-full bg-primary/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-20 -left-20 w-48 h-48 rounded-full bg-primary/5 blur-3xl" />
+
+      {/* Header */}
+      <div className="relative text-center">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-3">
+          <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+          <span className="text-[10px] font-bold uppercase tracking-wider text-primary">Verificação Segura</span>
         </div>
-        <h3 className="text-lg font-bold text-foreground">Verifique no seu celular</h3>
-        <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
-          Aponte a câmera do celular para o QR code abaixo. Faça login com a mesma conta e siga os passos.
-          Esta tela atualiza automaticamente quando concluir.
+        <h3 className="text-2xl font-bold text-foreground">Continue no seu celular</h3>
+        <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
+          Use a câmera do celular para verificar sua identidade — é mais rápido e nítido. Esta tela libera automaticamente quando concluir.
         </p>
       </div>
 
-      <div className="flex flex-col items-center gap-3">
-        <motion.div
-          key={session.token}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="rounded-3xl bg-card border-2 border-primary/20 p-5 shadow-lg shadow-primary/5"
-        >
-          <div className="rounded-2xl bg-white p-4">
-            <QRCodeSVG
-              value={mobileUrl}
-              size={208}
-              level="M"
-              includeMargin={false}
-              bgColor="#ffffff"
-              fgColor="#0f172a"
-            />
-          </div>
-        </motion.div>
+      <div className="relative grid md:grid-cols-[auto_1fr] gap-6 items-center">
+        {/* QR Code */}
+        <div className="flex flex-col items-center gap-3 mx-auto">
+          <motion.div
+            key={session.token}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            className="relative rounded-3xl bg-gradient-to-br from-primary/30 via-primary/10 to-primary/20 p-1 shadow-xl shadow-primary/10"
+          >
+            <div className="rounded-[20px] bg-white p-4">
+              <QRCodeSVG
+                value={mobileUrl}
+                size={200}
+                level="M"
+                includeMargin={false}
+                bgColor="#ffffff"
+                fgColor="#0f172a"
+              />
+            </div>
+            {/* Corner brackets */}
+            <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-primary rounded-tl-lg" />
+            <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-primary rounded-tr-lg" />
+            <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-primary rounded-bl-lg" />
+            <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-primary rounded-br-lg" />
+          </motion.div>
 
-        <AnimatePresence mode="wait">
-          {session.status === "scanned" ? (
-            <motion.div
-              key="scanned"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="inline-flex items-center gap-2 text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-full"
-            >
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              QR escaneado — aguardando verificação no celular…
-            </motion.div>
-          ) : (
-            <motion.div
-              key="waiting"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground bg-muted/60 px-3 py-1.5 rounded-full"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-60 animate-ping" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+          <AnimatePresence mode="wait">
+            {session.status === "scanned" ? (
+              <motion.div
+                key="scanned"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="inline-flex items-center gap-2 text-xs font-semibold text-primary bg-primary/15 border border-primary/30 px-3 py-1.5 rounded-full"
+              >
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Verificando no celular…
+              </motion.div>
+            ) : (
+              <motion.div
+                key="waiting"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground bg-muted/60 px-3 py-1.5 rounded-full"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-60 animate-ping" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+                </span>
+                Aguardando leitura do QR…
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {!expired && (
+            <p className="text-[11px] text-muted-foreground">
+              Expira em{" "}
+              <span className="font-mono font-semibold text-foreground">
+                {Math.floor(expiresInSec / 60).toString().padStart(2, "0")}:
+                {(expiresInSec % 60).toString().padStart(2, "0")}
               </span>
-              Aguardando leitura do QR code…
-            </motion.div>
+            </p>
           )}
-        </AnimatePresence>
+        </div>
 
-        {!expired && (
-          <p className="text-[11px] text-muted-foreground">
-            Expira em{" "}
-            <span className="font-mono font-semibold text-foreground">
-              {Math.floor(expiresInSec / 60).toString().padStart(2, "0")}:
-              {(expiresInSec % 60).toString().padStart(2, "0")}
-            </span>
-          </p>
-        )}
+        {/* Steps */}
+        <ol className="space-y-3 max-w-sm">
+          {[
+            { n: 1, t: "Abra a câmera do celular", d: "Aponte para o QR code ao lado." },
+            { n: 2, t: "Faça login com a mesma conta", d: "Use o mesmo e-mail que você usou aqui." },
+            { n: 3, t: "Tire uma selfie", d: "Siga as instruções para verificar seu rosto." },
+            { n: 4, t: "Volte para esta tela", d: "Liberamos automaticamente o próximo passo." },
+          ].map((step, idx) => (
+            <motion.li
+              key={step.n}
+              initial={{ opacity: 0, x: 8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 + idx * 0.06 }}
+              className="flex items-start gap-3"
+            >
+              <span className="shrink-0 w-7 h-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary">
+                {step.n}
+              </span>
+              <div className="space-y-0.5">
+                <p className="text-sm font-semibold text-foreground leading-tight">{step.t}</p>
+                <p className="text-xs text-muted-foreground leading-snug">{step.d}</p>
+              </div>
+            </motion.li>
+          ))}
+        </ol>
       </div>
 
       {expired && (
-        <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-center space-y-2">
+        <div className="relative rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-center space-y-2">
           <p className="text-sm font-semibold text-destructive">QR code expirado</p>
           <Button
             variant="outline"
@@ -318,7 +367,7 @@ const KycCrossDevice = ({ onComplete, variant = "full", className = "", tipo = "
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-2">
+      <div className="relative flex flex-col sm:flex-row gap-2 pt-2 border-t border-border/40">
         <Button
           variant="outline"
           onClick={copyLink}
@@ -326,25 +375,23 @@ const KycCrossDevice = ({ onComplete, variant = "full", className = "", tipo = "
           disabled={!mobileUrl}
         >
           {copied ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
-          {copied ? "Link copiado" : "Copiar link"}
+          {copied ? "Link copiado!" : "Copiar link do celular"}
         </Button>
         <Button
           variant="ghost"
           onClick={() => setForceLocal(true)}
-          className="flex-1 rounded-xl gap-2 h-11"
+          className="flex-1 rounded-xl gap-2 h-11 hover:bg-muted/60"
         >
           <Camera className="w-4 h-4" />
-          Verificar neste computador
+          Usar webcam deste PC
         </Button>
       </div>
 
-      <div className="rounded-2xl bg-muted/30 border border-border/40 p-3">
+      <div className="relative rounded-2xl bg-muted/40 border border-border/40 p-3">
         <p className="text-[11px] text-muted-foreground leading-relaxed flex items-start gap-2">
-          <Monitor className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+          <Monitor className="w-3.5 h-3.5 shrink-0 mt-0.5 text-primary" />
           <span>
-            <strong className="text-foreground">Por que no celular?</strong> A câmera do seu celular costuma
-            ser mais nítida e a verificação fica mais rápida. Esta tela detecta automaticamente quando você
-            terminar e libera o próximo passo.
+            <strong className="text-foreground">100% seguro.</strong> O QR code é único, expira em 15 min e só pode ser usado pela sua conta. Nenhum dado biométrico é armazenado.
           </span>
         </p>
       </div>

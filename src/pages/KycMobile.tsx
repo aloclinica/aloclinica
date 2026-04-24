@@ -233,14 +233,22 @@ const KycMobile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-8">
-      <div className="sticky top-0 z-10 bg-background/90 backdrop-blur-md border-b border-border/40">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5 pb-8">
+      <div className="sticky top-0 z-10 bg-background/85 backdrop-blur-md border-b border-border/40">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-primary" />
-          <h1 className="text-sm font-bold text-foreground">Verificação de Identidade</h1>
-          <span className="ml-auto inline-flex items-center gap-1 text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-            <Loader2 className="w-2.5 h-2.5 animate-spin" />
-            Conectado ao PC
+          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+            <ShieldCheck className="w-4 h-4 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-sm font-bold text-foreground leading-tight">Verificação de Identidade</h1>
+            <p className="text-[10px] text-muted-foreground leading-tight">Sincronizado com seu computador</p>
+          </div>
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-1 rounded-full">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-60 animate-ping" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
+            </span>
+            Ao vivo
           </span>
         </div>
       </div>
