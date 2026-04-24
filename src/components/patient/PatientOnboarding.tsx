@@ -26,6 +26,8 @@ interface PatientOnboardingProps {
 }
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Não sei"];
+const COMMON_ALLERGIES = ["Dipirona", "Penicilina", "Amendoim", "Lactose", "Glúten", "Frutos do mar", "AAS"];
+const COMMON_CONDITIONS = ["Diabetes", "Hipertensão", "Asma", "Depressão", "Ansiedade", "Tireoide", "Colesterol alto"];
 
 const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
   const { user, profile } = useAuth();
@@ -47,6 +49,7 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
   const [conditionInput, setConditionInput] = useState("");
   const [kycCompleted, setKycCompleted] = useState(false);
   const [kycFailed, setKycFailed] = useState(false);
+  const [kycReady, setKycReady] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -70,8 +73,7 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
 
   const STEPS = [
     { id: "welcome", title: "Bem-vindo(a)!" },
-    { id: "personal", title: "Dados Pessoais" },
-    { id: "health", title: "Informações de Saúde" },
+    { id: "personal", title: "Sobre você" },
     { id: "kyc", title: "Verificação de Identidade" },
     { id: "tour", title: "Como usar" },
     { id: "done", title: "Tudo pronto!" },
@@ -116,12 +118,9 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
       const monthDiff = today.getMonth() - birth.getMonth();
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) age--;
       if (age < 16) { toast.error("Idade mínima: 16 anos"); return; }
-      await saveProfile();
-    }
-    if (step.id === "health") {
       if (!bloodType) { toast.error("Tipo sanguíneo obrigatório", { description: "Selecione seu tipo sanguíneo." }); return; }
-      if (!allergies.length) { toast.error("Informe suas alergias", { description: "Adicione alergias ou marque 'Não tenho alergias'." }); return; }
-      if (!chronicConditions.length) { toast.error("Informe condições crônicas", { description: "Adicione condições ou marque 'Não tenho condições crônicas'." }); return; }
+      if (!allergies.length) { toast.error("Informe suas alergias", { description: "Selecione ou marque 'Não tenho alergias'." }); return; }
+      if (!chronicConditions.length) { toast.error("Informe condições crônicas", { description: "Selecione ou marque 'Não tenho condições crônicas'." }); return; }
       await saveProfile();
     }
     if (step.id === "kyc" && !kycCompleted) {
@@ -183,15 +182,15 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
               </motion.div>
             </div>
 
-            {/* Speech bubble */}
+            {/* Speech bubble with name */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 6 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.4 }}
-              className="relative bg-card rounded-2xl border border-border/60 px-4 py-2.5 max-w-[220px] mx-auto mb-5 shadow-md"
+              className="relative bg-card rounded-2xl border border-border/60 px-4 py-2.5 max-w-[260px] mx-auto mb-5 shadow-md"
             >
               <p className="text-[12px] text-foreground leading-snug font-medium">
-                Olá! Eu sou o <span className="text-primary font-bold">Pingo</span> 🐧
+                Olá{firstName ? <>, <span className="text-primary font-bold">{firstName.split(" ")[0]}</span></> : ""}! Eu sou o <span className="text-primary font-bold">Pingo</span> 🐧
               </p>
               <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-card border-l border-t border-border/60 rotate-45" />
             </motion.div>
@@ -212,10 +211,24 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.5 }}
-              className="text-[13px] text-muted-foreground leading-relaxed max-w-[300px] mx-auto mb-5"
+              className="text-[13px] text-muted-foreground leading-relaxed max-w-[300px] mx-auto mb-4"
             >
-              Bem-vindo à <span className="font-semibold text-foreground">AloClínica</span>. O santuário digital para cuidar de você e de quem você ama.
+              Vamos configurar seu perfil em <span className="font-semibold text-foreground">2 minutos</span> para você começar a cuidar da saúde.
             </motion.p>
+
+            {/* Steps preview */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55, duration: 0.5 }}
+              className="flex items-center justify-center gap-2 mb-4 text-[10px] text-muted-foreground"
+            >
+              <span className="inline-flex items-center gap-1"><span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-[10px]">1</span> Você</span>
+              <ArrowRight className="w-3 h-3 opacity-40" />
+              <span className="inline-flex items-center gap-1"><span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-[10px]">2</span> Identidade</span>
+              <ArrowRight className="w-3 h-3 opacity-40" />
+              <span className="inline-flex items-center gap-1"><span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-[10px]">3</span> Pronto!</span>
+            </motion.div>
 
             {/* Trust chips */}
             <motion.div
@@ -237,57 +250,200 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
           </div>
         );
 
-      case "personal":
-        return (
-          <div className="text-left space-y-3">
-            <h2 className="text-lg font-bold text-foreground text-center mb-1">Dados Pessoais</h2>
-            <p className="text-xs text-muted-foreground text-center mb-3">Todos os campos são obrigatórios</p>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label className="text-xs">Nome *</Label><Input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Nome" className="mt-1 h-11 rounded-xl" /></div>
-              <div><Label className="text-xs">Sobrenome *</Label><Input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Sobrenome" className="mt-1 h-11 rounded-xl" /></div>
-            </div>
-            <div><Label className="text-xs">CPF *</Label>
-              <CpfInput value={cpf} onChange={setCpf} className="mt-1" inputClassName="h-11 rounded-xl" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label className="text-xs">Telefone *</Label><Input value={phoneMasked} onChange={e => setPhone(e.target.value.replace(/\D/g, ""))} placeholder="(00) 00000-0000" className="mt-1 h-11 rounded-xl font-mono" maxLength={15} /></div>
-              <div><Label className="text-xs">Nascimento *</Label><Input type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} className="mt-1 h-11 rounded-xl" max={new Date().toISOString().split("T")[0]} /></div>
-            </div>
-          </div>
-        );
+      case "personal": {
+        const rawCpf = cpf.replace(/\D/g, "");
+        const cpfValid = rawCpf.length === 11 && validarCPF(rawCpf);
+        const cpfPartial = rawCpf.length > 0 && rawCpf.length < 11;
+        const rawPhone = phone.replace(/\D/g, "");
+        const phoneValid = rawPhone.length >= 10;
+        const phonePartial = rawPhone.length > 0 && rawPhone.length < 10;
+        const todayMax = new Date().toISOString().split("T")[0];
 
-      case "health":
+        const toggleAllergy = (item: string) => {
+          if (item === "Nenhuma") { setAllergies(["Nenhuma"]); return; }
+          setAllergies((prev) => {
+            const cleaned = prev.filter((x) => x !== "Nenhuma");
+            return cleaned.includes(item) ? cleaned.filter((x) => x !== item) : [...cleaned, item];
+          });
+        };
+        const toggleCondition = (item: string) => {
+          if (item === "Nenhuma") { setChronicConditions(["Nenhuma"]); return; }
+          setChronicConditions((prev) => {
+            const cleaned = prev.filter((x) => x !== "Nenhuma");
+            return cleaned.includes(item) ? cleaned.filter((x) => x !== item) : [...cleaned, item];
+          });
+        };
+
         return (
-          <div className="text-left space-y-3">
-            <h2 className="text-lg font-bold text-foreground text-center mb-1">Saúde</h2>
-            <p className="text-xs text-muted-foreground text-center mb-3">Todos os campos são obrigatórios</p>
-            <div>
-              <Label className="text-xs flex items-center gap-1"><Droplets className="w-3 h-3" /> Tipo Sanguíneo</Label>
-              <Select value={bloodType} onValueChange={setBloodType}>
-                <SelectTrigger className="mt-1 h-11 rounded-xl"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>{BLOOD_TYPES.map(bt => <SelectItem key={bt} value={bt}>{bt}</SelectItem>)}</SelectContent>
-              </Select>
+          <div className="text-left space-y-4">
+            <div className="text-center mb-1">
+              <h2 className="text-xl font-bold text-foreground">Sobre você</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Leva 1 minuto. Tudo é confidencial 🔒</p>
             </div>
-            <div>
-              <Label className="text-xs flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Alergias</Label>
-              <div className="flex gap-2 mt-1">
-                <Input value={allergyInput} onChange={e => setAllergyInput(e.target.value)} placeholder="Ex: Dipirona" className="h-11 rounded-xl flex-1" onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addAllergy())} />
-                <Button size="sm" variant="outline" onClick={addAllergy} className="h-11 w-11 rounded-xl"><Plus className="w-4 h-4" /></Button>
+
+            {/* Identidade */}
+            <div className="rounded-2xl bg-card border border-border/50 p-4 space-y-3">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-1.5">
+                <User className="w-3 h-3" /> Identidade
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Nome *</Label>
+                  <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Seu nome" className="mt-1 h-11 rounded-xl" autoComplete="given-name" />
+                </div>
+                <div>
+                  <Label className="text-xs">Sobrenome *</Label>
+                  <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Sobrenome" className="mt-1 h-11 rounded-xl" autoComplete="family-name" />
+                </div>
               </div>
-              <button type="button" onClick={() => { if (!allergies.includes("Nenhuma")) setAllergies(["Nenhuma"]); }} className="text-xs text-primary mt-1.5 hover:underline">Não tenho alergias</button>
-              {allergies.length > 0 && <div className="flex flex-wrap gap-1.5 mt-2">{allergies.map(a => (<Badge key={a} variant="secondary" className="text-xs gap-1 cursor-pointer" onClick={() => setAllergies(prev => prev.filter(x => x !== a))}>{a} <X className="w-2.5 h-2.5" /></Badge>))}</div>}
+              <div>
+                <Label className="text-xs flex items-center justify-between">
+                  <span>CPF *</span>
+                  {cpfValid && <span className="text-[10px] text-primary inline-flex items-center gap-0.5"><CheckCircle2 className="w-3 h-3" /> válido</span>}
+                  {rawCpf.length === 11 && !cpfValid && <span className="text-[10px] text-destructive">inválido</span>}
+                </Label>
+                <CpfInput
+                  value={cpf}
+                  onChange={setCpf}
+                  className="mt-1"
+                  inputClassName={`h-11 rounded-xl ${cpfValid ? "border-primary/40 focus-visible:ring-primary/30" : rawCpf.length === 11 ? "border-destructive/50" : ""}`}
+                />
+                {cpfPartial && <p className="text-[10px] text-muted-foreground mt-1">Continue digitando…</p>}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs flex items-center justify-between">
+                    <span>Telefone *</span>
+                    {phoneValid && <CheckCircle2 className="w-3 h-3 text-primary" />}
+                  </Label>
+                  <Input
+                    value={phoneMasked}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                    placeholder="(00) 00000-0000"
+                    className={`mt-1 h-11 rounded-xl font-mono ${phoneValid ? "border-primary/40" : phonePartial ? "border-amber-400/50" : ""}`}
+                    maxLength={15}
+                    inputMode="tel"
+                    autoComplete="tel"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Nascimento *</Label>
+                  <Input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className="mt-1 h-11 rounded-xl" max={todayMax} />
+                </div>
+              </div>
             </div>
-            <div>
-              <Label className="text-xs flex items-center gap-1"><Heart className="w-3 h-3" /> Condições Crônicas</Label>
-              <div className="flex gap-2 mt-1">
-                <Input value={conditionInput} onChange={e => setConditionInput(e.target.value)} placeholder="Ex: Diabetes" className="h-11 rounded-xl flex-1" onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addCondition())} />
-                <Button size="sm" variant="outline" onClick={addCondition} className="h-11 w-11 rounded-xl"><Plus className="w-4 h-4" /></Button>
+
+            {/* Saúde */}
+            <div className="rounded-2xl bg-card border border-border/50 p-4 space-y-3">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-1.5">
+                <Heart className="w-3 h-3" /> Sua saúde
+              </p>
+
+              <div>
+                <Label className="text-xs flex items-center gap-1"><Droplets className="w-3 h-3" /> Tipo Sanguíneo *</Label>
+                <Select value={bloodType} onValueChange={setBloodType}>
+                  <SelectTrigger className={`mt-1 h-11 rounded-xl ${bloodType ? "border-primary/40" : ""}`}>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>{BLOOD_TYPES.map((bt) => <SelectItem key={bt} value={bt}>{bt}</SelectItem>)}</SelectContent>
+                </Select>
               </div>
-              <button type="button" onClick={() => { if (!chronicConditions.includes("Nenhuma")) setChronicConditions(["Nenhuma"]); }} className="text-xs text-primary mt-1.5 hover:underline">Não tenho condições crônicas</button>
-              {chronicConditions.length > 0 && <div className="flex flex-wrap gap-1.5 mt-2">{chronicConditions.map(c => (<Badge key={c} variant="secondary" className="text-xs gap-1 cursor-pointer" onClick={() => setChronicConditions(prev => prev.filter(x => x !== c))}>{c} <X className="w-2.5 h-2.5" /></Badge>))}</div>}
+
+              <div>
+                <Label className="text-xs flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Alergias *</Label>
+                <p className="text-[10px] text-muted-foreground mt-0.5 mb-1.5">Toque para selecionar as comuns</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {COMMON_ALLERGIES.map((a) => {
+                    const active = allergies.includes(a);
+                    return (
+                      <button
+                        type="button"
+                        key={a}
+                        onClick={() => toggleAllergy(a)}
+                        className={`text-xs px-3 py-1.5 rounded-full border transition-all ${active ? "bg-primary text-primary-foreground border-primary shadow-sm" : "bg-muted/40 text-foreground border-border/40 hover:border-primary/40"}`}
+                      >
+                        {active && <CheckCircle2 className="w-3 h-3 inline mr-1" />}{a}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => toggleAllergy("Nenhuma")}
+                    className={`text-xs px-3 py-1.5 rounded-full border transition-all ${allergies.includes("Nenhuma") ? "bg-secondary text-secondary-foreground border-secondary" : "bg-muted/40 border-dashed border-border/60 text-muted-foreground hover:border-secondary/50"}`}
+                  >
+                    Não tenho
+                  </button>
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    value={allergyInput}
+                    onChange={(e) => setAllergyInput(e.target.value)}
+                    placeholder="Outra alergia"
+                    className="h-10 rounded-xl flex-1 text-sm"
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addAllergy())}
+                  />
+                  <Button size="sm" variant="outline" onClick={addAllergy} className="h-10 w-10 rounded-xl shrink-0"><Plus className="w-4 h-4" /></Button>
+                </div>
+                {allergies.filter((a) => !COMMON_ALLERGIES.includes(a) && a !== "Nenhuma").length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {allergies.filter((a) => !COMMON_ALLERGIES.includes(a) && a !== "Nenhuma").map((a) => (
+                      <Badge key={a} variant="secondary" className="text-xs gap-1 cursor-pointer" onClick={() => setAllergies((prev) => prev.filter((x) => x !== a))}>
+                        {a} <X className="w-2.5 h-2.5" />
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-xs flex items-center gap-1"><Heart className="w-3 h-3" /> Condições crônicas *</Label>
+                <p className="text-[10px] text-muted-foreground mt-0.5 mb-1.5">Toque para selecionar as comuns</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {COMMON_CONDITIONS.map((c) => {
+                    const active = chronicConditions.includes(c);
+                    return (
+                      <button
+                        type="button"
+                        key={c}
+                        onClick={() => toggleCondition(c)}
+                        className={`text-xs px-3 py-1.5 rounded-full border transition-all ${active ? "bg-primary text-primary-foreground border-primary shadow-sm" : "bg-muted/40 text-foreground border-border/40 hover:border-primary/40"}`}
+                      >
+                        {active && <CheckCircle2 className="w-3 h-3 inline mr-1" />}{c}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => toggleCondition("Nenhuma")}
+                    className={`text-xs px-3 py-1.5 rounded-full border transition-all ${chronicConditions.includes("Nenhuma") ? "bg-secondary text-secondary-foreground border-secondary" : "bg-muted/40 border-dashed border-border/60 text-muted-foreground hover:border-secondary/50"}`}
+                  >
+                    Não tenho
+                  </button>
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    value={conditionInput}
+                    onChange={(e) => setConditionInput(e.target.value)}
+                    placeholder="Outra condição"
+                    className="h-10 rounded-xl flex-1 text-sm"
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCondition())}
+                  />
+                  <Button size="sm" variant="outline" onClick={addCondition} className="h-10 w-10 rounded-xl shrink-0"><Plus className="w-4 h-4" /></Button>
+                </div>
+                {chronicConditions.filter((c) => !COMMON_CONDITIONS.includes(c) && c !== "Nenhuma").length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {chronicConditions.filter((c) => !COMMON_CONDITIONS.includes(c) && c !== "Nenhuma").map((c) => (
+                      <Badge key={c} variant="secondary" className="text-xs gap-1 cursor-pointer" onClick={() => setChronicConditions((prev) => prev.filter((x) => x !== c))}>
+                        {c} <X className="w-2.5 h-2.5" />
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );
+      }
 
       case "kyc": {
         if (kycCompleted) {
@@ -310,8 +466,55 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
               </div>
               <h2 className="text-lg font-bold text-foreground">Verificação não aprovada</h2>
               <p className="text-xs text-muted-foreground">A similaridade facial ficou abaixo do mínimo. Tente novamente com fotos mais nítidas.</p>
-              <Button onClick={() => setKycFailed(false)} variant="outline" className="rounded-xl gap-2 mt-2">
+              <Button onClick={() => { setKycFailed(false); setKycReady(false); }} variant="outline" className="rounded-xl gap-2 mt-2">
                 <Camera className="w-4 h-4" /> Tentar Novamente
+              </Button>
+            </div>
+          );
+        }
+
+        if (!kycReady) {
+          return (
+            <div className="space-y-4">
+              <div className="text-center">
+                <div className="relative mx-auto w-20 h-20 mb-3">
+                  <div className="absolute inset-0 rounded-full bg-primary/15 blur-xl" />
+                  <div className="relative w-20 h-20 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                    <ShieldCheck className="w-10 h-10 text-primary" />
+                  </div>
+                </div>
+                <h2 className="text-xl font-bold text-foreground">Verificação rápida</h2>
+                <p className="text-xs text-muted-foreground mt-1 max-w-[280px] mx-auto">
+                  Para sua segurança, vamos confirmar sua identidade com uma selfie. Leva ~30s.
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-card border border-border/50 p-4 space-y-3">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">Antes de começar</p>
+                {[
+                  { icon: <Sparkles className="w-4 h-4 text-primary" />, title: "Boa iluminação", desc: "Fique de frente para a luz, evite sombras." },
+                  { icon: <Camera className="w-4 h-4 text-primary" />, title: "Rosto descoberto", desc: "Sem óculos escuros, máscara ou boné." },
+                  { icon: <Smartphone className="w-4 h-4 text-primary" />, title: "Câmera firme", desc: "Centralize o rosto na guia da tela." },
+                ].map((tip) => (
+                  <div key={tip.title} className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">{tip.icon}</div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{tip.title}</p>
+                      <p className="text-xs text-muted-foreground">{tip.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-xl bg-primary/5 border border-primary/15 p-3 flex items-start gap-2">
+                <ShieldCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <p className="text-[11px] text-foreground/80 leading-relaxed">
+                  Suas fotos são processadas com criptografia e usadas <strong>apenas para verificação</strong>. Nunca compartilhamos com terceiros.
+                </p>
+              </div>
+
+              <Button onClick={() => setKycReady(true)} className="w-full h-12 rounded-xl gap-2 text-sm font-bold">
+                <Camera className="w-4 h-4" /> Iniciar verificação
               </Button>
             </div>
           );
