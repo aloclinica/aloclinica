@@ -32,7 +32,7 @@ async function asaasFetch(url: string, options: RequestInit, attempt = 1): Promi
   }
 }
 
-async function safeJson(res: Response): Promise<Record<string, unknown>> {
+async function safeJson(res: Response): Promise<any> {
   const contentType = res.headers.get("content-type");
   if (!contentType?.includes("application/json")) {
     const text = await res.text();
