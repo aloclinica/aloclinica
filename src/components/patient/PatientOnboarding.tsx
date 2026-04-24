@@ -391,7 +391,12 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-gradient-to-b from-background via-background to-primary/5 flex flex-col">
+    <div className="fixed inset-0 z-[100] bg-background flex flex-col overflow-hidden">
+      {/* Decorative gradient backdrop */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-secondary/5" />
+      <div className="pointer-events-none absolute -top-32 -left-20 w-72 h-72 rounded-full bg-primary/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -right-20 w-72 h-72 rounded-full bg-secondary/10 blur-3xl" />
+      <div className="relative z-10 flex flex-col flex-1 min-h-0">
       {/* Top bar */}
       <div className="flex items-center justify-between px-5 pt-5 pb-2">
         <h2 className="text-lg font-extrabold text-primary italic">AloClínica</h2>
@@ -460,6 +465,7 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
             Tudo pronto para começar! 💚
           </p>
         )}
+      </div>
       </div>
     </div>
   );
