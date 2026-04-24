@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { db } from "@/integrations/supabase/untyped";
 import { Button } from "@/components/ui/button";
