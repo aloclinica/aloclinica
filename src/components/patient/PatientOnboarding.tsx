@@ -35,13 +35,22 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
   const isMobile = useIsMobile();
   const [currentStep, setCurrentStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [editingIdentity, setEditingIdentity] = useState(false);
+
+  // Pull initial values from auth metadata so we never start empty after signup
+  const meta = (user?.user_metadata ?? {}) as Record<string, string | undefined>;
+  const initialFirst = profile?.first_name || meta.first_name || (meta.full_name ? meta.full_name.split(" ")[0] : "") || "";
+  const initialLast = profile?.last_name || meta.last_name || (meta.full_name ? meta.full_name.split(" ").slice(1).join(" ") : "") || "";
+  const initialCpf = profile?.cpf || meta.cpf || "";
+  const initialPhone = profile?.phone || meta.phone || "";
+  const initialDob = profile?.date_of_birth || meta.date_of_birth || "";
 
   // Profile data
-  const [firstName, setFirstName] = useState(profile?.first_name || "");
-  const [lastName, setLastName] = useState(profile?.last_name || "");
-  const [cpf, setCpf] = useState(profile?.cpf || "");
-  const [phone, setPhone] = useState(profile?.phone || "");
-  const [dateOfBirth, setDateOfBirth] = useState(profile?.date_of_birth || "");
+  const [firstName, setFirstName] = useState(initialFirst);
+  const [lastName, setLastName] = useState(initialLast);
+  const [cpf, setCpf] = useState(initialCpf);
+  const [phone, setPhone] = useState(initialPhone);
+  const [dateOfBirth, setDateOfBirth] = useState(initialDob);
   const [bloodType, setBloodType] = useState("");
   const [allergies, setAllergies] = useState<string[]>([]);
   const [allergyInput, setAllergyInput] = useState("");
@@ -52,20 +61,19 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
   const [kycReady, setKycReady] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      db.from("profiles").select("*").eq("user_id", user.id).single().then(({ data }) => {
-        if (data) {
-          setFirstName(data.first_name || "");
-          setLastName(data.last_name || "");
-          setCpf(data.cpf || "");
-          setPhone(data.phone || "");
-          setDateOfBirth(data.date_of_birth || "");
-          setBloodType(data.blood_type || "");
-          setAllergies(data.allergies || []);
-          setChronicConditions(data.chronic_conditions || []);
-        }
-      });
-    }
+    if (!user) return;
+    db.from("profiles").select("*").eq("user_id", user.id).single().then(({ data }) => {
+      if (!data) return;
+      // Only fill fields that are still empty so we don't overwrite user edits
+      setFirstName((v) => v || data.first_name || "");
+      setLastName((v) => v || data.last_name || "");
+      setCpf((v) => v || data.cpf || "");
+      setPhone((v) => v || data.phone || "");
+      setDateOfBirth((v) => v || data.date_of_birth || "");
+      setBloodType((v) => v || data.blood_type || "");
+      setAllergies((v) => (v.length ? v : data.allergies || []));
+      setChronicConditions((v) => (v.length ? v : data.chronic_conditions || []));
+    });
   }, [user]);
 
   const cpfMasked = formatMask(cpf, "cpf");
@@ -73,7 +81,7 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
 
   const STEPS = [
     { id: "welcome", title: "Bem-vindo(a)!" },
-    { id: "personal", title: "Sobre você" },
+    { id: "personal", title: "Confirme seus dados" },
     { id: "kyc", title: "Verificação de Identidade" },
     { id: "tour", title: "Como usar" },
     { id: "done", title: "Tudo pronto!" },
@@ -82,13 +90,22 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
   const isLast = currentStep === STEPS.length - 1;
   const step = STEPS[currentStep];
 
+  // Identity fields are considered prefilled when all four come from signup/profile
+  const rawCpfInit = (initialCpf || "").replace(/\D/g, "");
+  const rawPhoneInit = (initialPhone || "").replace(/\D/g, "");
+  const identityPrefilled =
+    !!initialFirst && !!initialLast &&
+    rawCpfInit.length === 11 && validarCPF(rawCpfInit) &&
+    rawPhoneInit.length >= 10 &&
+    !!initialDob;
+
   const addAllergy = () => {
     const v = allergyInput.trim();
-    if (v && !allergies.includes(v)) { setAllergies(prev => [...prev, v]); setAllergyInput(""); }
+    if (v && !allergies.includes(v)) { setAllergies(prev => [...prev.filter(x => x !== "Nenhuma"), v]); setAllergyInput(""); }
   };
   const addCondition = () => {
     const v = conditionInput.trim();
-    if (v && !chronicConditions.includes(v)) { setChronicConditions(prev => [...prev, v]); setConditionInput(""); }
+    if (v && !chronicConditions.includes(v)) { setChronicConditions(prev => [...prev.filter(x => x !== "Nenhuma"), v]); setConditionInput(""); }
   };
 
   const saveProfile = async () => {
@@ -118,9 +135,7 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
       const monthDiff = today.getMonth() - birth.getMonth();
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) age--;
       if (age < 16) { toast.error("Idade mínima: 16 anos"); return; }
-      if (!bloodType) { toast.error("Tipo sanguíneo obrigatório", { description: "Selecione seu tipo sanguíneo." }); return; }
-      if (!allergies.length) { toast.error("Informe suas alergias", { description: "Selecione ou marque 'Não tenho alergias'." }); return; }
-      if (!chronicConditions.length) { toast.error("Informe condições crônicas", { description: "Selecione ou marque 'Não tenho condições crônicas'." }); return; }
+      // Health fields are now optional — patient can complete later from the dashboard
       await saveProfile();
     }
     if (step.id === "kyc" && !kycCompleted) {
