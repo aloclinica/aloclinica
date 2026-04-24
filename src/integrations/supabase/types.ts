@@ -1660,6 +1660,254 @@ export type Database = {
           },
         ]
       }
+      pingo_card_partners: {
+        Row: {
+          address: string | null
+          category: string
+          city: string | null
+          created_at: string
+          description: string | null
+          discount_description: string | null
+          discount_percent: number
+          display_order: number
+          id: string
+          is_active: boolean
+          is_featured: boolean
+          latitude: number | null
+          logo_url: string | null
+          longitude: number | null
+          name: string
+          phone: string | null
+          state: string | null
+          updated_at: string
+          website: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          category?: string
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          discount_description?: string | null
+          discount_percent?: number
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          name: string
+          phone?: string | null
+          state?: string | null
+          updated_at?: string
+          website?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          category?: string
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          discount_description?: string | null
+          discount_percent?: number
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          name?: string
+          phone?: string | null
+          state?: string | null
+          updated_at?: string
+          website?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
+      pingo_card_plans: {
+        Row: {
+          benefits: Json
+          color: string | null
+          consultation_discount_percent: number
+          created_at: string
+          description: string | null
+          display_order: number
+          exam_discount_percent: number
+          id: string
+          is_active: boolean
+          is_highlighted: boolean
+          max_dependents: number
+          name: string
+          partner_discount_percent: number
+          price_monthly: number
+          price_yearly: number
+          slug: string
+          tagline: string | null
+          updated_at: string
+        }
+        Insert: {
+          benefits?: Json
+          color?: string | null
+          consultation_discount_percent?: number
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          exam_discount_percent?: number
+          id?: string
+          is_active?: boolean
+          is_highlighted?: boolean
+          max_dependents?: number
+          name: string
+          partner_discount_percent?: number
+          price_monthly?: number
+          price_yearly?: number
+          slug: string
+          tagline?: string | null
+          updated_at?: string
+        }
+        Update: {
+          benefits?: Json
+          color?: string | null
+          consultation_discount_percent?: number
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          exam_discount_percent?: number
+          id?: string
+          is_active?: boolean
+          is_highlighted?: boolean
+          max_dependents?: number
+          name?: string
+          partner_discount_percent?: number
+          price_monthly?: number
+          price_yearly?: number
+          slug?: string
+          tagline?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pingo_card_subscriptions: {
+        Row: {
+          asaas_customer_id: string | null
+          asaas_subscription_id: string | null
+          billing_cycle: string
+          canceled_at: string | null
+          cancellation_reason: string | null
+          card_number: string
+          created_at: string
+          current_period_end: string | null
+          id: string
+          plan_id: string
+          started_at: string
+          status: string
+          total_savings: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          asaas_customer_id?: string | null
+          asaas_subscription_id?: string | null
+          billing_cycle?: string
+          canceled_at?: string | null
+          cancellation_reason?: string | null
+          card_number: string
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan_id: string
+          started_at?: string
+          status?: string
+          total_savings?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          asaas_customer_id?: string | null
+          asaas_subscription_id?: string | null
+          billing_cycle?: string
+          canceled_at?: string | null
+          cancellation_reason?: string | null
+          card_number?: string
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan_id?: string
+          started_at?: string
+          status?: string
+          total_savings?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pingo_card_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "pingo_card_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pingo_card_transactions: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          discount_amount: number
+          final_amount: number
+          id: string
+          original_amount: number
+          partner_id: string | null
+          subscription_id: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          discount_amount?: number
+          final_amount?: number
+          id?: string
+          original_amount?: number
+          partner_id?: string | null
+          subscription_id: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          discount_amount?: number
+          final_amount?: number
+          id?: string
+          original_amount?: number
+          partner_id?: string | null
+          subscription_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pingo_card_transactions_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "pingo_card_partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pingo_card_transactions_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "pingo_card_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plans: {
         Row: {
           created_at: string
