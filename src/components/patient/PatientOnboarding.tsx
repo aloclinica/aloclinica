@@ -292,80 +292,148 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
         return (
           <div className="text-left space-y-4">
             <div className="text-center mb-1">
-              <h2 className="text-xl font-bold text-foreground">Sobre você</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Leva 1 minuto. Tudo é confidencial 🔒</p>
+              <h2 className="text-xl font-bold text-foreground">
+                {identityPrefilled && !editingIdentity ? "Confirme seus dados" : "Sobre você"}
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {identityPrefilled && !editingIdentity
+                  ? "Já trouxemos os dados do seu cadastro 💚"
+                  : "Leva 1 minuto. Tudo é confidencial 🔒"}
+              </p>
             </div>
 
             {/* Identidade */}
-            <div className="rounded-2xl bg-card border border-border/50 p-4 space-y-3">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-1.5">
-                <User className="w-3 h-3" /> Identidade
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs">Nome *</Label>
-                  <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Seu nome" className="mt-1 h-11 rounded-xl" autoComplete="given-name" />
+            {identityPrefilled && !editingIdentity ? (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="rounded-2xl bg-gradient-to-br from-primary/5 to-card border border-primary/20 p-4 space-y-3"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Dados confirmados
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setEditingIdentity(true)}
+                    className="text-[11px] text-primary font-semibold hover:underline"
+                  >
+                    Editar
+                  </button>
                 </div>
-                <div>
-                  <Label className="text-xs">Sobrenome *</Label>
-                  <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Sobrenome" className="mt-1 h-11 rounded-xl" autoComplete="family-name" />
+                <div className="grid grid-cols-1 gap-2 text-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><User className="w-4 h-4 text-primary" /></div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Nome</p>
+                      <p className="font-semibold text-foreground truncate">{firstName} {lastName}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-xl bg-card border border-border/40 px-3 py-2">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">CPF</p>
+                      <p className="font-mono text-sm font-semibold text-foreground">{cpfMasked}</p>
+                    </div>
+                    <div className="rounded-xl bg-card border border-border/40 px-3 py-2">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Telefone</p>
+                      <p className="font-mono text-sm font-semibold text-foreground">{phoneMasked}</p>
+                    </div>
+                  </div>
+                  <div className="rounded-xl bg-card border border-border/40 px-3 py-2">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Nascimento</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {dateOfBirth ? new Date(dateOfBirth + "T00:00:00").toLocaleDateString("pt-BR") : ""}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <Label className="text-xs flex items-center justify-between">
-                  <span>CPF *</span>
-                  {cpfValid && <span className="text-[10px] text-primary inline-flex items-center gap-0.5"><CheckCircle2 className="w-3 h-3" /> válido</span>}
-                  {rawCpf.length === 11 && !cpfValid && <span className="text-[10px] text-destructive">inválido</span>}
-                </Label>
-                <CpfInput
-                  value={cpf}
-                  onChange={setCpf}
-                  className="mt-1"
-                  inputClassName={`h-11 rounded-xl ${cpfValid ? "border-primary/40 focus-visible:ring-primary/30" : rawCpf.length === 11 ? "border-destructive/50" : ""}`}
-                />
-                {cpfPartial && <p className="text-[10px] text-muted-foreground mt-1">Continue digitando…</p>}
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+              </motion.div>
+            ) : (
+              <div className="rounded-2xl bg-card border border-border/50 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-1.5">
+                    <User className="w-3 h-3" /> Identidade
+                  </p>
+                  {identityPrefilled && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingIdentity(false)}
+                      className="text-[11px] text-muted-foreground font-semibold hover:underline"
+                    >
+                      Cancelar
+                    </button>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Nome *</Label>
+                    <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Seu nome" className="mt-1 h-11 rounded-xl" autoComplete="given-name" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Sobrenome *</Label>
+                    <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Sobrenome" className="mt-1 h-11 rounded-xl" autoComplete="family-name" />
+                  </div>
+                </div>
                 <div>
                   <Label className="text-xs flex items-center justify-between">
-                    <span>Telefone *</span>
-                    {phoneValid && <CheckCircle2 className="w-3 h-3 text-primary" />}
+                    <span>CPF *</span>
+                    {cpfValid && <span className="text-[10px] text-primary inline-flex items-center gap-0.5"><CheckCircle2 className="w-3 h-3" /> válido</span>}
+                    {rawCpf.length === 11 && !cpfValid && <span className="text-[10px] text-destructive">inválido</span>}
                   </Label>
-                  <Input
-                    value={phoneMasked}
-                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-                    placeholder="(00) 00000-0000"
-                    className={`mt-1 h-11 rounded-xl font-mono ${phoneValid ? "border-primary/40" : phonePartial ? "border-amber-400/50" : ""}`}
-                    maxLength={15}
-                    inputMode="tel"
-                    autoComplete="tel"
+                  <CpfInput
+                    value={cpf}
+                    onChange={setCpf}
+                    className="mt-1"
+                    inputClassName={`h-11 rounded-xl ${cpfValid ? "border-primary/40 focus-visible:ring-primary/30" : rawCpf.length === 11 ? "border-destructive/50" : ""}`}
                   />
+                  {cpfPartial && <p className="text-[10px] text-muted-foreground mt-1">Continue digitando…</p>}
                 </div>
-                <div>
-                  <Label className="text-xs">Nascimento *</Label>
-                  <Input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className="mt-1 h-11 rounded-xl" max={todayMax} />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs flex items-center justify-between">
+                      <span>Telefone *</span>
+                      {phoneValid && <CheckCircle2 className="w-3 h-3 text-primary" />}
+                    </Label>
+                    <Input
+                      value={phoneMasked}
+                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                      placeholder="(00) 00000-0000"
+                      className={`mt-1 h-11 rounded-xl font-mono ${phoneValid ? "border-primary/40" : phonePartial ? "border-amber-400/50" : ""}`}
+                      maxLength={15}
+                      inputMode="tel"
+                      autoComplete="tel"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Nascimento *</Label>
+                    <Input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className="mt-1 h-11 rounded-xl" max={todayMax} />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Saúde */}
+            {/* Saúde — agora opcional */}
             <div className="rounded-2xl bg-card border border-border/50 p-4 space-y-3">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-1.5">
-                <Heart className="w-3 h-3" /> Sua saúde
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-1.5">
+                  <Heart className="w-3 h-3" /> Sua saúde
+                </p>
+                <span className="text-[10px] font-semibold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">Opcional</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground -mt-1">Ajuda os médicos a te atender melhor. Você pode preencher depois.</p>
 
               <div>
-                <Label className="text-xs flex items-center gap-1"><Droplets className="w-3 h-3" /> Tipo Sanguíneo *</Label>
+                <Label className="text-xs flex items-center gap-1"><Droplets className="w-3 h-3" /> Tipo Sanguíneo</Label>
                 <Select value={bloodType} onValueChange={setBloodType}>
                   <SelectTrigger className={`mt-1 h-11 rounded-xl ${bloodType ? "border-primary/40" : ""}`}>
-                    <SelectValue placeholder="Selecione" />
+                    <SelectValue placeholder="Selecione (opcional)" />
                   </SelectTrigger>
                   <SelectContent>{BLOOD_TYPES.map((bt) => <SelectItem key={bt} value={bt}>{bt}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label className="text-xs flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Alergias *</Label>
+                <Label className="text-xs flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Alergias</Label>
                 <p className="text-[10px] text-muted-foreground mt-0.5 mb-1.5">Toque para selecionar as comuns</p>
                 <div className="flex flex-wrap gap-1.5">
                   {COMMON_ALLERGIES.map((a) => {
@@ -411,7 +479,7 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
               </div>
 
               <div>
-                <Label className="text-xs flex items-center gap-1"><Heart className="w-3 h-3" /> Condições crônicas *</Label>
+                <Label className="text-xs flex items-center gap-1"><Heart className="w-3 h-3" /> Condições crônicas</Label>
                 <p className="text-[10px] text-muted-foreground mt-0.5 mb-1.5">Toque para selecionar as comuns</p>
                 <div className="flex flex-wrap gap-1.5">
                   {COMMON_CONDITIONS.map((c) => {
