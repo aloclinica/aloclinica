@@ -473,6 +473,53 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
           );
         }
 
+        if (!kycReady) {
+          return (
+            <div className="space-y-4">
+              <div className="text-center">
+                <div className="relative mx-auto w-20 h-20 mb-3">
+                  <div className="absolute inset-0 rounded-full bg-primary/15 blur-xl" />
+                  <div className="relative w-20 h-20 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                    <ShieldCheck className="w-10 h-10 text-primary" />
+                  </div>
+                </div>
+                <h2 className="text-xl font-bold text-foreground">Verificação rápida</h2>
+                <p className="text-xs text-muted-foreground mt-1 max-w-[280px] mx-auto">
+                  Para sua segurança, vamos confirmar sua identidade com uma selfie. Leva ~30s.
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-card border border-border/50 p-4 space-y-3">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">Antes de começar</p>
+                {[
+                  { icon: <Sparkles className="w-4 h-4 text-primary" />, title: "Boa iluminação", desc: "Fique de frente para a luz, evite sombras." },
+                  { icon: <Camera className="w-4 h-4 text-primary" />, title: "Rosto descoberto", desc: "Sem óculos escuros, máscara ou boné." },
+                  { icon: <Smartphone className="w-4 h-4 text-primary" />, title: "Câmera firme", desc: "Centralize o rosto na guia da tela." },
+                ].map((tip) => (
+                  <div key={tip.title} className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">{tip.icon}</div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{tip.title}</p>
+                      <p className="text-xs text-muted-foreground">{tip.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-xl bg-primary/5 border border-primary/15 p-3 flex items-start gap-2">
+                <ShieldCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <p className="text-[11px] text-foreground/80 leading-relaxed">
+                  Suas fotos são processadas com criptografia e usadas <strong>apenas para verificação</strong>. Nunca compartilhamos com terceiros.
+                </p>
+              </div>
+
+              <Button onClick={() => setKycReady(true)} className="w-full h-12 rounded-xl gap-2 text-sm font-bold">
+                <Camera className="w-4 h-4" /> Iniciar verificação
+              </Button>
+            </div>
+          );
+        }
+
         return (
           <BiometricKYC
             onComplete={(result) => {
