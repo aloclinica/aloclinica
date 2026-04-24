@@ -79,6 +79,7 @@ const Agendar = lazy(() => import("./pages/Agendar"));
 const Ajuda = lazy(() => import("./pages/Ajuda"));
 const EspecialidadeDetalhe = lazy(() => import("./pages/EspecialidadeDetalhe"));
 const ParaEmpresas = lazy(() => import("./pages/ParaEmpresas"));
+const PingoCard = lazy(() => import("./pages/PingoCard"));
 
 if (typeof window !== "undefined") {
   const prefetch = () => {
@@ -185,6 +186,7 @@ const AnimatedRoutes = () => {
       <Route path="/faq" element={<FAQ />} />
       <Route path="/ajuda" element={<Ajuda />} />
       <Route path="/para-empresas" element={<ParaEmpresas />} />
+      <Route path="/pingo-card" element={<PingoCard />} />
 
       <Route
         path="/dashboard/*"

@@ -18,6 +18,7 @@ export const getPatientNav = (active: string) => [
   { label: "Agendar", href: "/dashboard/schedule?role=patient", icon: <NavIcon icon={<MagnifyingGlass size={16} weight="fill" />} color="cyan" />, active: active === "schedule" || active === "doctors", group: "Consultas" },
   { label: "Notificações", href: "/dashboard/notifications?role=patient", icon: <NavIcon icon={<Bell size={16} weight="fill" />} color="blue" />, active: active === "notifications", group: "Consultas" },
   { label: "Pagamentos", href: "/dashboard/payment-history?role=patient", icon: <NavIcon icon={<CreditCard size={16} weight="fill" />} color="green" />, active: active === "payments", group: "Consultas" },
+  { label: "Pingo Card", href: "/dashboard/patient/pingo-card?role=patient", icon: <NavIcon icon={<Heart size={16} weight="fill" />} color="rose" />, active: active === "pingo-card", group: "Consultas" },
 
   // ── Saúde Digital ──
   { label: "Minha Saúde", href: "/dashboard/patient/health?role=patient", icon: <NavIcon icon={<Heart size={16} weight="fill" />} color="rose" />, active: active === "health", group: "Saúde Digital" },

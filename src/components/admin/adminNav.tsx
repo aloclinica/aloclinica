@@ -3,7 +3,7 @@ import {
   UserCircleCheck, ClipboardText, UserGear, Users, Stethoscope,
   Buildings, CalendarCheck, ShieldStar,
   Key, Tag, ClockCounterClockwise, WhatsappLogo, Sliders,
-  PaintBrush, Image as ImageIcon
+  PaintBrush, Image as ImageIcon, Heart
 } from "@phosphor-icons/react";
 import { NavIcon } from "@/components/ui/nav-icon";
 
@@ -33,6 +33,7 @@ export const getAdminNav = (active: string) => [
   // ── Conteúdo ──
   { label: "Especialidades", href: "/dashboard/admin/specialties?role=admin",  icon: <NavIcon icon={<ShieldStar size={16} weight="fill" />} color="cyan"   />, active: active === "specialties",  group: "Conteúdo" },
   { label: "Cupons",         href: "/dashboard/admin/coupons?role=admin",      icon: <NavIcon icon={<Tag size={16} weight="fill" />}         color="orange" />, active: active === "coupons",      group: "Conteúdo" },
+  { label: "Pingo Card",     href: "/dashboard/admin/pingo-card?role=admin",   icon: <NavIcon icon={<Heart size={16} weight="fill" />}       color="rose"   />, active: active === "pingo-card",   group: "Conteúdo" },
   { label: "Convites",       href: "/dashboard/admin/invite-codes?role=admin", icon: <NavIcon icon={<Key size={16} weight="fill" />}         color="amber"  />, active: active === "invite-codes", group: "Conteúdo" },
   { label: "Site",           href: "/dashboard/admin/site-editor?role=admin",  icon: <NavIcon icon={<PaintBrush size={16} weight="fill" />}  color="purple" />, active: active === "site-editor" || active === "site-config", group: "Conteúdo" },
   { label: "Mídia",          href: "/dashboard/admin/media?role=admin",        icon: <NavIcon icon={<ImageIcon size={16} weight="fill" />}   color="purple" />, active: active === "media",        group: "Conteúdo" },

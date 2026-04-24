@@ -110,6 +110,8 @@ const AdminPACSConfig = lazy(() => import("@/components/admin/AdminPACSConfig"))
 const AdminSiteConfig = lazy(() => import("@/components/admin/AdminSiteConfig"));
 const AdminFullSiteEditor = lazy(() => import("@/components/admin/AdminFullSiteEditor"));
 const AdminMediaLibrary = lazy(() => import("@/components/admin/AdminMediaLibrary"));
+const AdminPingoCard = lazy(() => import("@/components/admin/AdminPingoCard"));
+const PingoCardPanel = lazy(() => import("@/components/patient/PingoCardPanel"));
 const SupportInbox = lazy(() => import("@/components/support/SupportInbox"));
 const Notifications = lazy(() => import("@/pages/Notifications"));
 const HealthCardPage = lazy(() => import("@/components/patient/HealthCardPage"));
@@ -362,6 +364,8 @@ const Dashboard = () => {
       <Route path="admin/site-config" element={<RoleGuard allowed={[]} roles={roles}><AdminSiteConfig /></RoleGuard>} />
       <Route path="admin/site-editor" element={<RoleGuard allowed={[]} roles={roles}><AdminFullSiteEditor /></RoleGuard>} />
       <Route path="admin/media" element={<RoleGuard allowed={[]} roles={roles}><AdminMediaLibrary /></RoleGuard>} />
+      <Route path="admin/pingo-card" element={<RoleGuard allowed={[]} roles={roles}><AdminPingoCard /></RoleGuard>} />
+      <Route path="patient/pingo-card" element={<RoleGuard allowed={["patient"]} roles={roles}><PingoCardPanel /></RoleGuard>} />
 
 
       {/* Laudista — blocked when ?role=doctor */}
