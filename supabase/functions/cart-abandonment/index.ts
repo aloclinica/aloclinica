@@ -113,7 +113,7 @@ serve(async (req) => {
           });
           sent++;
         } catch (error: any) {
-          console.error(`Email failed for ${appt.id}:`, e);
+          console.error(`Email failed for ${appt.id}:`, error);
         }
       }
 
@@ -130,7 +130,7 @@ serve(async (req) => {
             body: JSON.stringify({ phone: patientPhone, message: msg }),
           });
         } catch (error: any) {
-          console.error(`WhatsApp failed for ${appt.id}:`, e);
+          console.error(`WhatsApp failed for ${appt.id}:`, error);
         }
       }
 
