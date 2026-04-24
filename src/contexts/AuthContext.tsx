@@ -51,55 +51,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         db.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
         db.from("user_roles").select("role").eq("user_id", userId),
       ]);
-      if (profileRes.data) setProfile(profileRes.data as Profile);
-      if (rolesRes.data) setRoles(rolesRes.data.map((r: { role: string }) => r.role as AppRole));
+
+      if (profileRes.error) warn("fetch profile error:", profileRes.error);
+      if (rolesRes.error) warn("fetch roles error:", rolesRes.error);
+
+      setProfile((profileRes.data as Profile | null) ?? null);
+      setRoles((rolesRes.data ?? []).map((r: { role: string }) => r.role as AppRole));
     } catch (e) {
       warn("fetchUserData error:", e);
+      setProfile(null);
+      setRoles([]);
     }
   }, []);
 
   useEffect(() => {
     let mounted = true;
-    let didLoad = false;
-    const markLoaded = () => {
-      if (!didLoad && mounted) { didLoad = true; setLoading(false); }
+    const hydrateAuth = async (nextSession: Session | null) => {
+      if (!mounted) return;
+
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+
+      if (nextSession?.user) {
+        await fetchUserData(nextSession.user.id);
+      } else {
+        setProfile(null);
+        setRoles([]);
+      }
+
+      if (mounted) setLoading(false);
     };
 
-    // Safety: force loading=false after 1.5s (prevents stuck spinner in preview)
-    const safetyTimer = setTimeout(markLoaded, 1500);
-
-    // 1. Primary init: getSession
-    db.auth.getSession().then(({ data: { session: s } }) => {
-      if (!mounted) return;
-      setSession(s);
-      setUser(s?.user ?? null);
-
-      if (s?.user) {
-        fetchUserData(s.user.id).finally(markLoaded);
-      } else {
-        markLoaded();
-      }
-    }).catch(markLoaded);
+    db.auth.getSession()
+      .then(({ data: { session: s } }) => hydrateAuth(s))
+      .catch((error) => {
+        warn("getSession error:", error);
+        if (!mounted) return;
+        setProfile(null);
+        setRoles([]);
+        setLoading(false);
+      });
 
     // 2. Listen for subsequent auth changes (sign in/out/token refresh)
     const { data: { subscription } } = db.auth.onAuthStateChange(
-      (_event, s) => {
+      async (_event, s) => {
         if (!mounted) return;
-        setSession(s);
-        setUser(s?.user ?? null);
 
-        if (s?.user) {
-          fetchUserData(s.user.id);
-        } else {
-          setProfile(null);
-          setRoles([]);
-        }
+        setLoading(true);
+        await hydrateAuth(s);
       }
     );
 
     return () => {
       mounted = false;
-      clearTimeout(safetyTimer);
       subscription.unsubscribe();
     };
   }, [fetchUserData]);
