@@ -1,5 +1,5 @@
 import { logError } from "@/lib/logger";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { securityMonitor } from "@/lib/security-monitor";
 import { useNavigate, Link } from "react-router-dom";
 import { db } from "@/integrations/supabase/untyped";
@@ -30,6 +30,9 @@ import {
   LockKey,
   VideoCamera,
   SignIn,
+  User,
+  Confetti,
+  WarningCircle,
 } from "@phosphor-icons/react";
 import TermsConsentCheckbox from "@/components/auth/TermsConsentCheckbox";
 import { registerConsent } from "@/lib/consent";
@@ -119,18 +122,28 @@ const LeftPanel = () => (
 );
 
 /* ═══ STEP INDICATOR — extracted outside ═══ */
+const STEP_LABELS = ["Você", "Acesso", "Pronto!"] as const;
 const StepIndicator = ({ current }: { current: number }) => (
-  <div className="flex items-center gap-2 mb-6">
-    {[1, 2, 3].map((step) => (
-      <div key={step} className="flex items-center gap-2 flex-1">
-        <div className={`h-1.5 rounded-full flex-1 transition-colors duration-300 ${
-          step <= current ? "bg-primary" : "bg-muted"
-        }`} />
-      </div>
-    ))}
-    <span className="text-xs text-muted-foreground font-medium ml-1">{current}/3</span>
+  <div className="mb-6">
+    <div className="flex items-center gap-2">
+      {[1, 2, 3].map((step) => (
+        <div key={step} className="flex items-center gap-2 flex-1">
+          <div className={`h-1.5 rounded-full flex-1 transition-all duration-500 ${
+            step < current ? "bg-emerald-500" : step === current ? "bg-primary" : "bg-muted"
+          }`} />
+        </div>
+      ))}
+    </div>
+    <div className="flex items-center justify-between mt-2">
+      <p className="text-xs font-semibold text-foreground">
+        Etapa {current} de 3 · <span className="text-primary">{STEP_LABELS[current - 1]}</span>
+      </p>
+      <span className="text-[11px] text-muted-foreground">{Math.round((current / 3) * 100)}%</span>
+    </div>
   </div>
 );
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const AuthPaciente = () => {
   const [mode, setMode] = useState<"welcome" | "login" | "signup">("welcome");
@@ -147,16 +160,51 @@ const AuthPaciente = () => {
   const [attempts, setAttempts] = useState(0);
   const [shake, setShake] = useState(false);
   const [signupStep, setSignupStep] = useState(1);
+  const [signupSuccess, setSignupSuccess] = useState(false);
   const lockoutUntil = useRef<number>(0);
   const emailRef = useRef<HTMLInputElement>(null);
   const firstNameRef = useRef<HTMLInputElement>(null);
+  const lastNameRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { redirectAfterLogin } = useAuthRedirect();
+
+  // ── Real-time per-field validation ───────────────────────────────
+  const cleanCpf = useMemo(() => unmask(cpf), [cpf]);
+  const cleanPhone = useMemo(() => unmask(phone), [phone]);
+  const isFirstNameValid = firstName.trim().length >= 2;
+  const isLastNameValid = lastName.trim().length >= 2;
+  const isCpfValid = cleanCpf.length === 11 && validarCPF(cleanCpf);
+  const userAge = useMemo(() => {
+    if (!birthDate) return null;
+    const t = new Date();
+    const b = new Date(birthDate);
+    let a = t.getFullYear() - b.getFullYear();
+    const m = t.getMonth() - b.getMonth();
+    if (m < 0 || (m === 0 && t.getDate() < b.getDate())) a--;
+    return a;
+  }, [birthDate]);
+  const isBirthValid = userAge !== null && userAge >= 16 && userAge <= 120;
+  const isEmailValid = EMAIL_REGEX.test(email.trim());
+  const isPasswordValid = password.length >= 6;
+  const isPhoneValid = cleanPhone.length >= 10;
+
+  const isStep1Valid = isFirstNameValid && isLastNameValid && isCpfValid && isBirthValid;
+  const isStep2Valid = isEmailValid && isPasswordValid && isPhoneValid;
 
   // Auto-focus on mode change
   useEffect(() => {
     if (mode === "login") setTimeout(() => emailRef.current?.focus(), 100);
     if (mode === "signup") setTimeout(() => firstNameRef.current?.focus(), 100);
+  }, [mode]);
+
+  // Reset success state when leaving signup
+  useEffect(() => {
+    if (mode !== "signup") {
+      setSignupSuccess(false);
+      setSignupStep(1);
+    }
   }, [mode]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -286,11 +334,12 @@ const AuthPaciente = () => {
         } catch {}
 
         if (signUpData.session) {
-          toast.success("Conta criada! ✅", { description: "Vamos completar seu perfil..." });
-          setTimeout(() => navigate("/dashboard?role=patient&onboarding=true"), 1500);
+          // Show celebration screen briefly, then redirect
+          setSignupSuccess(true);
+          setTimeout(() => navigate("/dashboard?role=patient&onboarding=true"), 2400);
         } else {
-          toast.success("Cadastro enviado! ✅", { description: "Confirme seu email para ativar a conta." });
-          setMode("login");
+          setSignupSuccess(true);
+          // Without immediate session, user must confirm email — keep success screen and offer login
         }
       }
     } catch (err) {
@@ -491,6 +540,63 @@ const AuthPaciente = () => {
           exit={{ opacity: 0, x: -30 }}
           transition={{ duration: 0.3 }}
         >
+          {/* ═══ SUCCESS SCREEN ═══ */}
+          {signupSuccess ? (
+            <motion.div
+              key="signup-success"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
+              className="text-center py-6"
+            >
+              <motion.div
+                initial={{ scale: 0, rotate: -45 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 200, damping: 14, delay: 0.1 }}
+                className="relative mx-auto w-32 h-32 mb-6"
+              >
+                <div className="absolute inset-0 rounded-full bg-emerald-500/10" />
+                <motion.span
+                  className="absolute inset-0 rounded-full border-2 border-emerald-500/30"
+                  animate={{ scale: [1, 1.3, 1.3], opacity: [0.7, 0, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+                <img
+                  src={mascotThumbsup}
+                  alt="Pingo comemorando"
+                  className="absolute inset-0 w-full h-full object-contain p-3"
+                />
+              </motion.div>
+
+              <motion.h2
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+                className="text-2xl font-extrabold text-foreground tracking-tight"
+              >
+                Bem-vindo(a), {firstName}! 🎉
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.32 }}
+                className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto leading-relaxed"
+              >
+                Sua conta foi criada com sucesso. Vamos preparar tudo para sua primeira consulta.
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.45 }}
+                className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground"
+              >
+                <SpinnerGap className="w-4 h-4 animate-spin text-primary" />
+                Direcionando para o seu painel...
+              </motion.div>
+            </motion.div>
+          ) : (
+          <>
           {/* Desktop back */}
           <button
             type="button"
@@ -502,8 +608,16 @@ const AuthPaciente = () => {
           </button>
 
           <div className="mb-2">
-            <h2 className="text-[24px] font-extrabold text-foreground tracking-tight">Criar sua conta</h2>
-            <p className="text-sm text-muted-foreground mt-1">Leva menos de 1 minuto</p>
+            <h2 className="text-[24px] font-extrabold text-foreground tracking-tight">
+              {signupStep === 1 && "Vamos nos conhecer"}
+              {signupStep === 2 && "Crie seu acesso"}
+              {signupStep === 3 && "Quase lá!"}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              {signupStep === 1 && "Conte-nos quem você é"}
+              {signupStep === 2 && "Email e senha para entrar quando quiser"}
+              {signupStep === 3 && "Confira seus dados e finalize"}
+            </p>
           </div>
 
           <StepIndicator current={signupStep} />
@@ -511,47 +625,18 @@ const AuthPaciente = () => {
           <form onSubmit={(e) => {
             e.preventDefault();
             if (signupStep < 3) {
-              // Validate current step before advancing
-              if (signupStep === 1) {
-                if (!firstName.trim() || !lastName.trim()) {
-                  toast.error("Preencha nome e sobrenome.");
-                  return;
-                }
-                const cleanCpf = unmask(cpf);
-                if (!validarCPF(cleanCpf)) {
-                  toast.error("CPF inválido", { description: "Verifique os dígitos." });
-                  return;
-                }
-                if (!birthDate) {
-                  toast.error("Data de nascimento obrigatória", { description: "Informe sua data de nascimento." });
-                  return;
-                }
-                const today = new Date();
-                const birth = new Date(birthDate);
-                let age = today.getFullYear() - birth.getFullYear();
-                const monthDiff = today.getMonth() - birth.getMonth();
-                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-                  age--;
-                }
-                if (age < 16) {
-                  toast.error("Idade mínima: 16 anos", { description: "É necessário ter pelo menos 16 anos para se cadastrar." });
-                  return;
-                }
+              if (signupStep === 1 && !isStep1Valid) {
+                if (!isFirstNameValid || !isLastNameValid) toast.error("Preencha seu nome completo.");
+                else if (!isCpfValid) toast.error("CPF inválido", { description: "Verifique os dígitos." });
+                else if (userAge !== null && userAge < 16) toast.error("Idade mínima: 16 anos");
+                else toast.error("Preencha todos os campos corretamente");
+                return;
               }
-              if (signupStep === 2) {
-                const cleanPhone = unmask(phone);
-                if (cleanPhone.length < 10) {
-                  toast.error("Telefone inválido");
-                  return;
-                }
-                if (!email || !email.includes("@")) {
-                  toast.error("Email inválido");
-                  return;
-                }
-                if (password.length < 6) {
-                  toast.error("Senha deve ter 6+ caracteres");
-                  return;
-                }
+              if (signupStep === 2 && !isStep2Valid) {
+                if (!isEmailValid) toast.error("Email inválido");
+                else if (!isPasswordValid) toast.error("Senha deve ter 6+ caracteres");
+                else if (!isPhoneValid) toast.error("Telefone inválido");
+                return;
               }
               setSignupStep(s => s + 1);
             } else {
@@ -559,7 +644,7 @@ const AuthPaciente = () => {
             }
           }} className="space-y-4">
             <AnimatePresence mode="wait">
-              {/* Step 1: Nome + CPF */}
+              {/* Step 1: Nome + CPF + Nascimento */}
               {signupStep === 1 && (
                 <motion.div
                   key="step1"
@@ -572,35 +657,57 @@ const AuthPaciente = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label className="text-[13px] font-semibold text-foreground">Nome</Label>
-                      <Input
-                        ref={firstNameRef}
-                        value={firstName}
-                        onChange={e => setFirstName(e.target.value)}
-                        placeholder="João"
-                        required
-                        className="mt-1.5 h-12 rounded-xl bg-muted/40 border-border/50 text-[15px] focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.12)] focus-visible:border-primary/40"
-                      />
+                      <div className="relative mt-1.5">
+                        <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground/50" weight="fill" />
+                        <Input
+                          ref={firstNameRef}
+                          value={firstName}
+                          onChange={e => setFirstName(e.target.value)}
+                          onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); lastNameRef.current?.focus(); } }}
+                          placeholder="João"
+                          required
+                          autoComplete="given-name"
+                          className={`pl-11 h-12 rounded-xl bg-muted/40 border text-[15px] focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.12)] focus-visible:border-primary/40 ${isFirstNameValid ? "border-emerald-500/40 pr-10" : "border-border/50"}`}
+                        />
+                        {isFirstNameValid && <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-emerald-500" weight="fill" />}
+                      </div>
                     </div>
                     <div>
                       <Label className="text-[13px] font-semibold text-foreground">Sobrenome</Label>
-                      <Input
-                        value={lastName}
-                        onChange={e => setLastName(e.target.value)}
-                        placeholder="Silva"
-                        required
-                        className="mt-1.5 h-12 rounded-xl bg-muted/40 border-border/50 text-[15px] focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.12)] focus-visible:border-primary/40"
-                      />
+                      <div className="relative mt-1.5">
+                        <Input
+                          ref={lastNameRef}
+                          value={lastName}
+                          onChange={e => setLastName(e.target.value)}
+                          placeholder="Silva"
+                          required
+                          autoComplete="family-name"
+                          className={`h-12 rounded-xl bg-muted/40 border text-[15px] focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.12)] focus-visible:border-primary/40 ${isLastNameValid ? "border-emerald-500/40 pr-10" : "border-border/50"}`}
+                        />
+                        {isLastNameValid && <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-emerald-500" weight="fill" />}
+                      </div>
                     </div>
                   </div>
+
                   <div>
                     <Label className="text-[13px] font-semibold text-foreground">CPF</Label>
-                    <CpfInput
-                      value={cpf}
-                      onChange={v => setCpf(v)}
-                      className="mt-1.5"
-                      inputClassName="pl-11 h-12 rounded-xl bg-muted/40 border-border/50 text-[15px] tracking-wide focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.12)] focus-visible:border-primary/40"
-                    />
+                    <div className="relative">
+                      <CpfInput
+                        value={cpf}
+                        onChange={v => setCpf(v)}
+                        className="mt-1.5"
+                        inputClassName={`pl-11 pr-10 h-12 rounded-xl bg-muted/40 border text-[15px] tracking-wide focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.12)] focus-visible:border-primary/40 ${isCpfValid ? "border-emerald-500/40" : cleanCpf.length === 11 && !isCpfValid ? "border-destructive/50" : "border-border/50"}`}
+                      />
+                      {isCpfValid && <CheckCircle className="absolute right-3 top-[calc(50%+3px)] w-[18px] h-[18px] text-emerald-500 pointer-events-none" weight="fill" />}
+                      {cleanCpf.length === 11 && !isCpfValid && <WarningCircle className="absolute right-3 top-[calc(50%+3px)] w-[18px] h-[18px] text-destructive pointer-events-none" weight="fill" />}
+                    </div>
+                    {cleanCpf.length === 11 && !isCpfValid && (
+                      <p className="text-xs text-destructive mt-1.5 flex items-center gap-1">
+                        <WarningCircle className="w-3 h-3" weight="fill" /> CPF inválido — confira os dígitos
+                      </p>
+                    )}
                   </div>
+
                   <div>
                     <Label className="text-[13px] font-semibold text-foreground">Data de nascimento</Label>
                     <div className="relative mt-1.5">
@@ -610,10 +717,19 @@ const AuthPaciente = () => {
                         value={birthDate}
                         onChange={e => setBirthDate(e.target.value)}
                         max={new Date().toISOString().split("T")[0]}
-                        className="pl-11 h-12 rounded-xl bg-muted/40 border-border/50 text-[15px] focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.12)] focus-visible:border-primary/40"
+                        className={`pl-11 pr-10 h-12 rounded-xl bg-muted/40 border text-[15px] focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.12)] focus-visible:border-primary/40 ${isBirthValid ? "border-emerald-500/40" : "border-border/50"}`}
                         required
                       />
+                      {isBirthValid && <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-emerald-500 pointer-events-none" weight="fill" />}
                     </div>
+                    {userAge !== null && userAge < 16 && (
+                      <p className="text-xs text-destructive mt-1.5 flex items-center gap-1">
+                        <WarningCircle className="w-3 h-3" weight="fill" /> Idade mínima de 16 anos
+                      </p>
+                    )}
+                    {isBirthValid && (
+                      <p className="text-xs text-muted-foreground mt-1.5">Você tem {userAge} anos</p>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -632,39 +748,65 @@ const AuthPaciente = () => {
                     <Label className="text-[13px] font-semibold text-foreground">Email</Label>
                     <div className="relative mt-1.5">
                       <Envelope className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground/50" weight="fill" />
-                      <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" className="pl-11 h-12 rounded-xl bg-muted/40 border-border/50 text-[15px] focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.12)] focus-visible:border-primary/40" required />
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        onKeyDown={e => { if (e.key === "Enter" && isEmailValid) { e.preventDefault(); passwordRef.current?.focus(); } }}
+                        placeholder="seu@email.com"
+                        autoComplete="email"
+                        className={`pl-11 pr-10 h-12 rounded-xl bg-muted/40 border text-[15px] focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.12)] focus-visible:border-primary/40 ${isEmailValid ? "border-emerald-500/40" : email.length > 3 && !isEmailValid ? "border-destructive/50" : "border-border/50"}`}
+                        required
+                      />
+                      {isEmailValid && <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-emerald-500 pointer-events-none" weight="fill" />}
                     </div>
+                    <p className="text-[11px] text-muted-foreground mt-1.5">Usaremos para enviar confirmações de consultas</p>
                   </div>
+
                   <div>
                     <Label className="text-[13px] font-semibold text-foreground">Crie uma senha</Label>
                     <div className="relative mt-1.5">
                       <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground/50" weight="fill" />
                       <Input
+                        ref={passwordRef}
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={e => setPassword(e.target.value)}
+                        onKeyDown={e => { if (e.key === "Enter" && isPasswordValid) { e.preventDefault(); phoneRef.current?.focus(); } }}
                         placeholder="Mínimo 6 caracteres"
-                        className="pl-11 pr-11 h-12 rounded-xl bg-muted/40 border-border/50 text-[15px] focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.12)] focus-visible:border-primary/40"
+                        autoComplete="new-password"
+                        className={`pl-11 pr-11 h-12 rounded-xl bg-muted/40 border text-[15px] focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.12)] focus-visible:border-primary/40 ${isPasswordValid ? "border-emerald-500/40" : "border-border/50"}`}
                         required
                         minLength={6}
                       />
-                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-foreground transition-colors">
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-foreground transition-colors" aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}>
                         {showPassword ? <EyeSlash className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
                       </button>
                     </div>
                     {password && <PasswordStrength password={password} />}
                   </div>
+
                   <div>
-                    <Label className="text-[13px] font-semibold text-foreground">Telefone</Label>
+                    <Label className="text-[13px] font-semibold text-foreground">Telefone (WhatsApp)</Label>
                     <div className="relative mt-1.5">
                       <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground/50" weight="fill" />
-                      <Input value={phone} onChange={e => setPhone(formatMask(e.target.value, 'phone'))} placeholder="(00) 00000-0000" className="pl-11 font-mono h-12 rounded-xl bg-muted/40 border-border/50 text-[15px] tracking-wide focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.12)] focus-visible:border-primary/40" maxLength={15} />
+                      <Input
+                        ref={phoneRef}
+                        value={phone}
+                        onChange={e => setPhone(formatMask(e.target.value, 'phone'))}
+                        placeholder="(11) 99999-9999"
+                        autoComplete="tel"
+                        className={`pl-11 pr-10 font-mono h-12 rounded-xl bg-muted/40 border text-[15px] tracking-wide focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.12)] focus-visible:border-primary/40 ${isPhoneValid ? "border-emerald-500/40" : "border-border/50"}`}
+                        maxLength={15}
+                      />
+                      {isPhoneValid && <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-emerald-500 pointer-events-none" weight="fill" />}
                     </div>
+                    <p className="text-[11px] text-muted-foreground mt-1.5">Para lembretes de consulta via WhatsApp</p>
                   </div>
                 </motion.div>
               )}
 
-              {/* Step 3: Termos + Confirmar */}
+              {/* Step 3: Resumo + Termos + Confirmar */}
               {signupStep === 3 && (
                 <motion.div
                   key="step3"
@@ -674,32 +816,72 @@ const AuthPaciente = () => {
                   transition={{ duration: 0.25 }}
                   className="space-y-5"
                 >
-                  {/* Summary card */}
-                  <div className="bg-muted/30 rounded-2xl p-4 border border-border/40 space-y-2">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Resumo</p>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div><span className="text-muted-foreground">Nome:</span> <span className="font-medium text-foreground">{firstName} {lastName}</span></div>
-                      <div><span className="text-muted-foreground">Email:</span> <span className="font-medium text-foreground">{email}</span></div>
+                  {/* Summary card — premium */}
+                  <div className="bg-gradient-to-br from-primary/[0.04] to-secondary/[0.04] rounded-2xl p-5 border border-border/40 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <CheckCircle className="w-4 h-4 text-primary" weight="fill" />
+                      </div>
+                      <p className="text-xs font-bold text-foreground uppercase tracking-wider">Resumo do cadastro</p>
                     </div>
+                    <div className="space-y-2 text-sm pt-1">
+                      <div className="flex items-center justify-between gap-3 py-1.5 border-b border-border/30">
+                        <span className="text-muted-foreground text-xs">Nome</span>
+                        <span className="font-semibold text-foreground truncate">{firstName} {lastName}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 py-1.5 border-b border-border/30">
+                        <span className="text-muted-foreground text-xs">Email</span>
+                        <span className="font-semibold text-foreground truncate text-[13px]">{email}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 py-1.5 border-b border-border/30">
+                        <span className="text-muted-foreground text-xs">Telefone</span>
+                        <span className="font-semibold text-foreground font-mono text-[13px]">{phone}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 py-1.5">
+                        <span className="text-muted-foreground text-xs">CPF</span>
+                        <span className="font-semibold text-foreground font-mono text-[13px]">{cpf}</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSignupStep(1)}
+                      className="text-xs font-semibold text-primary hover:underline pt-1"
+                    >
+                      ← Editar dados
+                    </button>
                   </div>
 
                   <TermsConsentCheckbox checked={termsAccepted} onCheckedChange={setTermsAccepted} />
+
+                  {/* Trust mini-row */}
+                  <div className="flex items-start gap-2 text-[11px] text-muted-foreground bg-muted/30 rounded-xl p-3 border border-border/30">
+                    <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" weight="fill" />
+                    <span className="leading-relaxed">Seus dados são criptografados e protegidos pela LGPD. Nunca compartilhamos com terceiros.</span>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
             <Button
               type="submit"
-              className="w-full h-[54px] rounded-2xl bg-gradient-to-r from-primary to-primary/85 text-primary-foreground font-bold text-base shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 hover:brightness-110 active:scale-[0.98] transition-all"
+              className="w-full h-[54px] rounded-2xl bg-gradient-to-r from-primary to-primary/85 text-primary-foreground font-bold text-base shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               size="lg"
-              disabled={loading || (signupStep === 3 && !termsAccepted)}
+              disabled={
+                loading ||
+                (signupStep === 1 && !isStep1Valid) ||
+                (signupStep === 2 && !isStep2Valid) ||
+                (signupStep === 3 && !termsAccepted)
+              }
             >
               {loading ? (
                 <span className="flex items-center gap-2">
-                  <SpinnerGap className="w-5 h-5 animate-spin" /> Criando conta...
+                  <SpinnerGap className="w-5 h-5 animate-spin" /> Criando sua conta...
                 </span>
               ) : signupStep < 3 ? (
-                "Continuar"
+                <span className="flex items-center gap-2">
+                  Continuar
+                  <ArrowLeft className="w-4 h-4 rotate-180" />
+                </span>
               ) : (
                 <span className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5" weight="fill" />
@@ -715,6 +897,8 @@ const AuthPaciente = () => {
               </button>
             </p>
           </form>
+          </>
+          )}
         </motion.div>
       )}
     </AnimatePresence>
