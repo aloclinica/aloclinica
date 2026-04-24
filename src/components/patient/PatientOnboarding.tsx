@@ -466,7 +466,7 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
               </div>
               <h2 className="text-lg font-bold text-foreground">Verificação não aprovada</h2>
               <p className="text-xs text-muted-foreground">A similaridade facial ficou abaixo do mínimo. Tente novamente com fotos mais nítidas.</p>
-              <Button onClick={() => setKycFailed(false)} variant="outline" className="rounded-xl gap-2 mt-2">
+              <Button onClick={() => { setKycFailed(false); setKycReady(false); }} variant="outline" className="rounded-xl gap-2 mt-2">
                 <Camera className="w-4 h-4" /> Tentar Novamente
               </Button>
             </div>
