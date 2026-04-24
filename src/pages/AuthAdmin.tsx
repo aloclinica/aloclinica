@@ -10,6 +10,7 @@ import pingoAdmin from "@/assets/pingo-admin.png";
 import AuthShell from "@/components/auth/AuthShell";
 import { AuthField, AuthPasswordField, AuthSubmitButton, AuthHeading } from "@/components/auth/AuthFields";
 import { translateAuthError } from "@/lib/authErrors";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 
 const benefits: { icon: LucideIcon; title: string; desc: string }[] = [
   { icon: BarChart3, title: "Dashboard financeiro", desc: "Faturamento, MRR e relatórios em tempo real." },
@@ -23,16 +24,19 @@ const AuthAdmin = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { redirectAfterLogin } = useAuthRedirect();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await db.auth.signInWithPassword({ email, password });
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
       toast.error("Erro ao entrar", { description: translateAuthError(error.message) });
+    } else if (data.user) {
+      await redirectAfterLogin(data.user.id);
     } else {
-      navigate("/dashboard/admin/panel-center");
+      navigate("/dashboard?role=admin");
     }
   };
 

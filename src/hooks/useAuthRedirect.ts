@@ -30,6 +30,8 @@ export function useAuthRedirect() {
     const subRole = getSubdomainRole();
     if (subRole) {
       navigate(`/dashboard?role=${subRole}`);
+    } else if (roleList.includes("admin")) {
+      navigate("/dashboard/admin/panel-center?role=admin");
     } else {
       navigate("/dashboard");
     }
