@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
           }).catch((e) => console.warn("Welcome email failed:", e));
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.warn("assign-role welcome email dispatch failed:", e);
     }
 
@@ -150,7 +150,7 @@ Deno.serve(async (req) => {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("assign-role error:", error);
     return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500,

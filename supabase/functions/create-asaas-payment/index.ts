@@ -32,7 +32,7 @@ async function asaasFetch(url: string, options: RequestInit, attempt = 1): Promi
   }
 }
 
-async function safeJson(res: Response): Promise<Record<string, unknown>> {
+async function safeJson(res: Response): Promise<any> {
   const contentType = res.headers.get("content-type");
   if (!contentType?.includes("application/json")) {
     const text = await res.text();
@@ -457,7 +457,7 @@ serve(async (req) => {
         if (pixRes.ok) {
           pixData = await safeJson(pixRes);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.warn("PIX QR code fetch failed, payment still created:", error);
       }
     }
@@ -479,7 +479,7 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error:", error);
     return new Response(
       JSON.stringify({ error: error.message }),

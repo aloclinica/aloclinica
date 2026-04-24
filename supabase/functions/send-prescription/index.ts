@@ -146,7 +146,7 @@ serve(async (req) => {
           }),
         });
         results.email = await emailRes.json();
-      } catch (error) {
+      } catch (error: any) {
         console.error("Email send error:", error);
         results.email = { error: error instanceof Error ? error.message : String(error) };
       }
@@ -175,7 +175,7 @@ serve(async (req) => {
           body: JSON.stringify({ phone, message: whatsappMessage }),
         });
         results.whatsapp = await whatsRes.json();
-      } catch (error) {
+      } catch (error: any) {
         console.error("WhatsApp send error:", error);
         results.whatsapp = { error: error instanceof Error ? error.message : String(error) };
       }
@@ -185,7 +185,7 @@ serve(async (req) => {
       JSON.stringify({ success: true, sent_to: { email: !!email, whatsapp: !!phone }, results }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error:", error);
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Erro interno" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },

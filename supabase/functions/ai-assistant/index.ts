@@ -178,7 +178,7 @@ ${safeContext ? `\n--- CONTEXTO DO USUÁRIO ---\n${safeContext}\n---` : ""}`;
     return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("ai-assistant error:", error);
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Erro desconhecido" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },

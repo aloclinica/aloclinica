@@ -84,7 +84,7 @@ serve(async (req) => {
         });
         const emailBody = await emailRes.text();
         results.push(`email: ${emailRes.ok ? "sent" : "failed"} ${emailBody}`);
-      } catch (error) {
+      } catch (error: any) {
         results.push(`email: error - ${(error instanceof Error ? error.message : String(error))}`);
       }
     }
@@ -102,7 +102,7 @@ serve(async (req) => {
           body: JSON.stringify({ phone: patient.phone, message: msg }),
         });
         results.push(`whatsapp: ${waRes.ok ? "sent" : "failed"}`);
-      } catch (error) {
+      } catch (error: any) {
         results.push(`whatsapp: error - ${(error instanceof Error ? error.message : String(error))}`);
       }
     }
@@ -122,7 +122,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ success: true, results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,

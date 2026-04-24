@@ -51,7 +51,7 @@ serve(async (req) => {
         "Content-Type": proxyRes.headers.get("Content-Type") || "application/json",
       },
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("[compreface-proxy]", err);
     return new Response(
       JSON.stringify({ error: err.message || "Proxy error" }),

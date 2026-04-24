@@ -75,7 +75,7 @@ Use formatação HTML limpa (h2, h3, p, ul, li, strong, em). Não use tags html/
     return new Response(JSON.stringify({ sugestao }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (e) {
+  } catch (e: any) {
     console.error("sugerir-laudo error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido" }), {
       status: 500,

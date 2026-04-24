@@ -73,7 +73,7 @@ serve(async (req) => {
       JSON.stringify({ appointment, guest_patient: guestPatient, doctor_name: doctorName }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,

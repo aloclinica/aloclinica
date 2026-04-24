@@ -37,16 +37,20 @@ Deno.serve(async (req) => {
 
     let notified = 0;
 
-    for (const prescription of expiringPrescriptions) {
+    for (const prescription of expiringPrescriptions as any[]) {
       const daysUntilExpiry = Math.ceil(
         (new Date(prescription.expiry_date).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
       );
+
+      const doctorName = Array.isArray(prescription.doctor)
+        ? prescription.doctor[0]?.full_name
+        : prescription.doctor?.full_name;
 
       // Insert notification
       await supabase.from("notifications").insert({
         user_id: prescription.patient_id,
         title: "Prescrição Oftalmológica em Vencimento",
-        message: `Sua prescrição vence em ${daysUntilExpiry} dia(s). Solicite uma nova consulta com ${prescription.doctor?.full_name} para renovar.`,
+        message: `Sua prescrição vence em ${daysUntilExpiry} dia(s). Solicite uma nova consulta com ${doctorName || "seu oftalmologista"} para renovar.`,
         type: "warning",
         link: `/meu-perfil/exames-oftalmologicos`,
       });
@@ -65,9 +69,12 @@ Deno.serve(async (req) => {
       const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 
-      for (const prescription of expiringPrescriptions) {
+      for (const prescription of expiringPrescriptions as any[]) {
         const { data: user } = await supabase.auth.admin.getUserById(prescription.patient_id);
         if (user?.user?.email) {
+          const drName = Array.isArray(prescription.doctor)
+            ? prescription.doctor[0]?.full_name
+            : prescription.doctor?.full_name;
           fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
@@ -75,14 +82,14 @@ Deno.serve(async (req) => {
               type: "prescription_expiring",
               to: user.user.email,
               data: {
-                doctor_name: prescription.doctor?.full_name || "Oftalmologista",
+                doctor_name: drName || "Oftalmologista",
                 expiry_date: new Date(prescription.expiry_date).toLocaleDateString("pt-BR"),
               },
             }),
           }).catch((e) => console.warn("Email failed:", e));
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.warn("Email send failed:", e);
     }
 
@@ -90,7 +97,7 @@ Deno.serve(async (req) => {
       JSON.stringify({ success: true, notified }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error:", error);
     return new Response(
       JSON.stringify({ error: "Internal server error" }),

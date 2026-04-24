@@ -267,7 +267,7 @@ serve(async (req) => {
       }
 
       // Format hashes for VIDaaS API
-      const formattedHashes = hashes.map((h: { id?: string; alias?: string; hash: string }, i: number) => ({
+      const formattedHashes = hashes.map((h: any, i: number) => ({
         id: h.id || `doc-${i}`,
         alias: h.alias || `Documento ${i + 1}`,
         hash: h.hash,
@@ -343,7 +343,7 @@ serve(async (req) => {
       }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("VIDaaS sign error:", error);
     return new Response(
       JSON.stringify({ error: (error as Error).message }),

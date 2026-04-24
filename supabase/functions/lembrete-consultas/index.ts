@@ -78,7 +78,7 @@ serve(async (req) => {
             }),
           });
           results.push(`${appt.id}: sent`);
-        } catch (err) {
+        } catch (err: any) {
           results.push(`${appt.id}: error - ${err}`);
         }
       }
@@ -94,7 +94,7 @@ serve(async (req) => {
       JSON.stringify({ success: true, processed: appointments?.length || 0, results }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("lembrete-consultas error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,

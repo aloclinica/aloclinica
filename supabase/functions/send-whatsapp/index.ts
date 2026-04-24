@@ -12,7 +12,7 @@ const corsHeaders = {
 const fetchEvo = async (url: string, opts: RequestInit = {}): Promise<Response> => {
   try {
     return await fetch(url, opts);
-  } catch (error) {
+  } catch (error: any) {
     const errStr = String(error);
     if (errStr.includes("certificate") || errStr.includes("tls") || errStr.includes("CaUsedAsEndEntity")) {
       console.warn("TLS error, retrying with HTTP:", error);
@@ -121,7 +121,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ success: true, data: result }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,

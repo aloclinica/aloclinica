@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ iceServers }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("TURN credentials error:", error);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,

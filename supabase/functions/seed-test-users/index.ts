@@ -30,7 +30,7 @@ serve(async (req) => {
     });
 
     const { data: existing } = await supabase.auth.admin.listUsers({ perPage: 1000 });
-    const existingMap = new Map((existing?.users ?? []).map((u: { email?: string }) => [u.email, u]));
+    const existingMap = new Map((existing?.users ?? []).map((u: any) => [u.email, u]));
 
     const results: Record<string, unknown>[] = [];
 
@@ -38,7 +38,7 @@ serve(async (req) => {
       const existingUser = existingMap.get(u.email);
 
       if (existingUser) {
-        const userId = existingUser.id;
+        const userId = (existingUser as any).id;
 
         // Ensure profile exists
         const { data: profile } = await supabase.from("profiles").select("id").eq("user_id", userId).maybeSingle();
@@ -169,7 +169,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ success: true, users: results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
