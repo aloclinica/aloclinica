@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { getAdminNav } from "./adminNav";
-import { Plus, Trash2 } from "lucide-react";
+import { AdminPageHeader } from "./AdminPageHeader";
+import { Plus, Trash2, ShieldCheck } from "lucide-react";
 import type { SpecialtyRow } from "@/types/domain";
 
 const AdminSpecialties = () => {
