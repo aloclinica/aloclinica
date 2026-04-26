@@ -385,7 +385,6 @@ const KycCrossDevice = ({ onComplete, variant = "full", className = "", tipo = "
           <Camera className="w-4 h-4" />
           Usar webcam deste PC
         </Button>
-        </Button>
 
         <Button 
           variant="outline" 
