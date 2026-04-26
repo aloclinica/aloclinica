@@ -24,7 +24,7 @@ import PatientWaitingCard from "@/components/patient/PatientWaitingCard";
 import SectionErrorBoundary from "@/components/ui/section-error-boundary";
 import PatientHealthReport from "@/components/patient/PatientHealthReport";
 import {
-  usePatientStats, usePatientUpcoming, useReturnAppointments, useRecentHealthMetrics,
+   usePatientStats, usePatientUpcoming, useReturnAppointments, useRecentHealthMetrics, useHealthTimeline,
   useDetectPatientService, type ServiceType,
 } from "@/hooks/usePatientDashboard";
 import { useQueryClient } from "@tanstack/react-query";
@@ -93,6 +93,46 @@ const PatientDashboard = () => {
   const { data: upcoming = [], isLoading: upcomingLoading, isError: upcomingError } = usePatientUpcoming();
   const { data: returnAppts = [] } = useReturnAppointments();
   const { data: healthMetrics = [] } = useRecentHealthMetrics();
+  const { data: timelineEvents = [], isLoading: timelineLoading } = useHealthTimeline(3);
+             <section>
+               <div className="flex items-center justify-between mb-4 px-1">
+                 <h3 className="text-sm font-bold text-foreground">Linha do Tempo</h3>
+                 <Button variant="ghost" size="sm" className="h-7 text-[11px] gap-1 font-bold text-primary" onClick={() => navigate("/dashboard/health-timeline")}>
+                   Ver tudo <ArrowRight className="w-3 h-3" />
+                 </Button>
+               </div>
+               <div className="space-y-3">
+                 {timelineLoading ? (
+                   [1, 2].map(i => <Skeleton key={i} className="h-16 rounded-2xl w-full" />)
+                 ) : timelineEvents.length > 0 ? (
+                   timelineEvents.map((event: any, i: number) => (
+                     <motion.div
+                       key={event.id}
+                       initial={{ opacity: 0, x: -10 }}
+                       animate={{ opacity: 1, x: 0 }}
+                       transition={{ delay: 0.2 + i * 0.05 }}
+                       className="group flex items-center gap-3 p-3 rounded-2xl border border-border/40 bg-card hover:bg-muted/30 transition-colors cursor-pointer"
+                       onClick={() => navigate("/dashboard/health-timeline")}
+                     >
+                       <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", event.color)}>
+                         <event.icon className="w-5 h-5" />
+                       </div>
+                       <div className="flex-1 min-w-0">
+                         <p className="text-sm font-bold text-foreground truncate">{event.title}</p>
+                         <p className="text-[11px] text-muted-foreground truncate">{event.subtitle}</p>
+                       </div>
+                       <p className="text-[10px] font-bold text-muted-foreground shrink-0">
+                         {format(new Date(event.date), "dd/MM", { locale: ptBR })}
+                       </p>
+                     </motion.div>
+                   ))
+                 ) : (
+                   <div className="p-8 text-center rounded-2xl border border-dashed border-border/40 bg-muted/5">
+                     <p className="text-xs text-muted-foreground">Seu histórico de saúde aparecerá aqui.</p>
+                   </div>
+                 )}
+               </div>
+             </section>
   const loading = statsLoading || upcomingLoading || detectingService;
   const waitingAppt = upcoming.find((a: any) => a.status === "waiting" || a.status === "in_progress") ?? null;
   const nextAppt = upcoming[0];
