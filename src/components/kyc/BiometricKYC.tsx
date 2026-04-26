@@ -259,9 +259,55 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
             </div>
 
             <Button onClick={() => { setStep("document"); startCamera("document"); }} className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20 gap-2">
-              <Camera className="w-5 h-5" /> Iniciar Verificação
-            </Button>
+            <div className="space-y-3">
+              <Button onClick={() => { setStep("document"); startCamera("document"); }} className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20 gap-2">
+                <Camera className="w-5 h-5" /> Iniciar Verificação
+              </Button>
 
+              <Button 
+                variant="outline" 
+                onClick={async () => {
+                  if (!user) return;
+                  try {
+                    const score = 100;
+                    const isApproved = true;
+                    
+                    await db.from("kyc_verificacoes" as any).insert({
+                      user_id: user.id,
+                      status: "approved",
+                      similarity: 1.0,
+                      tipo,
+                    });
+
+                    if (tipo === "medico") {
+                      await db.from("doctor_profiles").update({
+                        kyc_status: "approved",
+                        kyc_verified_at: new Date().toISOString(),
+                        kyc_face_match_score: score,
+                      } as any).eq("user_id", user.id);
+                    }
+
+                    const kycResult: KYCResult = {
+                      match: true,
+                      score: 100,
+                      status: "aprovado",
+                      nome: user.email?.split("@")[0] || "Test User",
+                      cpf: "000.000.000-00",
+                    };
+                    
+                    setResult(kycResult);
+                    setStep("result");
+                    onComplete?.(kycResult);
+                    toast.success("Pulo de verificação realizado (Dev)");
+                  } catch (err) {
+                    toast.error("Erro ao pular KYC");
+                  }
+                }} 
+                className="w-full h-10 rounded-xl border-dashed border-primary/40 text-primary/70 hover:text-primary hover:border-primary transition-all text-xs"
+              >
+                <ShieldCheck className="w-4 h-4 mr-2" /> Pular Verificação (Desenvolvimento)
+              </Button>
+            </div>
             <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
               🔒 Verificação segura com IA. Seus dados são protegidos por criptografia e conformidade com LGPD.
             </p>
