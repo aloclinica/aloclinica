@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Bug, Terminal } from "lucide-react";
+import { ShieldCheck, Bug, Terminal, UserShield } from "lucide-react";
 import { toast } from "sonner";
 
 export const DevModeToggle = () => {
