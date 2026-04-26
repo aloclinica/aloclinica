@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import {
   ArrowLeft, Clock, Star, Check, UserPlus, UserCheck, AlertTriangle,
   CalendarDays, CheckCircle2, ChevronRight, Stethoscope, QrCode, CreditCard,
-  FileBarChart, Lock, Shield, Copy
+  FileBarChart, Lock, Shield, Copy, Tag, X as XIcon
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, addDays, setHours, setMinutes, isBefore } from "date-fns";
