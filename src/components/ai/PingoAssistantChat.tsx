@@ -288,14 +288,7 @@ export function PingoAssistantChat() {
                       <Button 
                         size="sm" 
                         className="rounded-full h-8 px-4 gap-2 text-xs bg-primary text-primary-foreground hover:bg-primary/90"
-                        onClick={() => {
-                          const userMsg: Msg = { role: "user", content: lastUserMessage };
-                          const currentMessagesWithErrorReset = [...messages.filter(m => m.content !== userMsg.content || m.role !== "user"), userMsg];
-                          setMessages(currentMessagesWithErrorReset);
-                          setHasError(false);
-                          setIsLoading(true);
-                          performRequest(0, currentMessagesWithErrorReset).finally(() => setIsLoading(false));
-                        }}
+                        onClick={() => send(lastUserMessage)}
                       >
                         <RefreshCw className="w-3 h-3" />
                         Tentar novamente
