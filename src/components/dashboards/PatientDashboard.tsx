@@ -543,7 +543,7 @@ const PatientDashboard = () => {
         )}
 
         {/* ═══════════ CONTENT GRID ═══════════ */}
-        {(sections.nextAppt || sections.returnAppts || sections.healthMetrics || sections.healthTip || sections.benefitsCard || sections.activePrescriptions) && (
+        {(sections.nextAppt || sections.returnAppts || sections.healthMetrics || sections.healthTip || sections.activePrescriptions) && (
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-5 lg:gap-8">
 
           {/* LEFT: Next Appointment */}
@@ -685,51 +685,6 @@ const PatientDashboard = () => {
               </motion.div>
             )}
 
-            {/* Benefits Card - Cartão de Benefícios */}
-            {sections.benefitsCard && (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.48 }}
-              className="card-interactive relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 p-5 sm:p-6 shadow-lg border border-amber-400/20"
-            >
-              <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
-              <div className="relative z-10">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-3xl">💳</span>
-                      <span className="text-xs font-bold uppercase tracking-wider text-white/70">Cartão de Benefícios</span>
-                    </div>
-                    <h3 className="font-[Manrope] text-xl font-bold text-white">30% de desconto</h3>
-                    <p className="text-sm text-white/80 mt-1">Em todas as suas consultas e serviços</p>
-                  </div>
-                  <div className="text-4xl animate-bounce">✨</div>
-                </div>
-                <div className="grid grid-cols-3 gap-2 mb-4">
-                  <div className="bg-white/15 rounded-lg p-2.5 text-center">
-                    <p className="text-xs font-bold text-white/70">Desconto</p>
-                    <p className="text-lg font-bold text-white mt-1">30%</p>
-                  </div>
-                  <div className="bg-white/15 rounded-lg p-2.5 text-center">
-                    <p className="text-xs font-bold text-white/70">Status</p>
-                    <p className="text-lg font-bold text-white mt-1">✓ Ativo</p>
-                  </div>
-                  <div className="bg-white/15 rounded-lg p-2.5 text-center">
-                    <p className="text-xs font-bold text-white/70">Mensal</p>
-                    <p className="text-sm font-bold text-white mt-1">R$29,90</p>
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  className="w-full rounded-full bg-white text-orange-600 font-bold hover:bg-white/90 shadow-md"
-                  onClick={() => navigate("/dashboard/benefits?role=patient")}
-                >
-                  Ver detalhes <ArrowRight size={13} weight="bold" className="ml-1.5" />
-                </Button>
-              </div>
-            </motion.div>
-            )}
 
             {/* Active Prescriptions - Receitas Ativas */}
             {sections.activePrescriptions && (stats?.prescriptions ?? 0) > 0 && (
