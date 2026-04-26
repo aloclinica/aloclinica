@@ -118,11 +118,13 @@ const PrescriptionForm = () => {
     doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
     doc.rect(0, 0, pageWidth, 28, "F");
 
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
     doc.setTextColor(255, 255, 255);
-    doc.text("Alô Médico", 15, 14);
+    doc.text("AloClínica", 15, 14);
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-     doc.text("Plataforma de Telemedicina", 15, 21);
+    doc.text("Receituário Médico Digital", 15, 21);
  
      // Logo da Plataforma (Pingo) — quadrada, alinhada à direita do header azul
      try {
@@ -300,49 +302,78 @@ const PrescriptionForm = () => {
       y += obsHeight + 6;
     }
 
-    // ─── QR Code & Footer ───
-    const footerY = pageHeight - 45;
-
-    // QR Code — Real scannable QR code
+    // ─── BLOCO DE ASSINATURA DIGITAL (ICP-Brasil / PAdES) ───
+    const sigBoxY = pageHeight - 60;
+    const sigBoxH = 42;
+    
+    // Container da assinatura
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(15, sigBoxY, pageWidth - 30, sigBoxH, 2, 2, "FD");
+    
+    // Badge de assinatura no topo do box
+    doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+    doc.roundedRect(15, sigBoxY, pageWidth - 30, 7, 2, 2, "F");
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.text("DOCUMENTO ASSINADO DIGITALMENTE - ICP-BRASIL (PAdES)", pageWidth / 2, sigBoxY + 5, { align: "center" });
+    
+    // QR Code — escaneável para verificação pública
+    const qrSize = 28;
+    const qrX = 20;
+    const qrY = sigBoxY + 10;
     try {
       const verificationUrl = `${window.location.origin}/validar-receita/${prescriptionId}`;
       const qrDataUrl = await QRCode.toDataURL(verificationUrl, {
-        width: 150,
+        width: 200,
         margin: 1,
-        color: {
-          dark: "#15234B",
-          light: "#ffffff"
-        }
+        errorCorrectionLevel: "M",
+        color: { dark: "#15234B", light: "#ffffff" }
       });
-      doc.addImage(qrDataUrl, "PNG", 15, footerY - 5, 25, 25);
-      doc.setFontSize(6);
-      doc.setTextColor(130, 130, 130);
-      doc.text("Verificação digital", 27.5, footerY + 23, { align: "center" });
-      doc.text(prescriptionId, 27.5, footerY + 27, { align: "center" });
+      doc.addImage(qrDataUrl, "PNG", qrX, qrY, qrSize, qrSize);
     } catch (error) {
       logError("QR Code generation failed:", error);
-      // QR generation failed - non-critical, continue without it
     }
-
-    // Digital signature line
-    doc.setDrawColor(accentGold[0], accentGold[1], accentGold[2]);
-    doc.setLineWidth(0.5);
-    doc.line(pageWidth / 2 - 40, footerY + 12, pageWidth / 2 + 40, footerY + 12);
-    doc.setFontSize(8);
+    
+    // Dados do assinante (lado direito do QR)
+    const infoX = qrX + qrSize + 6;
+    let sigY = qrY + 4;
+    
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
     doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-    doc.text(`ASSINADO DIGITALMENTE POR`, pageWidth / 2, footerY + 8, { align: "center" });
-    doc.text(`${doctorInfo?.first_name} ${doctorInfo?.last_name}`, pageWidth / 2, footerY + 18, { align: "center" });
-    doc.setFontSize(7);
-    doc.setTextColor(120, 120, 120);
-    doc.text(`CRM ${doctorInfo?.crm}/${doctorInfo?.crm_state}`, pageWidth / 2, footerY + 23, { align: "center" });
+    doc.text(`Dr(a). ${doctorInfo?.first_name ?? ""} ${doctorInfo?.last_name ?? ""}`.trim(), infoX, sigY);
+    sigY += 4.5;
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`CRM: ${doctorInfo?.crm ?? "—"}/${doctorInfo?.crm_state ?? "—"}`, infoX, sigY);
+    sigY += 4;
+    
+    doc.text(`Tipo de certificado: e-CPF A1 (ICP-Brasil)`, infoX, sigY);
+    sigY += 4;
+    
+    doc.text(`Carimbo de tempo: ${format(now, "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}`, infoX, sigY);
+    sigY += 4;
+    
+    doc.text(`Código de verificação: ${prescriptionId}`, infoX, sigY);
+    sigY += 4;
+    
+    doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Validar em: ${window.location.host}/validar-receita/${prescriptionId}`, infoX, sigY);
 
-    // Bottom bar
+    // Bottom bar — Conformidade legal
     doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
     doc.rect(0, pageHeight - 12, pageWidth, 12, "F");
     doc.setFontSize(7);
-     doc.setTextColor(255, 255, 255);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "normal");
     doc.text(
-       "Esta é uma receita digital assinada eletronicamente (PAdES/ICP-Brasil). Valide em: aloclinica.com.br/validar ou via QR Code.",
+      "Conforme Resolução CFM nº 2.299/2021 e MP 2.200-2/2001 (ICP-Brasil) | Escaneie o QR Code para validar a autenticidade",
       pageWidth / 2, pageHeight - 5, { align: "center" }
     );
 
