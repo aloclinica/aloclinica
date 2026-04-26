@@ -258,7 +258,6 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
               </div>
             </div>
 
-            <Button onClick={() => { setStep("document"); startCamera("document"); }} className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20 gap-2">
             <div className="space-y-3">
               <Button onClick={() => { setStep("document"); startCamera("document"); }} className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20 gap-2">
                 <Camera className="w-5 h-5" /> Iniciar Verificação
