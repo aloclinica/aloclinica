@@ -234,27 +234,48 @@ const PrescriptionForm = () => {
       doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
       doc.text(med.name, 32, y + 10);
 
-      // Details
+      // Detalhes da Prescrição (Formatados sem emojis para garantir legibilidade)
       doc.setFontSize(9);
       doc.setTextColor(80, 80, 80);
       let detailY = y + 18;
-      const details: string[] = [];
-      if (med.dosage) details.push(`💊 ${med.dosage}`);
-      if (med.frequency) details.push(`⏰ ${med.frequency}`);
-      if (med.duration) details.push(`📅 ${med.duration}`);
-
-      if (details.length > 0) {
-        doc.text(details.join("   |   "), 32, detailY);
-        detailY += 7;
+      
+      if (med.dosage) {
+        doc.setFont("helvetica", "bold");
+        doc.text("Posologia:", 32, detailY);
+        doc.setFont("helvetica", "normal");
+        doc.text(med.dosage, 50, detailY);
+        detailY += 5;
+      }
+      
+      if (med.frequency) {
+        doc.setFont("helvetica", "bold");
+        doc.text("Frequência:", 32, detailY);
+        doc.setFont("helvetica", "normal");
+        doc.text(med.frequency, 52, detailY);
+        detailY += 5;
+      }
+      
+      if (med.duration) {
+        doc.setFont("helvetica", "bold");
+        doc.text("Duração:", 32, detailY);
+        doc.setFont("helvetica", "normal");
+        doc.text(med.duration, 48, detailY);
+        detailY += 5;
       }
 
       if (med.instructions) {
         doc.setFontSize(8);
         doc.setTextColor(100, 100, 100);
-        doc.text(`Obs: ${med.instructions}`, 32, detailY);
+        doc.setFont("helvetica", "bold");
+        doc.text("Orientações:", 32, detailY);
+        doc.setFont("helvetica", "normal");
+        const wrappedInst = doc.splitTextToSize(med.instructions, pageWidth - 65);
+        doc.text(wrappedInst, 52, detailY);
+        detailY += (wrappedInst.length * 4);
       }
 
-      y += med.instructions ? 44 : 36;
+      // Ajuste dinâmico de altura do card
+      y = detailY + 4;
     });
 
     // ─── Observations ───
