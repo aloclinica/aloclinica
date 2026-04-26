@@ -2,7 +2,7 @@
  * Jitsi Meet integration utilities for AloClínica teleconsultation.
  */
 
-export const JITSI_BASE_URL = "https://meet.telemedicinaaloclinica.sbs";
+ export const JITSI_BASE_URL = "https://meet.jit.si";
 
 export function gerarRoomId(appointmentId: string): string {
   return `consulta-${appointmentId}`;
