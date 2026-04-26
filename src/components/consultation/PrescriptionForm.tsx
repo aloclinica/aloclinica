@@ -40,7 +40,7 @@ const PrescriptionForm = () => {
 
   // Centralizado: usePrescriptionData hook
   const prescription = usePrescriptionData(appointmentId);
-  const { signPrescription, signing: signingDigital, error: signError } = useDigitalSignature();
+   const { signPrescription, signing: signingDigital, isValidating, error: signError } = useDigitalSignature();
 
   const [saving, setSaving] = useState(false);
   const [isSigned, setIsSigned] = useState(false);
@@ -652,28 +652,28 @@ const PrescriptionForm = () => {
 
         {/* Actions */}
         <div className="flex gap-3 flex-col md:flex-row">
-          <Button
-            onClick={handleSignAndSave}
-            className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700"
-            disabled={saving || signingDigital}
-          >
-            {isSigned ? (
-              <>
-                <CheckCircle2 className="w-4 h-4 mr-2" />
-                ✅ Assinado Digitalmente
-              </>
-            ) : signingDigital || saving ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                {signingDigital ? "Assinando digitalmente..." : "Salvando..."}
-              </>
-            ) : (
-              <>
-                <FileText className="w-4 h-4 mr-2" />
-                🔐 Assinar com ICP-Brasil e Salvar
-              </>
-            )}
-          </Button>
+           <Button
+             onClick={handleSignAndSave}
+             className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700"
+             disabled={saving || signingDigital || isValidating}
+           >
+             {isSigned ? (
+               <>
+                 <CheckCircle2 className="w-4 h-4 mr-2" />
+                 ✅ Assinado Digitalmente
+               </>
+             ) : (signingDigital || isValidating || saving) ? (
+               <>
+                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                 {isValidating ? "Validando e-CPF..." : signingDigital ? "Assinando digitalmente..." : "Salvando..."}
+               </>
+             ) : (
+               <>
+                 <FileText className="w-4 h-4 mr-2" />
+                 🔐 Assinar com ICP-Brasil e Salvar
+               </>
+             )}
+           </Button>
 
           <div className="flex gap-3">
             <Button variant="outline" onClick={handleDownloadPDF} disabled={saving || signingDigital}>
@@ -693,13 +693,13 @@ const PrescriptionForm = () => {
             <div className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
               <div className="text-sm">
-                <p className="font-semibold text-emerald-900 dark:text-emerald-100">
-                  ✅ Assinatura Digital Validada com ICP-Brasil
-                </p>
-                <p className="text-emerald-700 dark:text-emerald-300 text-xs mt-1">
-                  Esta prescrição foi assinada digitalmente com certificado qualificado ICP-Brasil.
-                  Válida para todas as farmácias, válida legalmente conforme CFM Resolução 2.299/2021.
-                </p>
+                 <p className="font-semibold text-emerald-900 dark:text-emerald-100">
+                   ✅ Assinatura Digital Validada com e-CPF
+                 </p>
+                 <p className="text-emerald-700 dark:text-emerald-300 text-xs mt-1">
+                   A identidade do médico foi confirmada: o CPF do certificado digital corresponde ao registro no CRM.
+                   Documento assinado com certificado qualificado ICP-Brasil (Resolução CFM 2.299/2021).
+                 </p>
               </div>
             </div>
           </motion.div>
