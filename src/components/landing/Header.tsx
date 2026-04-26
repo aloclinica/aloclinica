@@ -133,9 +133,9 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
                     const s = getItemStyle("Início");
                     const I = s.icon;
                     return (
-                      <Link to="/" className={cn(linkBtnBase, s.cls)}>
-                        <I className="w-3.5 h-3.5" weight="fill" />
-                        Início
+                      <Link to="/" aria-label="Início" title="Início" className={cn(linkBtnBase, s.cls)}>
+                        <I className="w-3.5 h-3.5 shrink-0" weight="fill" />
+                        <span className="hidden xl:inline">Início</span>
                       </Link>
                     );
                   })()}
@@ -143,9 +143,9 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <NavigationMenuTrigger className={triggerCls}>
-                  <Info className="w-3.5 h-3.5" weight="fill" />
-                  Sobre Nós
+                <NavigationMenuTrigger className={triggerCls} aria-label="Sobre Nós" title="Sobre Nós">
+                  <Info className="w-3.5 h-3.5 shrink-0" weight="fill" />
+                  <span className="hidden xl:inline">Sobre Nós</span>
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul className="grid w-[400px] gap-2 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] bg-popover/95 backdrop-blur-xl rounded-2xl border border-border/20 shadow-elevated">
@@ -184,15 +184,21 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
                 {menuItems.filter((item: any) => item.label !== "Início").map((item: any, idx: number) => {
                   const style = getItemStyle(item.label);
                   const Icon = style.icon;
+                  // Pingo Card sempre mostra o texto (é o destaque)
+                  const alwaysShowLabel = item.label === "Pingo Card";
                   return (
                     <NavigationMenuItem key={idx}>
                       <NavigationMenuLink asChild>
                         <Link 
                           to={item.href || item.url} 
+                          aria-label={item.label}
+                          title={item.label}
                           className={cn(linkBtnBase, style.cls)}
                         >
-                          <Icon className="w-3.5 h-3.5" weight="fill" />
-                          {item.label}
+                          <Icon className="w-3.5 h-3.5 shrink-0" weight="fill" />
+                          <span className={cn(alwaysShowLabel ? "inline" : "hidden xl:inline")}>
+                            {item.label}
+                          </span>
                         </Link>
                       </NavigationMenuLink>
                     </NavigationMenuItem>
