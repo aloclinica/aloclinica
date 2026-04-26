@@ -14,8 +14,9 @@ interface Profile {
   last_name: string;
   cpf: string | null;
   phone: string | null;
-  avatar_url: string | null;
-  date_of_birth: string | null;
+   avatar_url: string | null;
+   date_of_birth: string | null;
+   created_at?: string;
 }
 
 interface AuthContextType {

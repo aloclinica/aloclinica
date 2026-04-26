@@ -121,7 +121,18 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
     setSaving(false);
   };
 
-  const handleNext = async () => {
+   const markAsCompleted = async () => {
+     localStorage.setItem(ONBOARDING_KEY, "true");
+     localStorage.removeItem(KYC_PENDING_KEY);
+     if (user) {
+       await db.auth.updateUser({
+         data: { onboarding_completed: true }
+       });
+     }
+     onComplete();
+   };
+ 
+   const handleNext = async () => {
     if (step.id === "personal") {
       if (!firstName.trim() || !lastName.trim()) { toast.error("Preencha nome e sobrenome"); return; }
       const rawCpf = cpf.replace(/\D/g, "");
@@ -143,7 +154,7 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
       toast.error("Verificação obrigatória", { description: "Complete a verificação de identidade para continuar." });
       return;
     }
-    if (isLast) { localStorage.setItem(ONBOARDING_KEY, "true"); localStorage.removeItem(KYC_PENDING_KEY); onComplete(); }
+     if (isLast) { await markAsCompleted(); }
     else setCurrentStep(prev => prev + 1);
   };
 
@@ -707,10 +718,15 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] bg-background flex flex-col overflow-hidden">
-      {/* Decorative gradient backdrop */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-secondary/5" />
+   return (
+     <div className="fixed inset-0 z-[100] bg-background flex flex-col overflow-hidden">
+       <div className="absolute top-4 right-4 z-[110]">
+         <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted" onClick={markAsCompleted}>
+           <X className="w-5 h-5 text-muted-foreground" />
+         </Button>
+       </div>
+       {/* Decorative gradient backdrop */}
+       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-secondary/5" />
       <div className="pointer-events-none absolute -top-32 -left-20 w-72 h-72 rounded-full bg-primary/10 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-32 -right-20 w-72 h-72 rounded-full bg-secondary/10 blur-3xl" />
       <div className="relative z-10 flex flex-col flex-1 min-h-0">

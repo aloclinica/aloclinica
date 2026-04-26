@@ -127,11 +127,31 @@ const PatientDashboard = () => {
     return () => { el.removeEventListener("touchstart", onTouchStart); el.removeEventListener("touchmove", onTouchMove); el.removeEventListener("touchend", onTouchEnd); };
   }, [isPulling, handleRefresh]);
 
-  useEffect(() => {
-    if (loading) return;
-    const profileIncomplete = !profile?.cpf || !profile?.phone || !profile?.date_of_birth;
-    if (forceOnboarding || profileIncomplete || (!onboardingDone && (stats?.total ?? 0) === 0)) setShowOnboarding(true);
-  }, [loading, stats?.total, onboardingDone, forceOnboarding, profile]);
+   useEffect(() => {
+     if (loading) return;
+ 
+     // Check metadata first (more reliable cross-device)
+     const hasCompletedOnboardingMetadata = user?.user_metadata?.onboarding_completed === true;
+     
+     // Consider profile incomplete if essential fields are missing
+     const profileIncomplete = !profile?.cpf || !profile?.phone || !profile?.date_of_birth;
+ 
+     // Priority 1: Force via URL (signup redirect)
+     if (forceOnboarding) {
+       setShowOnboarding(true);
+       return;
+     }
+ 
+     // Priority 2: If it's the first login after signup (checked via param)
+     // or if they have absolutely no profile data and haven't dismissed onboarding yet
+     if (!hasCompletedOnboardingMetadata && !onboardingDone) {
+       const isVeryNewUser = profile?.created_at ? (Date.now() - new Date(profile.created_at).getTime() < 3600000) : true;
+       
+       if (isVeryNewUser && profileIncomplete) {
+         setShowOnboarding(true);
+       }
+     }
+   }, [loading, stats?.total, onboardingDone, forceOnboarding, profile, user]);
 
   if (loading) return (
     <DashboardLayout title="Perfil do Paciente" nav={getPatientNav("home")} role="patient">
