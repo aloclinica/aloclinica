@@ -50,7 +50,15 @@ export function LiveQueue({ items, title, linkLabel, onLinkClick }: {
             const sc = statusConfig[qi.status];
             return (
               <motion.div key={qi.id} variants={item}
-                className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/20"
+                 className={cn(
+                   "flex items-center gap-3 px-4 py-3 transition-all duration-300 hover:bg-muted/20 group/item",
+                   qi.status === "urgent" && "bg-rose-50/30 dark:bg-rose-950/10"
+                 )}
+               >
+                 <div className={cn(
+                   "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-bold transition-transform duration-300 group-hover/item:scale-110 shadow-sm",
+                   qi.avatarBg, qi.avatarColor
+                 )}>
               >
                 <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-bold", qi.avatarBg, qi.avatarColor)}>
                   {qi.initials}

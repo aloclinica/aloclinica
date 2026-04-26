@@ -15,9 +15,9 @@ const statusMap = {
   live:      { bg: "bg-emerald-50 dark:bg-emerald-950/30", text: "text-emerald-700 dark:text-emerald-400", timeBg: "bg-emerald-100 dark:bg-emerald-900/40", timeText: "text-emerald-700 dark:text-emerald-300", tag: "Na Sala", tagBg: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400" },
   waiting:   { bg: "bg-amber-50 dark:bg-amber-950/20", text: "text-amber-700 dark:text-amber-400", timeBg: "bg-amber-100 dark:bg-amber-900/40", timeText: "text-amber-700 dark:text-amber-300", tag: "Na Fila", tagBg: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400" },
   scheduled: { bg: "bg-blue-50/50 dark:bg-blue-950/10", text: "text-blue-600 dark:text-blue-400", timeBg: "bg-blue-100 dark:bg-blue-900/40", timeText: "text-blue-700 dark:text-blue-300", tag: "Agendado", tagBg: "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400" },
-  completed: { bg: "bg-muted/20", text: "text-muted-foreground", timeBg: "bg-muted/50", timeText: "text-muted-foreground", tag: "Concluído", tagBg: "bg-muted text-muted-foreground" },
-  no_show:   { bg: "bg-red-50/50 dark:bg-red-950/10", text: "text-red-500", timeBg: "bg-red-100 dark:bg-red-900/40", timeText: "text-red-600 dark:text-red-400", tag: "Faltou", tagBg: "bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-400" },
-  cancelled: { bg: "bg-muted/20", text: "text-muted-foreground/60", timeBg: "bg-muted/40", timeText: "text-muted-foreground/60", tag: "Cancelado", tagBg: "bg-muted/50 text-muted-foreground/70" },
+   completed: { bg: "bg-emerald-50/20 dark:bg-emerald-950/5", text: "text-emerald-600/70", timeBg: "bg-emerald-100/40", timeText: "text-emerald-700/60", tag: "Concluído", tagBg: "bg-emerald-100/50 text-emerald-700/70" },
+   no_show:   { bg: "bg-rose-50 dark:bg-rose-950/20", text: "text-rose-700 dark:text-rose-400", timeBg: "bg-rose-100 dark:bg-rose-900/40", timeText: "text-rose-700 dark:text-rose-300", tag: "Faltou", tagBg: "bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400" },
+   cancelled: { bg: "bg-slate-50/50 dark:bg-slate-900/10", text: "text-slate-500", timeBg: "bg-slate-100 dark:bg-slate-800/40", timeText: "text-slate-600 dark:text-slate-400", tag: "Cancelado", tagBg: "bg-slate-100 text-slate-600 dark:bg-slate-800/50 dark:text-slate-400" },
 };
 
 export function TimelineSchedule({ items, onSeeAll }: { items: ScheduleItem[]; onSeeAll?: () => void }) {
@@ -34,7 +34,18 @@ export function TimelineSchedule({ items, onSeeAll }: { items: ScheduleItem[]; o
             <motion.div key={item.id}
               initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05, ease: "easeOut" }}
-              className={cn("flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/10", i < items.length - 1 && "border-b border-border/15", s.bg)}
+               className={cn(
+                 "flex items-center gap-3 px-4 py-3 transition-all duration-300 hover:bg-muted/10 group/item",
+                 i < items.length - 1 && "border-b border-border/15",
+                 s.bg,
+                 item.status === "live" && "ring-1 ring-inset ring-emerald-500/20"
+               )}
+             >
+               {/* Time block */}
+               <div className={cn(
+                 "flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl transition-transform duration-300 group-hover/item:scale-110 shadow-sm",
+                 s.timeBg
+               )}>
             >
               {/* Time block */}
               <div className={cn("flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl", s.timeBg)}>
