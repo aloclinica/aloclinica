@@ -61,13 +61,21 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
   const [scrolled, setScrolled] = useState(false);
 
   const logoUrl = config?.logo_url || mascot;
-  const menuItems = config?.menu_items || [
-     { label: "Pingo Card", href: "/pingo-card", isHighlighted: true },
-     { label: "Especialidades", href: "/#especialidades" },
-     { label: "Para Médicos", href: "/#para-medicos" },
-     { label: "Para Empresas", href: "/para-empresas" },
-     { label: "Ajuda", href: "/ajuda" },
+  const baseMenuItems = config?.menu_items || [
+    { label: "Especialidades", href: "/#especialidades" },
+    { label: "Para Médicos", href: "/#para-medicos" },
+    { label: "Para Empresas", href: "/para-empresas" },
+    { label: "Ajuda", href: "/ajuda" },
   ];
+  // Sempre garantir que Pingo Card apareça em destaque, mesmo se vier config do banco sem ele
+  const hasPingoCard = baseMenuItems.some((i: any) => 
+    (i.href || i.url || "").includes("pingo-card") || (i.label || "").toLowerCase().includes("pingo")
+  );
+  const menuItems = hasPingoCard 
+    ? baseMenuItems.map((i: any) => 
+        ((i.href || i.url || "").includes("pingo-card") ? { ...i, label: "Pingo Card" } : i)
+      )
+    : [{ label: "Pingo Card", href: "/pingo-card" }, ...baseMenuItems];
 
   useEffect(() => {
     const handleScroll = () => {
