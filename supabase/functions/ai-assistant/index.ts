@@ -163,16 +163,7 @@ ${safeContext ? `\n--- CONTEXTO DO USUÁRIO ---\n${safeContext}\n---` : ""}`;
       });
     }
 
-    const response = new Response(sseResponse.body, {
-      headers: { 
-        ...corsHeaders, 
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive"
-      },
-    });
-
-    return response;
+    return sseResponse;
   } catch (error: any) {
     console.error("ai-assistant error:", error);
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Erro desconhecido" }), {
