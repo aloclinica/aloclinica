@@ -387,6 +387,16 @@ const Dashboard = () => {
       <Route path="laudista/report-editor/:examId" element={<RoleGuard allowed={["doctor", "laudista"]} roles={roles}><ContextGuard panel="laudista" forceRole={forceRole} roles={roles}><LaudistaReportEditor /></ContextGuard></RoleGuard>} />
       <Route path="laudista/financeiro" element={<RoleGuard allowed={["doctor", "laudista"]} roles={roles}><ContextGuard panel="laudista" forceRole={forceRole} roles={roles}><LaudistaFinanceiro /></ContextGuard></RoleGuard>} />
 
+      {/* ─── Cartão Benefícios ─── */}
+      <Route path="cartao" element={<RoleGuard allowed={["cartao_beneficios"]} roles={roles}><ContextGuard panel="cartao_beneficios" forceRole={forceRole} roles={roles}><CartaoDashboard /></ContextGuard></RoleGuard>} />
+      <Route path="cartao/carteirinha" element={<RoleGuard allowed={["cartao_beneficios"]} roles={roles}><ContextGuard panel="cartao_beneficios" forceRole={forceRole} roles={roles}><CarteirinhaDigital /></ContextGuard></RoleGuard>} />
+      <Route path="cartao/rede" element={<RoleGuard allowed={["cartao_beneficios"]} roles={roles}><ContextGuard panel="cartao_beneficios" forceRole={forceRole} roles={roles}><RedeCredenciada /></ContextGuard></RoleGuard>} />
+      <Route path="cartao/plano" element={<RoleGuard allowed={["cartao_beneficios"]} roles={roles}><ContextGuard panel="cartao_beneficios" forceRole={forceRole} roles={roles}><MeuPlano /></ContextGuard></RoleGuard>} />
+      <Route path="cartao/faturas" element={<RoleGuard allowed={["cartao_beneficios"]} roles={roles}><ContextGuard panel="cartao_beneficios" forceRole={forceRole} roles={roles}><FaturasCartao /></ContextGuard></RoleGuard>} />
+      <Route path="cartao/dependentes" element={<RoleGuard allowed={["cartao_beneficios"]} roles={roles}><ContextGuard panel="cartao_beneficios" forceRole={forceRole} roles={roles}><DependentesCartao /></ContextGuard></RoleGuard>} />
+      <Route path="cartao/suporte" element={<RoleGuard allowed={["cartao_beneficios"]} roles={roles}><ContextGuard panel="cartao_beneficios" forceRole={forceRole} roles={roles}><SuporteCartao /></ContextGuard></RoleGuard>} />
+      <Route path="cartao/lgpd" element={<RoleGuard allowed={["cartao_beneficios"]} roles={roles}><ContextGuard panel="cartao_beneficios" forceRole={forceRole} roles={roles}><LgpdCartao /></ContextGuard></RoleGuard>} />
+
       {/* Fallback */}
       <Route
         path="*"
