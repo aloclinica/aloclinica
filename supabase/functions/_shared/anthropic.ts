@@ -167,7 +167,9 @@ export async function streamClaudeAsOpenAI(opts: ClaudeOptions): Promise<Respons
             }
           }
         }
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        if (!buffer.includes("[DONE]")) {
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        }
       } catch (e) {
         console.error("Claude stream relay error:", e);
       } finally {
