@@ -57,17 +57,17 @@ const benefits = [
 
 /* ═══ LEFT PANEL (Desktop only) — extracted outside to avoid remount on every keystroke ═══ */
 const LeftPanel = () => (
-  <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-primary via-primary/90 to-secondary flex-col justify-between p-12 xl:p-16 overflow-hidden">
+  <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[hsl(220,75%,38%)] via-[hsl(200,70%,45%)] to-[hsl(165,65%,50%)] flex-col justify-between p-12 xl:p-16 overflow-hidden">
     {/* Ambient orbs */}
-    <div className="absolute top-[-20%] right-[-15%] w-[400px] h-[400px] rounded-full bg-white/[0.06] blur-[120px]" />
-    <div className="absolute bottom-[-10%] left-[-10%] w-[300px] h-[300px] rounded-full bg-secondary/30 blur-[80px]" />
+    <div className="absolute top-[-20%] right-[-15%] w-[400px] h-[400px] rounded-full bg-white/[0.08] blur-[120px]" />
+    <div className="absolute bottom-[-10%] left-[-10%] w-[320px] h-[320px] rounded-full bg-emerald-400/20 blur-[80px]" />
     <div className="absolute top-[50%] left-[60%] w-[150px] h-[150px] rounded-full bg-white/[0.04] blur-[60px]" />
     {/* Dot pattern */}
-    <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle at 1.5px 1.5px, white 1px, transparent 0)", backgroundSize: "28px 28px" }} />
+    <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: "radial-gradient(circle at 1.5px 1.5px, white 1px, transparent 0)", backgroundSize: "28px 28px" }} />
 
     {/* Top — back link */}
     <div className="relative z-10">
-      <Link to="/" className="inline-flex items-center gap-2 text-white/50 hover:text-white/80 transition-colors text-sm font-medium group">
+      <Link to="/" className="inline-flex items-center gap-2 text-white/80 hover:text-white transition-colors text-sm font-semibold group">
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" weight="bold" />
         Voltar ao início
       </Link>
