@@ -142,10 +142,12 @@ const PatientDashboard = () => {
        return;
      }
  
-     // Priority 2: Not completed yet (check metadata and local storage)
+     // Priority 2: If it's the first login after signup (checked via param)
+     // or if they have absolutely no profile data and haven't dismissed onboarding yet
      if (!hasCompletedOnboardingMetadata && !onboardingDone) {
-       // Only show automatically if it's truly a first-time experience (no appointments yet)
-       if ((stats?.total ?? 0) === 0 || profileIncomplete) {
+       const isVeryNewUser = profile?.created_at ? (Date.now() - new Date(profile.created_at).getTime() < 3600000) : true;
+       
+       if (forceOnboarding || (isVeryNewUser && profileIncomplete)) {
          setShowOnboarding(true);
        }
      }
