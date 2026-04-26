@@ -344,7 +344,55 @@ const BookAppointment = () => {
   const fullPrice = doctor?.consultation_price ?? 89;
   const basePrice = (appointmentType === "return" && returnEligible) ? Math.round(fullPrice * 0.5 * 100) / 100 : fullPrice;
   const discountAmount = basePrice * (cardDiscount / 100);
-  const totalPrice = Math.max(basePrice - discountAmount, 0);
+  const couponAmount = basePrice * (couponDiscount / 100);
+  const totalPrice = Math.max(basePrice - discountAmount - couponAmount, 0);
+
+  const applyCoupon = async () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    setCouponLoading(true);
+    try {
+      const { data, error } = await db
+        .from("coupons")
+        .select("id, code, discount_percentage, max_uses, times_used, expires_at, is_active")
+        .eq("code", code)
+        .maybeSingle();
+      if (error || !data) {
+        toast.error("Cupom inválido", { description: "Verifique o código e tente novamente." });
+        setCouponLoading(false);
+        return;
+      }
+      if (!data.is_active) {
+        toast.error("Cupom inativo");
+        setCouponLoading(false);
+        return;
+      }
+      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+        toast.error("Cupom expirado");
+        setCouponLoading(false);
+        return;
+      }
+      if (data.max_uses && data.times_used >= data.max_uses) {
+        toast.error("Cupom esgotado");
+        setCouponLoading(false);
+        return;
+      }
+      setCouponCode(data.code);
+      setCouponDiscount(Number(data.discount_percentage) || 0);
+      toast.success(`Cupom ${data.code} aplicado!`, {
+        description: `${data.discount_percentage}% de desconto na consulta.`,
+      });
+    } catch {
+      toast.error("Não foi possível validar o cupom");
+    }
+    setCouponLoading(false);
+  };
+
+  const removeCoupon = () => {
+    setCouponCode(null);
+    setCouponDiscount(0);
+    setCouponInput("");
+  };
 
   // Step 1: Create appointment, then move to payment
   const handleBook = async () => {
