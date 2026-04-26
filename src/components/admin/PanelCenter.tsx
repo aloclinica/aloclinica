@@ -11,6 +11,7 @@ import {
   Users, Stethoscope, Building2, Headphones,
   Handshake, Bot, ShieldCheck, ArrowRight,
   Activity, RefreshCw, Monitor, Sparkles, LayoutGrid,
+  UserPlus, Layers,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { format, formatDistanceToNow } from "date-fns";
@@ -157,10 +158,50 @@ const PanelCenter = () => {
   const activePanels = panels.filter(p => p.onlineCount > 0).length;
 
   const stats = [
-    { label: "Online agora",      value: totalOnline,   accent: "text-emerald-600 dark:text-emerald-400" },
-    { label: "Cadastrados",       value: totalUsers,    accent: "text-foreground" },
-    { label: "Painéis ativos",    value: activePanels,  accent: "text-primary" },
-    { label: "Total de painéis",  value: PANELS.length, accent: "text-foreground" },
+    {
+      label: "Online agora",
+      sublabel: "Usuários conectados",
+      value: totalOnline,
+      icon: Users,
+      iconBg: "bg-emerald-500/10",
+      iconColor: "text-emerald-600 dark:text-emerald-400",
+      sparkColor: "stroke-emerald-500",
+    },
+    {
+      label: "Cadastrados",
+      sublabel: "Novos usuários hoje",
+      value: totalUsers,
+      icon: UserPlus,
+      iconBg: "bg-blue-500/10",
+      iconColor: "text-blue-600 dark:text-blue-400",
+      sparkColor: "stroke-blue-500",
+    },
+    {
+      label: "Painéis ativos",
+      sublabel: "Em exibição agora",
+      value: activePanels,
+      icon: LayoutGrid,
+      iconBg: "bg-violet-500/10",
+      iconColor: "text-violet-600 dark:text-violet-400",
+      sparkColor: "stroke-violet-500",
+    },
+    {
+      label: "Total de painéis",
+      sublabel: "Cadastrados no sistema",
+      value: PANELS.length,
+      icon: Layers,
+      iconBg: "bg-amber-500/10",
+      iconColor: "text-amber-600 dark:text-amber-400",
+      sparkColor: "stroke-amber-500",
+    },
+  ];
+
+  // Mini sparkline path generator (decorative)
+  const sparkPaths = [
+    "M0,18 L12,14 L24,16 L36,10 L48,12 L60,6 L72,9 L84,4 L96,7 L108,3 L120,5",
+    "M0,15 L12,12 L24,14 L36,8 L48,11 L60,7 L72,10 L84,5 L96,8 L108,4 L120,6",
+    "M0,14 L12,10 L24,13 L36,7 L48,9 L60,5 L72,8 L84,3 L96,6 L108,2 L120,4",
+    "M0,16 L12,13 L24,15 L36,9 L48,11 L60,6 L72,10 L84,4 L96,7 L108,5 L120,3",
   ];
 
   return (
@@ -205,28 +246,57 @@ const PanelCenter = () => {
               </div>
             </div>
 
-            {/* Stats row — flush, aligned grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 border-t border-border/40">
-              {stats.map((s, i) => (
-                <div
-                  key={s.label}
-                  className={cn(
-                    "p-4 md:p-5 text-center",
-                    i < stats.length - 1 && "md:border-r border-border/40",
-                    i % 2 === 0 && "border-r md:border-r border-border/40",
-                    i < 2 && "border-b md:border-b-0 border-border/40",
-                  )}
-                >
-                  <div className={cn("text-2xl md:text-3xl font-black tabular-nums leading-none", s.accent)}>
-                    {s.value}
-                  </div>
-                  <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-muted-foreground mt-1.5">
-                    {s.label}
-                  </div>
-                </div>
-              ))}
-            </div>
           </Card>
+        </motion.section>
+
+        {/* ─────── KPI CARDS ─────── */}
+        <motion.section
+          variants={container}
+          className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4"
+        >
+          {stats.map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <motion.div key={s.label} variants={fadeUp}>
+                <Card className="h-full border-border/40 bg-card hover:shadow-md transition-shadow overflow-hidden">
+                  <CardContent className="p-4 md:p-5">
+                    <div className="flex items-center gap-3">
+                      <div className={cn("w-11 h-11 rounded-2xl flex items-center justify-center shrink-0", s.iconBg)}>
+                        <Icon className={cn("w-5 h-5", s.iconColor)} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-2xl md:text-3xl font-black tabular-nums leading-none text-foreground">
+                          {s.value}
+                        </div>
+                        <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-muted-foreground mt-1">
+                          {s.label}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground/80 mt-2 ml-[3.5rem] -translate-y-1">
+                      {s.sublabel}
+                    </p>
+                    {/* Mini sparkline */}
+                    <svg
+                      viewBox="0 0 120 24"
+                      className="w-full h-6 mt-1"
+                      fill="none"
+                      preserveAspectRatio="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d={sparkPaths[i]}
+                        className={cn(s.sparkColor, "opacity-70")}
+                        strokeWidth={1.5}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
         </motion.section>
 
         {/* ─────── MAIN GRID: Activity (left) + Quick info (right) ─────── */}
