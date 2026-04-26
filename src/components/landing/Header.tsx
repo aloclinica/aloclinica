@@ -64,7 +64,7 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
   const baseMenuItems = config?.menu_items || [
     { label: "Especialidades", href: "/#especialidades" },
     { label: "Para Médicos", href: "/#para-medicos" },
-    { label: "Para Empresas", href: "/para-empresas" },
+    { label: "Saúde Corporativa", href: "/para-empresas" },
     { label: "Ajuda", href: "/ajuda" },
   ];
   // Sempre garantir que Pingo Card apareça em destaque, mesmo se vier config do banco sem ele
