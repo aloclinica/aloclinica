@@ -209,29 +209,31 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
         </div>
 
         {/* Right actions */}
-        <div className="hidden lg:flex items-center gap-2 shrink-0">
-          <LanguageSwitcher />
+        <div className="hidden lg:flex items-center gap-1.5 xl:gap-2 shrink-0">
+          <div className="hidden xl:block">
+            <LanguageSwitcher />
+          </div>
 
           {user ? (
             <Button
               variant="outline"
               size="sm"
-              className="rounded-full gap-2 h-9 px-2.5 border-border/60 bg-card/80 transition-all duration-150 max-w-[180px]"
+              className="rounded-full gap-2 h-9 px-2.5 border-border/60 bg-card/80 transition-all duration-150 max-w-[140px] xl:max-w-[180px]"
               onClick={() => navigate("/dashboard")}
             >
               <span className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground shrink-0">
                 {profile?.first_name?.[0]?.toUpperCase() || "U"}
               </span>
-              <span className="text-foreground text-[13px] truncate">
+              <span className="text-foreground text-[12px] xl:text-[13px] truncate">
                 {profile?.first_name ? profile.first_name : "Painel"}
               </span>
             </Button>
           ) : (
-            <div className="flex items-center gap-3">
-              <Button size="sm" variant="outline" className="rounded-full h-9 px-4 border-[#1a4fcf] text-[#1a4fcf] hover:bg-[#1a4fcf]/5 font-semibold text-[13px]" onClick={() => navigate("/agendar")}>
+            <div className="flex items-center gap-1.5 xl:gap-2">
+              <Button size="sm" variant="outline" className="rounded-full h-9 px-3 xl:px-4 border-[#1a4fcf] text-[#1a4fcf] hover:bg-[#1a4fcf]/5 font-semibold text-[12px] xl:text-[13px]" onClick={() => navigate("/agendar")}>
                 Agendar
               </Button>
-              <Button size="sm" className="rounded-full h-9 px-4 bg-[#1a4fcf] text-white hover:bg-[#1a4fcf]/90 font-semibold text-[13px]" onClick={() => navigate("/paciente")}>
+              <Button size="sm" className="rounded-full h-9 px-3 xl:px-4 bg-[#1a4fcf] text-white hover:bg-[#1a4fcf]/90 font-semibold text-[12px] xl:text-[13px]" onClick={() => navigate("/paciente")}>
                 Entrar
               </Button>
             </div>
