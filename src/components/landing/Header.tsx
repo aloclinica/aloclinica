@@ -87,8 +87,9 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Base — pílula sólida estilo "Pingo Card" para todos
-  const linkBtnBase = "text-[13px] font-bold px-4 h-9 rounded-full transition-all duration-200 inline-flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer border hover:-translate-y-0.5 active:translate-y-0";
+  // Base — pílula sólida estilo "Pingo Card" para todos (responsivo)
+  // lg: compacto (px-2.5, label oculto exceto Pingo Card) | xl: médio | 2xl: completo
+  const linkBtnBase = "text-[12px] xl:text-[13px] font-bold px-2.5 xl:px-3.5 2xl:px-4 h-9 rounded-full transition-all duration-200 inline-flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer border hover:-translate-y-0.5 active:translate-y-0";
 
   // Cada item: gradiente sólido próprio + ícone branco/escuro + sombra colorida
   const itemColorMap: Record<string, { cls: string; icon: React.ElementType }> = {
@@ -115,17 +116,17 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
           : "bg-background/80 backdrop-blur-sm border-transparent"
       )}
     >
-      <div className="max-w-[1800px] mx-auto flex items-center gap-4 h-14 lg:h-[64px] px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
+      <div className="max-w-[1800px] mx-auto flex items-center gap-2 lg:gap-3 xl:gap-4 h-14 lg:h-[64px] px-4 sm:px-6 lg:px-6 xl:px-10 2xl:px-16">
         <Link to="/" className="flex items-center gap-2 shrink-0 group">
           <img src={logoUrl} alt="Logo" className="w-9 h-9 rounded-xl object-contain transition-transform duration-200 group-hover:scale-105" width={36} height={36} />
-          <span className="text-xl font-extrabold text-[#1a1c1e] tracking-tight">
+          <span className="text-lg xl:text-xl font-extrabold text-[#1a1c1e] tracking-tight">
             Alo<span className="text-[#1a4fcf]">Clinica</span>
           </span>
         </Link>
 
         <div className="hidden lg:flex items-center flex-1 justify-center min-w-0">
           <NavigationMenu>
-            <NavigationMenuList className="gap-0.5">
+            <NavigationMenuList className="gap-0.5 xl:gap-1">
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
                   {(() => {
