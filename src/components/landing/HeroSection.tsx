@@ -4,7 +4,7 @@ import { memo, forwardRef } from "react";
 import { motion } from "framer-motion";
 import { usePrefetchRoute } from "@/hooks/use-prefetch-route";
 import OptimizedImage from "@/components/ui/optimized-image";
-import { ArrowRight, ShieldCheck, Lock, Star, CheckCircle, CreditCard } from "@phosphor-icons/react";
+import { ArrowRight, ShieldCheck, Lock, Star, CheckCircle, CreditCard, Clock, Heartbeat, VideoCamera } from "@phosphor-icons/react";
 import heroPingoFamily from "@/assets/hero-pingo-family.png";
 
 const trustItems = [
@@ -39,7 +39,18 @@ const HeroSection = memo(
       >
         <div className="absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-primary/[0.02]" />
-          <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full bg-primary/[0.05] blur-[120px] animate-pulse" />
+          <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full bg-primary/[0.06] blur-[120px] animate-pulse" />
+          <div className="absolute bottom-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-secondary/[0.05] blur-[120px]" />
+          <div
+            aria-hidden
+            className="absolute inset-0 opacity-[0.025]"
+            style={{
+              backgroundImage:
+                "linear-gradient(to right, hsl(var(--foreground) / 0.5) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--foreground) / 0.5) 1px, transparent 1px)",
+              backgroundSize: "48px 48px",
+              maskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+            }}
+          />
         </div>
 
         <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
@@ -127,6 +138,11 @@ const HeroSection = memo(
               animate={{ opacity: 1, scale: 1, rotate: 0 }}
               transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
             >
+              {/* Halo */}
+              <div className="absolute inset-0 -z-10">
+                <div className="absolute inset-10 rounded-full bg-gradient-to-br from-primary/20 via-secondary/15 to-transparent blur-3xl" />
+              </div>
+
               <motion.div
                 animate={{ y: [0, -15, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
@@ -137,6 +153,52 @@ const HeroSection = memo(
                   alt="Médico e pacientes"
                   className="w-full h-auto max-w-[600px] mx-auto mix-blend-multiply"
                 />
+              </motion.div>
+
+              {/* Floating stats card — top-left */}
+              <motion.div
+                initial={{ opacity: 0, x: -30, y: -10 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.6 }}
+                className="absolute top-6 left-0 xl:left-2 z-20 hidden xl:flex items-center gap-3 rounded-2xl border border-border/60 bg-background/80 backdrop-blur-md p-3 pr-4 shadow-xl shadow-primary/10"
+              >
+                <div className="w-11 h-11 rounded-xl bg-success/15 flex items-center justify-center">
+                  <VideoCamera className="w-5 h-5 text-success" weight="fill" />
+                </div>
+                <div className="leading-tight">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Em consulta agora</p>
+                  <p className="text-base font-extrabold text-foreground">847 pacientes</p>
+                </div>
+              </motion.div>
+
+              {/* Floating rating card — bottom-right */}
+              <motion.div
+                initial={{ opacity: 0, x: 30, y: 10 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                transition={{ delay: 0.8, duration: 0.6 }}
+                className="absolute bottom-8 right-0 xl:right-2 z-20 hidden xl:block rounded-2xl border border-border/60 bg-background/80 backdrop-blur-md p-4 shadow-xl shadow-primary/10 max-w-[220px]"
+              >
+                <div className="flex items-center gap-1 mb-1.5">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Star key={i} className="w-3.5 h-3.5 text-amber-400" weight="fill" />
+                  ))}
+                  <span className="text-xs font-extrabold text-foreground ml-1">4.9</span>
+                </div>
+                <p className="text-[12px] text-foreground/80 leading-snug font-medium italic">
+                  "Resolvi minha consulta em 8 minutos, do sofá."
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-1.5 font-semibold">— Maria, SP</p>
+              </motion.div>
+
+              {/* Floating heartbeat pulse — middle-right */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 1, duration: 0.5, type: "spring" }}
+                className="absolute top-1/2 right-4 z-20 hidden 2xl:flex items-center gap-2 rounded-full border border-border/60 bg-background/80 backdrop-blur-md px-3 py-2 shadow-lg"
+              >
+                <Heartbeat className="w-4 h-4 text-destructive animate-pulse" weight="fill" />
+                <span className="text-[11px] font-bold text-foreground">CFM Verificado</span>
               </motion.div>
             </motion.div>
           </div>
