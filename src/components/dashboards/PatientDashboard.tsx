@@ -22,6 +22,7 @@ import { PingoMascot } from "@/components/mascot/PingoMascot";
 import LazyAvatar from "@/components/ui/lazy-avatar";
 import PatientWaitingCard from "@/components/patient/PatientWaitingCard";
 import SectionErrorBoundary from "@/components/ui/section-error-boundary";
+import PatientHealthReport from "@/components/patient/PatientHealthReport";
 import {
   usePatientStats, usePatientUpcoming, useReturnAppointments, useRecentHealthMetrics,
   useDetectPatientService, type ServiceType,
