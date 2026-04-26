@@ -1,7 +1,14 @@
-import { forwardRef, lazy } from "react";
+import { forwardRef, lazy, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle, Rocket, Target, Users } from "@phosphor-icons/react";
+import { Slider } from "@/components/ui/slider";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { ArrowRight, CheckCircle, Rocket, Target, Users, Calculator, Quotes, Star, CurrencyDollar } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/landing/Header";
 import SEOHead from "@/components/SEOHead";
@@ -9,6 +16,188 @@ import refDashboard from "@/assets/ref-dashboard-2.png";
 import refDashboard3 from "@/assets/ref-dashboard-3.png";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
+
+const doctorTestimonials = [
+  {
+    name: "Dr. Rafael Mendes",
+    role: "Cardiologista — São Paulo",
+    text: "Atendo 3h por dia entre meus turnos do hospital e faturo R$ 8k extras todo mês. A plataforma é simples e os pacientes chegam pré-triados.",
+    earning: "R$ 8.200/mês",
+  },
+  {
+    name: "Dra. Camila Souza",
+    role: "Dermatologista — Recife",
+    text: "Comecei na licença-maternidade. Hoje atendo 100% online, escolho meus horários e ainda mantenho minha clínica presencial 2x na semana.",
+    earning: "R$ 12.500/mês",
+  },
+  {
+    name: "Dr. Pedro Henrique",
+    role: "Clínico Geral — Curitiba",
+    text: "Renda extra que se transformou em renda principal. Plataforma estável, suporte rápido e prescrição digital que funciona em qualquer farmácia.",
+    earning: "R$ 15.000/mês",
+  },
+];
+
+const doctorFaq = [
+  {
+    q: "Quanto posso ganhar realmente?",
+    a: "O valor por consulta varia entre R$ 30 e R$ 80 conforme sua especialidade. Médicos ativos faturam em média R$ 3k–R$ 12k/mês trabalhando entre 2h e 6h por dia. Você define sua agenda.",
+  },
+  {
+    q: "Preciso ter consultório próprio?",
+    a: "Não. Você atende 100% por vídeo de qualquer lugar. Basta computador ou celular com internet estável. Disponibilizamos prescrição digital integrada com validade nacional.",
+  },
+  {
+    q: "Como funciona o pagamento?",
+    a: "Repasse automático mensal direto na sua conta bancária via PIX ou TED. Você acompanha seus ganhos em tempo real pelo dashboard, sem surpresas.",
+  },
+  {
+    q: "É legal e regulamentado?",
+    a: "Sim. Operamos em total conformidade com as Resoluções CFM 2.314/2022 e 1.821/07. Validamos seu CRM antes da aprovação e fornecemos suporte jurídico em caso de dúvidas.",
+  },
+  {
+    q: "Em quanto tempo começo a atender?",
+    a: "Cadastro em 5 minutos, validação documental em até 24h e você já pode atender sua primeira consulta no mesmo dia da aprovação.",
+  },
+  {
+    q: "Quais ferramentas estão inclusas?",
+    a: "Vídeo HD, prontuário eletrônico, prescrição digital com assinatura ICP-Brasil, atestados, agenda inteligente, IA assistente para anamnese e suporte 24/7 — sem custo extra.",
+  },
+];
+
+const formatBRL = (n: number) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(n);
+
+function EarningsCalculator() {
+  const [consultsPerDay, setConsultsPerDay] = useState<number>(6);
+  const [daysPerWeek, setDaysPerWeek] = useState<number>(5);
+  const [pricePerConsult, setPricePerConsult] = useState<number>(60);
+
+  const earnings = useMemo(() => {
+    const weekly = consultsPerDay * daysPerWeek * pricePerConsult;
+    const monthly = weekly * 4.33;
+    const yearly = monthly * 12;
+    return { weekly, monthly, yearly };
+  }, [consultsPerDay, daysPerWeek, pricePerConsult]);
+
+  return (
+    <section className="py-20 px-4 bg-gradient-to-b from-background to-muted/30">
+      <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
+        <motion.div
+          className="text-center max-w-3xl mx-auto mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+        >
+          <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-4 py-1.5 rounded-full mb-4">
+            <Calculator className="w-3.5 h-3.5" weight="fill" />
+            Calculadora de ganhos
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-3">
+            Quanto você pode ganhar?
+          </h2>
+          <p className="text-muted-foreground">
+            Ajuste os controles e veja sua projeção de renda na AloClínica.
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.55 }}
+          className="max-w-5xl mx-auto grid lg:grid-cols-[1.2fr_1fr] gap-6 lg:gap-8"
+        >
+          {/* Controles */}
+          <div className="rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-lg">
+            <div className="space-y-7">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-bold text-foreground">Consultas por dia</label>
+                  <span className="text-lg font-extrabold text-primary tabular-nums">{consultsPerDay}</span>
+                </div>
+                <Slider
+                  value={[consultsPerDay]}
+                  min={1}
+                  max={20}
+                  step={1}
+                  onValueChange={(v) => setConsultsPerDay(v[0])}
+                />
+                <div className="flex justify-between text-[11px] text-muted-foreground mt-1.5 font-medium">
+                  <span>1</span><span>20</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-bold text-foreground">Dias por semana</label>
+                  <span className="text-lg font-extrabold text-primary tabular-nums">{daysPerWeek}</span>
+                </div>
+                <Slider
+                  value={[daysPerWeek]}
+                  min={1}
+                  max={7}
+                  step={1}
+                  onValueChange={(v) => setDaysPerWeek(v[0])}
+                />
+                <div className="flex justify-between text-[11px] text-muted-foreground mt-1.5 font-medium">
+                  <span>1</span><span>7</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-bold text-foreground">Valor por consulta</label>
+                  <span className="text-lg font-extrabold text-primary tabular-nums">{formatBRL(pricePerConsult)}</span>
+                </div>
+                <Slider
+                  value={[pricePerConsult]}
+                  min={30}
+                  max={200}
+                  step={5}
+                  onValueChange={(v) => setPricePerConsult(v[0])}
+                />
+                <div className="flex justify-between text-[11px] text-muted-foreground mt-1.5 font-medium">
+                  <span>R$ 30</span><span>R$ 200</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Resultado */}
+          <div className="rounded-3xl bg-gradient-to-br from-primary to-primary/80 p-6 sm:p-8 text-primary-foreground shadow-xl relative overflow-hidden">
+            <div className="absolute inset-0 opacity-15 bg-[radial-gradient(circle_at_top_right,white,transparent_60%)]" />
+            <div className="relative z-10 flex flex-col h-full">
+              <div className="flex items-center gap-2 mb-6">
+                <CurrencyDollar className="w-6 h-6" weight="fill" />
+                <span className="text-xs font-bold uppercase tracking-wider opacity-90">Sua projeção</span>
+              </div>
+
+              <div className="space-y-5 flex-1">
+                <div>
+                  <p className="text-xs uppercase tracking-wider opacity-75 mb-1 font-semibold">Por semana</p>
+                  <p className="text-2xl font-extrabold tabular-nums">{formatBRL(earnings.weekly)}</p>
+                </div>
+                <div className="border-t border-white/20 pt-5">
+                  <p className="text-xs uppercase tracking-wider opacity-75 mb-1 font-semibold">Por mês</p>
+                  <p className="text-4xl font-black tabular-nums">{formatBRL(earnings.monthly)}</p>
+                </div>
+                <div className="border-t border-white/20 pt-5">
+                  <p className="text-xs uppercase tracking-wider opacity-75 mb-1 font-semibold">Por ano</p>
+                  <p className="text-2xl font-extrabold tabular-nums">{formatBRL(earnings.yearly)}</p>
+                </div>
+              </div>
+
+              <p className="text-[11px] opacity-75 mt-6 leading-snug">
+                * Estimativa baseada em 4,33 semanas/mês. Valores reais podem variar conforme demanda, especialidade e disponibilidade.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
 
 const professions = [
   {
