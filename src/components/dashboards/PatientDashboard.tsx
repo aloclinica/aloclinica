@@ -13,10 +13,10 @@ import { format, differenceInDays, differenceInHours, differenceInMinutes, forma
 import { ptBR } from "date-fns/locale";
 import {
   CalendarCheck, VideoCamera, Clock, Gift, ArrowRight,
-  Heart, Lightning, ClipboardText, FileText, UploadSimple,
-  Sparkle, Stethoscope, MagnifyingGlass, Star, Plus, Warning,
-  Pill, CaretRight, Heartbeat, Timer, TrendUp, TrendDown,
-  FirstAidKit, ChatCircleDots, User,
+   Heart, Lightning, ClipboardText, FileText, UploadSimple,
+   Sparkle, Stethoscope, MagnifyingGlass, Star, Plus, Warning,
+   Pill, CaretRight, Heartbeat, Timer, TrendUp, TrendDown,
+   FirstAidKit, ChatCircleDots, User, DotsThreeVertical,
 } from "@phosphor-icons/react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import PatientOnboarding, { ONBOARDING_KEY, KYC_PENDING_KEY } from "@/components/patient/PatientOnboarding";
@@ -1133,80 +1133,77 @@ const ReturnAppointments = ({ items, navigate }: { items: ReturnAppt[]; navigate
   </div>
 );
 
-const NextAppointmentCard = ({
-  appt, daysUntilNext, minutesUntil, navigate,
-}: {
-  appt: Record<string, unknown>;
-  daysUntilNext: number | null;
-  minutesUntil: number | null;
-  navigate: ReturnType<typeof useNavigate>;
-}) => {
-  const scheduledAt = new Date(appt.scheduled_at as string);
-  const isToday = daysUntilNext === 0;
-  const isSoon = minutesUntil !== null && minutesUntil > 0 && minutesUntil <= 30;
-
-  return (
-    <Card className="relative overflow-hidden border-border/10 shadow-[var(--p-shadow-elevated)] bg-card">
-      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[hsl(var(--p-primary))] to-[hsl(var(--p-primary-mid))]" />
-      <CardContent className="p-0">
-        <div className="flex">
-          {/* Date column */}
-          <div className="flex flex-col items-center justify-center px-4 py-5 bg-[hsl(var(--p-primary))] text-white min-w-[72px]">
-            <span className="text-[10px] font-bold uppercase tracking-wider opacity-60">{format(scheduledAt, "MMM", { locale: ptBR })}</span>
-            <span className="font-[Manrope] text-[28px] font-extrabold leading-none mt-0.5">{format(scheduledAt, "dd")}</span>
-            <span className="text-[11px] font-semibold mt-1 opacity-75">{format(scheduledAt, "HH:mm")}</span>
-          </div>
-          {/* Info */}
-          <div className="flex-1 p-4">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--p-primary))]/8 px-2.5 py-1 text-[10.5px] font-bold text-[hsl(var(--p-primary))]">
-                <Clock size={11} weight="fill" />
-                {isToday
-                  ? (minutesUntil !== null && minutesUntil > 0 ? `Em ${minutesUntil < 60 ? `${minutesUntil}min` : `${Math.floor(minutesUntil / 60)}h`}` : "Hoje")
-                  : daysUntilNext === 1 ? "Amanhã" : `Em ${daysUntilNext}d`}
-              </span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[hsl(var(--p-primary))]/8">
-                <VideoCamera size={15} weight="fill" className="text-[hsl(var(--p-primary))]" />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5 mt-1">
-              <LazyAvatar name={appt.doctor_name as string} className="h-9 w-9" fallbackClassName="bg-[hsl(var(--p-primary))]/10 text-[hsl(var(--p-primary))] text-xs" />
-              <div>
-                <h3 className="font-[Manrope] text-[14.5px] font-extrabold text-foreground leading-tight">
-                  {appt.doctor_name as string}
-                </h3>
-                <p className="text-[11.5px] text-muted-foreground">
-                  {(appt.specialty as string) ?? "Consulta Geral"} · {(appt.duration_minutes as number) || 30}min
-                </p>
-              </div>
-            </div>
-
-            {isToday ? (
-              <Button
-                className={cn(
-                  "mt-3 w-full rounded-full bg-emerald-500 text-white py-2.5 font-bold text-[13px] shadow-lg hover:bg-emerald-600 active:scale-[0.97] transition-all",
-                  isSoon && "animate-pulse"
-                )}
-                onClick={() => navigate(`/dashboard/consultation/${appt.id}`)}
-              >
-                <VideoCamera size={15} weight="fill" className="mr-1.5" /> Entrar na Consulta
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                className="mt-3 w-full rounded-full py-2.5 font-bold text-[12.5px] border-[hsl(var(--p-primary))]/15 text-[hsl(var(--p-primary))] hover:bg-[hsl(var(--p-primary))]/5"
-                onClick={() => navigate("/dashboard/appointments?role=patient")}
-              >
-                Ver Detalhes <ArrowRight size={13} weight="bold" className="ml-1.5" />
-              </Button>
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+ const NextAppointmentCard = ({
+   appt, navigate,
+ }: {
+   appt: Record<string, unknown>;
+   daysUntilNext: number | null;
+   minutesUntil: number | null;
+   navigate: ReturnType<typeof useNavigate>;
+ }) => {
+   const scheduledAt = new Date(appt.scheduled_at as string);
+ 
+   return (
+     <motion.div
+       initial={{ opacity: 0, y: 10 }}
+       animate={{ opacity: 1, y: 0 }}
+       className="rounded-[32px] border border-border/40 bg-card p-6 shadow-sm flex flex-col md:flex-row items-center gap-6 relative group overflow-hidden"
+     >
+       <div className="absolute top-0 right-0 p-4 opacity-30 group-hover:opacity-100 transition-opacity">
+         <DotsThreeVertical size={24} className="text-muted-foreground cursor-pointer" />
+       </div>
+       
+       {/* Doctor Info Group */}
+       <div className="flex items-center gap-5 w-full md:w-auto">
+         <div className="relative">
+           <LazyAvatar 
+             src={appt.doctor_avatar as string} 
+             name={appt.doctor_name as string} 
+             className="h-20 w-20 rounded-full border-4 border-white dark:border-muted shadow-lg" 
+           />
+           <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-emerald-500 border-2 border-white dark:border-muted flex items-center justify-center">
+             <VideoCamera size={12} weight="fill" className="text-white" />
+           </div>
+         </div>
+         
+         <div className="flex-1 min-w-0">
+           <div className="flex items-center gap-2 mb-1">
+             <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/5 px-2 py-0.5 rounded-full">Consulta Presencial</span>
+           </div>
+           <h4 className="text-xl font-bold text-foreground truncate">{appt.doctor_name as string}</h4>
+           <p className="text-sm text-muted-foreground">{(appt.specialty as string) ?? "Clínico Geral"}</p>
+           <p className="text-[11px] text-muted-foreground mt-1">Clínica AloClínica – Unidade Centro</p>
+         </div>
+       </div>
+ 
+       {/* Vertical Divider */}
+       <div className="hidden md:block h-16 w-px bg-border/40 mx-2" />
+ 
+       {/* Time & Date Group */}
+       <div className="flex flex-row md:flex-col items-center md:items-start justify-between md:justify-center gap-1 w-full md:w-32 bg-muted/30 md:bg-transparent p-4 md:p-0 rounded-2xl">
+         <div className="flex items-baseline gap-1">
+           <span className="text-3xl font-black text-foreground">{format(scheduledAt, "dd")}</span>
+           <span className="text-[13px] font-bold text-muted-foreground uppercase">{format(scheduledAt, "MMM", { locale: ptBR })}</span>
+         </div>
+         <div className="text-right md:text-left">
+           <p className="text-[13px] font-bold text-foreground capitalize">{format(scheduledAt, "eeee", { locale: ptBR })}</p>
+           <p className="text-[13px] text-muted-foreground">{format(scheduledAt, "HH:mm")}</p>
+         </div>
+       </div>
+ 
+       {/* Action */}
+       <div className="w-full md:w-auto md:ml-auto">
+         <Button 
+           variant="outline"
+           className="w-full md:w-auto rounded-2xl border-border/40 hover:bg-muted font-bold text-sm px-8 py-6 h-auto transition-all shadow-sm"
+           onClick={() => navigate("/dashboard/appointments?role=patient")}
+         >
+           Ver detalhes
+         </Button>
+       </div>
+     </motion.div>
+   );
+ };
 
 const EmptyAppointmentCard = ({ navigate }: { navigate: ReturnType<typeof useNavigate> }) => (
   <Card className="relative overflow-hidden border-dashed border-border/20 bg-gradient-to-b from-card to-muted/20">
