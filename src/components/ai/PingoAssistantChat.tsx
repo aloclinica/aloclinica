@@ -69,6 +69,12 @@ export function PingoAssistantChat() {
   const send = useCallback(async (overrideText?: string) => {
     const text = (overrideText ?? input).trim();
     if (!text || isLoading) return;
+    
+    // Prevents duplicate consecutive messages
+    if (messages.length > 0 && messages[messages.length - 1].content === text && messages[messages.length - 1].role === "user" && !hasError) {
+      return;
+    }
+
     setInput("");
 
     const userMsg: Msg = { role: "user", content: text };
@@ -263,15 +269,27 @@ export function PingoAssistantChat() {
                         Não foi possível processar sua mensagem devido a uma instabilidade momentânea.
                       </p>
                     </div>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="rounded-full h-8 px-4 gap-2 text-xs border-destructive/30 hover:bg-destructive/5"
-                      onClick={() => send(lastUserMessage)}
-                    >
-                      <RefreshCw className="w-3 h-3" />
-                      Tentar novamente
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="rounded-full h-8 px-4 gap-2 text-xs border-destructive/30 hover:bg-destructive/5"
+                        onClick={() => {
+                          setMessages(prev => prev.slice(0, -1));
+                          setHasError(false);
+                        }}
+                      >
+                        Limpar erro
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        className="rounded-full h-8 px-4 gap-2 text-xs bg-primary text-primary-foreground hover:bg-primary/90"
+                        onClick={() => send(lastUserMessage)}
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        Tentar novamente
+                      </Button>
+                    </div>
                   </motion.div>
                 )}
                 {isLoading && (
