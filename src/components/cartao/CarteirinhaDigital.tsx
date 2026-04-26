@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, DownloadSimple, Share, ArrowRight } from "@phosphor-icons/react";
+import { Heart, DownloadSimple, Share, ArrowRight, ShieldCheck } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -113,6 +113,12 @@ const CarteirinhaDigital = () => {
                 <QRCodeSVG value={payload} size={140} />
                 <p className="text-[11px] text-foreground/70 mt-2 font-medium">Apresente em parceiros</p>
               </div>
+              {!isCanceled && (
+                <div className="mt-4 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-white/90">
+                  <ShieldCheck size={14} weight="fill" className="text-emerald-300" />
+                  Carteirinha verificada · ativa
+                </div>
+              )}
               {isCanceled && <Badge variant="destructive" className="mt-4">Assinatura cancelada</Badge>}
             </CardContent>
           </Card>

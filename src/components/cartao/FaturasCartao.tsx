@@ -57,17 +57,23 @@ const FaturasCartao = () => {
   return (
     <DashboardLayout title="Faturas e Histórico" nav={nav} role="cartao_beneficios">
       <div className="space-y-5 max-w-4xl mx-auto pb-20">
-        <div className="grid sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-3">
           <Card className="rounded-2xl">
-            <CardContent className="p-5">
+            <CardContent className="p-4 sm:p-5">
               <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-bold">Economia total</p>
-              <p className="text-2xl font-bold text-emerald-600">{formatBRL(totalSavings)}</p>
+              <p className="text-lg sm:text-2xl font-bold text-emerald-600 tabular-nums">{formatBRL(totalSavings)}</p>
             </CardContent>
           </Card>
           <Card className="rounded-2xl">
-            <CardContent className="p-5">
+            <CardContent className="p-4 sm:p-5">
               <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-bold">Total pago</p>
-              <p className="text-2xl font-bold">{formatBRL(totalSpent)}</p>
+              <p className="text-lg sm:text-2xl font-bold tabular-nums">{formatBRL(totalSpent)}</p>
+            </CardContent>
+          </Card>
+          <Card className="rounded-2xl">
+            <CardContent className="p-4 sm:p-5">
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-bold">Transações</p>
+              <p className="text-lg sm:text-2xl font-bold tabular-nums">{txs.length}</p>
             </CardContent>
           </Card>
         </div>

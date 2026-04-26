@@ -289,6 +289,34 @@ export default function SignupPatient() {
             {errors.password && (
               <p className="text-sm text-red-500">{errors.password}</p>
             )}
+            {formData.password && !errors.password && (() => {
+              const pwd = formData.password;
+              const score =
+                (pwd.length >= 8 ? 1 : 0) +
+                (/[A-Z]/.test(pwd) ? 1 : 0) +
+                (/[0-9]/.test(pwd) ? 1 : 0) +
+                (/[^A-Za-z0-9]/.test(pwd) ? 1 : 0);
+              const labels = ["Fraca", "Razoável", "Boa", "Forte"];
+              const colors = ["bg-red-500", "bg-amber-500", "bg-blue-500", "bg-emerald-500"];
+              const idx = Math.max(0, score - 1);
+              return (
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex gap-1">
+                    {[0, 1, 2, 3].map((i) => (
+                      <div
+                        key={i}
+                        className={`h-1.5 flex-1 rounded-full transition-colors ${
+                          i < score ? colors[idx] : "bg-muted"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Força da senha: <span className="font-semibold text-foreground">{labels[idx]}</span>
+                  </p>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Confirmar Senha */}

@@ -6,7 +6,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Storefront, Flask, Eyeglasses, Lightning, MapPin, MagnifyingGlass, Phone } from "@phosphor-icons/react";
 
 interface Partner {
@@ -22,6 +21,14 @@ const categoryIcons: Record<string, React.ReactNode> = {
   otica: <Eyeglasses size={18} weight="fill" />,
   academia: <Lightning size={18} weight="fill" />,
 };
+
+const CATEGORY_CHIPS = [
+  { id: "all", label: "Todas" },
+  { id: "farmacia", label: "Farmácia" },
+  { id: "laboratorio", label: "Laboratório" },
+  { id: "otica", label: "Ótica" },
+  { id: "academia", label: "Academia" },
+] as const;
 
 const RedeCredenciada = () => {
   const nav = getCartaoNav("rede");
@@ -54,21 +61,29 @@ const RedeCredenciada = () => {
   return (
     <DashboardLayout title="Rede Credenciada" nav={nav} role="cartao_beneficios">
       <div className="space-y-5 max-w-6xl mx-auto pb-20">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
+        <div className="space-y-3">
+          <div className="relative">
             <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" weight="bold" />
             <Input placeholder="Buscar por nome, cidade ou endereço…" className="pl-9 rounded-xl h-11" value={text} onChange={(e) => setText(e.target.value)} />
           </div>
-          <Select value={cat} onValueChange={setCat}>
-            <SelectTrigger className="sm:w-52 rounded-xl h-11"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as categorias</SelectItem>
-              <SelectItem value="farmacia">Farmácia</SelectItem>
-              <SelectItem value="laboratorio">Laboratório</SelectItem>
-              <SelectItem value="otica">Ótica</SelectItem>
-              <SelectItem value="academia">Academia</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+            {CATEGORY_CHIPS.map((c) => {
+              const active = cat === c.id;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setCat(c.id)}
+                  className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-semibold whitespace-nowrap transition-all ${
+                    active
+                      ? "bg-rose-600 text-white shadow-md shadow-rose-600/30"
+                      : "bg-muted text-muted-foreground hover:bg-muted/70"
+                  }`}
+                >
+                  {c.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {loading ? (
