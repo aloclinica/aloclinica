@@ -158,10 +158,50 @@ const PanelCenter = () => {
   const activePanels = panels.filter(p => p.onlineCount > 0).length;
 
   const stats = [
-    { label: "Online agora",      value: totalOnline,   accent: "text-emerald-600 dark:text-emerald-400" },
-    { label: "Cadastrados",       value: totalUsers,    accent: "text-foreground" },
-    { label: "Painéis ativos",    value: activePanels,  accent: "text-primary" },
-    { label: "Total de painéis",  value: PANELS.length, accent: "text-foreground" },
+    {
+      label: "Online agora",
+      sublabel: "Usuários conectados",
+      value: totalOnline,
+      icon: Users,
+      iconBg: "bg-emerald-500/10",
+      iconColor: "text-emerald-600 dark:text-emerald-400",
+      sparkColor: "stroke-emerald-500",
+    },
+    {
+      label: "Cadastrados",
+      sublabel: "Novos usuários hoje",
+      value: totalUsers,
+      icon: UserPlus,
+      iconBg: "bg-blue-500/10",
+      iconColor: "text-blue-600 dark:text-blue-400",
+      sparkColor: "stroke-blue-500",
+    },
+    {
+      label: "Painéis ativos",
+      sublabel: "Em exibição agora",
+      value: activePanels,
+      icon: LayoutGrid,
+      iconBg: "bg-violet-500/10",
+      iconColor: "text-violet-600 dark:text-violet-400",
+      sparkColor: "stroke-violet-500",
+    },
+    {
+      label: "Total de painéis",
+      sublabel: "Cadastrados no sistema",
+      value: PANELS.length,
+      icon: Layers,
+      iconBg: "bg-amber-500/10",
+      iconColor: "text-amber-600 dark:text-amber-400",
+      sparkColor: "stroke-amber-500",
+    },
+  ];
+
+  // Mini sparkline path generator (decorative)
+  const sparkPaths = [
+    "M0,18 L12,14 L24,16 L36,10 L48,12 L60,6 L72,9 L84,4 L96,7 L108,3 L120,5",
+    "M0,15 L12,12 L24,14 L36,8 L48,11 L60,7 L72,10 L84,5 L96,8 L108,4 L120,6",
+    "M0,14 L12,10 L24,13 L36,7 L48,9 L60,5 L72,8 L84,3 L96,6 L108,2 L120,4",
+    "M0,16 L12,13 L24,15 L36,9 L48,11 L60,6 L72,10 L84,4 L96,7 L108,5 L120,3",
   ];
 
   return (
