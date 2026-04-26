@@ -377,7 +377,6 @@ const Dashboard = () => {
       <Route path="admin/site-editor" element={<RoleGuard allowed={[]} roles={roles}><AdminFullSiteEditor /></RoleGuard>} />
       <Route path="admin/media" element={<RoleGuard allowed={[]} roles={roles}><AdminMediaLibrary /></RoleGuard>} />
       <Route path="admin/pingo-card" element={<RoleGuard allowed={[]} roles={roles}><AdminPingoCard /></RoleGuard>} />
-      <Route path="patient/pingo-card" element={<RoleGuard allowed={["patient"]} roles={roles}><PingoCardPanel /></RoleGuard>} />
 
 
       {/* Laudista — blocked when ?role=doctor */}
