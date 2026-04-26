@@ -13,6 +13,10 @@ import {
   ChartBar,
   Headset,
   Sparkle,
+  CreditCard,
+  Heart,
+  QrCode,
+  Gift,
 } from "@phosphor-icons/react";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -24,6 +28,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { db } from "@/integrations/supabase/untyped";
 import pingoEmpresa from "@/assets/pingo-medico-ferramentas.png";
+import pingoCardHero from "@/assets/pingo-card-hero.png";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
