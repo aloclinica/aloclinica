@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
   CheckCircle2, Clock, FileText, Pill, Star, ArrowRight,
-  MessageSquare, Shield, Send
+  MessageSquare, Shield, Send, CalendarPlus, Download
 } from "lucide-react";
 
 interface PostConsultationSummaryProps {
@@ -33,6 +33,7 @@ const PostConsultationSummary = ({
   const [hasNotes, setHasNotes] = useState(false);
   const [hasPrescription, setHasPrescription] = useState(false);
   const [otherPartyName, setOtherPartyName] = useState("");
+  const [doctorIdRaw, setDoctorIdRaw] = useState<string | null>(null);
 
   // Rating state
   const [existingRating, setExistingRating] = useState<number | null>(null);
@@ -58,6 +59,7 @@ const PostConsultationSummary = ({
       if (apptRes.data) {
         const otherId = isDoctor ? apptRes.data.patient_id : null;
         const otherDocId = !isDoctor ? apptRes.data.doctor_id : null;
+        if (!isDoctor && apptRes.data.doctor_id) setDoctorIdRaw(apptRes.data.doctor_id);
         if (otherId) {
           const { data: p } = await db.from("profiles").select("first_name, last_name").eq("user_id", otherId).single();
           if (p) setOtherPartyName(`${p.first_name} ${p.last_name}`);
