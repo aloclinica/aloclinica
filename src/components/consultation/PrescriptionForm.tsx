@@ -99,7 +99,7 @@ const PrescriptionForm = () => {
   }, []);
 
 
-  const generatePDF = async () => {
+   const generatePDF = async (internalUuid?: string) => {
     const { data } = prescription;
     const { patientName, patientCpf, diagnosis, observations, medications: meds, doctorInfo } = data;
 
@@ -120,8 +120,12 @@ const PrescriptionForm = () => {
     doc.text("Plataforma de Telemedicina", 15, 21);
 
     doc.setFontSize(8);
-     doc.text(`Receita Nº: ${prescriptionId}`, pageWidth - 15, 12, { align: "right" });
-     doc.text(`Identificador: ${uuid.substring(0, 8).toUpperCase()}`, pageWidth - 15, 16, { align: "right" });
+      doc.text(`Receita Nº: ${prescriptionId}`, pageWidth - 15, 14, { align: "right" });
+      if (internalUuid) {
+        doc.setFontSize(7);
+        doc.text(`ID: ${internalUuid.substring(0, 8).toUpperCase()}`, pageWidth - 15, 18, { align: "right" });
+        doc.setFontSize(8);
+      }
     doc.text(`Data: ${format(now, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, pageWidth - 15, 21, { align: "right" });
 
      // ─── Platform ID ───
@@ -300,7 +304,7 @@ const PrescriptionForm = () => {
       pageWidth / 2, pageHeight - 5, { align: "center" }
     );
 
-     return { doc, prescriptionId, uuid };
+      return { doc, prescriptionId };
   };
 
   const handleSave = async (skipRedirect = false) => {
@@ -459,7 +463,7 @@ const PrescriptionForm = () => {
       }
 
       // 2. Gerar PDF
-      const { doc, prescriptionId: rxDisplayId } = await generatePDF();
+      const { doc, prescriptionId: rxDisplayId } = await generatePDF(uuid);
 
       // Converter PDF para Base64
       const pdfBlob = doc.output("blob");
