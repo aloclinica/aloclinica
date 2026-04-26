@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Search, Video, FileText, Download, Filter, Calendar as CalendarIcon, Users, ArrowLeft, MoreHorizontal } from "lucide-react";
+ import { Search, Video, FileText, Download, Filter, Calendar as CalendarIcon, Users, ArrowLeft, MoreHorizontal, Clock } from "lucide-react";
+ import { motion } from "framer-motion";
 import { format, isWithinInterval, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -305,39 +306,70 @@ const DoctorConsultations = () => {
                 : a.status === "completed" ? "bg-muted-foreground/30"
                 : a.status === "cancelled" || a.status === "no_show" ? "bg-destructive/60"
                 : "bg-primary/40";
-              return (
-                <div key={a.id} className="flex overflow-hidden rounded-2xl border border-border/20 bg-card transition-all hover:shadow-md hover:-translate-y-0.5" style={{ boxShadow: "var(--d-shadow-card)" }}>
-                  <div className={`w-1 shrink-0 ${stripeColor}`} />
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 flex-1 min-w-0">
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center shrink-0 text-[15px]">
-                        👤
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[13px] font-bold text-foreground truncate">{a.patient_name}</p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {format(new Date(a.scheduled_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })} · {a.duration_minutes || 30}min
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${statusColor[a.status] ?? "bg-muted text-muted-foreground border-border"}`}>
-                        {statusLabel[a.status] ?? a.status}
-                      </span>
-                      {(a.status === "scheduled" || a.status === "waiting") && (
-                        <Button size="sm" className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 gap-1 shadow-md shadow-emerald-600/20" onClick={() => navigate(`/dashboard/consultation/${a.id}`)}>
-                          <Video className="w-3 h-3" /> Iniciar
-                        </Button>
-                      )}
-                      {a.status === "completed" && (
-                        <Button size="sm" variant="outline" className="text-xs h-8 rounded-xl gap-1" onClick={() => navigate(`/dashboard/prescribe/${a.id}`)}>
-                          <FileText className="w-3 h-3" /> Receita
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
+               return (
+                 <motion.div
+                   key={a.id}
+                   initial={{ opacity: 0, y: 10 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                   className="group relative flex overflow-hidden rounded-[24px] border border-border/40 bg-card/60 backdrop-blur-sm transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-emerald-500/20"
+                 >
+                   <div className={`w-1.5 shrink-0 ${stripeColor} opacity-80`} />
+                   <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 gap-4 flex-1 min-w-0">
+                     <div className="flex items-center gap-4 min-w-0 flex-1">
+                       <div className="relative">
+                         <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20 flex items-center justify-center shrink-0 border border-emerald-500/10 shadow-sm transition-transform group-hover:scale-110 duration-300">
+                           <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                         </div>
+                         {a.status === "waiting" && (
+                           <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                             <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                           </span>
+                         )}
+                       </div>
+                       <div className="min-w-0">
+                         <p className="text-[14px] font-bold text-foreground truncate group-hover:text-emerald-600 transition-colors">{a.patient_name}</p>
+                         <div className="flex items-center gap-2 mt-0.5">
+                           <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-medium">
+                             <CalendarIcon className="w-3 h-3" />
+                             {format(new Date(a.scheduled_at), "dd/MM/yy")}
+                           </div>
+                           <span className="text-[10px] text-muted-foreground opacity-30">•</span>
+                           <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-medium">
+                             <Clock className="w-3 h-3" />
+                             {format(new Date(a.scheduled_at), "HH:mm")}
+                           </div>
+                         </div>
+                       </div>
+                     </div>
+                     <div className="flex items-center gap-3 shrink-0">
+                       <span className={`text-[10px] font-bold px-3 py-1.5 rounded-xl border-0 shadow-sm ${statusColor[a.status] ?? "bg-muted text-muted-foreground"}`}>
+                         {statusLabel[a.status] ?? a.status}
+                       </span>
+                       {(a.status === "scheduled" || a.status === "waiting") && (
+                         <Button
+                           size="sm"
+                           className="rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold h-9 px-4 gap-2 shadow-[0_4px_12px_rgba(16,185,129,0.2)] transition-all active:scale-95"
+                           onClick={() => navigate(`/dashboard/consultation/${a.id}`)}
+                         >
+                           <Video className="w-3.5 h-3.5" /> Chamar
+                         </Button>
+                       )}
+                       {a.status === "completed" && (
+                         <Button
+                           size="sm"
+                           variant="outline"
+                           className="text-[11px] font-bold h-9 px-4 rounded-2xl gap-2 border-border/50 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all"
+                           onClick={() => navigate(`/dashboard/prescribe/${a.id}`)}
+                         >
+                           <FileText className="w-3.5 h-3.5" /> Ver Guia
+                         </Button>
+                       )}
+                     </div>
+                   </div>
+                 </motion.div>
+               );
             })}
           </div>
         )}

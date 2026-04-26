@@ -6,10 +6,11 @@ import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getDoctorNav } from "./doctorNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { UserPlus, UserCheck, AlertTriangle, Video, Clock, Bell, RefreshCw, HeartPulse } from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { toast } from "sonner";
+ import { UserPlus, UserCheck, AlertTriangle, Video, Clock, Bell, RefreshCw, HeartPulse, ChevronRight, Zap } from "lucide-react";
+ import { format, formatDistanceToNow } from "date-fns";
+ import { ptBR } from "date-fns/locale";
+ import { toast } from "sonner";
+ import { motion, AnimatePresence } from "framer-motion";
 
 const typeLabel: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   first_visit: { label: "1ª Consulta", icon: <UserPlus className="w-3 h-3" />, color: "bg-blue-500/10 text-blue-700 border-blue-200" },

@@ -4,7 +4,7 @@ import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getDoctorNav } from "./doctorNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, Shield, Star, Stethoscope, Phone, Mail, Award, QrCode, Copy, CheckCircle2, GraduationCap, Heart, Sparkles } from "lucide-react";
+ import { Loader2, Shield, Star, Stethoscope, Phone, Mail, Award, QrCode, Copy, CheckCircle2, GraduationCap, Heart, Sparkles, ArrowLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -50,15 +50,22 @@ const DoctorWallet = () => {
   return (
     <DashboardLayout title="Médico" nav={getDoctorNav("wallet")}>
       <div className="max-w-lg mx-auto space-y-6 pb-24 md:pb-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-            <Award className="w-5 h-5 text-primary" />
-            Carteira Profissional
-          </h2>
-          <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={() => setFlipped(!flipped)}>
-            <Sparkles className="w-3.5 h-3.5" /> {flipped ? "Frente" : "Verso"}
-          </Button>
-        </div>
+         <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="rounded-full">
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+                <div>
+                  <h1 className="text-2xl font-black tracking-tight text-foreground">Carteira Digital</h1>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-0.5">Identidade Profissional</p>
+                </div>
+              </div>
+              <Button size="sm" variant="outline" className="rounded-xl h-9 px-4 font-black text-[10px] uppercase tracking-wider gap-2 border-primary/20 hover:bg-primary/5 transition-all" onClick={() => setFlipped(!flipped)}>
+                <Sparkles className="w-3.5 h-3.5" /> {flipped ? "Ver Frente" : "Ver Verso"}
+              </Button>
+            </div>
+         </div>
 
         {isLoading ? (
           <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>

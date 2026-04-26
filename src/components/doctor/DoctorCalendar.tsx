@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ChevronLeft, ChevronRight, Video, UserCheck, UserPlus, AlertTriangle, Clock, FileText, CalendarDays } from "lucide-react";
+ import { ChevronLeft, ChevronRight, Video, UserCheck, UserPlus, AlertTriangle, Clock, FileText, CalendarDays, Zap, ArrowLeft } from "lucide-react";
 import {
   format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addDays,
   addWeeks, addMonths, subDays, subWeeks, subMonths, isSameDay,
