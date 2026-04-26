@@ -291,7 +291,7 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
   const SidebarContent = ({ onItemClick, collapsed = false }: { onItemClick?: () => void; collapsed?: boolean }) => {
     const service = SERVICE_MAP[role] || SERVICE_MAP.patient;
     return (
-    <div ref={sidebarRef} className="flex flex-col h-full min-h-0">
+    <div ref={sidebarRef} className="flex flex-col flex-1 min-h-0 w-full">
       {/* Spacer top */}
       <div className="h-4 shrink-0" />
 
