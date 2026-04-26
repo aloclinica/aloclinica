@@ -11,8 +11,10 @@ import {
   Users, Stethoscope, Building2, Headphones,
   Handshake, Bot, ShieldCheck, ArrowRight,
   Activity, RefreshCw, Monitor, Sparkles, LayoutGrid,
-  UserPlus, Layers, TrendingUp, Zap,
+  UserPlus, Layers, TrendingUp, Zap, Settings2,
+  FileText, PieChart, ShieldAlert, Database,
 } from "lucide-react";
+import { SquaresFour } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -345,16 +347,21 @@ const PanelCenter = () => {
         </motion.section>
 
         {/* ─────── PANELS GRID (now primary) ─────── */}
-        <motion.section variants={fadeUp} className="space-y-3">
-          <div className="flex items-end justify-between flex-wrap gap-2">
-            <div>
-              <h2 className="text-lg md:text-xl font-bold text-foreground tracking-tight">Acesso aos painéis</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Entre em qualquer painel como administrador</p>
+        <motion.section variants={fadeUp} className="space-y-4">
+          <div className="flex items-end justify-between flex-wrap gap-4 px-1">
+            <div className="space-y-1">
+              <h2 className="text-xl md:text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
+                <SquaresFour className="w-6 h-6 text-primary" weight="fill" />
+                Painéis de Controle
+              </h2>
+              <p className="text-sm text-muted-foreground font-medium">Gerencie e monitore cada módulo da plataforma</p>
             </div>
-            <Badge variant="outline" className="gap-1.5 text-[10px] font-bold uppercase tracking-wider">
-              <Sparkles className="w-3 h-3" />
-              {PANELS.length} painéis
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="gap-1.5 py-1 px-3 text-[11px] font-bold uppercase tracking-wider bg-primary/5 border-primary/10 text-primary">
+                <Sparkles className="w-3.5 h-3.5" />
+                {PANELS.length} painéis configurados
+              </Badge>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -546,6 +553,35 @@ const PanelCenter = () => {
             </Card>
           </motion.div>
         </div>
+        
+        {/* ─────── QUICK SYSTEM ACTIONS ─────── */}
+        <motion.section variants={fadeUp} className="space-y-4 pt-4">
+          <div className="flex items-center gap-2 px-1">
+            <Settings2 className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-bold text-foreground tracking-tight">Ações Rápidas do Sistema</h2>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { label: "Logs de Erro", icon: ShieldAlert, color: "text-rose-500", bg: "bg-rose-500/10", route: "/dashboard/admin/logs?role=admin" },
+              { label: "Config. Site", icon: FileText, color: "text-blue-500", bg: "bg-blue-500/10", route: "/dashboard/admin/site-config?role=admin" },
+              { label: "Relatórios", icon: PieChart, color: "text-amber-500", bg: "bg-amber-500/10", route: "/dashboard/admin/reports?role=admin" },
+              { label: "Banco de Dados", icon: Database, color: "text-emerald-500", bg: "bg-emerald-500/10", route: "/dashboard/admin/system-health?role=admin" },
+            ].map((action) => (
+              <Button
+                key={action.label}
+                variant="outline"
+                className="h-auto flex flex-col items-center gap-3 p-4 border-border/40 bg-card/50 hover:bg-card hover:border-primary/30 hover:shadow-md transition-all group"
+                onClick={() => navigate(action.route)}
+              >
+                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", action.bg)}>
+                  <action.icon className={cn("w-5 h-5", action.color)} />
+                </div>
+                <span className="text-xs font-bold text-foreground">{action.label}</span>
+              </Button>
+            ))}
+          </div>
+        </motion.section>
 
       </motion.div>
     </DashboardLayout>
