@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import mascotWelcome from "@/assets/mascot-welcome.png";
 import { formatMask } from "@/hooks/use-mask";
 import { validarCPF } from "@/lib/form-validators";
+import { IS_DEV } from "@/lib/constants";
 
 const ONBOARDING_KEY = "aloclinica_onboarding_completed";
 const KYC_PENDING_KEY = "aloclinica_kyc_pending";
