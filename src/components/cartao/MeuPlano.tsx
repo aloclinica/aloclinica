@@ -64,7 +64,10 @@ const MeuPlano = () => {
       billing_cycle: cycle,
       current_period_end: new Date(Date.now() + (cycle === "yearly" ? 365 : 30) * 86400_000).toISOString(),
     });
-    if (error) return toast.error("Erro ao assinar", { description: error.message });
+    if (error) {
+      toast.error("Erro ao assinar", { description: error.message });
+      return;
+    }
     toast.success(`Plano ${plan.name} ativado!`);
     void load();
   };
@@ -75,7 +78,10 @@ const MeuPlano = () => {
       .from("pingo_card_subscriptions")
       .update({ status: "canceled", canceled_at: new Date().toISOString() })
       .eq("id", sub.id);
-    if (error) return toast.error("Erro ao cancelar");
+    if (error) {
+      toast.error("Erro ao cancelar");
+      return;
+    }
     toast.success("Assinatura cancelada");
     void load();
   };
