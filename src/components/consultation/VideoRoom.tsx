@@ -28,6 +28,7 @@ import DoctorInfoPanel from "./DoctorInfoPanel";
 import { ConsultationChatPanel } from "./ConsultationChatPanel";
  import { ReferralSystem } from "@/components/doctor/ReferralSystem";
 import { useSOAPNotes, type SOAPNotes } from "@/hooks/useSOAPNotes";
+ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
