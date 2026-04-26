@@ -6,12 +6,13 @@ import { getPatientNav } from "@/components/patient/patientNav";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bell, BellOff, CheckCheck, Calendar, CreditCard, FileText, MessageSquare, Heart, Stethoscope, ChevronRight, Sparkles, ArrowLeft } from "lucide-react";
+import { Bell, BellOff, CheckCheck, Calendar, CreditCard, FileText, MessageSquare, Heart, Stethoscope, ChevronRight, Sparkles, ArrowLeft, Settings2 } from "lucide-react";
 import { formatDistanceToNow, isToday, isYesterday, isThisWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import mascotWave from "@/assets/mascot-wave.png";
+import NotificationPreferences from "@/components/notifications/NotificationPreferences";
 
 interface Notification {
   id: string;
@@ -44,6 +45,7 @@ const Notifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [showPrefs, setShowPrefs] = useState(false);
 
   useEffect(() => {
     if (user) fetchNotifications();
@@ -142,12 +144,36 @@ const Notifications = () => {
         </div>
 
         {unreadCount > 0 && (
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-end gap-2 mb-4">
+            <Button variant="ghost" size="sm" className="text-xs gap-1.5" onClick={() => setShowPrefs(s => !s)}>
+              <Settings2 className="w-4 h-4" /> Preferências
+            </Button>
             <Button variant="ghost" size="sm" className="text-xs gap-1.5" onClick={markAllRead}>
               <CheckCheck className="w-4 h-4" /> Marcar tudo como lido
             </Button>
           </div>
         )}
+        {unreadCount === 0 && (
+          <div className="flex justify-end mb-4">
+            <Button variant="ghost" size="sm" className="text-xs gap-1.5" onClick={() => setShowPrefs(s => !s)}>
+              <Settings2 className="w-4 h-4" /> Preferências
+            </Button>
+          </div>
+        )}
+
+        <AnimatePresence>
+          {showPrefs && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: "auto", marginBottom: 24 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.25 }}
+              className="overflow-hidden"
+            >
+              <NotificationPreferences />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Section label */}
         <h4 className="font-[Manrope] font-bold text-muted-foreground text-xs uppercase tracking-[0.2em] px-2 mb-4">Recentes</h4>

@@ -13,7 +13,7 @@ import { ptBR } from "date-fns/locale";
 import {
   CalendarCheck, VideoCamera, Clock, Gift, ArrowRight,
   Heart, Lightning, ClipboardText, FileText, UploadSimple,
-  Sparkle, Stethoscope, MagnifyingGlass, Plus, Warning,
+  Sparkle, Stethoscope, MagnifyingGlass, Plus, Warning, Robot,
   Pill, Heartbeat, TrendUp, ChatCircleDots, DotsThreeVertical,
 } from "@phosphor-icons/react";
 import { AlertTriangle, RefreshCw, ShieldCheck, Lock } from "lucide-react";
@@ -22,6 +22,7 @@ import { PingoMascot } from "@/components/mascot/PingoMascot";
 import LazyAvatar from "@/components/ui/lazy-avatar";
 import PatientWaitingCard from "@/components/patient/PatientWaitingCard";
 import SectionErrorBoundary from "@/components/ui/section-error-boundary";
+import PatientHealthReport from "@/components/patient/PatientHealthReport";
 import {
   usePatientStats, usePatientUpcoming, useReturnAppointments, useRecentHealthMetrics,
   useDetectPatientService, type ServiceType,
@@ -39,6 +40,7 @@ const HEALTH_TIPS = [
 const getQuickActions = (serviceType: ServiceType) => [
   { label: "Agendar", icon: CalendarCheck, path: "/dashboard/schedule?role=patient", color: "#3b82f6", bg: "#f0f7ff" },
   { label: "Urgência", icon: Lightning, path: "/dashboard/urgent-care?role=patient", color: "#ef4444", bg: "#fef2f2" },
+  { label: "Pingo IA", icon: Robot, path: "/dashboard/ai-assistant?role=patient&tab=triagem", color: "#0ea5e9", bg: "#f0f9ff" },
   { label: "Chat", icon: ChatCircleDots, path: "/dashboard/chat?role=patient", color: "#10b981", bg: "#ecfdf5" },
   { label: "Exames", icon: ClipboardText, path: "/dashboard/patient/exam-results?role=patient", color: "#8b5cf6", bg: "#f5f3ff" },
 ];
@@ -169,7 +171,7 @@ const PatientDashboard = () => {
             <UrgentAlerts nextAppt={nextAppt} minutesUntilNext={minutesUntilNext} waitingAppt={waitingAppt} sections={sections} navigate={navigate} />
             <section>
               <h3 className="text-sm font-bold text-foreground mb-4 px-1">Ações rápidas</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                 {getQuickActions(serviceType as any).map((action, i) => (
                   <motion.button key={action.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.04 }} onClick={() => navigate(action.path)} className="group flex flex-col items-center gap-2 p-4 rounded-2xl border border-border/40 bg-card hover:border-primary/20 transition-all duration-300">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl mb-1 shadow-sm transition-transform duration-300 group-hover:scale-110" style={{ backgroundColor: action.bg, color: action.color }}><action.icon size={24} weight="fill" /></div>
@@ -217,6 +219,12 @@ const PatientDashboard = () => {
               </motion.div>
             )}
             {sections.returnAppts && returnAppts.length > 0 && <ReturnAppointments items={returnAppts} navigate={navigate} />}
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="rounded-3xl border border-border/40 bg-gradient-to-br from-card via-card to-primary/[0.04] p-5 shadow-sm">
+              <div className="flex items-center gap-2 mb-2"><div className="w-2 h-6 bg-emerald-500 rounded-full" /><span className="text-[11px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Seu histórico</span></div>
+              <h4 className="text-base font-bold text-foreground mb-1">Relatório consolidado</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">Baixe um PDF com consultas, receitas e exames recentes para levar a outros médicos.</p>
+              <PatientHealthReport variant="default" className="w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90" />
+            </motion.div>
           </div>
         </div>
       </div>
