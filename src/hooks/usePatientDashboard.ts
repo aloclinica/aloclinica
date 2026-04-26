@@ -1,3 +1,60 @@
+ import { Video, Pill, Upload, FileText, TrendingUp, Smile } from "lucide-react";
+ export const useHealthTimeline = (limit: number = 5) => {
+   const { user } = useAuth();
+   return useQuery({
+     queryKey: ["patient-health-timeline", user?.id, limit],
+     queryFn: async () => {
+       if (!user) return [];
+ 
+       const [apptsRes, prescsRes, docsRes, recordsRes, metricsRes, diaryRes] = await Promise.all([
+         db.from("appointments").select("id, scheduled_at, status, doctor_id").eq("patient_id", user.id).eq("status", "completed").order("scheduled_at", { ascending: false }).limit(limit),
+         db.from("prescriptions").select("id, created_at, diagnosis, doctor_id").eq("patient_id", user.id).order("created_at", { ascending: false }).limit(limit),
+         db.from("patient_documents").select("id, created_at, file_name, description").eq("patient_id", user.id).order("created_at", { ascending: false }).limit(limit),
+         db.from("medical_records").select("id, created_at, title, record_type, cid_code").eq("patient_id", user.id).order("created_at", { ascending: false }).limit(limit),
+         db.from("health_metrics").select("id, measured_at, type, value, unit, notes").eq("patient_id", user.id).order("measured_at", { ascending: false }).limit(limit),
+         db.from("symptom_diary").select("id, entry_date, mood, symptoms, notes").eq("patient_id", user.id).order("entry_date", { ascending: false }).limit(limit),
+       ]);
+ 
+       // Group all events
+       const timeline: any[] = [
+         ...(apptsRes.data?.map(a => ({
+           id: `appt-${a.id}`, date: a.scheduled_at, type: "consultation",
+           title: "Consulta Realizada", subtitle: "Médico",
+           icon: Video, color: "text-primary bg-primary/10",
+         })) ?? []),
+         ...(prescsRes.data?.map(p => ({
+           id: `presc-${p.id}`, date: p.created_at, type: "prescription",
+           title: p.diagnosis || "Receita Médica", subtitle: "Médico",
+           icon: Pill, color: "text-amber-500 bg-amber-500/10",
+         })) ?? []),
+         ...(docsRes.data?.map(d => ({
+           id: `doc-${d.id}`, date: d.created_at, type: "document",
+           title: d.file_name, subtitle: d.description || "Documento anexado",
+           icon: Upload, color: "text-blue-500 bg-blue-500/10",
+         })) ?? []),
+         ...(recordsRes.data?.map(r => ({
+           id: `rec-${r.id}`, date: r.created_at, type: "record",
+           title: r.title, subtitle: `${r.record_type}`,
+           icon: FileText, color: "text-slate-500 bg-slate-500/10",
+         })) ?? []),
+         ...(metricsRes.data?.map(m => ({
+           id: `met-${m.id}`, date: m.measured_at!, type: "metric",
+           title: `${m.type}: ${m.value} ${m.unit}`, subtitle: m.notes || "Métrica registrada",
+           icon: TrendingUp, color: "text-emerald-500 bg-emerald-500/10",
+         })) ?? []),
+         ...(diaryRes.data?.map(d => ({
+           id: `diary-${d.id}`, date: d.entry_date, type: "symptom",
+           title: `Humor: ${d.mood}`, subtitle: "Registro diário",
+           icon: Smile, color: "text-rose-500 bg-rose-500/10",
+         })) ?? []),
+       ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+ 
+       return timeline.slice(0, limit);
+     },
+     enabled: !!user,
+     staleTime: 5 * 60 * 1000,
+   });
+ };
 import { useQuery } from "@tanstack/react-query";
 import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";

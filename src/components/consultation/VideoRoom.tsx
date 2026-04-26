@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import {
   MessageSquare, FileText, Clock, Send, X, PanelLeftClose, PanelLeft,
-  UserRound, Pill, PhoneOff, Mic, MicOff, Video, VideoOff, Shield,
+   UserRound, Pill, PhoneOff, Mic, MicOff, Video, VideoOff, Shield, UserPlus,
   MoreVertical, Maximize2, Minimize2, Copy, Share2, FileBadge, Paperclip, Image,
   Sparkles, Loader2, Stethoscope, ClipboardList, SwitchCamera, CheckCircle2
 } from "lucide-react";
@@ -26,7 +26,9 @@ import PostConsultationSummary from "./PostConsultationSummary";
 import PatientInfoPanel from "./PatientInfoPanel";
 import DoctorInfoPanel from "./DoctorInfoPanel";
 import { ConsultationChatPanel } from "./ConsultationChatPanel";
+ import { ReferralSystem } from "@/components/doctor/ReferralSystem";
 import { useSOAPNotes, type SOAPNotes } from "@/hooks/useSOAPNotes";
+ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -66,7 +68,7 @@ const VideoRoom = () => {
   const [showNotes, setShowNotes] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [splitMode, setSplitMode] = useState(false);
-  const [activePanel, setActivePanel] = useState<"chat" | "notes" | "info" | null>(null);
+   const [activePanel, setActivePanel] = useState<"chat" | "notes" | "info" | "referral" | null>(null);
   const presenceLogId = useRef<string | null>(null);
   const videoRef = useRef<VideoConsultationHandle>(null);
   const [webrtcStatus, setWebrtcStatus] = useState<string>("idle");
@@ -89,11 +91,14 @@ const VideoRoom = () => {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Sync panel state helpers
-  const openPanel = (panel: "chat" | "notes" | "info") => {
+   const openPanel = (panel: "chat" | "notes" | "info" | "referral") => {
     setActivePanel(prev => prev === panel ? null : panel);
     setShowChat(panel === "chat" ? !showChat : false);
     setShowNotes(panel === "notes" ? !showNotes : false);
-    setShowInfo(panel === "info" ? !showInfo : false);
+     setShowInfo(panel === "info" ? !showInfo : false);
+     if (panel === "referral") {
+       // Reset others if we had separate booleans, but here we use activePanel mostly
+     }
   };
 
   const closeAllPanels = () => {
@@ -811,8 +816,31 @@ const VideoRoom = () => {
     : user?.user_metadata?.first_name || "Paciente";
 
   const showQueueBanner = !isDoctor && doctorBusy && queuePosition !== null;
-  const showSidePanel = (showChat || showNotes || showInfo) && !isMobile;
-  const showBottomSheet = (showChat || showNotes || showInfo) && isMobile;
+   const showSidePanel = (showChat || showNotes || showInfo || activePanel === "referral") && !isMobile;
+   const showBottomSheet = (showChat || showNotes || showInfo || activePanel === "referral") && isMobile;
+             {isDoctor && (
+               <Button
+                 onClick={() => openPanel("referral")}
+                 variant={activePanel === "referral" ? "default" : "ghost"}
+                 size="icon"
+                 className={cn(
+                   "w-11 h-11 rounded-2xl transition-all duration-300",
+                   activePanel === "referral" ? "bg-primary shadow-lg shadow-primary/30" : "bg-white/5 hover:bg-white/10 text-white"
+                 )}
+                 title="Encaminhar Paciente"
+               >
+                 <UserPlus className="w-5 h-5" />
+               </Button>
+             )}
+                   {activePanel === "referral" && (
+                     <div className="flex-1 overflow-auto p-4">
+                       <ReferralSystem 
+                         patientId={appointment?.patient_id || undefined} 
+                         patientName={otherPartyName} 
+                         onClose={() => setActivePanel(null)}
+                       />
+                     </div>
+                   )}
 
   // Timer color based on duration
   const timerColor = elapsed > 3600
