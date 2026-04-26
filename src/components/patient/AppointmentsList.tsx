@@ -359,6 +359,38 @@ const AppointmentsList = () => {
           </Sheet>
         </div>
 
+        {/* KPI strip */}
+        {!loading && appointments.length > 0 && (
+          <div className="grid grid-cols-3 gap-2 mb-5">
+            <div className="rounded-2xl border border-border/30 bg-card p-3">
+              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--p-primary))]">
+                <Clock className="w-3 h-3" /> Próxima
+              </div>
+              <p className="text-sm font-extrabold text-foreground mt-1 truncate">
+                {nextAppt ? format(new Date(nextAppt.scheduled_at), "dd/MM HH:mm", { locale: ptBR }) : "—"}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border/30 bg-card p-3">
+              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                <CheckCircle2 className="w-3 h-3" /> Concluídas
+              </div>
+              <p className="text-sm font-extrabold text-foreground mt-1">{completedCount}</p>
+            </div>
+            <div className={cn(
+              "rounded-2xl border p-3",
+              paymentPendingCount > 0 ? "border-warning/40 bg-warning/5" : "border-border/30 bg-card"
+            )}>
+              <div className={cn(
+                "flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider",
+                paymentPendingCount > 0 ? "text-warning" : "text-muted-foreground"
+              )}>
+                <AlertCircle className="w-3 h-3" /> Pagto. pendente
+              </div>
+              <p className="text-sm font-extrabold text-foreground mt-1">{paymentPendingCount}</p>
+            </div>
+          </div>
+        )}
+
         {/* Search */}
         <div className="flex gap-2 mb-4">
           <div className="relative flex-1">
