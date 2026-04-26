@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Clock, UserCheck, Zap, Users } from "lucide-react";
+import { Clock, UserCheck, Zap, Users, TrendingUp, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 const DoctorOnDutyPanel = () => {
   const { user } = useAuth();
@@ -15,6 +15,7 @@ const DoctorOnDutyPanel = () => {
   const [loading, setLoading] = useState(true);
   const [doctorProfileId, setDoctorProfileId] = useState<string | null>(null);
   const [accepting, setAccepting] = useState(false);
+  const [todayStats, setTodayStats] = useState({ sessions: 0, revenue: 0 });
 
   useEffect(() => {
     if (user) {
@@ -35,7 +36,21 @@ const DoctorOnDutyPanel = () => {
   const fetchDoctorProfile = async () => {
     if (!user) return;
     const { data } = await db.from("doctor_profiles").select("id").eq("user_id", user.id).maybeSingle();
-    if (data) setDoctorProfileId(data.id);
+    if (data) {
+      setDoctorProfileId(data.id);
+      // Fetch today's urgent_care stats for this doctor
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const { data: appts } = await db
+        .from("appointments")
+        .select("id, price")
+        .eq("doctor_id", data.id)
+        .eq("appointment_type", "urgent_care")
+        .gte("scheduled_at", todayStart.toISOString());
+      const sessions = appts?.length ?? 0;
+      const revenue = (appts ?? []).reduce((sum: number, a: { price?: number }) => sum + Number(a.price ?? 0) * 0.5, 0);
+      setTodayStats({ sessions, revenue });
+    }
   };
 
   const fetchQueue = async () => {
@@ -105,6 +120,28 @@ const DoctorOnDutyPanel = () => {
               <Users className="w-4 h-4" />
               <span className="text-2xl font-black tabular-nums">{queue.length}</span>
               <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">na fila</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Today KPIs */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl border border-border/40 bg-card p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+              <TrendingUp className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Atendimentos hoje</p>
+              <p className="text-xl font-black text-foreground tabular-nums">{todayStats.sessions}</p>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border/40 bg-card p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <DollarSign className="w-5 h-5 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Receita hoje (50%)</p>
+              <p className="text-xl font-black text-foreground tabular-nums">R$ {todayStats.revenue.toFixed(2)}</p>
             </div>
           </div>
         </div>
