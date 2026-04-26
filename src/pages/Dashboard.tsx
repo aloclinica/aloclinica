@@ -278,7 +278,6 @@ const Dashboard = () => {
       <Route path="patient/documents" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><PatientExamUpload /></ContextGuard></RoleGuard>} />
       <Route path="patient/health" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><PatientHealth /></ContextGuard></RoleGuard>} />
       <Route path="patient/support" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><PatientSupportChat /></ContextGuard></RoleGuard>} />
-      <Route path="patient/dependents" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><DependentsManager /></ContextGuard></RoleGuard>} />
       <Route path="chat" element={<RoleGuard allowed={["patient", "doctor"]} roles={roles}><ChatPage /></RoleGuard>} />
       <Route path="medical-records" element={<RoleGuard allowed={["patient", "doctor"]} roles={roles}><MedicalRecords /></RoleGuard>} />
       <Route path="timeline" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><HealthTimeline /></ContextGuard></RoleGuard>} />
