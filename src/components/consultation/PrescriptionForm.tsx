@@ -195,14 +195,17 @@ const PrescriptionForm = () => {
     }
 
     // ─── Separator ───
-    doc.setDrawColor(26, 111, 196);
-    doc.setLineWidth(1.5);
+    const primaryBlue = [21, 35, 75]; // #15234B
+    const accentGold = [197, 165, 114]; // #C5A572
+    
+    doc.setDrawColor(accentGold[0], accentGold[1], accentGold[2]);
+    doc.setLineWidth(0.5);
     doc.line(15, y, pageWidth - 15, y);
     y += 4;
 
     // ─── Section title ───
-    doc.setFontSize(13);
-    doc.setTextColor(26, 111, 196);
+    doc.setFontSize(14);
+    doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
     doc.text("PRESCRIÇÃO MÉDICA", pageWidth / 2, y + 6, { align: "center" });
     y += 14;
 
@@ -217,11 +220,12 @@ const PrescriptionForm = () => {
       }
 
       // Medication card
-      doc.setFillColor(248, 250, 252);
-      doc.roundedRect(15, y, pageWidth - 30, med.instructions ? 38 : 30, 3, 3, "F");
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(240, 240, 240);
+      doc.roundedRect(15, y, pageWidth - 30, med.instructions ? 38 : 30, 2, 2, "FD");
 
       // Number circle
-      doc.setFillColor(26, 111, 196);
+      doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
       doc.circle(23, y + 8, 5, "F");
       doc.setFontSize(10);
       doc.setTextColor(255, 255, 255);
@@ -230,6 +234,7 @@ const PrescriptionForm = () => {
       // Name
       doc.setFontSize(11);
       doc.setTextColor(30, 30, 30);
+      doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
       doc.text(med.name, 32, y + 10);
 
       // Details
@@ -242,7 +247,7 @@ const PrescriptionForm = () => {
       if (med.duration) details.push(`📅 ${med.duration}`);
 
       if (details.length > 0) {
-        doc.text(details.join("   •   "), 32, detailY);
+        doc.text(details.join("   |   "), 32, detailY);
         detailY += 7;
       }
 
