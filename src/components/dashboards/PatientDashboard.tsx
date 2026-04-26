@@ -147,7 +147,7 @@ const PatientDashboard = () => {
      if (!hasCompletedOnboardingMetadata && !onboardingDone) {
        const isVeryNewUser = profile?.created_at ? (Date.now() - new Date(profile.created_at).getTime() < 3600000) : true;
        
-       if (forceOnboarding || (isVeryNewUser && profileIncomplete)) {
+       if (isVeryNewUser && profileIncomplete) {
          setShowOnboarding(true);
        }
      }
