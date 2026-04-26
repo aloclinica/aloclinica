@@ -255,58 +255,53 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
             className="lg:hidden bg-background/98 backdrop-blur-sm border-t border-border/40 overflow-hidden"
           >
             <nav className="flex flex-col px-4 py-3 gap-0.5">
-              {menuItems.map((item: any, idx: number) => {
-                if (item.label === "Início") {
+              {/* Pílulas coloridas — mesmo estilo do desktop */}
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                {menuItems.map((item: any, idx: number) => {
+                  const style = getItemStyle(item.label);
+                  const Icon = style.icon;
+                  const isFullWidth = item.label === "Pingo Card";
                   return (
-                    <div key="inicio-group">
-                      <motion.button
-                        key={item.href}
-                        initial={{ opacity: 0, x: -12 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.04, duration: 0.2 }}
-                        onClick={() => { setMobileOpen(false); navigate(item.href); }}
-                        className="text-sm font-medium py-3 px-3 rounded-xl transition-colors text-left text-muted-foreground hover:text-foreground hover:bg-muted/40 active:bg-muted active:scale-[0.98] w-full"
-                      >
-                        {item.label}
-                      </motion.button>
-                      
-                      <div className="px-3 py-2">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-2 px-1">Sobre Nós</p>
-                        <div className="grid grid-cols-1 gap-1">
-                          {[
-                            { label: "Quem somos", href: "/sobre/quem-somos", icon: Users },
-                            { label: "Porque nós", href: "/sobre/porque-nos", icon: Heart },
-                            { label: "Depoimentos", href: "/sobre/depoimentos", icon: Star },
-                            { label: "Fale conosco", href: "/contato", icon: ChatsCircle }
-                          ].map((subItem, sIdx) => (
-                            <button
-                              key={subItem.label}
-                              onClick={() => { setMobileOpen(false); navigate(subItem.href); }}
-                              className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-muted/40 text-muted-foreground hover:text-foreground transition-all"
-                            >
-                              <subItem.icon className="w-4 h-4 text-primary/60" weight="fill" />
-                              <span className="text-sm font-medium">{subItem.label}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
+                    <motion.button
+                      key={item.href}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.04, duration: 0.2 }}
+                      onClick={() => { setMobileOpen(false); navigate(item.href || item.url); }}
+                      className={cn(
+                        "h-11 rounded-full flex items-center justify-center gap-2 text-[13px] font-bold border transition-all active:scale-[0.97]",
+                        style.cls,
+                        isFullWidth && "col-span-2"
+                      )}
+                    >
+                      <Icon className="w-4 h-4 shrink-0" weight="fill" />
+                      {item.label}
+                    </motion.button>
                   );
-                }
-                
-                return (
-                  <motion.button
-                    key={item.href}
-                    initial={{ opacity: 0, x: -12 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.04, duration: 0.2 }}
-                    onClick={() => { setMobileOpen(false); navigate(item.href); }}
-                    className="text-sm font-medium py-3 px-3 rounded-xl transition-colors text-left text-muted-foreground hover:text-foreground hover:bg-muted/40 active:bg-muted active:scale-[0.98]"
-                  >
-                    {item.label}
-                  </motion.button>
-                );
-              })}
+                })}
+              </div>
+
+              {/* Sub-itens "Sobre Nós" */}
+              <div className="px-1 py-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-2 px-2">Sobre Nós</p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    { label: "Quem somos", href: "/sobre/quem-somos", icon: Users },
+                    { label: "Porque nós", href: "/sobre/porque-nos", icon: Heart },
+                    { label: "Depoimentos", href: "/sobre/depoimentos", icon: Star },
+                    { label: "Fale conosco", href: "/contato", icon: ChatsCircle }
+                  ].map((subItem) => (
+                    <button
+                      key={subItem.label}
+                      onClick={() => { setMobileOpen(false); navigate(subItem.href); }}
+                      className="flex items-center gap-2 py-2.5 px-3 rounded-xl bg-muted/30 hover:bg-muted/60 text-foreground/80 hover:text-foreground transition-all active:scale-[0.97]"
+                    >
+                      <subItem.icon className="w-4 h-4 text-violet-600 shrink-0" weight="fill" />
+                      <span className="text-[12px] font-semibold truncate">{subItem.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               <div className="flex flex-col gap-2 pt-3 mt-2 border-t border-border/40">
                 <div className="flex justify-center pb-1"><LanguageSwitcher /></div>
