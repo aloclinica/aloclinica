@@ -1109,8 +1109,6 @@ const ReturnAppointments = ({ items, navigate }: { items: ReturnAppt[]; navigate
    appt, navigate,
  }: {
    appt: Record<string, unknown>;
-   daysUntilNext: number | null;
-   minutesUntil: number | null;
    navigate: ReturnType<typeof useNavigate>;
  }) => {
    const scheduledAt = new Date(appt.scheduled_at as string);
