@@ -16,6 +16,7 @@ import {
   Camera, Upload, ImagePlus
 } from "lucide-react";
 import TermsConsentCheckbox from "@/components/auth/TermsConsentCheckbox";
+import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import { registerConsent } from "@/lib/consent";
 import SEOHead from "@/components/SEOHead";
 import PasswordStrength from "@/components/ui/password-strength";
