@@ -2,13 +2,21 @@ import { forwardRef, lazy, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, MagnifyingGlass } from "@phosphor-icons/react";
+import { ArrowRight, MagnifyingGlass, Calendar, Stethoscope, X } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/landing/Header";
 import SEOHead from "@/components/SEOHead";
 import { PINGO_SPECIALTIES } from "@/constants/specialties-assets";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
+
+const slugify = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 
 const specialties = [
   { name: "Cardiologia", image: PINGO_SPECIALTIES["Cardiologia"], desc: "Coração, circulação e saúde cardiovascular", doctors: 45 },
@@ -64,7 +72,10 @@ const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
     });
   }, [searchTerm, selectedCategory]);
 
-  const categories = Array.from(new Set(specialties.map((s) => s.name.charAt(0)))).sort();
+  const totalDoctorsOnline = useMemo(
+    () => Math.floor(filteredSpecialties.reduce((acc, s) => acc + Math.floor(s.doctors * 0.18), 0)),
+    [filteredSpecialties],
+  );
 
   return (
     <div ref={ref} className="relative min-h-screen bg-background">
@@ -129,6 +140,31 @@ const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-14 h-16 rounded-2xl text-lg border-2 border-border/40 focus:border-primary transition-all shadow-subtle placeholder:text-muted-foreground/40"
               />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-muted hover:bg-muted/70 flex items-center justify-center text-muted-foreground transition-colors"
+                  aria-label="Limpar busca"
+                >
+                  <X className="w-4 h-4" weight="bold" />
+                </button>
+              )}
+            </div>
+
+            {/* Sintomas populares — atalhos de busca */}
+            <div className="flex flex-wrap gap-2 justify-center mb-6">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground self-center mr-1">
+                Buscas populares:
+              </span>
+              {["dor", "ansiedade", "pele", "coração", "diabetes", "criança"].map((term) => (
+                <button
+                  key={term}
+                  onClick={() => setSearchTerm(term)}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-full border border-border bg-background hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
+                >
+                  {term}
+                </button>
+              ))}
             </div>
 
             <div className="flex flex-wrap gap-2.5 justify-center">
@@ -165,10 +201,18 @@ const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
       {/* Specialties Grid */}
       <section className="py-20 px-4">
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
-          <div className="mb-6">
-            <p className="text-muted-foreground text-center">
-              Exibindo <span className="font-semibold text-foreground">{filteredSpecialties.length}</span> especialidades
+          <div className="mb-8 flex flex-col sm:flex-row items-center justify-center gap-3 text-center">
+            <p className="text-muted-foreground">
+              Exibindo <span className="font-bold text-foreground">{filteredSpecialties.length}</span> especialidade{filteredSpecialties.length === 1 ? "" : "s"}
             </p>
+            <span className="hidden sm:inline text-muted-foreground/40">•</span>
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-success">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-60" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
+              </span>
+              ~{totalDoctorsOnline} médicos online agora
+            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -178,9 +222,13 @@ const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: (i % 12) * 0.05 }}
-                onClick={() => navigate(`/agendar?especialidade=${encodeURIComponent(specialty.name)}`)}
+                onClick={() => navigate(`/especialidades/${slugify(specialty.name)}`)}
                 className="group relative overflow-hidden text-left p-6 rounded-2xl border border-border bg-card hover:border-primary/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
+                {/* Gradient overlay on hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-primary/0 group-hover:from-primary/[0.04] group-hover:to-secondary/[0.04] transition-all" />
+
+                <div className="relative">
                 <div className="flex items-start justify-between mb-4">
                   <div className="relative w-20 h-20 bg-primary/5 rounded-2xl flex items-center justify-center overflow-hidden group-hover:bg-primary/10 transition-colors">
                     <img 
@@ -194,7 +242,7 @@ const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
                       }}
                     />
                     <div className="fallback-icon hidden text-primary/40">
-                      <ArrowRight className="w-10 h-10" weight="thin" />
+                      <Stethoscope className="w-10 h-10" weight="thin" />
                     </div>
                   </div>
                   <ArrowRight className="w-5 h-5 text-primary opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" weight="bold" />
@@ -205,8 +253,15 @@ const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
                 <p className="text-[13px] text-muted-foreground line-clamp-2 mb-4 leading-snug">
                   {specialty.desc}
                 </p>
-                <div className="inline-flex items-center gap-1.5 text-[11px] font-bold bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-wider">
-                  {specialty.doctors}+ especialistas
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="inline-flex items-center gap-1.5 text-[11px] font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full uppercase tracking-wider">
+                    {specialty.doctors}+ médicos
+                  </div>
+                  <div className="inline-flex items-center gap-1.5 text-[11px] font-bold bg-success/10 text-success px-2.5 py-1 rounded-full">
+                    <span className="w-1.5 h-1.5 rounded-full bg-success" />
+                    online
+                  </div>
+                </div>
                 </div>
               </motion.button>
             ))}
@@ -216,11 +271,22 @@ const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center py-12"
+              className="text-center py-16"
             >
+              <MagnifyingGlass className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" weight="thin" />
               <p className="text-muted-foreground text-lg">
                 Nenhuma especialidade encontrada. Tente outra busca.
               </p>
+              <Button
+                variant="outline"
+                className="mt-4"
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedCategory(null);
+                }}
+              >
+                Limpar filtros
+              </Button>
             </motion.div>
           )}
         </div>
