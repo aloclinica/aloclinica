@@ -45,6 +45,7 @@ import PasswordStrength from "@/components/ui/password-strength";
 import { translateAuthError } from "@/lib/authErrors";
 import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 import { PINGO_LOGO_URL } from "@/lib/constants";
+import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 const logo = PINGO_LOGO_URL;
 import mascotWave from "@/assets/mascot-wave.png";
 import mascotThumbsup from "@/assets/mascot-thumbsup.png";
