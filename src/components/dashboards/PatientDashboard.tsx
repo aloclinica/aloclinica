@@ -16,7 +16,7 @@ import {
   Sparkle, Stethoscope, MagnifyingGlass, Plus, Warning,
   Pill, Heartbeat, TrendUp, ChatCircleDots, DotsThreeVertical,
 } from "@phosphor-icons/react";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, RefreshCw, ShieldCheck, Lock } from "lucide-react";
 import PatientOnboarding, { ONBOARDING_KEY, KYC_PENDING_KEY } from "@/components/patient/PatientOnboarding";
 import { PingoMascot } from "@/components/mascot/PingoMascot";
 import LazyAvatar from "@/components/ui/lazy-avatar";
