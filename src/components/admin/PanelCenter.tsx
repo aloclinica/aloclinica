@@ -11,7 +11,7 @@ import {
   Users, Stethoscope, Building2, Headphones,
   Handshake, Bot, ShieldCheck, ArrowRight,
   Activity, RefreshCw, Monitor, Sparkles, LayoutGrid,
-  UserPlus, Layers,
+  UserPlus, Layers, TrendingUp, Zap,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { format, formatDistanceToNow } from "date-fns";
@@ -26,6 +26,7 @@ interface PanelInfo {
   description: string;
   icon: React.ElementType;
   gradient: string;
+  glow: string;
   route: string;
   roleKey: string;
   onlineCount: number;
@@ -34,20 +35,20 @@ interface PanelInfo {
 }
 
 const PANELS: Omit<PanelInfo, "onlineCount" | "totalUsers" | "recentUsers">[] = [
-  { id: "patient",      label: "Paciente",      description: "Agendamentos e jornada de saúde",   icon: Users,        gradient: "from-blue-500 to-blue-600",        route: "/dashboard?role=patient",     roleKey: "patient" },
-  { id: "doctor",       label: "Médico",        description: "Consultas, prontuários e receitas", icon: Stethoscope,  gradient: "from-emerald-500 to-teal-600",     route: "/dashboard?role=doctor",      roleKey: "doctor" },
-  { id: "clinic",       label: "Clínica",       description: "Gestão de médicos e afiliações",    icon: Building2,    gradient: "from-violet-500 to-purple-600",    route: "/dashboard?role=clinic",      roleKey: "clinic" },
-  { id: "receptionist", label: "Recepção",      description: "Agendas, check-in e cobranças",     icon: Monitor,      gradient: "from-amber-500 to-orange-600",     route: "/dashboard?role=receptionist", roleKey: "receptionist" },
-  { id: "support",      label: "Suporte",       description: "Tickets, logs e monitoramento",     icon: Headphones,   gradient: "from-rose-500 to-pink-600",        route: "/dashboard?role=support",     roleKey: "support" },
-  { id: "partner",      label: "Parceiro",      description: "Validações e integrações",          icon: Handshake,    gradient: "from-teal-500 to-emerald-600",     route: "/dashboard?role=partner",     roleKey: "partner" },
-  { id: "admin",        label: "Administração", description: "Controle total do sistema",         icon: ShieldCheck,  gradient: "from-primary to-blue-700",         route: "/dashboard?role=admin",       roleKey: "admin" },
-  { id: "ai-assistant", label: "Assistente IA", description: "Chat, triagem e documentos",        icon: Bot,          gradient: "from-purple-500 to-fuchsia-600",   route: "/dashboard/ai-assistant",     roleKey: "ai-assistant" },
+  { id: "patient",      label: "Paciente",      description: "Agendamentos e jornada de saúde",   icon: Users,        gradient: "from-blue-500 to-blue-600",      glow: "shadow-blue-500/25",      route: "/dashboard?role=patient",      roleKey: "patient" },
+  { id: "doctor",       label: "Médico",        description: "Consultas, prontuários e receitas", icon: Stethoscope,  gradient: "from-emerald-500 to-teal-600",   glow: "shadow-emerald-500/25",   route: "/dashboard?role=doctor",       roleKey: "doctor" },
+  { id: "clinic",       label: "Clínica",       description: "Gestão de médicos e afiliações",    icon: Building2,    gradient: "from-violet-500 to-purple-600",  glow: "shadow-violet-500/25",    route: "/dashboard?role=clinic",       roleKey: "clinic" },
+  { id: "receptionist", label: "Recepção",      description: "Agendas, check-in e cobranças",     icon: Monitor,      gradient: "from-amber-500 to-orange-600",   glow: "shadow-amber-500/25",     route: "/dashboard?role=receptionist", roleKey: "receptionist" },
+  { id: "support",      label: "Suporte",       description: "Tickets, logs e monitoramento",     icon: Headphones,   gradient: "from-rose-500 to-pink-600",      glow: "shadow-rose-500/25",      route: "/dashboard?role=support",      roleKey: "support" },
+  { id: "partner",      label: "Parceiro",      description: "Validações e integrações",          icon: Handshake,    gradient: "from-teal-500 to-emerald-600",   glow: "shadow-teal-500/25",      route: "/dashboard?role=partner",      roleKey: "partner" },
+  { id: "admin",        label: "Administração", description: "Controle total do sistema",         icon: ShieldCheck,  gradient: "from-primary to-blue-700",       glow: "shadow-primary/25",       route: "/dashboard?role=admin",        roleKey: "admin" },
+  { id: "ai-assistant", label: "Assistente IA", description: "Chat, triagem e documentos",        icon: Bot,          gradient: "from-purple-500 to-fuchsia-600", glow: "shadow-purple-500/25",    route: "/dashboard/ai-assistant",      roleKey: "ai-assistant" },
 ];
 
-const container = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
+const container = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };
 const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] as const } },
+  hidden: { opacity: 0, y: 14 },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
 const PanelCenter = () => {
@@ -162,27 +163,30 @@ const PanelCenter = () => {
       label: "Online agora",
       sublabel: "Usuários conectados",
       value: totalOnline,
-      icon: Users,
-      iconBg: "bg-emerald-500/10",
-      iconColor: "text-emerald-600 dark:text-emerald-400",
+      icon: Zap,
+      gradient: "from-emerald-400 via-emerald-500 to-teal-600",
+      ring: "ring-emerald-500/30",
+      glow: "shadow-emerald-500/20",
       sparkColor: "stroke-emerald-500",
     },
     {
       label: "Cadastrados",
-      sublabel: "Novos usuários hoje",
+      sublabel: "Usuários no sistema",
       value: totalUsers,
       icon: UserPlus,
-      iconBg: "bg-blue-500/10",
-      iconColor: "text-blue-600 dark:text-blue-400",
+      gradient: "from-blue-400 via-blue-500 to-indigo-600",
+      ring: "ring-blue-500/30",
+      glow: "shadow-blue-500/20",
       sparkColor: "stroke-blue-500",
     },
     {
       label: "Painéis ativos",
       sublabel: "Em exibição agora",
       value: activePanels,
-      icon: LayoutGrid,
-      iconBg: "bg-violet-500/10",
-      iconColor: "text-violet-600 dark:text-violet-400",
+      icon: TrendingUp,
+      gradient: "from-violet-400 via-violet-500 to-purple-600",
+      ring: "ring-violet-500/30",
+      glow: "shadow-violet-500/20",
       sparkColor: "stroke-violet-500",
     },
     {
@@ -190,13 +194,13 @@ const PanelCenter = () => {
       sublabel: "Cadastrados no sistema",
       value: PANELS.length,
       icon: Layers,
-      iconBg: "bg-amber-500/10",
-      iconColor: "text-amber-600 dark:text-amber-400",
+      gradient: "from-amber-400 via-orange-500 to-rose-500",
+      ring: "ring-amber-500/30",
+      glow: "shadow-amber-500/20",
       sparkColor: "stroke-amber-500",
     },
   ];
 
-  // Mini sparkline path generator (decorative)
   const sparkPaths = [
     "M0,18 L12,14 L24,16 L36,10 L48,12 L60,6 L72,9 L84,4 L96,7 L108,3 L120,5",
     "M0,15 L12,12 L24,14 L36,8 L48,11 L60,7 L72,10 L84,5 L96,8 L108,4 L120,6",
@@ -208,44 +212,71 @@ const PanelCenter = () => {
     <DashboardLayout title="Centro de Painéis" nav={getAdminNav("panel-center")}>
       <motion.div variants={container} initial="hidden" animate="show" className="w-full max-w-7xl mx-auto space-y-6 pb-24 md:pb-8">
 
-        {/* ─────── HEADER ─────── */}
+        {/* ─────── HERO HEADER ─────── */}
         <motion.section variants={fadeUp}>
-          <Card className="overflow-hidden border-border/40 bg-card">
-            <div className="grid lg:grid-cols-[1fr_auto] gap-0">
-              {/* Left: title block */}
-              <div className="p-5 md:p-6 flex flex-col justify-center">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
+          <Card className="relative overflow-hidden border-border/40 bg-gradient-to-br from-primary/[0.08] via-card to-card">
+            {/* Decorative blobs */}
+            <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full bg-gradient-to-br from-primary/20 to-purple-500/10 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-32 left-1/3 w-80 h-80 rounded-full bg-gradient-to-tr from-emerald-500/10 to-blue-500/10 blur-3xl pointer-events-none" />
+            {/* Top accent line */}
+            <div className="h-[3px] bg-gradient-to-r from-emerald-500 via-primary to-purple-500" />
+
+            <div className="relative grid lg:grid-cols-[1fr_auto] gap-0">
+              <div className="p-6 md:p-8 flex flex-col justify-center">
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 ring-1 ring-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
                     <LayoutGrid className="w-3 h-3" />
                     Centro de Controle
                   </span>
-                  <Badge variant="secondary" className="gap-1.5 font-mono text-[10px] h-5">
+                  <Badge variant="secondary" className="gap-1.5 font-mono text-[10px] h-6 backdrop-blur-sm">
                     <span className="relative flex h-1.5 w-1.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
                     </span>
-                    {format(lastRefresh, "HH:mm:ss")}
+                    LIVE · {format(lastRefresh, "HH:mm:ss")}
                   </Badge>
                 </div>
-                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight bg-gradient-to-br from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
                   Painéis da Plataforma
                 </h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {totalOnline} {totalOnline === 1 ? "pessoa online" : "pessoas online"} · atualizado {formatDistanceToNow(lastRefresh, { locale: ptBR, addSuffix: true })}
+                <p className="text-sm md:text-base text-muted-foreground mt-2 max-w-xl">
+                  <span className="font-bold text-foreground">{totalOnline}</span> {totalOnline === 1 ? "pessoa online" : "pessoas online"} agora · sincronizado {formatDistanceToNow(lastRefresh, { locale: ptBR, addSuffix: true })}
                 </p>
+
+                <div className="flex flex-wrap gap-2 mt-5">
+                  <Button
+                    size="sm"
+                    onClick={() => fetchPresence(true)}
+                    disabled={refreshing}
+                    className="gap-2 bg-gradient-to-br from-primary to-blue-700 hover:opacity-90 shadow-md shadow-primary/20"
+                  >
+                    <RefreshCw className={cn("w-3.5 h-3.5", refreshing && "animate-spin")} />
+                    Atualizar agora
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => navigate("/dashboard/admin/live?role=admin")}
+                    className="gap-2 backdrop-blur-sm bg-background/50"
+                  >
+                    <Activity className="w-3.5 h-3.5" />
+                    Ver ao vivo
+                  </Button>
+                </div>
               </div>
 
-              {/* Right: Pingo */}
-              <div className="hidden lg:flex items-end justify-center pr-6 pl-4 bg-gradient-to-br from-primary/[0.04] to-transparent">
-                <img
+              <div className="hidden lg:flex items-end justify-center pr-8 pl-4">
+                <motion.img
                   src={pingoAdmin}
                   alt="Pingo Admin"
-                  className="h-32 w-auto object-contain drop-shadow-md"
+                  className="h-40 w-auto object-contain drop-shadow-2xl"
                   loading="lazy"
+                  initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
                 />
               </div>
             </div>
-
           </Card>
         </motion.section>
 
@@ -257,36 +288,50 @@ const PanelCenter = () => {
           {stats.map((s, i) => {
             const Icon = s.icon;
             return (
-              <motion.div key={s.label} variants={fadeUp}>
-                <Card className="h-full border-border/40 bg-card hover:shadow-md transition-shadow overflow-hidden">
-                  <CardContent className="p-4 md:p-5">
-                    <div className="flex items-center gap-3">
-                      <div className={cn("w-11 h-11 rounded-2xl flex items-center justify-center shrink-0", s.iconBg)}>
-                        <Icon className={cn("w-5 h-5", s.iconColor)} />
+              <motion.div key={s.label} variants={fadeUp} whileHover={{ y: -3 }} transition={{ duration: 0.2 }}>
+                <Card className={cn(
+                  "relative h-full border-border/40 bg-gradient-to-br from-card via-card to-muted/20",
+                  "hover:shadow-lg transition-all duration-300 overflow-hidden group",
+                  s.glow
+                )}>
+                  {/* Top gradient line */}
+                  <div className={cn("h-[2px] bg-gradient-to-r opacity-80 group-hover:opacity-100 transition-opacity", s.gradient)} />
+                  {/* Subtle bg blob */}
+                  <div className={cn("absolute -top-8 -right-8 w-24 h-24 rounded-full bg-gradient-to-br opacity-10 blur-2xl pointer-events-none", s.gradient)} />
+
+                  <CardContent className="relative p-4 md:p-5">
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className={cn(
+                        "w-11 h-11 rounded-xl bg-gradient-to-br flex items-center justify-center shrink-0 shadow-md ring-1 ring-white/20 dark:ring-white/10",
+                        s.gradient
+                      )}>
+                        <Icon className="w-5 h-5 text-white" strokeWidth={2.2} />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-2xl md:text-3xl font-black tabular-nums leading-none text-foreground">
-                          {s.value}
-                        </div>
-                        <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-muted-foreground mt-1">
-                          {s.label}
-                        </div>
-                      </div>
+                      <span className={cn("text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ring-1", s.ring, "text-muted-foreground")}>
+                        Live
+                      </span>
                     </div>
-                    <p className="text-[11px] text-muted-foreground/80 mt-2 ml-[3.5rem] -translate-y-1">
+
+                    <div className="text-3xl md:text-4xl font-black tabular-nums leading-none text-foreground tracking-tight">
+                      {s.value}
+                    </div>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-foreground/80 mt-1.5">
+                      {s.label}
+                    </div>
+                    <p className="text-[10.5px] text-muted-foreground mt-0.5">
                       {s.sublabel}
                     </p>
-                    {/* Mini sparkline */}
+
                     <svg
                       viewBox="0 0 120 24"
-                      className="w-full h-6 mt-1"
+                      className="w-full h-6 mt-2"
                       fill="none"
                       preserveAspectRatio="none"
                       aria-hidden="true"
                     >
                       <path
                         d={sparkPaths[i]}
-                        className={cn(s.sparkColor, "opacity-70")}
+                        className={cn(s.sparkColor, "opacity-70 group-hover:opacity-100 transition-opacity")}
                         strokeWidth={1.5}
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -299,27 +344,124 @@ const PanelCenter = () => {
           })}
         </motion.section>
 
-        {/* ─────── MAIN GRID: Activity (left) + Quick info (right) ─────── */}
+        {/* ─────── PANELS GRID (now primary) ─────── */}
+        <motion.section variants={fadeUp} className="space-y-3">
+          <div className="flex items-end justify-between flex-wrap gap-2">
+            <div>
+              <h2 className="text-lg md:text-xl font-bold text-foreground tracking-tight">Acesso aos painéis</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Entre em qualquer painel como administrador</p>
+            </div>
+            <Badge variant="outline" className="gap-1.5 text-[10px] font-bold uppercase tracking-wider">
+              <Sparkles className="w-3 h-3" />
+              {PANELS.length} painéis
+            </Badge>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {panels.map((panel) => {
+              const Icon = panel.icon;
+              const hasOnline = panel.onlineCount > 0;
+              return (
+                <motion.div
+                  key={panel.id}
+                  variants={fadeUp}
+                  whileHover={{ y: -4 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card
+                    className={cn(
+                      "relative overflow-hidden cursor-pointer group h-full",
+                      "border-border/40 bg-gradient-to-br from-card via-card to-muted/30",
+                      "hover:shadow-xl hover:border-primary/40 transition-all duration-300",
+                      hasOnline && panel.glow
+                    )}
+                    onClick={() => navigate(panel.route)}
+                  >
+                    {/* Top gradient line */}
+                    <div className={cn("h-[3px] bg-gradient-to-r opacity-80 group-hover:opacity-100 transition-opacity", panel.gradient)} />
+                    {/* Decorative blob */}
+                    <div className={cn(
+                      "absolute -top-12 -right-12 w-32 h-32 rounded-full bg-gradient-to-br opacity-10 blur-2xl pointer-events-none group-hover:opacity-20 transition-opacity",
+                      panel.gradient
+                    )} />
+
+                    <CardContent className="relative p-4">
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <div className={cn(
+                          "w-12 h-12 rounded-2xl bg-gradient-to-br flex items-center justify-center shrink-0 shadow-md ring-1 ring-white/20 dark:ring-white/10 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300",
+                          panel.gradient
+                        )}>
+                          <Icon className="w-5 h-5 text-white" strokeWidth={2.2} />
+                        </div>
+                        {hasOnline && (
+                          <div className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-2 py-1 rounded-full text-[10px] font-bold ring-1 ring-emerald-500/30 backdrop-blur-sm">
+                            <span className="relative flex h-1.5 w-1.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                            </span>
+                            {panel.onlineCount} online
+                          </div>
+                        )}
+                      </div>
+
+                      <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors leading-tight">
+                        {panel.label}
+                      </h3>
+                      <p className="text-[11.5px] text-muted-foreground mt-1 leading-snug line-clamp-2 min-h-[2.4em]">
+                        {panel.description}
+                      </p>
+
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/40">
+                        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                          <Users className="w-3 h-3" />
+                          <span className="font-bold text-foreground tabular-nums">{panel.totalUsers}</span>
+                          <span>cadastros</span>
+                        </div>
+                        <div className={cn(
+                          "w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-300",
+                          "bg-muted/60 group-hover:bg-gradient-to-br group-hover:shadow-md",
+                          `group-hover:${panel.gradient.split(" ")[0]}`,
+                          "group-hover:" + panel.gradient.split(" ")[1]
+                        )}>
+                          <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.section>
+
+        {/* ─────── ACTIVITY FEED ─────── */}
         <div className="grid lg:grid-cols-3 gap-4">
-          {/* Activity feed */}
           <motion.div variants={fadeUp} className="lg:col-span-2">
-            <Card className="h-full border-border/40 bg-card/80 backdrop-blur-sm overflow-hidden">
+            <Card className="h-full border-border/40 bg-gradient-to-br from-card via-card to-muted/20 overflow-hidden">
               <div className="h-[2px] bg-gradient-to-r from-emerald-500 via-primary to-purple-500" />
               <CardContent className="p-4 md:p-5">
                 <div className="flex items-center gap-2.5 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                    <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md ring-1 ring-white/20">
+                    <Activity className="w-4 h-4 text-white" strokeWidth={2.2} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h2 className="text-sm font-bold text-foreground leading-tight">Atividade em tempo real</h2>
                     <p className="text-[11px] text-muted-foreground">{liveActivity.length} eventos · atualiza a cada 15s</p>
                   </div>
+                  <Badge variant="secondary" className="gap-1 text-[10px] font-mono">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                    </span>
+                    LIVE
+                  </Badge>
                 </div>
 
                 {liveActivity.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-10 text-center">
-                    <div className="w-12 h-12 rounded-2xl bg-muted/50 flex items-center justify-center mb-3">
-                      <Sparkles className="w-5 h-5 text-muted-foreground/60" />
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-muted to-muted/30 flex items-center justify-center mb-3 ring-1 ring-border/40">
+                      <Sparkles className="w-6 h-6 text-muted-foreground/60" />
                     </div>
                     <p className="text-sm font-semibold text-foreground">Nenhum usuário online</p>
                     <p className="text-xs text-muted-foreground mt-0.5">A presença atualiza automaticamente</p>
@@ -335,13 +477,13 @@ const PanelCenter = () => {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.03 }}
                           onClick={() => navigate(u.panel.route)}
-                          className="flex items-center gap-3 p-2.5 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors text-left group"
+                          className="flex items-center gap-3 p-2.5 rounded-xl bg-muted/40 hover:bg-muted/70 ring-1 ring-transparent hover:ring-border/60 transition-all text-left group"
                         >
                           <div className={cn(
-                            "shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-sm",
+                            "shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-sm ring-1 ring-white/20",
                             u.panel.gradient
                           )}>
-                            <Icon className="w-4 h-4 text-white" />
+                            <Icon className="w-4 h-4 text-white" strokeWidth={2.2} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
@@ -365,12 +507,13 @@ const PanelCenter = () => {
             </Card>
           </motion.div>
 
-          {/* Quick refresh / status card */}
+          {/* Sync card */}
           <motion.div variants={fadeUp}>
-            <Card className="h-full border-border/40 bg-gradient-to-br from-primary/5 via-card to-card overflow-hidden">
-              <CardContent className="p-5 flex flex-col h-full">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
-                  <RefreshCw className={cn("w-5 h-5 text-primary", refreshing && "animate-spin")} />
+            <Card className="h-full border-border/40 bg-gradient-to-br from-primary/[0.08] via-card to-card overflow-hidden relative">
+              <div className="absolute -bottom-16 -right-12 w-48 h-48 rounded-full bg-gradient-to-br from-primary/15 to-purple-500/10 blur-3xl pointer-events-none" />
+              <CardContent className="relative p-5 flex flex-col h-full">
+                <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center mb-3 shadow-md ring-1 ring-white/20">
+                  <RefreshCw className={cn("w-5 h-5 text-white", refreshing && "animate-spin")} strokeWidth={2.2} />
                 </div>
                 <h3 className="text-sm font-bold text-foreground">Sincronização</h3>
                 <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
@@ -392,10 +535,9 @@ const PanelCenter = () => {
                 </div>
                 <Button
                   size="sm"
-                  variant="outline"
                   onClick={() => fetchPresence(true)}
                   disabled={refreshing}
-                  className="mt-auto w-full gap-2 text-xs"
+                  className="mt-auto w-full gap-2 text-xs bg-gradient-to-br from-primary to-blue-700 hover:opacity-90 shadow-md shadow-primary/20"
                 >
                   <RefreshCw className={cn("w-3.5 h-3.5", refreshing && "animate-spin")} />
                   Atualizar agora
@@ -404,80 +546,6 @@ const PanelCenter = () => {
             </Card>
           </motion.div>
         </div>
-
-        {/* ─────── PANELS GRID ─────── */}
-        <motion.section variants={fadeUp} className="space-y-3">
-          <div className="flex items-end justify-between">
-            <div>
-              <h2 className="text-base md:text-lg font-bold text-foreground tracking-tight">Acesso aos painéis</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Entre em qualquer painel como administrador</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {panels.map((panel) => {
-              const Icon = panel.icon;
-              const hasOnline = panel.onlineCount > 0;
-              return (
-                <motion.div
-                  key={panel.id}
-                  variants={fadeUp}
-                  whileHover={{ y: -3 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Card
-                    className={cn(
-                      "relative overflow-hidden cursor-pointer group h-full",
-                      "border-border/40 bg-card hover:shadow-lg hover:border-primary/30 transition-all duration-300"
-                    )}
-                    onClick={() => navigate(panel.route)}
-                  >
-                    <div className={cn("h-[2px] bg-gradient-to-r opacity-80 group-hover:opacity-100 transition-opacity", panel.gradient)} />
-
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-2 mb-3">
-                        <div className={cn(
-                          "w-11 h-11 rounded-xl bg-gradient-to-br flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform duration-300",
-                          panel.gradient
-                        )}>
-                          <Icon className="w-5 h-5 text-white" />
-                        </div>
-                        {hasOnline && (
-                          <div className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full text-[10px] font-bold ring-1 ring-emerald-500/20">
-                            <span className="relative flex h-1.5 w-1.5">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
-                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                            </span>
-                            {panel.onlineCount}
-                          </div>
-                        )}
-                      </div>
-
-                      <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors leading-tight">
-                        {panel.label}
-                      </h3>
-                      <p className="text-[11.5px] text-muted-foreground mt-0.5 leading-snug line-clamp-2 min-h-[2.4em]">
-                        {panel.description}
-                      </p>
-
-                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/40">
-                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                          <Users className="w-3 h-3" />
-                          <span className="font-semibold text-foreground tabular-nums">{panel.totalUsers}</span>
-                          <span>cadastros</span>
-                        </div>
-                        <div className="w-7 h-7 rounded-lg bg-muted/60 flex items-center justify-center group-hover:bg-primary transition-all duration-300">
-                          <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary-foreground group-hover:translate-x-0.5 transition-all" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })}
-          </div>
-        </motion.section>
 
       </motion.div>
     </DashboardLayout>
