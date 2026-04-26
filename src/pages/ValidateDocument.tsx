@@ -29,7 +29,31 @@ const ValidateDocument = () => {
     setResult(null);
     setSearched(true);
 
-    // First try document_verifications via secure RPC (no direct table access)
+    // PRIORIDADE 1: Validação canônica via digital_signatures (ICP-Brasil)
+    const { data: sigRows } = await (db as any)
+      .rpc("validate_signature_public", { p_document_id: docId });
+    const signature = sigRows?.[0];
+    if (signature) {
+      setResult({
+        type: signature.document_type,
+        doctor_name: signature.doctor_name,
+        crm: signature.doctor_crm,
+        document_type: signature.document_type,
+        patient_name: signature.patient_name,
+        created_at: signature.signed_at,
+        document_hash: signature.document_hash,
+        certificate_alias: signature.certificate_alias,
+        is_valid: signature.is_valid,
+        revoked_at: signature.revoked_at,
+        revoke_reason: signature.revoke_reason,
+        code: signature.document_id,
+        icp_brasil: true,
+      });
+      setLoading(false);
+      return;
+    }
+
+    // PRIORIDADE 2: document_verifications (legado para atestados)
     const { data: verificationRows } = await db
       .rpc("verify_document_public", { p_code: docId });
 
