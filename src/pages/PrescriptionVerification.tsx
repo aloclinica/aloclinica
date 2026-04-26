@@ -40,7 +40,31 @@ export default function PrescriptionVerification() {
       try {
         setLoading(true);
 
-        // Buscar dados de assinatura
+        // PRIORIDADE 1: tabela canônica digital_signatures via RPC pública
+        const { data: canonicalRows } = await (db as any).rpc("validate_signature_public", {
+          p_document_id: prescriptionId,
+        });
+        const canonical = canonicalRows?.[0];
+
+        if (canonical) {
+          setSignature({
+            prescription_id: canonical.document_id,
+            signed_by: canonical.doctor_name,
+            signed_at: canonical.signed_at,
+            certificate_chain: canonical.certificate_alias || `CRM=${canonical.doctor_crm}`,
+            status: canonical.is_valid ? "signed" : "failed",
+            storage_path: "",
+            metadata: {
+              document_type: canonical.document_type,
+              verification_code: canonical.document_id,
+              signature_hash: canonical.document_hash,
+            },
+          } as SignatureData);
+          setLoading(false);
+          return;
+        }
+
+        // FALLBACK: tabela legada prescription_signatures
         const { data: signatureData, error } = await (db as any)
           .from("prescription_signatures")
           .select("*")

@@ -41,7 +41,7 @@ const PrescriptionForm = () => {
 
   // Centralizado: usePrescriptionData hook
   const prescription = usePrescriptionData(appointmentId);
-   const { signPrescription, signing: signingDigital, isValidating, error: signError } = useDigitalSignature();
+   const { signPrescription, registerSignature, signing: signingDigital, isValidating, error: signError } = useDigitalSignature();
 
   const [saving, setSaving] = useState(false);
   const [isSigned, setIsSigned] = useState(false);
@@ -561,6 +561,26 @@ const PrescriptionForm = () => {
           setSaving(false);
           return;
         }
+
+        // 4. Registrar assinatura na tabela canônica (digital_signatures) com hash + PDF
+        await registerSignature({
+          document_id: rxDisplayId,
+          document_type: "prescription",
+          related_record_id: uuid,
+          doctor_name: `Dr(a). ${prescription.data.doctorInfo?.first_name} ${prescription.data.doctorInfo?.last_name}`,
+          doctor_crm: `${prescription.data.doctorInfo?.crm}/${prescription.data.doctorInfo?.crm_state}`,
+          doctor_cpf: profile?.cpf || "CPF_NAO_DISPONIVEL",
+          patient_name: prescription.data.patientName,
+          document_hash: signedDoc.signatureHash,
+          signature_data: {
+            verification_code: signedDoc.verificationCode,
+            signed_at: signedDoc.signatureDate,
+            algorithm: "SHA-256",
+            format: "PAdES",
+          },
+          certificate_alias: `e-CPF A1 ICP-Brasil`,
+          pdf_base64: base64,
+        });
 
         setIsSigned(true);
         toast.success("✅ Prescrição assinada digitalmente com ICP-Brasil!");

@@ -10,6 +10,8 @@ import { logError } from "@/lib/logger";
    doctorCPF: string;
    prescriptionId: string; // ID do registro no banco (prescriptions.id ou exam_reports.id)
    documentType: "prescription" | "exam" | "report" | "laudo" | "certificate"; // tipo de documento
+   patientName?: string;
+   relatedRecordId?: string; // UUID interno (opcional, para vincular ao registro original)
  }
 
 interface SignedDocument {
@@ -41,6 +43,7 @@ interface SignedDocument {
   const [signing, setSigning] = useState(false);
    const [isValidating, setIsValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [vidaasStatus, setVidaasStatus] = useState<"idle" | "checking" | "ready" | "unavailable">("idle");
 
   /**
    * Gera hash único da assinatura (determinístico)
@@ -100,6 +103,97 @@ interface SignedDocument {
  
    const generateVerificationCode = (): string => {
      return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`.toUpperCase();
+   };
+
+   /**
+    * Verifica se o médico tem certificado VIDaaS disponível
+    */
+   const checkVidaasCertificate = async (cpf: string): Promise<boolean> => {
+     setVidaasStatus("checking");
+     try {
+       const { data, error: fnErr } = await (db as any).functions.invoke("vidaas-sign", {
+         body: { action: "user_discovery", cpf_cnpj: cpf, type: "CPF" },
+       });
+       if (fnErr || !data?.found) {
+         setVidaasStatus("unavailable");
+         return false;
+       }
+       setVidaasStatus("ready");
+       return true;
+     } catch (err) {
+       setVidaasStatus("unavailable");
+       return false;
+     }
+   };
+
+   /**
+    * Inicia fluxo OAuth do VIDaaS — abre janela popup para autenticação
+    */
+   const initVidaasSignature = async (cpf: string): Promise<{ auth_url: string; code_verifier: string } | null> => {
+     try {
+       const { data, error: fnErr } = await (db as any).functions.invoke("vidaas-sign", {
+         body: {
+           action: "authorize",
+           login_hint: cpf,
+           scope: "signature_session",
+           lifetime: 600,
+         },
+       });
+       if (fnErr || !data?.success) {
+         throw new Error(data?.error || "Falha ao iniciar autenticação VIDaaS");
+       }
+       return { auth_url: data.auth_url, code_verifier: data.code_verifier };
+     } catch (err) {
+       const msg = err instanceof Error ? err.message : "Erro VIDaaS";
+       setError(msg);
+       return null;
+     }
+   };
+
+   /**
+    * Registra assinatura concluída no banco canônico
+    */
+   const registerSignature = async (params: {
+     document_id: string;
+     document_type: string;
+     related_record_id?: string;
+     doctor_name: string;
+     doctor_crm: string;
+     doctor_cpf: string;
+     patient_name?: string;
+     document_hash: string;
+     signature_data?: Record<string, unknown>;
+     certificate_alias?: string;
+     pdf_base64?: string;
+   }): Promise<boolean> => {
+     try {
+       const { data, error: fnErr } = await (db as any).functions.invoke("register-signature", {
+         body: params,
+       });
+       if (fnErr || !data?.success) {
+         throw new Error(data?.error || "Falha ao registrar assinatura");
+       }
+       return true;
+     } catch (err) {
+       logError("registerSignature error:", err);
+       return false;
+     }
+   };
+
+   /**
+    * Valida assinatura publicamente (qualquer pessoa)
+    */
+   const validateSignaturePublic = async (documentId: string) => {
+     try {
+       const { data, error: rpcErr } = await (db as any).rpc("validate_signature_public", {
+         p_document_id: documentId,
+       });
+       if (rpcErr) throw rpcErr;
+       return data?.[0] ?? null;
+     } catch (err) {
+       logError("validateSignaturePublic error:", err);
+       return null;
+     }
    };
  
    /**
@@ -272,6 +366,11 @@ interface SignedDocument {
     verifySignature,
     getSignedDocument,
     getVerificationUrl,
+    checkVidaasCertificate,
+    initVidaasSignature,
+    registerSignature,
+    validateSignaturePublic,
+    vidaasStatus,
     signing,
      isValidating,
     error,
