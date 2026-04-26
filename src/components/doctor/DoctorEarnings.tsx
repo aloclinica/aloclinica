@@ -256,37 +256,14 @@ const DoctorEarnings = () => {
           ))}
         </div>
 
-        {/* Withdrawal button */}
-        <div className="flex justify-end">
-          <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-md shadow-emerald-600/20">
-                <ArrowUpRight className="w-3.5 h-3.5" /> Solicitar Saque · R$ {stats.available.toFixed(2)}
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Solicitar Saque</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Saldo disponível: <strong className="text-foreground">R$ {stats.available.toFixed(2)}</strong>
-                </p>
-                <p className="text-xs text-muted-foreground">Valor mínimo: R$ {MIN_WITHDRAWAL.toFixed(2)} · Processamento em 3-5 dias úteis</p>
-                <div>
-                  <label className="text-xs font-medium text-foreground">Valor do saque (R$) *</label>
-                  <Input type="number" placeholder={`Mín. ${MIN_WITHDRAWAL.toFixed(2)}`} value={withdrawAmount} onChange={e => setWithdrawAmount(e.target.value)} min={MIN_WITHDRAWAL} max={stats.available} className="rounded-xl" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-foreground">Chave PIX *</label>
-                  <Input placeholder="CPF, e-mail ou telefone" value={pixKey} onChange={e => setPixKey(e.target.value)} className="rounded-xl" />
-                </div>
-                <Button className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white" onClick={requestWithdrawal} disabled={submitting || !withdrawAmount || !pixKey.trim()}>
-                  {submitting ? "Enviando..." : "Confirmar Solicitação"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+        {/* Withdrawal info pill */}
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border/40 bg-card p-3 text-[11px] text-muted-foreground">
+          <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
+          <span className="font-semibold text-foreground">Saque PIX em 3-5 dias úteis</span>
+          <span className="opacity-30">·</span>
+          <span>Mínimo R$ {MIN_WITHDRAWAL.toFixed(2)}</span>
+          <span className="opacity-30">·</span>
+          <span>Repasse de {clinicInfo ? clinicInfo.percent : DEFAULT_DOCTOR_PERCENT}% por consulta</span>
         </div>
 
         <Card className="border-border mb-8">
