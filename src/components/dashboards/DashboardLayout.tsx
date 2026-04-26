@@ -108,6 +108,7 @@ const ROLE_ACTIVE_COLOR: Record<string, string> = {
   clinic:"text-[hsl(225,70%,48%)]",
   partner:"text-[hsl(148,60%,40%)]",
   ai:"text-[hsl(210,85%,48%)]",
+  cartao_beneficios:"text-[hsl(340,75%,50%)]",
 };
 const ROLE_ACTIVE_BG: Record<string, string> = {
   patient:"bg-[hsl(210,90%,45%,0.12)]",
@@ -118,6 +119,7 @@ const ROLE_ACTIVE_BG: Record<string, string> = {
   clinic:"bg-[hsl(225,70%,48%,0.12)]",
   partner:"bg-[hsl(148,60%,40%,0.12)]",
   ai:"bg-[hsl(210,85%,48%,0.12)]",
+  cartao_beneficios:"bg-[hsl(340,75%,50%,0.12)]",
 };
 
 
