@@ -64,6 +64,8 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
   const menuItems = config?.menu_items || [
     { label: "Especialidades", href: "/#especialidades" },
     { label: "Para Médicos", href: "/#para-medicos" },
+    { label: "Cartão de Benefícios", href: "/pingo-card" },
+    { label: "Para Empresas", href: "/para-empresas" },
     { label: "Ajuda", href: "/ajuda" },
   ];
 

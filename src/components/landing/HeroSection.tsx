@@ -4,7 +4,7 @@ import { memo, forwardRef } from "react";
 import { motion } from "framer-motion";
 import { usePrefetchRoute } from "@/hooks/use-prefetch-route";
 import OptimizedImage from "@/components/ui/optimized-image";
-import { ArrowRight, ShieldCheck, Lock, Star, CheckCircle } from "@phosphor-icons/react";
+import { ArrowRight, ShieldCheck, Lock, Star, CheckCircle, CreditCard } from "@phosphor-icons/react";
 import heroPingoFamily from "@/assets/hero-pingo-family.png";
 
 const trustItems = [
@@ -75,18 +75,30 @@ const HeroSection = memo(
                 ))}
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-center gap-3">
                 <Button
                   size="lg"
-                  className="w-full sm:w-auto rounded-2xl h-[56px] px-10 text-[15px] font-extrabold shadow-xl shadow-primary/25 group transition-all duration-300 hover:scale-[1.02]"
+                  className="w-full sm:w-auto rounded-2xl h-[60px] px-10 text-[15px] font-extrabold shadow-xl shadow-primary/25 group transition-all duration-300 hover:scale-[1.02] bg-primary hover:bg-primary/90"
                   onClick={() => navigate(ctaUrl)}
                   onMouseEnter={prefetchPaciente}
                 >
                   {ctaText}
                   <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" weight="bold" />
                 </Button>
+
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full sm:w-auto rounded-2xl h-[60px] px-8 text-[15px] font-bold border-amber-400/50 hover:bg-amber-400/5 hover:border-amber-400 text-foreground transition-all duration-300 gap-2.5"
+                  onClick={() => navigate("/pingo-card")}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-amber-400 flex items-center justify-center shadow-lg shadow-amber-400/20">
+                    <CreditCard className="w-4 h-4 text-amber-950" weight="fill" />
+                  </div>
+                  <span>Pingo Card</span>
+                </Button>
                 
-                <div className="flex -space-x-2">
+                <div className="flex -space-x-2 ml-2 hidden xl:flex">
                   {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="w-10 h-10 rounded-full border-2 border-background bg-muted flex items-center justify-center overflow-hidden">
                       <img src={`https://i.pravatar.cc/150?u=${i}`} alt="Avatar" className="w-full h-full object-cover" />

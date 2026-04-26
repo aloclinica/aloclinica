@@ -93,14 +93,25 @@ const Footer = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
             </div>
           </div>
 
-          <div>
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/35 mb-3">Empresa</h4>
-            <ul className="space-y-2.5 text-xs text-white/35">
-              <li><Link to="/sobre/quem-somos" className="hover:text-primary transition-colors">Quem somos</Link></li>
-              <li><Link to="/sobre/porque-nos" className="hover:text-primary transition-colors">Porque nós</Link></li>
-              <li><Link to="/sobre/depoimentos" className="hover:text-primary transition-colors">Depoimentos</Link></li>
-              <li><Link to="/contato" className="hover:text-primary transition-colors">Fale conosco</Link></li>
-            </ul>
+          <div className="grid grid-cols-2 gap-8 col-span-2 md:col-span-1">
+            <div>
+              <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/35 mb-3">Empresa</h4>
+              <ul className="space-y-2.5 text-xs text-white/35">
+                <li><Link to="/sobre/quem-somos" className="hover:text-primary transition-colors">Quem somos</Link></li>
+                <li><Link to="/sobre/porque-nos" className="hover:text-primary transition-colors">Porque nós</Link></li>
+                <li><Link to="/sobre/depoimentos" className="hover:text-primary transition-colors">Depoimentos</Link></li>
+                <li><Link to="/contato" className="hover:text-primary transition-colors">Fale conosco</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/35 mb-3">Serviços</h4>
+              <ul className="space-y-2.5 text-xs text-white/35">
+                <li><Link to="/pingo-card" className="hover:text-primary transition-colors">Cartão Benefícios</Link></li>
+                <li><Link to="/para-empresas" className="hover:text-primary transition-colors">Para Empresas</Link></li>
+                <li><Link to="/para-profissionais" className="hover:text-primary transition-colors">Para Profissionais</Link></li>
+                <li><Link to="/especialidades" className="hover:text-primary transition-colors">Especialidades</Link></li>
+              </ul>
+            </div>
           </div>
 
           <div>
