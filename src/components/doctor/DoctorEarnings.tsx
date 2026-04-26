@@ -9,9 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { getDoctorNav } from "./doctorNav";
-import { TrendingUp, Wallet, ArrowUpRight, Clock, CheckCircle2, XCircle, Building2, AlertCircle } from "lucide-react";
+import { TrendingUp, Wallet, ArrowUpRight, Clock, CheckCircle2, XCircle, Building2, AlertCircle, ArrowLeft, MoreHorizontal, Sparkles } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { toast } from "sonner";
 
@@ -176,46 +177,79 @@ const DoctorEarnings = () => {
 
   return (
     <DashboardLayout title="Médico" nav={getDoctorNav("earnings")}>
-      <div className="w-full mx-auto max-w-4xl pb-24 md:pb-6 space-y-5">
-        {/* Premium hero */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#042A1C] via-[#065f46] to-[#059669] p-5 text-white" style={{ boxShadow: "0 8px 32px rgba(4,42,28,0.25)" }}>
-          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/8 blur-2xl" />
-          <div className="relative z-10">
-            <button onClick={() => navigate("/dashboard")} className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white/50 hover:text-white/80 transition-colors mb-2">
-              ← Voltar ao painel
-            </button>
-            <h1 className="text-xl font-black tracking-tight">💰 Meus Ganhos</h1>
-            <p className="text-xs text-white/60 mt-1">Resumo financeiro das consultas realizadas</p>
+      <div className="w-full mx-auto max-w-4xl space-y-6 pb-24 md:pb-6">
+        {/* Modern Header */}
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="rounded-full">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <div>
+                <h1 className="text-2xl font-black tracking-tight text-foreground">Ganhos e Finanças</h1>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Extrato Profissional</p>
+              </div>
+            </div>
+            <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="rounded-2xl h-11 px-6 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20">
+                  <Wallet className="w-4 h-4" /> Sacar R$ {stats.available.toFixed(0)}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="rounded-3xl">
+                <DialogHeader>
+                  <DialogTitle>Solicitar Saque</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div className="p-4 rounded-2xl bg-muted/50 border border-border/10">
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Saldo Disponível</p>
+                    <p className="text-2xl font-black text-foreground">R$ {stats.available.toFixed(2)}</p>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-muted-foreground uppercase px-1">Valor do Saque</label>
+                      <Input type="number" placeholder={`Mínimo R$ ${MIN_WITHDRAWAL}`} value={withdrawAmount} onChange={e => setWithdrawAmount(e.target.value)} className="rounded-2xl h-12" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-muted-foreground uppercase px-1">Chave PIX</label>
+                      <Input placeholder="CPF, e-mail ou telefone" value={pixKey} onChange={e => setPixKey(e.target.value)} className="rounded-2xl h-12" />
+                    </div>
+                  </div>
+                  <Button className="w-full h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold" onClick={requestWithdrawal} disabled={submitting || !withdrawAmount || !pixKey.trim()}>
+                    {submitting ? "Processando..." : "Confirmar Saque"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
+
+          {/* Affiliate info pill */}
+          {clinicInfo && (
+            <div className="bg-primary/5 border border-primary/10 rounded-2xl p-3 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Building2 className="w-4 h-4 text-primary" />
+              </div>
+              <p className="text-xs font-semibold text-foreground">
+                Repasse de {clinicInfo.percent}% pela {clinicInfo.name}
+              </p>
+              <Sparkles className="w-3.5 h-3.5 text-primary/40 ml-auto" />
+            </div>
+          )}
         </div>
 
-        {/* Clinic affiliation info */}
-        {clinicInfo && (
-          <div className="p-3.5 rounded-2xl bg-primary/5 border border-primary/20 flex items-center gap-3 text-xs">
-            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0"><Building2 className="w-4 h-4 text-primary" /></div>
-            <span className="text-foreground">Vinculado à <strong>{clinicInfo.name}</strong> — repasse de <strong>{clinicInfo.percent}%</strong></span>
-          </div>
-        )}
-
-        {/* Split info */}
-        <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/30 flex items-center gap-3 text-xs text-muted-foreground">
-          <div className="w-8 h-8 rounded-xl bg-muted/60 flex items-center justify-center shrink-0"><Wallet className="w-4 h-4" /></div>
-          <span>Split automático: <strong className="text-foreground">{clinicInfo?.percent ?? DEFAULT_DOCTOR_PERCENT}% Médico</strong> · {PLATFORM_PERCENT}% Plataforma</span>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        {/* Modern Bento Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: "Ganho Confirmado", value: `R$ ${stats.total.toFixed(0)}`, icon: "✅", iconBg: "bg-emerald-50 dark:bg-emerald-950/30", valueClass: "text-emerald-700 dark:text-emerald-400", accent: "bg-emerald-500" },
-            { label: "Este Mês", value: `R$ ${stats.thisMonth.toFixed(0)}`, icon: "📅", iconBg: "bg-blue-50 dark:bg-blue-950/30", valueClass: "text-blue-700 dark:text-blue-400", accent: "bg-blue-500" },
-            { label: "Pendente", value: `R$ ${stats.pending.toFixed(0)}`, icon: "⏳", iconBg: "bg-amber-50 dark:bg-amber-950/30", valueClass: "text-amber-600 dark:text-amber-400", accent: "bg-amber-500" },
-            { label: "Saldo Disponível", value: `R$ ${stats.available.toFixed(0)}`, icon: "💳", iconBg: "bg-violet-50 dark:bg-violet-950/30", valueClass: "text-violet-600 dark:text-violet-400", accent: "bg-violet-500" },
+            { label: "Total Confirmado", value: `R$ ${stats.total.toFixed(0)}`, color: "text-emerald-600", icon: "💰", bg: "bg-emerald-50/50" },
+            { label: "Ganhos Mensais", value: `R$ ${stats.thisMonth.toFixed(0)}`, color: "text-blue-600", icon: "📈", bg: "bg-blue-50/50" },
+            { label: "Aguardando", value: `R$ ${stats.pending.toFixed(0)}`, color: "text-amber-600", icon: "⏳", bg: "bg-amber-50/50" },
+            { label: "Disponível", value: `R$ ${stats.available.toFixed(0)}`, color: "text-violet-600", icon: "💳", bg: "bg-violet-50/50" },
           ].map(s => (
-            <div key={s.label} className="overflow-hidden rounded-2xl border border-border/20 bg-card transition-all hover:-translate-y-0.5 hover:shadow-md" style={{ boxShadow: "var(--d-shadow-card)" }}>
-              <div className={`h-[3px] w-full ${s.accent}`} />
-              <div className="p-3.5">
-                <div className={`flex h-9 w-9 items-center justify-center rounded-xl text-[16px] ${s.iconBg}`}>{s.icon}</div>
-                <p className={`mt-2 text-[20px] font-black leading-none tracking-tight tabular-nums ${s.valueClass}`}>{s.value}</p>
-                <p className="mt-1 text-[10px] font-medium text-muted-foreground">{s.label}</p>
+            <div key={s.label} className={cn("p-4 rounded-3xl border border-border/10 flex flex-col justify-between min-h-[110px]", s.bg)}>
+              <span className="text-lg">{s.icon}</span>
+              <div>
+                <p className={cn("text-xl font-black leading-none", s.color)}>{s.value}</p>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/70 mt-1.5">{s.label}</p>
               </div>
             </div>
           ))}

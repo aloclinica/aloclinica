@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Search, Video, FileText, Download, Filter, Calendar as CalendarIcon, Users } from "lucide-react";
+import { Search, Video, FileText, Download, Filter, Calendar as CalendarIcon, Users, ArrowLeft, MoreHorizontal } from "lucide-react";
 import { format, isWithinInterval, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -190,107 +190,95 @@ const DoctorConsultations = () => {
   return (
     <DashboardLayout title="Médico" nav={getDoctorNav("consultations")}>
       <div className="w-full mx-auto max-w-5xl space-y-5 pb-24 md:pb-6">
-        {/* Premium header */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#042A1C] via-[#065f46] to-[#059669] p-5 text-white" style={{ boxShadow: "0 8px 32px rgba(4,42,28,0.25)" }}>
-          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/8 blur-2xl" />
-          <div className="relative z-10">
-            <button onClick={() => navigate("/dashboard")} className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white/50 hover:text-white/80 transition-colors mb-2">
-              ← Voltar ao painel
-            </button>
-            <div className="flex items-start justify-between gap-3">
+        {/* Modern Header Section */}
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate("/dashboard")}
+                className="rounded-full hover:bg-muted"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
               <div>
-                <h1 className="text-xl font-black tracking-tight">📋 Minhas Consultas</h1>
-                <div className="flex items-center gap-3 mt-2">
-                  {[
-                    { label: "Agendadas", value: scheduledCount, bg: "bg-white/15" },
-                    { label: "Concluídas", value: completedCount, bg: "bg-emerald-400/20" },
-                    { label: "Total", value: appointments.length, bg: "bg-white/10" },
-                  ].map(k => (
-                    <div key={k.label} className={`${k.bg} rounded-lg px-2.5 py-1 backdrop-blur-sm`}>
-                      <span className="text-sm font-black tabular-nums">{k.value}</span>
-                      <span className="text-[9px] ml-1 opacity-70">{k.label}</span>
-                    </div>
-                  ))}
-                </div>
+                <h1 className="text-2xl font-black tracking-tight text-foreground">Minhas Consultas</h1>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Atendimento Profissional</p>
               </div>
-              <div className="flex gap-2 shrink-0">
-                <Button size="sm" variant="ghost" onClick={exportCSV} disabled={filtered.length === 0} className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl text-xs h-8 gap-1">
-                  <Download className="w-3.5 h-3.5" /> CSV
-                </Button>
-                <Button size="sm" variant="ghost" onClick={exportPDF} disabled={filtered.length === 0} className="text-white/70 hover:text-white hover:bg-white/10 rounded-xl text-xs h-8 gap-1">
-                  <FileText className="w-3.5 h-3.5" /> PDF
-                </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={exportCSV} className="rounded-xl h-9 px-4 hidden sm:flex">
+                <Download className="w-4 h-4 mr-2" /> CSV
+              </Button>
+              <Button variant="outline" size="sm" onClick={exportPDF} className="rounded-xl h-9 px-4 hidden sm:flex">
+                <FileText className="w-4 h-4 mr-2" /> PDF
+              </Button>
+              <Button variant="ghost" size="icon" className="sm:hidden rounded-full">
+                <MoreHorizontal className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+
+          {/* KPI Mini Bento */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "Agendadas", value: scheduledCount, color: "text-blue-600", bg: "bg-blue-50/50" },
+              { label: "Concluídas", value: completedCount, color: "text-emerald-600", bg: "bg-emerald-50/50" },
+              { label: "Total", value: appointments.length, color: "text-slate-600", bg: "bg-slate-50/50" },
+            ].map(k => (
+              <div key={k.label} className={cn("rounded-2xl p-3 border border-border/10", k.bg)}>
+                <p className={cn("text-lg font-black leading-none", k.color)}>{k.value}</p>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/70 mt-1">{k.label}</p>
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Modern Filters */}
+        <div className="rounded-3xl border border-border/20 bg-card/60 backdrop-blur-md p-2 shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1 group">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+              <Input
+                placeholder="Buscar por nome do paciente..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="pl-10 h-11 text-sm rounded-2xl border-transparent bg-muted/40 focus:bg-background focus:ring-1 focus:ring-primary/20 transition-all"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[140px] h-11 rounded-2xl border-transparent bg-muted/40">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl">
+                  <SelectItem value="all">Status</SelectItem>
+                  <SelectItem value="scheduled">Agendada</SelectItem>
+                  <SelectItem value="waiting">Esperando</SelectItem>
+                  <SelectItem value="in_progress">Atendimento</SelectItem>
+                  <SelectItem value="completed">Concluída</SelectItem>
+                  <SelectItem value="cancelled">Cancelada</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={period} onValueChange={v => { setPeriod(v); if (v === "custom") setCalendarOpen(true); }}>
+                <SelectTrigger className="w-[140px] h-11 rounded-2xl border-transparent bg-muted/40">
+                  <SelectValue placeholder="Período" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl">
+                  {PERIOD_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="rounded-2xl border border-border/25 bg-card p-4" style={{ boxShadow: "var(--d-shadow-card)" }}>
-          <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
-            <div className="relative flex-1 min-w-[160px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar paciente..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="pl-10 h-10 text-sm rounded-xl border-border/40"
-              />
-            </div>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-full sm:w-40 h-10 rounded-xl border-border/40">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos status</SelectItem>
-                <SelectItem value="scheduled">Agendada</SelectItem>
-                <SelectItem value="waiting">Esperando</SelectItem>
-                <SelectItem value="in_progress">Em andamento</SelectItem>
-                <SelectItem value="completed">Concluída</SelectItem>
-                <SelectItem value="cancelled">Cancelada</SelectItem>
-                <SelectItem value="no_show">Ausente</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={period} onValueChange={v => { setPeriod(v); if (v === "custom") setCalendarOpen(true); }}>
-              <SelectTrigger className="w-full sm:w-44 h-10 rounded-xl border-border/40">
-                <Filter className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
-                <SelectValue placeholder="Período" />
-              </SelectTrigger>
-              <SelectContent>
-                {PERIOD_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            {period === "custom" && (
-              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="h-10 text-xs rounded-xl">
-                    <CalendarIcon className="w-3.5 h-3.5 mr-1.5" />
-                    {customFrom && customTo
-                      ? `${format(customFrom, "dd/MM")} → ${format(customTo, "dd/MM")}`
-                      : calendarStep === "from" ? "Início" : "Fim"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <p className="text-xs text-muted-foreground px-3 pt-3 pb-1">
-                    {calendarStep === "from" ? "Data inicial" : "Data final"}
-                  </p>
-                  <Calendar
-                    mode="single"
-                    selected={calendarStep === "from" ? customFrom : customTo}
-                    onSelect={handleCalendarSelect}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-            )}
-          </div>
-          {filtered.length !== appointments.length && (
-            <p className="text-xs text-muted-foreground mt-2">
-              Mostrando {filtered.length} de {appointments.length} consultas
-            </p>
-          )}
-        </div>
+        {/* Results Counter */}
+        {filtered.length !== appointments.length && (
+          <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest px-1">
+            Resultados: {filtered.length} de {appointments.length}
+          </p>
+        )}
 
         {/* List — mobile-friendly cards */}
         {loading ? (

@@ -10,8 +10,8 @@ import { toast } from "sonner";
 import { logError } from "@/lib/logger";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { motion } from "framer-motion";
-import { Calendar, DollarSign, Users, TrendingUp, Video, BarChart2, ArrowRight, Clock, Radio, AlertCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Calendar, DollarSign, Users, TrendingUp, Video, BarChart2, ArrowRight, Clock, Radio, AlertCircle, Sparkles } from "lucide-react";
 import DoctorAnalyticsCharts from "./DoctorAnalyticsCharts";
 import { differenceInHours, differenceInMinutes } from "date-fns";
 import DoctorOnboarding from "@/components/doctor/DoctorOnboarding";
@@ -278,24 +278,34 @@ const DoctorDashboard = () => {
           </motion.div>
         )}
 
-        {/* Goal progress */}
-        {todayAppts.length > 0 && (
-          <GoalProgressCard
-            done={done} total={todayAppts.length}
-            inProgress={inProg} waiting={waitingCount}
-            accentColor="bg-emerald-500"
-            accentBg="bg-emerald-50 dark:bg-emerald-900/20"
-          />
-        )}
-
         {/* Action pills */}
-        <ActionPills title="Ações do médico" actions={[
-          { label: "Sala",     icon: "🎥", iconBg: "bg-emerald-50 dark:bg-emerald-950/30", path: "/dashboard/doctor/waiting-room", badge: waitingCount },
-          { label: "Receitas", icon: "📋", iconBg: "bg-blue-50 dark:bg-blue-950/30",       path: "/dashboard/prescriptions" },
-          { label: "Agenda",   icon: "📅", iconBg: "bg-violet-50 dark:bg-violet-950/30",   path: "/dashboard/doctor/calendar" },
-          { label: "Ganhos",   icon: "💰", iconBg: "bg-amber-50 dark:bg-amber-950/30",     path: "/dashboard/earnings" },
-          { label: "Analytics",icon: "📊", iconBg: "bg-blue-50 dark:bg-blue-950/30",       path: "/dashboard/doctor/analytics" },
-        ]} />
+        <div className="bg-card/50 backdrop-blur-sm rounded-3xl p-1.5 border border-border/10 shadow-sm">
+          <ActionPills actions={[
+            { label: "Sala",     icon: "🎥", iconBg: "bg-emerald-50 dark:bg-emerald-950/30", path: "/dashboard/doctor/waiting-room", badge: waitingCount },
+            { label: "Receitas", icon: "📋", iconBg: "bg-blue-50 dark:bg-blue-950/30",       path: "/dashboard/prescriptions" },
+            { label: "Agenda",   icon: "📅", iconBg: "bg-violet-50 dark:bg-violet-950/30",   path: "/dashboard/doctor/calendar" },
+            { label: "Ganhos",   icon: "💰", iconBg: "bg-amber-50 dark:bg-amber-950/30",     path: "/dashboard/earnings" },
+            { label: "Analytics",icon: "📊", iconBg: "bg-blue-50 dark:bg-blue-950/30",       path: "/dashboard/doctor/analytics" },
+          ]} />
+        </div>
+
+        {/* Goal progress */}
+        <AnimatePresence>
+          {todayAppts.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+            >
+              <GoalProgressCard
+                done={done} total={todayAppts.length}
+                inProgress={inProg} waiting={waitingCount}
+                accentColor="bg-emerald-500"
+                accentBg="bg-emerald-50 dark:bg-emerald-900/20"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Desktop 2-col */}
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:items-start">
