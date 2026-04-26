@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import {
   ArrowLeft, Clock, Star, Check, UserPlus, UserCheck, AlertTriangle,
   CalendarDays, CheckCircle2, ChevronRight, Stethoscope, QrCode, CreditCard,
-  FileBarChart, Lock, Shield, Copy
+  FileBarChart, Lock, Shield, Copy, Tag, X as XIcon
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, addDays, setHours, setMinutes, isBefore } from "date-fns";
@@ -105,6 +105,12 @@ const BookAppointment = () => {
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
   const [cardDiscount, setCardDiscount] = useState(0);
+
+  // Coupon state
+  const [couponInput, setCouponInput] = useState("");
+  const [couponCode, setCouponCode] = useState<string | null>(null);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponLoading, setCouponLoading] = useState(false);
 
   const currentStep = paymentStep ? 3 : !selectedDate ? 0 : !selectedTime ? 1 : 2;
 
@@ -338,7 +344,55 @@ const BookAppointment = () => {
   const fullPrice = doctor?.consultation_price ?? 89;
   const basePrice = (appointmentType === "return" && returnEligible) ? Math.round(fullPrice * 0.5 * 100) / 100 : fullPrice;
   const discountAmount = basePrice * (cardDiscount / 100);
-  const totalPrice = Math.max(basePrice - discountAmount, 0);
+  const couponAmount = basePrice * (couponDiscount / 100);
+  const totalPrice = Math.max(basePrice - discountAmount - couponAmount, 0);
+
+  const applyCoupon = async () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    setCouponLoading(true);
+    try {
+      const { data, error } = await db
+        .from("coupons")
+        .select("id, code, discount_percentage, max_uses, times_used, expires_at, is_active")
+        .eq("code", code)
+        .maybeSingle();
+      if (error || !data) {
+        toast.error("Cupom inválido", { description: "Verifique o código e tente novamente." });
+        setCouponLoading(false);
+        return;
+      }
+      if (!data.is_active) {
+        toast.error("Cupom inativo");
+        setCouponLoading(false);
+        return;
+      }
+      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+        toast.error("Cupom expirado");
+        setCouponLoading(false);
+        return;
+      }
+      if (data.max_uses && data.times_used >= data.max_uses) {
+        toast.error("Cupom esgotado");
+        setCouponLoading(false);
+        return;
+      }
+      setCouponCode(data.code);
+      setCouponDiscount(Number(data.discount_percentage) || 0);
+      toast.success(`Cupom ${data.code} aplicado!`, {
+        description: `${data.discount_percentage}% de desconto na consulta.`,
+      });
+    } catch {
+      toast.error("Não foi possível validar o cupom");
+    }
+    setCouponLoading(false);
+  };
+
+  const removeCoupon = () => {
+    setCouponCode(null);
+    setCouponDiscount(0);
+    setCouponInput("");
+  };
 
   // Step 1: Create appointment, then move to payment
   const handleBook = async () => {
@@ -810,10 +864,83 @@ const BookAppointment = () => {
                   <div className="flex items-center gap-2 text-sm text-foreground">
                     <Check className="w-4 h-4 text-primary shrink-0" /> {selectedTime}h
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-foreground font-semibold">
-                    <Check className="w-4 h-4 text-primary shrink-0" /> R$ {totalPrice.toFixed(2)}
-                    {cardDiscount > 0 && <Badge variant="secondary" className="text-[10px] ml-1">-{cardDiscount}%</Badge>}
+                  <div className="pt-2 border-t border-border/60 space-y-1 text-[12px]">
+                    <div className="flex items-center justify-between text-muted-foreground">
+                      <span>Subtotal</span>
+                      <span className="tabular-nums">R$ {basePrice.toFixed(2)}</span>
+                    </div>
+                    {cardDiscount > 0 && (
+                      <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
+                        <span>Cartão Pingo (-{cardDiscount}%)</span>
+                        <span className="tabular-nums">- R$ {discountAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {couponCode && couponDiscount > 0 && (
+                      <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
+                        <span className="inline-flex items-center gap-1">
+                          <Tag className="w-3 h-3" /> Cupom {couponCode} (-{couponDiscount}%)
+                        </span>
+                        <span className="tabular-nums">- R$ {couponAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between pt-1 mt-1 border-t border-border/40 text-sm font-bold text-foreground">
+                      <span>Total</span>
+                      <span className="tabular-nums">R$ {totalPrice.toFixed(2)}</span>
+                    </div>
                   </div>
+                </div>
+
+                {/* Coupon */}
+                <div className="mb-4">
+                  <p className="text-xs text-muted-foreground mb-1.5 inline-flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5" /> Cupom de desconto
+                  </p>
+                  {couponCode ? (
+                    <div className="flex items-center justify-between gap-2 h-11 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400 truncate">
+                          {couponCode}
+                        </span>
+                        <Badge variant="secondary" className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 text-[10px] border-0">
+                          -{couponDiscount}%
+                        </Badge>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeCoupon}
+                        aria-label="Remover cupom"
+                        className="text-muted-foreground hover:text-destructive transition-colors p-1 rounded-md"
+                      >
+                        <XIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                        placeholder="Digite o código"
+                        className="h-11 rounded-xl font-mono uppercase tracking-wider"
+                        maxLength={20}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            applyCoupon();
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={applyCoupon}
+                        disabled={couponLoading || !couponInput.trim()}
+                        className="h-11 rounded-xl px-4 font-semibold shrink-0"
+                      >
+                        {couponLoading ? "..." : "Aplicar"}
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Recurrence */}

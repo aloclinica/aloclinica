@@ -40,6 +40,7 @@ const DoctorPublicProfile = () => {
   const [doctor, setDoctor] = useState<DoctorPublicData | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [ratingFilter, setRatingFilter] = useState<number | null>(null);
 
   useEffect(() => {
     if (doctorId) fetchDoctor();
@@ -272,8 +273,68 @@ const DoctorPublicProfile = () => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-3">
-                {reviews.map((r, i) => (
+              <>
+                {/* Rating summary card */}
+                <Card className="mb-4 border-border/60 bg-gradient-to-br from-card via-card to-muted/30">
+                  <CardContent className="p-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-[auto,1fr] gap-6 items-center">
+                      <div className="text-center sm:text-left">
+                        <div className="text-5xl font-black text-foreground tabular-nums leading-none">
+                          {(doctor.rating ?? 0).toFixed(1)}
+                        </div>
+                        <div className="flex items-center gap-0.5 mt-2 justify-center sm:justify-start">
+                          {[1, 2, 3, 4, 5].map(i => (
+                            <Star
+                              key={i}
+                              className={`w-4 h-4 ${i <= Math.round(doctor.rating ?? 0) ? "text-yellow-500 fill-yellow-500" : "text-muted-foreground/20"}`}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-[11px] text-muted-foreground mt-1.5 font-medium">
+                          {doctor.total_reviews ?? reviews.length} {(doctor.total_reviews ?? reviews.length) === 1 ? "avaliação" : "avaliações"}
+                        </p>
+                      </div>
+                      <div className="space-y-1.5">
+                        {[5, 4, 3, 2, 1].map(stars => {
+                          const count = reviews.filter(r => Math.round(((r.quality_score ?? r.nps_score / 2) / 5) * 5) === stars).length;
+                          const pct = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+                          return (
+                            <button
+                              key={stars}
+                              type="button"
+                              onClick={() => setRatingFilter(ratingFilter === stars ? null : stars)}
+                              className={`w-full flex items-center gap-2 group rounded-lg px-1.5 py-0.5 transition-colors ${ratingFilter === stars ? "bg-primary/10" : "hover:bg-muted/50"}`}
+                            >
+                              <span className="text-[11px] font-semibold text-muted-foreground w-3 tabular-nums">{stars}</span>
+                              <Star className="w-3 h-3 text-yellow-500 fill-yellow-500 shrink-0" />
+                              <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                                <div
+                                  className="h-full rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 transition-all"
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                              <span className="text-[11px] font-mono text-muted-foreground w-6 text-right tabular-nums">{count}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {ratingFilter !== null && (
+                      <button
+                        type="button"
+                        onClick={() => setRatingFilter(null)}
+                        className="mt-3 text-[11px] font-semibold text-primary hover:underline"
+                      >
+                        Limpar filtro
+                      </button>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <div className="space-y-3">
+                {reviews
+                  .filter(r => ratingFilter === null || Math.round(((r.quality_score ?? r.nps_score / 2) / 5) * 5) === ratingFilter)
+                  .map((r, i) => (
                   <motion.div
                     key={i}
                     initial={{ opacity: 0, y: 10 }}
@@ -307,7 +368,15 @@ const DoctorPublicProfile = () => {
                     </Card>
                   </motion.div>
                 ))}
-              </div>
+                {reviews.filter(r => ratingFilter === null || Math.round(((r.quality_score ?? r.nps_score / 2) / 5) * 5) === ratingFilter).length === 0 && (
+                  <Card className="border-dashed">
+                    <CardContent className="py-6 text-center">
+                      <p className="text-sm text-muted-foreground">Nenhuma avaliação com {ratingFilter} {ratingFilter === 1 ? "estrela" : "estrelas"}.</p>
+                    </CardContent>
+                  </Card>
+                )}
+                </div>
+              </>
             )}
           </div>
         </motion.div>

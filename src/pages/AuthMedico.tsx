@@ -16,6 +16,7 @@ import {
   Camera, Upload, ImagePlus
 } from "lucide-react";
 import TermsConsentCheckbox from "@/components/auth/TermsConsentCheckbox";
+import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import { registerConsent } from "@/lib/consent";
 import SEOHead from "@/components/SEOHead";
 import PasswordStrength from "@/components/ui/password-strength";
@@ -766,6 +767,7 @@ const AuthMedico = () => {
                     <Button type="submit" className="w-full bg-gradient-to-r from-secondary to-primary text-primary-foreground h-12 shadow-lg" size="lg" disabled={loading}>
                       {loading ? <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ repeat: Infinity, duration: 1.2 }} className="flex items-center gap-2"><Sparkles className="w-4 h-4 animate-spin" /> Entrando...</motion.span> : "Entrar"}
                     </Button>
+                    <SocialAuthButtons redirectTo="/dashboard?role=doctor" compact />
                     <p className="text-center text-sm text-muted-foreground"><Link to="/forgot-password" className="text-primary hover:underline">Esqueci minha senha</Link></p>
                     <p className="text-center text-sm text-muted-foreground"><button type="button" onClick={() => setStep("welcome")} className="text-primary font-semibold hover:underline">← Voltar</button></p>
                   </form>

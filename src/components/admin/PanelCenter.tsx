@@ -21,6 +21,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import pingoAdmin from "@/assets/pingo-admin.png";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartTooltip, Cell } from "recharts";
 
 interface RecentUser { name: string; page: string; lastSeen: string }
 interface PanelInfo {
@@ -457,6 +458,97 @@ const PanelCenter = () => {
 
         {/* ─────── ACTIVITY FEED ─────── */}
         <div className="grid lg:grid-cols-3 gap-4">
+          {/* Distribution chart (spans 3 cols at top of activity row on mobile, sits beside on lg) */}
+          <motion.div variants={fadeUp} className="lg:col-span-3">
+            <Card className="border-border/40 bg-gradient-to-br from-card via-card to-muted/20 overflow-hidden">
+              <div className="h-[2px] bg-gradient-to-r from-primary via-violet-500 to-emerald-500" />
+              <CardContent className="p-4 md:p-5">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center shadow-md ring-1 ring-white/20">
+                    <PieChart className="w-4 h-4 text-white" strokeWidth={2.2} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-sm font-bold text-foreground leading-tight">Distribuição por painel</h2>
+                    <p className="text-[11px] text-muted-foreground">Usuários cadastrados em cada módulo</p>
+                  </div>
+                  <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-wider">
+                    {totalUsers} totais
+                  </Badge>
+                </div>
+                <div className="h-[220px] -mx-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={panels
+                        .filter(p => p.id !== "ai-assistant")
+                        .map(p => ({
+                          name: p.label,
+                          total: p.totalUsers,
+                          online: p.onlineCount,
+                          gradient: p.gradient,
+                        }))}
+                      margin={{ top: 8, right: 12, bottom: 0, left: 0 }}
+                      barCategoryGap={14}
+                    >
+                      <XAxis
+                        dataKey="name"
+                        tick={{ fontSize: 10.5, fill: "hsl(var(--muted-foreground))" }}
+                        tickLine={false}
+                        axisLine={false}
+                        interval={0}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                        tickLine={false}
+                        axisLine={false}
+                        width={28}
+                      />
+                      <RechartTooltip
+                        cursor={{ fill: "hsl(var(--muted) / 0.4)" }}
+                        contentStyle={{
+                          background: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: 12,
+                          fontSize: 12,
+                          boxShadow: "0 8px 20px rgba(0,0,0,0.08)",
+                        }}
+                        formatter={(value: number, name: string) => [
+                          `${value}`,
+                          name === "total" ? "Cadastrados" : "Online",
+                        ]}
+                      />
+                      <Bar dataKey="total" radius={[8, 8, 0, 0]}>
+                        {panels
+                          .filter(p => p.id !== "ai-assistant")
+                          .map((p, idx) => {
+                            const colorMap: Record<string, string> = {
+                              admin: "hsl(215 75% 38%)",
+                              clinic: "hsl(265 75% 56%)",
+                              doctor: "hsl(160 70% 42%)",
+                              patient: "hsl(220 90% 56%)",
+                              cartao_beneficios: "hsl(340 80% 56%)",
+                              receptionist: "hsl(35 90% 52%)",
+                              support: "hsl(345 80% 60%)",
+                              partner: "hsl(175 70% 42%)",
+                            };
+                            return <Cell key={p.id} fill={colorMap[p.id] ?? "hsl(var(--primary))"} />;
+                          })}
+                      </Bar>
+                      <Bar dataKey="online" radius={[8, 8, 0, 0]} fill="hsl(145 70% 48%)" opacity={0.85} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex items-center justify-center gap-5 mt-1 text-[10.5px] text-muted-foreground">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-sm bg-primary" /> Cadastrados
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /> Online agora
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
           <motion.div variants={fadeUp} className="lg:col-span-2">
             <Card className="h-full border-border/40 bg-gradient-to-br from-card via-card to-muted/20 overflow-hidden">
               <div className="h-[2px] bg-gradient-to-r from-emerald-500 via-primary to-purple-500" />
