@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { getDoctorNav } from "./doctorNav";
-import { Plus, Trash2, Clock, CalendarOff, Zap } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
+ import { Plus, Trash2, Clock, CalendarOff, Zap, ChevronRight, CalendarDays } from "lucide-react";
+ import { Switch } from "@/components/ui/switch";
+ import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
