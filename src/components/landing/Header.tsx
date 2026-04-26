@@ -2,7 +2,7 @@ import { useState, memo, forwardRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import { Stethoscope, VideoCamera, Buildings, FileText, SignIn, SignOut, SquaresFour, CaretRight, Eye, CreditCard, Users, Heart, Star, ChatsCircle } from "@phosphor-icons/react";
+import { Stethoscope, VideoCamera, Buildings, FileText, SignIn, SignOut, SquaresFour, CaretRight, Eye, CreditCard, Users, Heart, Star, ChatsCircle, House, Info, FirstAidKit, Question } from "@phosphor-icons/react";
 import { PINGO_LOGO_URL } from "@/lib/constants";
 const mascot = PINGO_LOGO_URL;
 import { useNavigate, Link } from "react-router-dom";
@@ -87,8 +87,22 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const triggerCls = "group/trigger text-[13px] font-medium text-muted-foreground hover:text-foreground bg-transparent data-[state=open]:text-foreground px-3 h-9 rounded-full transition-colors duration-150 gap-1 whitespace-nowrap";
-  const linkBtnCls = "text-[13px] font-medium px-3 h-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all duration-150 inline-flex items-center justify-center whitespace-nowrap cursor-pointer";
+  const linkBtnBase = "text-[13px] font-semibold px-3.5 h-9 rounded-full transition-all duration-200 inline-flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer";
+
+  // Cor única por item — estilo "Pingo Card" multicolorido
+  const itemColorMap: Record<string, { cls: string; icon: React.ElementType }> = {
+    "Início":              { cls: "bg-sky-100 text-sky-800 hover:bg-sky-200",                icon: House },
+    "Sobre Nós":           { cls: "bg-violet-100 text-violet-800 hover:bg-violet-200",        icon: Info },
+    "Pingo Card":          { cls: "bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 hover:from-amber-300 hover:to-amber-400 shadow-sm shadow-amber-400/30 font-bold", icon: CreditCard },
+    "Especialidades":      { cls: "bg-emerald-100 text-emerald-800 hover:bg-emerald-200",     icon: FirstAidKit },
+    "Para Médicos":        { cls: "bg-rose-100 text-rose-800 hover:bg-rose-200",              icon: Stethoscope },
+    "Saúde Corporativa":   { cls: "bg-indigo-100 text-indigo-800 hover:bg-indigo-200",        icon: Buildings },
+    "Ajuda":               { cls: "bg-teal-100 text-teal-800 hover:bg-teal-200",              icon: Question },
+  };
+  const getItemStyle = (label: string) =>
+    itemColorMap[label] || { cls: "bg-muted text-foreground hover:bg-muted/70", icon: CaretRight };
+
+  const triggerCls = "group/trigger text-[13px] font-semibold bg-violet-100 text-violet-800 hover:bg-violet-200 data-[state=open]:bg-violet-200 px-3.5 h-9 rounded-full transition-all duration-200 gap-1.5 whitespace-nowrap";
 
   return (
     <header
@@ -113,12 +127,18 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
             <NavigationMenuList className="gap-0.5">
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
-                  <Link to="/" className={linkBtnCls}>Início</Link>
+                  <Link to="/" className={cn(linkBtnBase, getItemStyle("Início").cls)}>
+                    {(() => { const I = getItemStyle("Início").icon; return <I className="w-3.5 h-3.5" weight="fill" />; })()}
+                    Início
+                  </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <NavigationMenuTrigger className={triggerCls}>Sobre Nós</NavigationMenuTrigger>
+                <NavigationMenuTrigger className={triggerCls}>
+                  <Info className="w-3.5 h-3.5" weight="fill" />
+                  Sobre Nós
+                </NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul className="grid w-[400px] gap-2 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] bg-popover/95 backdrop-blur-xl rounded-2xl border border-border/20 shadow-elevated">
                     <ListItem
@@ -154,18 +174,16 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
               </NavigationMenuItem>
 
                 {menuItems.filter((item: any) => item.label !== "Início").map((item: any, idx: number) => {
-                  const isHighlighted = item.label === "Pingo Card";
+                  const style = getItemStyle(item.label);
+                  const Icon = style.icon;
                   return (
                     <NavigationMenuItem key={idx}>
                       <NavigationMenuLink asChild>
                         <Link 
                           to={item.href || item.url} 
-                          className={cn(
-                            linkBtnCls,
-                            isHighlighted && "bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 hover:from-amber-300 hover:to-amber-400 font-bold shadow-sm shadow-amber-400/30 px-3.5 gap-1.5"
-                          )}
+                          className={cn(linkBtnBase, style.cls)}
                         >
-                          {isHighlighted && <CreditCard className="w-3.5 h-3.5" weight="fill" />}
+                          <Icon className="w-3.5 h-3.5" weight="fill" />
                           {item.label}
                         </Link>
                       </NavigationMenuLink>
