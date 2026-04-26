@@ -170,7 +170,7 @@ const PatientDashboard = () => {
             <UrgentAlerts nextAppt={nextAppt} minutesUntilNext={minutesUntilNext} waitingAppt={waitingAppt} sections={sections} navigate={navigate} />
             <section>
               <h3 className="text-sm font-bold text-foreground mb-4 px-1">Ações rápidas</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                 {getQuickActions(serviceType as any).map((action, i) => (
                   <motion.button key={action.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.04 }} onClick={() => navigate(action.path)} className="group flex flex-col items-center gap-2 p-4 rounded-2xl border border-border/40 bg-card hover:border-primary/20 transition-all duration-300">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl mb-1 shadow-sm transition-transform duration-300 group-hover:scale-110" style={{ backgroundColor: action.bg, color: action.color }}><action.icon size={24} weight="fill" /></div>
