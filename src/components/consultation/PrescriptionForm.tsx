@@ -111,7 +111,11 @@ const PrescriptionForm = () => {
     const prescriptionId = `RX-${format(now, "yyyyMMdd")}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
     // ─── Header ───
-    doc.setFillColor(26, 111, 196);
+    // Cores AloClínica (Azul Marinho e Ouro Suave para acentos)
+    const primaryBlue = [21, 35, 75]; // #15234B
+    const accentGold = [197, 165, 114]; // #C5A572
+    
+    doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
     doc.rect(0, 0, pageWidth, 28, "F");
 
     doc.setFontSize(18);
@@ -139,33 +143,38 @@ const PrescriptionForm = () => {
      // ─── Platform ID ───
      doc.setFontSize(7);
      doc.setTextColor(200, 200, 200);
-     doc.text("Emitido por Aloclinica - CNPJ 42.123.456/0001-78", 15, 25);
+     doc.text("Documento médico oficial gerado via plataforma AloClínica", 15, 25);
+     
+     // Linha decorativa fina abaixo do header
+     doc.setDrawColor(accentGold[0], accentGold[1], accentGold[2]);
+     doc.setLineWidth(0.8);
+     doc.line(0, 28, pageWidth, 28);
  
     // ─── Doctor & Patient info boxes ───
     let y = 36;
 
     // Doctor box
-    doc.setFillColor(240, 246, 255);
+    doc.setFillColor(248, 250, 252);
     doc.roundedRect(15, y, pageWidth / 2 - 20, 28, 3, 3, "F");
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setTextColor(100, 100, 100);
     doc.text("MÉDICO RESPONSÁVEL", 19, y + 6);
-    doc.setFontSize(11);
-    doc.setTextColor(30, 30, 30);
-    doc.text(`Dr(a). ${doctorInfo?.first_name} ${doctorInfo?.last_name}`, 19, y + 14);
+    doc.setFontSize(10);
+    doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+    doc.text(`${doctorInfo?.first_name} ${doctorInfo?.last_name}`, 19, y + 14);
     doc.setFontSize(9);
     doc.setTextColor(80, 80, 80);
     doc.text(`CRM: ${doctorInfo?.crm}/${doctorInfo?.crm_state}`, 19, y + 21);
 
     // Patient box
     const patientBoxX = pageWidth / 2 + 5;
-    doc.setFillColor(240, 255, 240);
+    doc.setFillColor(248, 250, 252);
     doc.roundedRect(patientBoxX, y, pageWidth / 2 - 20, 28, 3, 3, "F");
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setTextColor(100, 100, 100);
     doc.text("PACIENTE", patientBoxX + 4, y + 6);
-    doc.setFontSize(11);
-    doc.setTextColor(30, 30, 30);
+    doc.setFontSize(10);
+    doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
     doc.text(patientName, patientBoxX + 4, y + 14);
     doc.setFontSize(9);
     doc.setTextColor(80, 80, 80);
@@ -185,15 +194,15 @@ const PrescriptionForm = () => {
       y += 20;
     }
 
-    // ─── Separator ───
-    doc.setDrawColor(26, 111, 196);
-    doc.setLineWidth(1.5);
+    // ─── Separator ───    
+    doc.setDrawColor(accentGold[0], accentGold[1], accentGold[2]);
+    doc.setLineWidth(0.5);
     doc.line(15, y, pageWidth - 15, y);
     y += 4;
 
     // ─── Section title ───
-    doc.setFontSize(13);
-    doc.setTextColor(26, 111, 196);
+    doc.setFontSize(14);
+    doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
     doc.text("PRESCRIÇÃO MÉDICA", pageWidth / 2, y + 6, { align: "center" });
     y += 14;
 
@@ -208,11 +217,12 @@ const PrescriptionForm = () => {
       }
 
       // Medication card
-      doc.setFillColor(248, 250, 252);
-      doc.roundedRect(15, y, pageWidth - 30, med.instructions ? 38 : 30, 3, 3, "F");
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(240, 240, 240);
+      doc.roundedRect(15, y, pageWidth - 30, med.instructions ? 38 : 30, 2, 2, "FD");
 
       // Number circle
-      doc.setFillColor(26, 111, 196);
+      doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
       doc.circle(23, y + 8, 5, "F");
       doc.setFontSize(10);
       doc.setTextColor(255, 255, 255);
@@ -221,6 +231,7 @@ const PrescriptionForm = () => {
       // Name
       doc.setFontSize(11);
       doc.setTextColor(30, 30, 30);
+      doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
       doc.text(med.name, 32, y + 10);
 
       // Details
@@ -233,7 +244,7 @@ const PrescriptionForm = () => {
       if (med.duration) details.push(`📅 ${med.duration}`);
 
       if (details.length > 0) {
-        doc.text(details.join("   •   "), 32, detailY);
+        doc.text(details.join("   |   "), 32, detailY);
         detailY += 7;
       }
 
@@ -254,10 +265,11 @@ const PrescriptionForm = () => {
       }
 
       y += 4;
-      doc.setFillColor(255, 250, 240);
+      doc.setFillColor(254, 254, 250);
+      doc.setDrawColor(245, 240, 230);
       const obsLines = doc.splitTextToSize(observations, pageWidth - 40);
       const obsHeight = Math.max(18, obsLines.length * 5 + 12);
-      doc.roundedRect(15, y, pageWidth - 30, obsHeight, 3, 3, "F");
+      doc.roundedRect(15, y, pageWidth - 30, obsHeight, 2, 2, "FD");
       doc.setFontSize(8);
       doc.setTextColor(100, 100, 100);
       doc.text("OBSERVAÇÕES", 19, y + 6);
@@ -277,7 +289,7 @@ const PrescriptionForm = () => {
         width: 150,
         margin: 1,
         color: {
-          dark: "#1a6fc4",
+          dark: "#15234B",
           light: "#ffffff"
         }
       });
@@ -292,23 +304,24 @@ const PrescriptionForm = () => {
     }
 
     // Digital signature line
-    doc.setDrawColor(200, 200, 200);
+    doc.setDrawColor(accentGold[0], accentGold[1], accentGold[2]);
     doc.setLineWidth(0.5);
     doc.line(pageWidth / 2 - 40, footerY + 12, pageWidth / 2 + 40, footerY + 12);
-    doc.setFontSize(9);
-    doc.setTextColor(60, 60, 60);
-    doc.text(`Dr(a). ${doctorInfo?.first_name} ${doctorInfo?.last_name}`, pageWidth / 2, footerY + 18, { align: "center" });
+    doc.setFontSize(8);
+    doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+    doc.text(`ASSINADO DIGITALMENTE POR`, pageWidth / 2, footerY + 8, { align: "center" });
+    doc.text(`${doctorInfo?.first_name} ${doctorInfo?.last_name}`, pageWidth / 2, footerY + 18, { align: "center" });
     doc.setFontSize(7);
     doc.setTextColor(120, 120, 120);
     doc.text(`CRM ${doctorInfo?.crm}/${doctorInfo?.crm_state}`, pageWidth / 2, footerY + 23, { align: "center" });
 
     // Bottom bar
-    doc.setFillColor(240, 243, 247);
+    doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
     doc.rect(0, pageHeight - 12, pageWidth, 12, "F");
     doc.setFontSize(7);
-     doc.setTextColor(100, 100, 100);
+     doc.setTextColor(255, 255, 255);
     doc.text(
-       "Esta é uma receita digital assinada eletronicamente (ICP-Brasil). Valide em: assinaturadigital.iti.gov.br ou via QR Code.",
+       "Esta é uma receita digital assinada eletronicamente (PAdES/ICP-Brasil). Valide em: aloclinica.com.br/validar ou via QR Code.",
       pageWidth / 2, pageHeight - 5, { align: "center" }
     );
 
