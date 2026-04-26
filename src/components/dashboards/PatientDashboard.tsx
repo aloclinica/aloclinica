@@ -218,6 +218,12 @@ const PatientDashboard = () => {
               </motion.div>
             )}
             {sections.returnAppts && returnAppts.length > 0 && <ReturnAppointments items={returnAppts} navigate={navigate} />}
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="rounded-3xl border border-border/40 bg-gradient-to-br from-card via-card to-primary/[0.04] p-5 shadow-sm">
+              <div className="flex items-center gap-2 mb-2"><div className="w-2 h-6 bg-emerald-500 rounded-full" /><span className="text-[11px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Seu histórico</span></div>
+              <h4 className="text-base font-bold text-foreground mb-1">Relatório consolidado</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">Baixe um PDF com consultas, receitas e exames recentes para levar a outros médicos.</p>
+              <PatientHealthReport variant="default" className="w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90" />
+            </motion.div>
           </div>
         </div>
       </div>
