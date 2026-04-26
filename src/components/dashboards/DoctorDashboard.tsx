@@ -11,7 +11,7 @@ import { logError } from "@/lib/logger";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, DollarSign, Users, TrendingUp, Video, BarChart2, ArrowRight, Clock } from "lucide-react";
+import { Calendar, DollarSign, Users, TrendingUp, Video, BarChart2, ArrowRight, Clock, ShieldCheck } from "lucide-react";
 import DoctorAnalyticsCharts from "./DoctorAnalyticsCharts";
 import DoctorOnboarding from "@/components/doctor/DoctorOnboarding";
 import { useDoctorStats } from "@/hooks/useDoctorDashboard";
@@ -174,6 +174,14 @@ const DoctorDashboard = () => {
             name: `Dr(a). ${profile?.first_name || "Médico"}`,
             sub: waitingCount > 0 ? `${waitingCount} paciente${waitingCount > 1 ? "s" : ""} aguardando` : "Agenda atualizada",
           }}
+          topRight={
+            (data as any)?.crm ? (
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3 py-1.5 text-[10px] font-bold text-white shadow-lg">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+                CRM Verificado
+              </div>
+            ) : null
+          }
           kpis={[
             { label: "Hoje",      value: stats.today },
             { label: "Na fila",   value: waitingCount },

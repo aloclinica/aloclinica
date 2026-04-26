@@ -160,6 +160,22 @@ const DoctorOnboarding = () => {
 
           <Progress value={percentage} className="h-1.5 mb-4" />
 
+          {/* Motivational stats strip */}
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-2 text-center">
+              <p className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">Pacientes/mês</p>
+              <p className="text-sm font-extrabold text-foreground mt-0.5">+50</p>
+            </div>
+            <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-2 text-center">
+              <p className="text-[10px] font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Receita estim.</p>
+              <p className="text-sm font-extrabold text-foreground mt-0.5">R$ 8k+</p>
+            </div>
+            <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-2 text-center">
+              <p className="text-[10px] font-semibold text-violet-700 dark:text-violet-400 uppercase tracking-wide">Tempo médio</p>
+              <p className="text-sm font-extrabold text-foreground mt-0.5">24h</p>
+            </div>
+          </div>
+
           {/* Next step highlight */}
           {nextStep && (
             <button

@@ -16,7 +16,7 @@ import {
   Sparkle, Stethoscope, MagnifyingGlass, Plus, Warning,
   Pill, Heartbeat, TrendUp, ChatCircleDots, DotsThreeVertical,
 } from "@phosphor-icons/react";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, RefreshCw, ShieldCheck, Lock } from "lucide-react";
 import PatientOnboarding, { ONBOARDING_KEY, KYC_PENDING_KEY } from "@/components/patient/PatientOnboarding";
 import { PingoMascot } from "@/components/mascot/PingoMascot";
 import LazyAvatar from "@/components/ui/lazy-avatar";
@@ -240,6 +240,16 @@ const HeroSection = ({ firstName, nextAppt, upcoming, stats, getGreeting, getAva
         <p className="mt-2 text-[13px] font-medium leading-relaxed md:text-[15px] text-[hsl(215_30%_35%)] dark:text-white/70">{getContextualSubtitle(upcoming, stats)}</p>
       </div>
       <div className="shrink-0 -mt-2 hidden sm:block"><PingoMascot variant="wave" size={120} animate bounce className="drop-shadow-[0_12px_32px_rgba(15,42,90,0.18)] dark:drop-shadow-[0_12px_32px_rgba(0,0,0,0.45)] sm:!w-[130px] sm:!h-[130px]" /></div>
+    </div>
+    {/* Trust strip */}
+    <div className="relative z-10 px-5 pb-5 md:px-8 md:pb-6">
+      <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-2 text-[11px] font-semibold text-[hsl(215_50%_30%)] dark:text-white/70">
+        <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> CFM verificado</span>
+        <span className="hidden sm:inline opacity-30">·</span>
+        <span className="inline-flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-emerald-500" /> Dados criptografados</span>
+        <span className="hidden sm:inline opacity-30">·</span>
+        <span className="inline-flex items-center gap-1.5"><Sparkle weight="fill" className="w-3.5 h-3.5 text-amber-500" /> 4.9 ★ avaliação</span>
+      </div>
     </div>
   </section>
 );
