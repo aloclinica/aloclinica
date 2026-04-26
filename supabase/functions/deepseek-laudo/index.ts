@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
+import { callClaude } from "../_shared/anthropic.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,9 +12,6 @@ serve(async (req) => {
 
   try {
     const { raw_text, exam_type, mode } = await req.json();
-
-    const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
-    if (!DEEPSEEK_API_KEY) throw new Error("DEEPSEEK_API_KEY não configurada");
 
     let systemPrompt = "";
 
@@ -58,36 +56,22 @@ REGRAS:
 8. Tipo de exame: ${exam_type || "Não especificado"}`;
     }
 
-    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: raw_text },
-        ],
+    let structured = "";
+    try {
+      structured = await callClaude({
+        system: systemPrompt,
+        messages: [{ role: "user", content: raw_text }],
         temperature: 0.2,
-        max_tokens: 2000,
-      }),
-    });
-
-    if (!response.ok) {
-      const t = await response.text();
-      console.error("DeepSeek error:", response.status, t);
-      if (response.status === 429) {
+        max_tokens: 3000,
+      });
+    } catch (err: any) {
+      if (err?.status === 429) {
         return new Response(JSON.stringify({ error: "Muitas requisições. Aguarde um momento." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      throw new Error("Erro no serviço DeepSeek");
+      throw new Error("Erro no serviço de IA");
     }
-
-    const data = await response.json();
-    const structured = data.choices?.[0]?.message?.content || "";
 
     return new Response(JSON.stringify({ structured_text: structured }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
+import { callClaude, FAST_CLAUDE_MODEL } from "../_shared/anthropic.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,51 +11,32 @@ serve(async (req) => {
 
   try {
     const { symptoms } = await req.json();
-    const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
-    if (!DEEPSEEK_API_KEY) throw new Error("DEEPSEEK_API_KEY não configurada");
 
-    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat",
-        messages: [
-          {
-            role: "system",
-            content: `Você é um assistente de triagem médica da plataforma AloClínica. Com base nos sintomas descritos pelo paciente, sugira UMA especialidade médica adequada. Responda APENAS em JSON válido com este formato:
+    const systemPrompt = `Você é um assistente de triagem médica da plataforma AloClínica. Com base nos sintomas descritos pelo paciente, sugira UMA especialidade médica adequada. Responda APENAS em JSON válido com este formato:
 {"specialty": "nome da especialidade", "reason": "explicação curta de 1-2 frases", "urgency": "low|medium|high"}
 
 Especialidades disponíveis: Clínico Geral, Dermatologia, Ortopedia, Neurologia, Cardiologia, Endocrinologia, Oftalmologia, Pediatria.
 Se não conseguir determinar, sugira Clínico Geral.
-NUNCA faça diagnóstico. Apenas sugira a especialidade mais adequada.`,
-          },
-          {
-            role: "user",
-            content: `Sintomas do paciente: ${symptoms}`,
-          },
-        ],
-        temperature: 0.2,
-        max_tokens: 200,
-      }),
-    });
+NUNCA faça diagnóstico. Apenas sugira a especialidade mais adequada.`;
 
-    if (!response.ok) {
-      if (response.status === 429) {
+    let content = "";
+    try {
+      content = await callClaude({
+        model: FAST_CLAUDE_MODEL,
+        system: systemPrompt,
+        messages: [{ role: "user", content: `Sintomas do paciente: ${symptoms}` }],
+        temperature: 0.2,
+        max_tokens: 300,
+      });
+    } catch (err: any) {
+      if (err?.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded" }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = await response.text();
-      console.error("DeepSeek error:", response.status, t);
-      throw new Error("DeepSeek API error");
+      throw err;
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "";
-    
     let result;
     try {
       // Try to parse JSON from the response content

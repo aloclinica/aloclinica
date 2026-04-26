@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
+import { callClaude, FAST_CLAUDE_MODEL } from "../_shared/anthropic.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,51 +11,37 @@ serve(async (req) => {
 
   try {
     const { notes, diagnosis, medications } = await req.json();
-    const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
-    if (!DEEPSEEK_API_KEY) throw new Error("DEEPSEEK_API_KEY não configurada");
 
     const medsText = Array.isArray(medications)
       ? medications.map((m: Record<string, string>) => typeof m === "string" ? m : `${m.name || m.medication || ""} ${m.dosage || ""} ${m.instructions || ""}`).join("; ")
       : "";
 
-    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat",
-        messages: [
-          {
-            role: "system",
-            content: `Você é um assistente médico da plataforma AloClínica. Gere um resumo clínico em linguagem SIMPLES e acessível para o paciente (leigo). O resumo deve:
+    const systemPrompt = `Você é um assistente médico da plataforma AloClínica. Gere um resumo clínico em linguagem SIMPLES e acessível para o paciente (leigo). O resumo deve:
 1. Explicar o que o médico encontrou (sem jargão)
 2. Listar os medicamentos prescritos com orientações simples
 3. Dar 2-3 recomendações gerais de cuidado
-Seja empático, use linguagem acolhedora. Máximo 200 palavras. NÃO faça diagnósticos novos.`,
-          },
-          {
-            role: "user",
-            content: `Notas do médico: ${notes || "Não informado"}\nDiagnóstico: ${diagnosis || "Não informado"}\nMedicamentos: ${medsText || "Nenhum prescrito"}`,
-          },
-        ],
-        temperature: 0.3,
-        max_tokens: 400,
-      }),
-    });
+Seja empático, use linguagem acolhedora. Máximo 200 palavras. NÃO faça diagnósticos novos.`;
 
-    if (!response.ok) {
-      if (response.status === 429) {
+    let summary = "Resumo indisponível no momento.";
+    try {
+      summary = (await callClaude({
+        model: FAST_CLAUDE_MODEL,
+        system: systemPrompt,
+        messages: [{
+          role: "user",
+          content: `Notas do médico: ${notes || "Não informado"}\nDiagnóstico: ${diagnosis || "Não informado"}\nMedicamentos: ${medsText || "Nenhum prescrito"}`,
+        }],
+        temperature: 0.3,
+        max_tokens: 600,
+      })) || summary;
+    } catch (err: any) {
+      if (err?.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded" }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      throw new Error("DeepSeek API error");
+      throw err;
     }
-
-    const data = await response.json();
-    const summary = data.choices?.[0]?.message?.content || "Resumo indisponível no momento.";
 
     return new Response(JSON.stringify({ summary }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

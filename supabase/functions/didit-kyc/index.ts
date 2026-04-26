@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callClaudeVision } from "../_shared/anthropic.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -48,32 +49,19 @@ async function verifyFaces(sourceDataUrl: string, targetDataUrl: string) {
 }
 
 async function extractDocumentData(documentImageDataUrl: string): Promise<{ nome: string | null; cpf: string | null }> {
-  const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
-  if (!DEEPSEEK_API_KEY) return { nome: null, cpf: null };
+  if (!Deno.env.get("ANTHROPIC_API_KEY")) return { nome: null, cpf: null };
   try {
-    const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${DEEPSEEK_API_KEY}` },
-      body: JSON.stringify({
-        model: "google/gemini-2.0-flash-exp:free",
-        messages: [{
-          role: "user",
-          content: [
-            { type: "text", text: 'Extraia o Nome completo e o CPF deste documento de identidade brasileiro. Responda só JSON: {"nome":"...","cpf":"..."}. Se faltar algo, use null.' },
-            { type: "image_url", image_url: { url: documentImageDataUrl } },
-          ],
-        }],
-        max_tokens: 200,
-        temperature: 0,
-      }),
-    });
-    if (!resp.ok) return { nome: null, cpf: null };
-    const j = await resp.json();
-    const raw = (j.choices?.[0]?.message?.content || "").replace(/```json\s*|```/g, "").trim();
-    const parsed = JSON.parse(raw);
+    const raw = (await callClaudeVision({
+      prompt: 'Extraia o Nome completo e o CPF deste documento de identidade brasileiro. Responda APENAS JSON: {"nome":"...","cpf":"..."}. Se faltar algo, use null.',
+      imageDataUrl: documentImageDataUrl,
+      max_tokens: 250,
+      temperature: 0,
+    })).replace(/```json\s*|```/g, "").trim();
+    const match = raw.match(/\{[\s\S]*\}/);
+    const parsed = JSON.parse(match ? match[0] : raw);
     return { nome: parsed?.nome ?? null, cpf: parsed?.cpf ?? null };
   } catch (e: any) {
-    console.warn("[didit-kyc] OCR failed:", e);
+    console.warn("[didit-kyc] OCR (Claude vision) failed:", e);
     return { nome: null, cpf: null };
   }
 }
@@ -184,7 +172,7 @@ Deno.serve(async (req) => {
       action: match ? "kyc_approved" : "kyc_rejected",
       entity_type: "kyc", entity_id: userId, user_id: userId,
       details: {
-        provider: "compreface+deepseek_ocr",
+        provider: "compreface+claude_ocr",
         similarity, score, match, nome, cpf,
         doc_face_prob: docProb, selfie_face_prob: selfieProb,
         thresholds: { min_similarity: MIN_SIMILARITY, min_face_prob: MIN_FACE_DETECT_PROB },

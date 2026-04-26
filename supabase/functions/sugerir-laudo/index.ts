@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { callClaude } from "../_shared/anthropic.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,9 +19,6 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
-
     const systemPrompt = `Você é um médico radiologista experiente. Gere um modelo de laudo médico em HTML formatado para o tipo de exame solicitado. 
 O laudo deve conter as seguintes seções em tags HTML (h2, p, ul/li):
 1. <h2>INDICAÇÃO CLÍNICA</h2>
@@ -33,44 +31,27 @@ Use formatação HTML limpa (h2, h3, p, ul, li, strong, em). Não use tags html/
       ? `Gere um laudo modelo para: ${tipo_exame}. Contexto clínico: ${contexto}`
       : `Gere um laudo modelo para: ${tipo_exame}`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
+    let sugestao = "";
+    try {
+      sugestao = await callClaude({
+        system: systemPrompt,
+        messages: [{ role: "user", content: userPrompt }],
+        temperature: 0.3,
+        max_tokens: 2000,
+      });
+    } catch (err: any) {
+      if (err?.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit excedido. Tente novamente em alguns instantes." }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos de IA esgotados." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
+      console.error("Anthropic error:", err);
       return new Response(JSON.stringify({ error: "Erro no serviço de IA" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const data = await response.json();
-    const sugestao = data.choices?.[0]?.message?.content ?? "";
 
     return new Response(JSON.stringify({ sugestao }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
+import { callClaude } from "../_shared/anthropic.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -83,63 +84,18 @@ Inclua:
   throw new Error("Modo inválido. Use: structure, improve, suggest_conclusion, differential ou checklist");
 }
 
-async function callDeepSeek(apiKey: string, systemPrompt: string, userText: string) {
-  const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "deepseek-chat",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userText },
-      ],
+async function callAI(systemPrompt: string, userText: string) {
+  try {
+    return await callClaude({
+      system: systemPrompt,
+      messages: [{ role: "user", content: userText }],
       temperature: 0.2,
       max_tokens: 3000,
-    }),
-  });
-
-  if (!response.ok) {
-    const t = await response.text();
-    console.error("DeepSeek error:", response.status, t);
-    if (response.status === 429) throw { status: 429, message: "Rate limited" };
-    throw new Error(`DeepSeek API error: ${response.status}`);
+    });
+  } catch (err: any) {
+    if (err?.status === 429) throw { status: 429, message: "Rate limited" };
+    throw err;
   }
-
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content || "";
-}
-
-async function callLovableAI(apiKey: string, systemPrompt: string, userText: string) {
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userText },
-      ],
-      temperature: 0.2,
-      max_tokens: 3000,
-    }),
-  });
-
-  if (!response.ok) {
-    const t = await response.text();
-    console.error("Lovable AI error:", response.status, t);
-    if (response.status === 429) throw { status: 429, message: "Rate limited" };
-    if (response.status === 402) throw { status: 402, message: "Créditos insuficientes" };
-    throw new Error(`Lovable AI error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content || "";
 }
 
 serve(async (req) => {
@@ -157,28 +113,7 @@ serve(async (req) => {
 
     const systemPrompt = buildSystemPrompt(mode || "structure", exam_type || "", clinical_info || "");
 
-    const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
-    let structured = "";
-
-    // Try DeepSeek first, fallback to Lovable AI
-    if (DEEPSEEK_API_KEY) {
-      try {
-        structured = await callDeepSeek(DEEPSEEK_API_KEY, systemPrompt, raw_text);
-      } catch (err: unknown) {
-        console.warn("DeepSeek failed, trying Lovable AI fallback:", err);
-        if (LOVABLE_API_KEY) {
-          structured = await callLovableAI(LOVABLE_API_KEY, systemPrompt, raw_text);
-        } else {
-          throw err;
-        }
-      }
-    } else if (LOVABLE_API_KEY) {
-      structured = await callLovableAI(LOVABLE_API_KEY, systemPrompt, raw_text);
-    } else {
-      throw new Error("Nenhuma API de IA configurada (DEEPSEEK_API_KEY ou LOVABLE_API_KEY)");
-    }
+    const structured = await callAI(systemPrompt, raw_text);
 
     return new Response(JSON.stringify({ structured_text: structured }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

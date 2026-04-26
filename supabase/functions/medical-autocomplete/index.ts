@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
+import { callClaude, FAST_CLAUDE_MODEL } from "../_shared/anthropic.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,8 +11,6 @@ serve(async (req) => {
 
   try {
     const { text, field } = await req.json();
-    const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
-    if (!DEEPSEEK_API_KEY) throw new Error("DEEPSEEK_API_KEY não configurada");
 
     if (!text || text.length < 5) {
       return new Response(JSON.stringify({ suggestion: "" }), {
@@ -23,38 +22,26 @@ serve(async (req) => {
       ? "Você é um assistente médico. Complete o diagnóstico médico abaixo com a continuação mais provável em português brasileiro. Responda APENAS com a continuação do texto, sem repetir o que já foi escrito. Máximo 50 palavras. Inclua CID-10 quando possível."
       : "Você é um assistente médico. Complete a anotação clínica abaixo em português brasileiro. Responda APENAS com a continuação natural do texto. Máximo 80 palavras. Use termos médicos adequados.";
 
-    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: text },
-        ],
-        max_tokens: 150,
+    let suggestion = "";
+    try {
+      suggestion = (await callClaude({
+        model: FAST_CLAUDE_MODEL,
+        system: systemPrompt,
+        messages: [{ role: "user", content: text }],
+        max_tokens: 200,
         temperature: 0.3,
-      }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
+      })).trim();
+    } catch (err: any) {
+      if (err?.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded" }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = await response.text();
-      console.error("DeepSeek error:", response.status, t);
+      console.error("Anthropic error:", err);
       return new Response(JSON.stringify({ suggestion: "" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const data = await response.json();
-    const suggestion = data.choices?.[0]?.message?.content?.trim() || "";
 
     return new Response(JSON.stringify({ suggestion }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { streamClaudeAsOpenAI, FAST_CLAUDE_MODEL } from "../_shared/anthropic.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,9 +34,6 @@ serve(async (req) => {
       });
     }
     
-    const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
-    if (!DEEPSEEK_API_KEY) throw new Error("DEEPSEEK_API_KEY não configurada");
-
     const systemContent = `Você é o Pingo 🐧, o simpático pinguim assistente virtual da plataforma AloClinica. Sua função é realizar a teletriagem e suporte administrativo, seguindo estritamente as resoluções do CFM (2.314/2022) e a LGPD.
 
 DIRETRIZES DE COMPORTAMENTO:
@@ -93,32 +91,22 @@ FLUXOS DE NAVEGAÇÃO:
 OBJETIVO: Ajude o paciente a agendar consultas, tirar dúvidas sobre a plataforma, testar câmera/microfone e entender como acessar receitas médicas. Se o paciente tiver dúvidas sobre sintomas, conduza uma mini-triagem e sugira a especialidade ideal.
 ${context ? `\n--- CONTEXTO DO PACIENTE LOGADO ---\n${context}\n---\nUse essas informações para personalizar suas respostas. Se o paciente perguntar sobre suas consultas, use os dados acima.` : ""}`;
 
-    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat",
-        messages: [
-          { role: "system", content: systemContent },
-          ...messages,
-        ],
+    let sseResponse: Response;
+    try {
+      sseResponse = await streamClaudeAsOpenAI({
+        model: FAST_CLAUDE_MODEL,
+        system: systemContent,
+        messages,
         temperature: 0.3,
-        max_tokens: 500,
-        stream: true,
-      }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
+        max_tokens: 800,
+      });
+    } catch (err: any) {
+      if (err?.status === 429) {
         return new Response(JSON.stringify({ error: "Muitas mensagens! Aguarde um momento e tente novamente." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = await response.text();
-      console.error("DeepSeek error:", response.status, t);
+      console.error("Anthropic error:", err);
       return new Response(JSON.stringify({ error: "Erro no serviço de IA" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -188,7 +176,7 @@ ${context ? `\n--- CONTEXTO DO PACIENTE LOGADO ---\n${context}\n---\nUse essas i
       }
     }
 
-    return new Response(response.body, {
+    return new Response(sseResponse.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (error: any) {
