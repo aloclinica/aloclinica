@@ -558,7 +558,7 @@ const PatientDashboard = () => {
                <section>
                  <h3 className="text-sm font-bold text-foreground mb-4 px-1">Próxima consulta</h3>
                  {nextAppt ? (
-                   <NextAppointmentCard appt={nextAppt} daysUntilNext={daysUntilNext} minutesUntil={minutesUntilNext} navigate={navigate} />
+                   <NextAppointmentCard appt={nextAppt} navigate={navigate} />
                  ) : (
                    <EmptyAppointmentCard navigate={navigate} />
                  )}
@@ -632,42 +632,14 @@ const PatientDashboard = () => {
                </div>
              </motion.div>
  
-             {/* Health Metrics Sparkline List */}
-             {typedMetrics.length > 0 && (
+             {/* Return Appointments - Retorno Grátis */}
+             {sections.returnAppts && returnAppts.length > 0 && (
                <motion.div
                  initial={{ opacity: 0, x: 20 }}
                  animate={{ opacity: 1, x: 0 }}
                  transition={{ delay: 0.2 }}
-                 className="rounded-3xl border border-border/40 bg-card p-6 shadow-sm"
                >
-                 <div className="flex items-center justify-between mb-6">
-                   <h4 className="text-sm font-bold text-foreground">Sua evolução</h4>
-                   <Badge variant="outline" className="text-[10px] border-emerald-500/20 text-emerald-500 bg-emerald-500/5">
-                     +12% este mês
-                   </Badge>
-                 </div>
-                 
-                 <div className="space-y-6">
-                   {typedMetrics.slice(0, 3).map((m, i) => (
-                     <div key={i} className="flex items-center gap-4">
-                       <div className="flex-1">
-                         <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{m.type.replace(/_/g, ' ')}</p>
-                         <p className="text-lg font-black text-foreground">{m.value} <span className="text-xs font-normal text-muted-foreground">{m.unit}</span></p>
-                       </div>
-                       <div className="w-24 h-10">
-                         <Sparkline data={[m.value * 0.9, m.value * 1.1, m.value * 1.05, m.value * 0.95, m.value]} height={40} color={i % 2 === 0 ? "#3b82f6" : "#10b981"} />
-                       </div>
-                     </div>
-                   ))}
-                 </div>
-                 
-                 <Button 
-                   variant="ghost" 
-                   className="w-full mt-6 text-[11px] font-bold text-muted-foreground hover:text-primary"
-                   onClick={() => navigate("/dashboard/patient/health?role=patient")}
-                 >
-                   Ver histórico completo <ArrowRight size={14} className="ml-2" />
-                 </Button>
+                 <ReturnAppointments items={returnAppts as ReturnAppt[]} navigate={navigate} />
                </motion.div>
              )}
            </div>
@@ -1205,49 +1177,20 @@ const ReturnAppointments = ({ items, navigate }: { items: ReturnAppt[]; navigate
    );
  };
 
-const EmptyAppointmentCard = ({ navigate }: { navigate: ReturnType<typeof useNavigate> }) => (
-  <Card className="relative overflow-hidden border-dashed border-border/20 bg-gradient-to-b from-card to-muted/20">
-    <CardContent className="flex flex-col items-center py-12 text-center">
-      <div className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 h-32 w-32 rounded-full bg-[hsl(var(--p-primary))]/6 blur-3xl" />
-
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <PingoMascot variant="wave" size={90} bounce animate />
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15, duration: 0.45 }}
-        className="mt-5"
-      >
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-[hsl(var(--p-primary))]/8 px-3.5 py-1.5 mb-3">
-          <Stethoscope size={12} weight="fill" className="text-[hsl(var(--p-primary))]" />
-          <span className="text-[10px] font-bold text-[hsl(var(--p-primary))] uppercase tracking-wider">Agenda livre</span>
-        </div>
-        <p className="font-[Manrope] text-[17px] font-bold text-foreground">Tudo tranquilo por aqui! 🎉</p>
-        <p className="mt-2 text-[12.5px] text-muted-foreground max-w-[280px] mx-auto leading-relaxed">
-          Que tal agendar uma consulta? Encontre especialistas e agende em poucos toques.
-        </p>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.4 }}
-      >
-        <Button
-          className="mt-6 rounded-full bg-[hsl(var(--p-primary))] text-white px-8 py-3 h-auto text-[14px] font-bold shadow-[0_4px_16px_rgba(0,52,127,.2)] hover:shadow-[0_6px_24px_rgba(0,52,127,.3)] hover:scale-[1.02] active:scale-[0.97] transition-all duration-200"
-          onClick={() => navigate("/dashboard/schedule?role=patient")}
-        >
-          <Plus size={16} weight="bold" className="mr-2" /> Agendar agora
-        </Button>
-      </motion.div>
-    </CardContent>
-  </Card>
-);
+ const EmptyAppointmentCard = ({ navigate }: { navigate: ReturnType<typeof useNavigate> }) => (
+   <div className="rounded-[32px] border-2 border-dashed border-border/40 bg-muted/20 p-8 flex flex-col items-center text-center">
+     <div className="p-4 rounded-full bg-primary/10 mb-4">
+       <CalendarCheck size={32} weight="fill" className="text-primary opacity-40" />
+     </div>
+     <p className="text-lg font-bold text-foreground mb-2">Sem consultas agendadas</p>
+     <p className="text-sm text-muted-foreground max-w-xs mb-6">Você ainda não tem nenhuma consulta para os próximos dias.</p>
+     <Button 
+       onClick={() => navigate("/dashboard/schedule?role=patient")}
+       className="rounded-2xl px-8 h-12 font-bold bg-primary text-white shadow-lg hover:shadow-xl transition-all"
+     >
+       Agendar primeira consulta
+     </Button>
+   </div>
+ );
 
 export default PatientDashboard;
