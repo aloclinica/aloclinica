@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { getDoctorNav } from "./doctorNav";
-import { TrendingUp, Wallet, ArrowUpRight, Clock, CheckCircle2, XCircle, Building2, AlertCircle, ArrowLeft, MoreHorizontal, Sparkles } from "lucide-react";
+ import { TrendingUp, Wallet, ArrowUpRight, Clock, CheckCircle2, XCircle, Building2, AlertCircle, ArrowLeft, MoreHorizontal, Sparkles, History } from "lucide-react";
  import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
  import { ptBR } from "date-fns/locale";
  import { cn } from "@/lib/utils";
