@@ -45,6 +45,7 @@ const Notifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [showPrefs, setShowPrefs] = useState(false);
 
   useEffect(() => {
     if (user) fetchNotifications();
