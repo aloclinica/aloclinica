@@ -23,6 +23,7 @@ import { gerarHashDocumento, gerarCodigoVerificacao } from "@/lib/signature";
 import { usePrescriptionData } from "@/hooks/usePrescriptionData";
 import { useDigitalSignature } from "@/hooks/useDigitalSignature";
 import type { Medication } from "@/hooks/usePrescriptionData";
+import logoReceita from "@/assets/logo-receita.png";
 
 const doctorNav = [
   { label: "Início", href: "/dashboard", icon: <Clock className="w-4 h-4" /> },
@@ -119,10 +120,9 @@ const PrescriptionForm = () => {
     doc.setFontSize(9);
      doc.text("Plataforma de Telemedicina", 15, 21);
  
-     // Logo da Plataforma
+     // Logo da Plataforma (Pingo) — quadrada, alinhada à direita do header azul
      try {
-       // Posicionando a logo à direita no header azul
-       doc.addImage("/logo.png", "PNG", pageWidth - 45, 4, 30, 15);
+       doc.addImage(logoReceita, "PNG", pageWidth - 35, 3, 22, 22);
      } catch (e) {
        // Silencioso se a logo não carregar
      }
