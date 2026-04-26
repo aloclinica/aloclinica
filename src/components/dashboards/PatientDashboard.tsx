@@ -105,7 +105,7 @@ const getContextualSubtitle = (upcoming: unknown[], stats: { total: number } | n
  */
 const getServiceTypeFromParam = (searchParams: URLSearchParams): ServiceType | null => {
   const service = searchParams.get("service")?.toLowerCase();
-  if (service === "telemedicina" || service === "cartao" || service === "oftalmologia") {
+  if (service === "telemedicina" || service === "oftalmologia") {
     return service;
   }
   return null;
