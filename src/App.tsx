@@ -14,6 +14,7 @@ const ProtectedRoute = lazy(() => import("@/components/auth/ProtectedRoute"));
 import { logError } from "@/lib/logger";
 import { prefetchOnIdle } from "./hooks/use-prefetch-route";
 import ScrollToTop from "./components/ScrollToTop";
+import { PingoAssistantChat } from "@/components/ai/PingoAssistantChat";
 
 const Auth = lazy(() => import("./pages/Auth"));
 
@@ -296,6 +297,8 @@ const App = () => {
                     <SubdomainRedirectProvider />
                   </Suspense>
                   <ScrollToTop />
+                  
+                  <PingoAssistantChat />
                   
                   <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:top-2 focus:left-2 focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-medium">
                     Pular para o conteúdo
