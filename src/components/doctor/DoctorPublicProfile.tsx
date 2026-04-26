@@ -40,6 +40,7 @@ const DoctorPublicProfile = () => {
   const [doctor, setDoctor] = useState<DoctorPublicData | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [ratingFilter, setRatingFilter] = useState<number | null>(null);
 
   useEffect(() => {
     if (doctorId) fetchDoctor();
