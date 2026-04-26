@@ -597,9 +597,39 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
                 </p>
               </div>
 
-              <Button onClick={() => setKycReady(true)} className="w-full h-12 rounded-xl gap-2 text-sm font-bold">
-                <Camera className="w-4 h-4" /> Iniciar verificação
-              </Button>
+              <div className="space-y-3">
+                <Button onClick={() => setKycReady(true)} className="w-full h-12 rounded-xl gap-2 text-sm font-bold">
+                  <Camera className="w-4 h-4" /> Iniciar verificação
+                </Button>
+
+                {IS_DEV && (
+                  <Button 
+                    variant="outline"
+                    onClick={async () => {
+                      if (!user) return;
+                      try {
+                        await db.from("kyc_verificacoes" as any).insert({
+                          user_id: user.id,
+                          status: "approved",
+                          similarity: 1.0,
+                          tipo: "paciente",
+                        });
+                        setKycCompleted(true);
+                        localStorage.removeItem(KYC_PENDING_KEY);
+                        toast.success("KYC pulado (Dev)", { description: "Você pode prosseguir agora." });
+                      } catch (err) {
+                        // Mesmo se a inserção falhar (RLS, etc.), libera o avanço em modo dev
+                        setKycCompleted(true);
+                        localStorage.removeItem(KYC_PENDING_KEY);
+                        toast.success("KYC pulado (Dev — local)", { description: "Avanço liberado para teste." });
+                      }
+                    }}
+                    className="w-full h-10 rounded-xl border-dashed border-primary/40 text-primary/70 hover:text-primary hover:border-primary text-xs font-bold gap-2"
+                  >
+                    <ShieldCheck className="w-4 h-4" /> Pular Verificação (Dev)
+                  </Button>
+                )}
+              </div>
             </div>
           );
         }
