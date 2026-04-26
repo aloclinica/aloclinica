@@ -87,8 +87,9 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Base — pílula sólida estilo "Pingo Card" para todos
-  const linkBtnBase = "text-[13px] font-bold px-4 h-9 rounded-full transition-all duration-200 inline-flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer border hover:-translate-y-0.5 active:translate-y-0";
+  // Base — pílula sólida estilo "Pingo Card" para todos (responsivo)
+  // lg: compacto (px-2.5, label oculto exceto Pingo Card) | xl: médio | 2xl: completo
+  const linkBtnBase = "text-[12px] xl:text-[13px] font-bold px-2.5 xl:px-3.5 2xl:px-4 h-9 rounded-full transition-all duration-200 inline-flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer border hover:-translate-y-0.5 active:translate-y-0";
 
   // Cada item: gradiente sólido próprio + ícone branco/escuro + sombra colorida
   const itemColorMap: Record<string, { cls: string; icon: React.ElementType }> = {
@@ -115,26 +116,26 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
           : "bg-background/80 backdrop-blur-sm border-transparent"
       )}
     >
-      <div className="max-w-[1800px] mx-auto flex items-center gap-4 h-14 lg:h-[64px] px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
+      <div className="max-w-[1800px] mx-auto flex items-center gap-2 lg:gap-3 xl:gap-4 h-14 lg:h-[64px] px-4 sm:px-6 lg:px-6 xl:px-10 2xl:px-16">
         <Link to="/" className="flex items-center gap-2 shrink-0 group">
           <img src={logoUrl} alt="Logo" className="w-9 h-9 rounded-xl object-contain transition-transform duration-200 group-hover:scale-105" width={36} height={36} />
-          <span className="text-xl font-extrabold text-[#1a1c1e] tracking-tight">
+          <span className="text-lg xl:text-xl font-extrabold text-[#1a1c1e] tracking-tight">
             Alo<span className="text-[#1a4fcf]">Clinica</span>
           </span>
         </Link>
 
         <div className="hidden lg:flex items-center flex-1 justify-center min-w-0">
           <NavigationMenu>
-            <NavigationMenuList className="gap-0.5">
+            <NavigationMenuList className="gap-0.5 xl:gap-1">
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
                   {(() => {
                     const s = getItemStyle("Início");
                     const I = s.icon;
                     return (
-                      <Link to="/" className={cn(linkBtnBase, s.cls)}>
-                        <I className="w-3.5 h-3.5" weight="fill" />
-                        Início
+                      <Link to="/" aria-label="Início" title="Início" className={cn(linkBtnBase, s.cls)}>
+                        <I className="w-3.5 h-3.5 shrink-0" weight="fill" />
+                        <span className="hidden xl:inline">Início</span>
                       </Link>
                     );
                   })()}
@@ -142,9 +143,9 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <NavigationMenuTrigger className={triggerCls}>
-                  <Info className="w-3.5 h-3.5" weight="fill" />
-                  Sobre Nós
+                <NavigationMenuTrigger className={triggerCls} aria-label="Sobre Nós" title="Sobre Nós">
+                  <Info className="w-3.5 h-3.5 shrink-0" weight="fill" />
+                  <span className="hidden xl:inline">Sobre Nós</span>
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul className="grid w-[400px] gap-2 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] bg-popover/95 backdrop-blur-xl rounded-2xl border border-border/20 shadow-elevated">
@@ -183,15 +184,21 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
                 {menuItems.filter((item: any) => item.label !== "Início").map((item: any, idx: number) => {
                   const style = getItemStyle(item.label);
                   const Icon = style.icon;
+                  // Pingo Card sempre mostra o texto (é o destaque)
+                  const alwaysShowLabel = item.label === "Pingo Card";
                   return (
                     <NavigationMenuItem key={idx}>
                       <NavigationMenuLink asChild>
                         <Link 
                           to={item.href || item.url} 
+                          aria-label={item.label}
+                          title={item.label}
                           className={cn(linkBtnBase, style.cls)}
                         >
-                          <Icon className="w-3.5 h-3.5" weight="fill" />
-                          {item.label}
+                          <Icon className="w-3.5 h-3.5 shrink-0" weight="fill" />
+                          <span className={cn(alwaysShowLabel ? "inline" : "hidden xl:inline")}>
+                            {item.label}
+                          </span>
                         </Link>
                       </NavigationMenuLink>
                     </NavigationMenuItem>
@@ -202,29 +209,31 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
         </div>
 
         {/* Right actions */}
-        <div className="hidden lg:flex items-center gap-2 shrink-0">
-          <LanguageSwitcher />
+        <div className="hidden lg:flex items-center gap-1.5 xl:gap-2 shrink-0">
+          <div className="hidden xl:block">
+            <LanguageSwitcher />
+          </div>
 
           {user ? (
             <Button
               variant="outline"
               size="sm"
-              className="rounded-full gap-2 h-9 px-2.5 border-border/60 bg-card/80 transition-all duration-150 max-w-[180px]"
+              className="rounded-full gap-2 h-9 px-2.5 border-border/60 bg-card/80 transition-all duration-150 max-w-[140px] xl:max-w-[180px]"
               onClick={() => navigate("/dashboard")}
             >
               <span className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground shrink-0">
                 {profile?.first_name?.[0]?.toUpperCase() || "U"}
               </span>
-              <span className="text-foreground text-[13px] truncate">
+              <span className="text-foreground text-[12px] xl:text-[13px] truncate">
                 {profile?.first_name ? profile.first_name : "Painel"}
               </span>
             </Button>
           ) : (
-            <div className="flex items-center gap-3">
-              <Button size="sm" variant="outline" className="rounded-full h-9 px-4 border-[#1a4fcf] text-[#1a4fcf] hover:bg-[#1a4fcf]/5 font-semibold text-[13px]" onClick={() => navigate("/agendar")}>
+            <div className="flex items-center gap-1.5 xl:gap-2">
+              <Button size="sm" variant="outline" className="rounded-full h-9 px-3 xl:px-4 border-[#1a4fcf] text-[#1a4fcf] hover:bg-[#1a4fcf]/5 font-semibold text-[12px] xl:text-[13px]" onClick={() => navigate("/agendar")}>
                 Agendar
               </Button>
-              <Button size="sm" className="rounded-full h-9 px-4 bg-[#1a4fcf] text-white hover:bg-[#1a4fcf]/90 font-semibold text-[13px]" onClick={() => navigate("/paciente")}>
+              <Button size="sm" className="rounded-full h-9 px-3 xl:px-4 bg-[#1a4fcf] text-white hover:bg-[#1a4fcf]/90 font-semibold text-[12px] xl:text-[13px]" onClick={() => navigate("/paciente")}>
                 Entrar
               </Button>
             </div>
