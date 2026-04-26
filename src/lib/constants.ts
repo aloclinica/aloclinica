@@ -1,5 +1,12 @@
 // import pingoLogo from "@/assets/logo-pingo.png";
 
+
+// ─── Dev Mode ────────────────────────────────────────────────────────────────
+export const IS_DEV = 
+  import.meta.env.DEV || 
+  (typeof window !== "undefined" && window.localStorage.getItem("aloclinica_dev_mode") === "true") ||
+  (typeof window !== "undefined" && window.location.hostname.includes("lovable.app"));
+
 // ─── Financial ────────────────────────────────────────────────────────────────
 export const DEFAULT_CONSULTATION_PRICE = 89;
 export const PLATFORM_FEE_PERCENT       = 10;
