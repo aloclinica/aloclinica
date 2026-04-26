@@ -16,7 +16,8 @@ import {
 import NotificationBell from "@/components/notifications/NotificationBell";
 import ThemeToggle from "@/components/ThemeToggle";
 import GlobalCommand from "@/components/GlobalCommand";
-import { PINGO_LOGO_URL } from "@/lib/constants";
+import { PINGO_LOGO_URL, IS_DEV } from "@/lib/constants";
+import { DevModeToggle } from "@/components/dev/DevModeToggle";
 const logoImg = PINGO_LOGO_URL;
 const mascotImg = PINGO_LOGO_URL;
 import DashboardBreadcrumbs from "@/components/dashboards/DashboardBreadcrumbs";
