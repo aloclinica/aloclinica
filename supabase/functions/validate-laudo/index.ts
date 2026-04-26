@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
+import { callClaude } from "../_shared/anthropic.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -35,11 +36,6 @@ serve(async (req) => {
       );
     }
 
-    const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
-    if (!DEEPSEEK_API_KEY) {
-      throw new Error("DEEPSEEK_API_KEY não configurada");
-    }
-
     const systemPrompt = `Você é um especialista em validação de laudos médicos. Analise o laudo abaixo e retorne um JSON estruturado com a validação.
 
 CRITÉRIOS DE VALIDAÇÃO:
@@ -65,39 +61,20 @@ RETORNE SEMPRE um JSON válido com este formato:
 
 Tipo de exame: ${exam_type || "Não especificado"}`;
 
-    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `Valide este laudo:\n\n${laudo_text}` },
-        ],
-        temperature: 0.1,
-        max_tokens: 1500,
-      }),
+    const responseText = await callClaude({
+      system: systemPrompt,
+      messages: [{ role: "user", content: `Valide este laudo:\n\n${laudo_text}` }],
+      temperature: 0.1,
+      max_tokens: 2000,
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("DeepSeek error:", response.status, errorText);
-      throw new Error(`DeepSeek API error: ${response.status}`);
-    }
-
-    const data = await response.json();
     let validationJson;
 
     try {
-      const responseText = data.choices?.[0]?.message?.content || "{}";
       // Extract JSON from response (might be wrapped in markdown code blocks)
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      validationJson = JSON.parse(jsonMatch ? jsonMatch[0] : responseText);
+      const jsonMatch = (responseText || "{}").match(/\{[\s\S]*\}/);
+      validationJson = JSON.parse(jsonMatch ? jsonMatch[0] : responseText || "{}");
     } catch {
-      console.error("Failed to parse DeepSeek response as JSON");
+      console.error("Failed to parse Claude response as JSON");
       // Return a default validation if parsing fails
       validationJson = {
         is_valid: true,
