@@ -267,127 +267,52 @@ const PatientDashboard = () => {
     );
   }
 
-  return (
-    <DashboardLayout title="Perfil do Paciente" nav={getPatientNav("home")} role="patient">
-      {showOnboarding && <PatientOnboarding onComplete={() => setShowOnboarding(false)} />}
-
-       <div ref={scrollRef} className="space-y-6 pb-24 md:pb-12">
-
-        {/* Pull-to-refresh indicator */}
-        <AnimatePresence>
-          {(isPulling || isRefreshing) && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 40 }}
-              exit={{ opacity: 0, height: 0 }}
-              className="flex items-center justify-center"
-            >
-              <RefreshCw className={cn("w-5 h-5 text-muted-foreground", isRefreshing && "animate-spin")} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* KYC Pending Warning */}
-        {localStorage.getItem(KYC_PENDING_KEY) === "true" && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl border border-destructive/20 bg-destructive/5 p-4 flex items-center gap-3"
-          >
-            <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-5 h-5 text-destructive" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-foreground">Verificação pendente</p>
-              <p className="text-xs text-muted-foreground">Complete o KYC para agendar consultas e usar o app.</p>
-            </div>
-            <Button size="sm" variant="destructive" className="rounded-xl shrink-0" onClick={() => navigate("/dashboard/profile?role=patient&kyc=open")}>
-              Verificar
-            </Button>
-          </motion.div>
-        )}
-
-        {/* Data fetch error */}
-        {(statsError || upcomingError) && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl border border-destructive/20 bg-destructive/5 p-4 flex items-center gap-3"
-          >
-            <Warning size={20} weight="fill" className="text-destructive shrink-0" />
-            <p className="flex-1 text-sm font-semibold text-destructive">Erro ao carregar dados</p>
-            <Button size="sm" variant="outline" className="rounded-xl shrink-0" onClick={() => refetchStats()}>
-              Tentar novamente
-            </Button>
-          </motion.div>
-        )}
-
-         {/* Hero, Quick Actions and Summary Row */}
+   return (
+     <DashboardLayout title="Perfil do Paciente" nav={getPatientNav("home")} role="patient">
+       {showOnboarding && <PatientOnboarding onComplete={() => setShowOnboarding(false)} />}
+       <div ref={scrollRef} className="space-y-6 pb-24 md:pb-12 max-w-7xl mx-auto">
+         {/* Top Alerts */}
+         {localStorage.getItem(KYC_PENDING_KEY) === "true" && (
+           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-destructive/20 bg-destructive/5 p-4 flex items-center gap-3">
+             <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0"><AlertTriangle className="w-5 h-5 text-destructive" /></div>
+             <div className="flex-1 min-w-0">
+               <p className="text-sm font-bold text-foreground">Verificação pendente</p>
+               <p className="text-xs text-muted-foreground">Complete o KYC para agendar consultas.</p>
+             </div>
+             <Button size="sm" variant="destructive" className="rounded-xl shrink-0" onClick={() => navigate("/dashboard/profile?role=patient&kyc=open")}>Verificar</Button>
+           </motion.div>
+         )}
+ 
+         {/* Main Grid */}
          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-           {/* Main Column (8/12) */}
            <div className="lg:col-span-8 space-y-6">
-             {/* ═══════════ HERO BANNER ═══════════ */}
              <HeroSection firstName={firstName} nextAppt={nextAppt} upcoming={upcoming} stats={stats} typedMetrics={typedMetrics} getGreeting={getGreeting} getAvatarRingColor={getAvatarRingColor} getContextualSubtitle={getContextualSubtitle} profile={profile} />
- 
-             {/* ═══════════ URGENT BANNER & LIVE ═══════════ */}
              <UrgentAlerts nextAppt={nextAppt} minutesUntilNext={minutesUntilNext} waitingAppt={waitingAppt} sections={sections} navigate={navigate} />
- 
-             {/* ═══════════ QUICK ACTIONS ═══════════ */}
-             {sections.quickActions && (
-               <section>
-                 <h3 className="text-sm font-bold text-foreground mb-4 px-1">Ações rápidas</h3>
-                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                   {getQuickActions(serviceType).map((action, i) => (
-                     <motion.button
-                       key={action.label}
-                       initial={{ opacity: 0, y: 16 }}
-                       animate={{ opacity: 1, y: 0 }}
-                       transition={{ delay: 0.1 + i * 0.04, type: "spring", stiffness: 320, damping: 26 }}
-                       whileTap={{ scale: 0.95 }}
-                       whileHover={{ y: -4 }}
-                       onClick={() => navigate(action.path)}
-                       className="group flex flex-col items-center gap-2 p-4 rounded-2xl border border-border/40 bg-card hover:border-primary/20 hover:bg-primary/[0.02] transition-all duration-300"
-                     >
-                       <div
-                         className="flex h-12 w-12 items-center justify-center rounded-xl mb-1 shadow-sm transition-transform duration-300 group-hover:scale-110"
-                         style={{ backgroundColor: action.bg, color: action.color }}
-                       >
-                         <action.icon size={24} weight="fill" />
-                       </div>
-                       <div className="flex flex-col items-center">
-                         <span className="text-[13px] font-bold text-foreground leading-tight">{action.label}</span>
-                         <span className="text-[10px] text-muted-foreground mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">Abrir</span>
-                       </div>
-                     </motion.button>
-                   ))}
-                 </div>
-               </section>
-             )}
- 
-             {/* ═══════════ SUMMARY / KPIs ═══════════ */}
+             <section>
+               <h3 className="text-sm font-bold text-foreground mb-4 px-1">Ações rápidas</h3>
+               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                 {getQuickActions(serviceType).map((action, i) => (
+                   <motion.button key={action.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.04 }} onClick={() => navigate(action.path)} className="group flex flex-col items-center gap-2 p-4 rounded-2xl border border-border/40 bg-card hover:border-primary/20 transition-all duration-300">
+                     <div className="flex h-12 w-12 items-center justify-center rounded-xl mb-1 shadow-sm transition-transform duration-300 group-hover:scale-110" style={{ backgroundColor: action.bg, color: action.color }}>
+                       <action.icon size={24} weight="fill" />
+                     </div>
+                     <span className="text-[13px] font-bold text-foreground">{action.label}</span>
+                   </motion.button>
+                 ))}
+               </div>
+             </section>
              {sections.kpis && (
                <section>
                  <h3 className="text-sm font-bold text-foreground mb-4 px-1">Resumo geral</h3>
                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                    {[
-                     { label: "Consultas", value: stats?.total ?? 0, icon: CalendarCheck, color: "#3b82f6", bg: "bg-blue-500/8", trend: "up" },
-                     { label: "Receitas", value: stats?.prescriptions ?? 0, icon: FileText, color: "#10b981", bg: "bg-emerald-500/8", trend: "up" },
-                     { label: "Documentos", value: stats?.documents ?? 0, icon: UploadSimple, color: "#f59e0b", bg: "bg-amber-500/8", trend: "neutral" },
-                     { label: "Próx. retorno", value: returnAppts.length > 0 ? "Ativo" : "—", icon: Clock, color: "#8b5cf6", bg: "bg-purple-500/8", trend: "neutral" },
+                     { label: "Consultas", value: stats?.total ?? 0, icon: CalendarCheck, color: "#3b82f6", bg: "bg-blue-500/8" },
+                     { label: "Receitas", value: stats?.prescriptions ?? 0, icon: FileText, color: "#10b981", bg: "bg-emerald-500/8" },
+                     { label: "Documentos", value: stats?.documents ?? 0, icon: UploadSimple, color: "#f59e0b", bg: "bg-amber-500/8" },
+                     { label: "Próx. retorno", value: returnAppts.length > 0 ? "Ativo" : "—", icon: Clock, color: "#8b5cf6", bg: "bg-purple-500/8" },
                    ].map((stat, i) => (
-                     <motion.div
-                       key={stat.label}
-                       initial={{ opacity: 0, y: 14 }}
-                       animate={{ opacity: 1, y: 0 }}
-                       transition={{ delay: 0.15 + i * 0.05 }}
-                       className="flex flex-col p-4 rounded-2xl border border-border/40 bg-card"
-                     >
-                       <div className="flex items-center justify-between mb-3">
-                         <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg", stat.bg)}>
-                           <stat.icon size={18} weight="fill" style={{ color: stat.color }} />
-                         </div>
-                         {stat.trend === "up" && <TrendUp size={12} weight="bold" className="text-emerald-500 opacity-60" />}
-                       </div>
+                     <motion.div key={stat.label} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + i * 0.05 }} className="flex flex-col p-4 rounded-2xl border border-border/40 bg-card">
+                       <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg mb-3", stat.bg)} style={{ color: stat.color }}><stat.icon size={18} weight="fill" /></div>
                        <p className="text-xl font-extrabold text-foreground leading-none">{stat.value}</p>
                        <p className="text-[11px] font-medium text-muted-foreground mt-1">{stat.label}</p>
                      </motion.div>
@@ -395,160 +320,33 @@ const PatientDashboard = () => {
                  </div>
                </section>
              )}
- 
-             {/* ═══════════ NEXT APPOINTMENT ═══════════ */}
              {sections.nextAppt && (
                <section>
                  <h3 className="text-sm font-bold text-foreground mb-4 px-1">Próxima consulta</h3>
-                 {nextAppt ? (
-                   <NextAppointmentCard appt={nextAppt} navigate={navigate} />
-                 ) : (
-                   <EmptyAppointmentCard navigate={navigate} />
-                 )}
+                 {nextAppt ? <NextAppointmentCard appt={nextAppt} navigate={navigate} /> : <EmptyAppointmentCard navigate={navigate} />}
                </section>
              )}
            </div>
- 
-           {/* Side Column (4/12) */}
            <div className="lg:col-span-4 space-y-6">
-             {/* ═══════════ HEALTH TIP ═══════════ */}
              {sections.healthTip && (
-               <motion.div
-                 initial={{ opacity: 0, x: 20 }}
-                 animate={{ opacity: 1, x: 0 }}
-                 className="rounded-3xl border border-border/40 bg-card p-6 shadow-sm relative overflow-hidden"
-               >
-                 <div className="absolute top-4 right-4 text-blue-500/20"><Sparkle size={48} weight="fill" /></div>
+               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="rounded-3xl border border-border/40 bg-card p-6 shadow-sm relative overflow-hidden">
                  <div className="flex items-center gap-2 mb-4">
-                   <div className="w-2 h-6 bg-blue-500 rounded-full" />
-                   <span className="text-[11px] font-black uppercase tracking-widest text-blue-500">Dica de saúde</span>
+                   <div className="w-2 h-6 bg-blue-500 rounded-full" /><span className="text-[11px] font-black uppercase tracking-widest text-blue-500">Dica de saúde</span>
                  </div>
                  <h4 className="text-lg font-bold text-foreground mb-2">{todayTip.title}</h4>
                  <p className="text-sm text-muted-foreground leading-relaxed mb-6">{todayTip.body}</p>
-                 
                  <div className="flex items-center gap-4 bg-muted/40 p-4 rounded-2xl border border-border/10">
                    <div className="text-3xl">{todayTip.emoji}</div>
-                   <div className="flex-1">
-                     <p className="text-2xl font-black text-foreground leading-none">{todayTip.metric}</p>
-                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">{todayTip.metricLabel}</p>
-                   </div>
-                   <div className="h-10 w-10 rounded-full border-4 border-blue-500/20 border-t-blue-500 flex items-center justify-center">
-                     <span className="text-[8px] font-bold">100%</span>
-                   </div>
+                   <div className="flex-1"><p className="text-2xl font-black text-foreground leading-none">{todayTip.metric}</p><p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">{todayTip.metricLabel}</p></div>
                  </div>
                </motion.div>
              )}
- 
-             {/* ═══════════ FIND DOCTOR ═══════════ */}
-             <motion.div
-               initial={{ opacity: 0, x: 20 }}
-               animate={{ opacity: 1, x: 0 }}
-               transition={{ delay: 0.1 }}
-               className="rounded-3xl border border-border/40 bg-card p-6 shadow-sm"
-             >
-               <div className="flex items-center gap-2 mb-4">
-                 <div className="w-2 h-6 bg-emerald-500 rounded-full" />
-                 <span className="text-[11px] font-black uppercase tracking-widest text-emerald-500">Encontre seu médico</span>
-               </div>
-               <p className="text-sm font-bold text-foreground mb-4">Busque por especialidade ou médico</p>
-               
-               <div className="relative group mb-4">
-                 <MagnifyingGlass size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                 <input 
-                   type="text" 
-                   placeholder="Buscar médico ou especialidade..."
-                   className="w-full bg-muted/50 border border-border/40 rounded-2xl py-3.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-card transition-all"
-                   onClick={() => navigate("/dashboard/schedule?role=patient")}
-                 />
-                 <div className="absolute right-3 top-1/2 -translate-y-1/2 bg-emerald-500 text-white p-2 rounded-xl shadow-md cursor-pointer hover:bg-emerald-600 transition-colors"
-                   onClick={() => navigate("/dashboard/schedule?role=patient")}>
-                   <MagnifyingGlass size={16} weight="bold" />
-                 </div>
-               </div>
- 
-               <div className="flex gap-2 flex-wrap">
-                 {["Cardiologia", "Clínico Geral", "Pediatria", "Dermatologia"].map(s => (
-                   <button key={s} className="text-[10px] font-bold px-3 py-1.5 rounded-full bg-muted/50 border border-border/40 hover:bg-primary/10 hover:border-primary/20 transition-all text-muted-foreground hover:text-primary">
-                     {s}
-                   </button>
-                 ))}
-               </div>
-             </motion.div>
- 
-             {/* Return Appointments - Retorno Grátis */}
-             {sections.returnAppts && returnAppts.length > 0 && (
-               <motion.div
-                 initial={{ opacity: 0, x: 20 }}
-                 animate={{ opacity: 1, x: 0 }}
-                 transition={{ delay: 0.2 }}
-               >
-                 <ReturnAppointments items={returnAppts as ReturnAppt[]} navigate={navigate} />
-               </motion.div>
-             )}
+             {sections.returnAppts && returnAppts.length > 0 && <ReturnAppointments items={returnAppts as ReturnAppt[]} navigate={navigate} />}
            </div>
          </div>
- 
-         {/* Lower Content Grid */}
-         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-           {/* Prescriptions */}
-           {sections.activePrescriptions && (stats?.prescriptions ?? 0) > 0 && (
-             <motion.div
-               initial={{ opacity: 0, y: 20 }}
-               animate={{ opacity: 1, y: 0 }}
-               className="rounded-3xl border border-border/40 bg-card p-6"
-             >
-               <div className="flex items-center justify-between mb-6">
-                 <div className="flex items-center gap-3">
-                   <div className="p-2 rounded-xl bg-rose-500/10 text-rose-500"><Pill size={20} weight="fill" /></div>
-                   <h3 className="font-bold">Receitas ativas</h3>
-                 </div>
-                 <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate("/dashboard/history?role=patient")}>Ver todas</Button>
-               </div>
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 {[...Array(Math.min(stats?.prescriptions ?? 0, 4))].map((_, i) => (
-                   <div key={i} className="flex items-center gap-3 p-4 rounded-2xl bg-muted/30 border border-border/10">
-                     <div className="h-10 w-10 rounded-xl bg-white dark:bg-muted flex items-center justify-center shadow-sm">
-                       <FileText size={20} className="text-blue-500" />
-                     </div>
-                     <div className="flex-1">
-                       <p className="text-sm font-bold truncate">Receita #{1042 + i}</p>
-                       <p className="text-[10px] text-muted-foreground">Válida até 12/06/26</p>
-                     </div>
-                   </div>
-                 ))}
-               </div>
-             </motion.div>
-           )}
- 
-           {/* Recent Appointments List */}
-           {upcoming.length > 0 && (
-             <motion.div
-               initial={{ opacity: 0, y: 20 }}
-               animate={{ opacity: 1, y: 0 }}
-               className="rounded-3xl border border-border/40 bg-card p-6"
-             >
-               <div className="flex items-center justify-between mb-6">
-                 <div className="flex items-center gap-3">
-                   <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500"><CalendarCheck size={20} weight="fill" /></div>
-                   <h3 className="font-bold">Seu histórico</h3>
-                 </div>
-                 <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate("/dashboard/appointments?role=patient")}>Ver histórico</Button>
-               </div>
-               <div className="space-y-3">
-                 {upcoming.slice(0, 3).map((appt: any, i: number) => (
-                   <div key={i} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/dashboard/appointments?role=patient`)}>
-                     <LazyAvatar name={appt.doctor_name} className="h-10 w-10" />
-                     <div className="flex-1">
-                       <p className="text-sm font-bold">{appt.doctor_name}</p>
-                       <p className="text-[10px] text-muted-foreground">{format(new Date(appt.scheduled_at), "dd MMMM yyyy", { locale: ptBR })}</p>
-                     </div>
-                     <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-widest">{appt.status}</Badge>
-                   </div>
-                 ))}
-               </div>
-             </motion.div>
-           )}
-         </div>
+       </div>
+     </DashboardLayout>
+   );
 
         {/* ═══════════ URGENT BANNER ═══════════ */}
         <AnimatePresence>
