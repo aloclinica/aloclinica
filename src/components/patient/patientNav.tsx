@@ -31,10 +31,6 @@ export const getPatientNav = (active: string) => [
   // { label: "Vacinas", href: "/dashboard/patient/vaccinations?role=patient", icon: <NavIcon icon={<Syringe size={16} weight="fill" />} color="purple" />, active: active === "vaccinations", group: "Saúde Digital" },
   // { label: "Oftalmologia", href: "/dashboard/patient/ophthalmology?role=patient", icon: <NavIcon icon={<Eye size={16} weight="fill" />} color="cyan" />, active: active === "ophthalmology", group: "Saúde Digital" },
 
-  // ── Perfil Clínico ──
-  // { label: "Cartão Saúde", href: "/dashboard/patient/health-card?role=patient", icon: <NavIcon icon={<IdentificationCard size={16} weight="fill" />} color="blue" />, active: active === "health-card", group: "Perfil Clínico" },
-  { label: "Dependentes", href: "/dashboard/patient/dependents?role=patient", icon: <NavIcon icon={<Users size={16} weight="fill" />} color="blue" />, active: active === "dependents", group: "Perfil Clínico" },
-
   // ── Suporte ──
   { label: "Suporte", href: "/dashboard/patient/support?role=patient", icon: <NavIcon icon={<Headset size={16} weight="fill" />} color="emerald" />, active: active === "support", group: "Suporte" },
 
