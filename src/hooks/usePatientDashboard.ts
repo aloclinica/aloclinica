@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 
-export type ServiceType = "telemedicina" | "oftalmologia" | "cartao" | "all";
+export type ServiceType = "telemedicina" | "oftalmologia" | "all";
 
 /**
  * Detect service type from patient's active appointments
@@ -30,12 +30,10 @@ export const useDetectPatientService = () => {
       const types = appts.map(a => a.appointment_type?.toLowerCase());
       const telemedicineCount = types.filter(t => t?.includes("telemedicina") || t?.includes("video")).length;
       const ophthalmologyCount = types.filter(t => t?.includes("oftalmolog")).length;
-      const cardCount = types.filter(t => t?.includes("cartao") || t?.includes("benefit")).length;
 
       // Return dominant service type
-      if (telemedicineCount > ophthalmologyCount && telemedicineCount > cardCount) return "telemedicina";
-      if (ophthalmologyCount > telemedicineCount && ophthalmologyCount > cardCount) return "oftalmologia";
-      if (cardCount > 0) return "cartao";
+      if (telemedicineCount > ophthalmologyCount) return "telemedicina";
+      if (ophthalmologyCount > telemedicineCount) return "oftalmologia";
 
       return "all";
     },
