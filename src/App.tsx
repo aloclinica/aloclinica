@@ -81,6 +81,10 @@ const Ajuda = lazy(() => import("./pages/Ajuda"));
 const EspecialidadeDetalhe = lazy(() => import("./pages/EspecialidadeDetalhe"));
 const ParaEmpresas = lazy(() => import("./pages/ParaEmpresas"));
 const PingoCard = lazy(() => import("./pages/PingoCard"));
+const FuneralRequest = lazy(() => import("./pages/FuneralRequest"));
+const Sweepstakes = lazy(() => import("./pages/Sweepstakes"));
+const CompanyCheckout = lazy(() => import("./pages/CompanyCheckout"));
+const EmployeeActivate = lazy(() => import("./pages/EmployeeActivate"));
 
 if (typeof window !== "undefined") {
   const prefetch = () => {
@@ -188,6 +192,10 @@ const AnimatedRoutes = () => {
       <Route path="/ajuda" element={<Ajuda />} />
       <Route path="/para-empresas" element={<ParaEmpresas />} />
       <Route path="/pingo-card" element={<PingoCard />} />
+      <Route path="/cartao/funeral" element={<FuneralRequest />} />
+      <Route path="/cartao/sorteios" element={<Sweepstakes />} />
+      <Route path="/empresas/checkout" element={<CompanyCheckout />} />
+      <Route path="/funcionario/ativar/:token" element={<EmployeeActivate />} />
 
       <Route
         path="/dashboard/*"
