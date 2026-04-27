@@ -246,7 +246,10 @@ export default function PrescriptionVerification() {
               📱 Qualquer alteração no documento após a assinatura seria detectada imediatamente.
             </p>
             <p>
-              ✨ Válido conforme <strong>Resolução CFM 2.299/2021</strong> (Telemedicina e Prescrição Eletrônica).
+              ✨ Válido conforme <strong>Resolução CFM 2.314/2022</strong> (Telemedicina), <strong>Resolução CFM 2.299/2021</strong> (Prescrição Eletrônica), <strong>Lei 14.063/2020</strong> (Assinatura Eletrônica) e <strong>RDC ANVISA 358/2020</strong>.
+            </p>
+            <p className="text-xs text-muted-foreground italic mt-2">
+              ⚠️ Esta receita digital é válida para medicamentos comuns. Para medicamentos controlados (Lista B/A da Anvisa), procure um médico com certificado ICP-Brasil.
             </p>
           </CardContent>
         </Card>
