@@ -20,7 +20,7 @@ jobs:
           cache: "npm"
 
       - name: Instalar dependências
-        run: npm ci
+        run: npm install --no-audit --no-fund --prefer-offline
 
       - name: TypeScript — verificar tipos
         run: npx tsc --noEmit
@@ -42,7 +42,7 @@ jobs:
           cache: "npm"
 
       - name: Instalar dependências
-        run: npm ci
+        run: npm install --no-audit --no-fund --prefer-offline
 
       - name: Rodar testes
         run: npx vitest run
@@ -64,7 +64,7 @@ jobs:
           cache: "npm"
 
       - name: Instalar dependências
-        run: npm ci
+        run: npm install --no-audit --no-fund --prefer-offline
 
       - name: Build
         run: npm run build
@@ -93,7 +93,7 @@ jobs:
           cache: "npm"
 
       - name: Instalar dependências
-        run: npm ci
+        run: npm install --no-audit --no-fund --prefer-offline
 
       - name: Instalar Playwright (chromium)
         run: npx playwright install --with-deps chromium
