@@ -1,25 +1,28 @@
-version: "3.9"
-
 services:
   aloclinica-web:
-    image: ghcr.io/GITHUB_USER/allo-medico-care:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.ci
+    image: aloclinica-web:latest
     container_name: aloclinica-web
     restart: unless-stopped
-    ports:
-      - "3010:80"
+    networks:
+      - easypanel
     environment:
       - NODE_ENV=production
-    labels:
-      - "easypanel.enable=true"
-      - "easypanel.port=3010"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost/health"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 15s
+    mem_limit: 256m
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
+
+networks:
+  easypanel:
+    external: true
