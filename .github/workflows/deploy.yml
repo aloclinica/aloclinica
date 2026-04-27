@@ -6,10 +6,9 @@ on:
   workflow_dispatch:
 
 env:
-  SUPABASE_PROJECT_REF: oaixgmuocuwhsabidpei
+  SUPABASE_PROJECT_REF: pwxvvimdtmvziynbspgx
 
 jobs:
-  # ── Job 1: Build frontend + deploy diretamente no VPS ──────────────────────
   deploy-frontend:
     name: Frontend — Build + Deploy VPS
     runs-on: ubuntu-latest
@@ -35,39 +34,50 @@ jobs:
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
           NODE_OPTIONS: "--max-old-space-size=4096"
 
-      - name: Copy dist + config to VPS via SCP
+      - name: Copy artifacts to VPS via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
           host: 72.62.138.208
           username: root
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-          source: "dist/,nginx.conf,Dockerfile.ci"
+          source: "dist/,nginx.conf,Dockerfile.ci,docker-compose.yml"
           target: "/opt/aloclinica/"
           strip_components: 0
 
-      - name: Sync dist to /srv/aloclinica (Easypanel volume) and reload
+      - name: Build and restart container on VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: 72.62.138.208
           username: root
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           script: |
-            mkdir -p /srv/aloclinica
-            rm -rf /srv/aloclinica/dist
-            cp -r /opt/aloclinica/dist /srv/aloclinica/dist
-            cp /opt/aloclinica/nginx.conf /srv/aloclinica/nginx.conf
+            set -e
+            cd /opt/aloclinica
+            docker compose build --no-cache aloclinica-web
+            docker compose up -d --force-recreate aloclinica-web
+            docker image prune -f
 
-            # Container has volume mount (read-only); files are live immediately.
-            # Just reload nginx inside the container to flush config and caches.
-            docker exec aloclinica-web nginx -s reload 2>/dev/null || \
-              (cd /etc/easypanel/projects/aloclinica/web && docker compose up -d)
+      - name: Health check
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 72.62.138.208
+          username: root
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          script: |
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              if curl -skf https://aloclinica.com.br/health > /dev/null 2>&1; then
+                echo "Deploy OK (attempt $i)"
+                exit 0
+              fi
+              echo "waiting... ($i/10)"
+              sleep 5
+            done
+            echo "Health check failed after 50s"
+            docker logs aloclinica-web --tail 30
+            exit 1
 
-            # Health check via domain
-            curl -skf https://aloclinica.com.br/health && echo "Deploy OK" || echo "Health check failed"
-
-  # ── Job 2: Supabase Migrations + Edge Functions ────────────────────────────
   deploy-supabase:
-    name: Supabase — Migrations + Edge Functions
+    name: Supabase — Edge Functions
     runs-on: ubuntu-latest
     continue-on-error: true
 
@@ -88,7 +98,6 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
-  # ── Job 3: Resultado ────────────────────────────────────────────────────────
   notify:
     name: Resultado do Deploy
     runs-on: ubuntu-latest
@@ -97,12 +106,12 @@ jobs:
     steps:
       - name: Summary
         run: |
-          echo "## 🚀 Deploy Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Deploy Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Frontend (VPS 72.62.138.208:3010) | ${{ needs.deploy-frontend.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Supabase (Migrations + Functions)  | ${{ needs.deploy-supabase.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend (https://aloclinica.com.br) | ${{ needs.deploy-frontend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Supabase Edge Functions | ${{ needs.deploy-supabase.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "By: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
