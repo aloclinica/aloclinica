@@ -16,35 +16,48 @@ interface ConsentTCLEProps {
   onConsented: () => void;
 }
 
-const TCLE_TEXT = `TERMO DE CONSENTIMENTO LIVRE E ESCLARECIDO PARA TELECONSULTA
+const TCLE_VERSION = "1.0";
 
-Conforme a Resolução CFM nº 2.314/2022, que regulamenta a prática da telemedicina no Brasil, declaro que:
+const TCLE_TEXT = `TERMO DE CONSENTIMENTO LIVRE E ESCLARECIDO PARA TELECONSULTA — versão ${TCLE_VERSION}
+
+Conforme Resolução CFM nº 2.314/2022 (telemedicina), Lei nº 14.510/2022 (Marco Legal), Resolução CFM nº 2.299/2021 (prescrição eletrônica), Lei nº 14.063/2020 (assinatura eletrônica) e Lei nº 13.709/2018 (LGPD), declaro que:
 
 1. NATUREZA DO ATENDIMENTO
-Estou ciente de que a consulta será realizada por meio de tecnologias digitais de comunicação (teleconsulta), e que este atendimento possui limitações inerentes à ausência do exame físico presencial.
+A consulta será realizada por tecnologias digitais de comunicação (teleconsulta). Este atendimento tem limitações inerentes à ausência de exame físico presencial.
 
-2. SIGILO E PRIVACIDADE
-Fui informado(a) de que todos os dados trocados durante a teleconsulta são protegidos e tratados conforme a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018). A plataforma utiliza criptografia de ponta a ponta para garantir o sigilo das informações.
+2. EMERGÊNCIA
+A teleconsulta NÃO substitui atendimento presencial em emergências. Em caso de urgência, devo procurar SAMU 192 ou pronto-socorro mais próximo IMEDIATAMENTE.
 
-3. CONSENTIMENTO INFORMADO
-Autorizo voluntariamente a realização da teleconsulta, estando ciente de que:
-• O médico poderá, a seu critério, indicar a necessidade de atendimento presencial caso julgue necessário;
-• A teleconsulta não substitui a emergência médica — em caso de urgência, devo procurar atendimento presencial imediato;
-• As prescrições eletrônicas emitidas possuem validade legal conforme legislação vigente;
-• Posso revogar este consentimento a qualquer momento antes do início do atendimento.
+3. SIGILO E LGPD
+Meus dados são tratados conforme LGPD. Servidores no Brasil. Criptografia em trânsito (TLS 1.3) e em repouso (AES-256). Posso exercer meus direitos LGPD via dpo@aloclinica.com.br: acesso, correção, portabilidade, eliminação (respeitada retenção de prontuário de 20 anos pela CFM 1.821/2007).
 
-4. GRAVAÇÃO E REGISTRO
-Estou ciente de que os dados clínicos relevantes serão registrados em prontuário eletrônico, acessível apenas ao médico responsável e a mim, paciente, conforme previsto na Resolução CFM nº 2.314/2022.
+4. CONSENTIMENTO E REVOGAÇÃO
+Autorizo voluntariamente a teleconsulta. Estou ciente de que:
+• O médico pode encaminhar para atendimento presencial se julgar necessário;
+• Receitas e atestados são emitidos digitalmente com assinatura eletrônica válida (Lei 14.063/2020);
+• Receitas de medicamentos controlados podem requerer certificado ICP-Brasil do médico;
+• Posso revogar este consentimento a qualquer momento antes da consulta.
 
-5. DIREITOS DO PACIENTE
-Reconheço que tenho o direito de:
-• Receber informações claras sobre meu diagnóstico e tratamento;
-• Ter acesso ao meu prontuário eletrônico;
-• Solicitar encaminhamento para atendimento presencial;
-• Revogar este consentimento a qualquer momento.
+5. GRAVAÇÃO
+A teleconsulta NÃO será gravada salvo com meu consentimento expresso adicional. Se gravada, será apenas para finalidade clínica legítima (segunda opinião, auditoria de qualidade), nunca comercial.
 
-6. RESPONSABILIDADE TÉCNICA
-O profissional de saúde é responsável por garantir a qualidade técnica da teleconsulta, seguindo os protocolos e diretrizes do Conselho Federal de Medicina.`;
+6. PRONTUÁRIO E REGISTROS
+Os dados clínicos serão registrados em prontuário eletrônico, retidos por 20 anos conforme Resolução CFM 1.821/2007. Acessível apenas ao médico responsável e ao paciente.
+
+7. PAGAMENTO E NO-SHOW
+Pagamento processado pela Asaas (PSP licenciado pelo BACEN). Não comparecimento sem cancelamento prévio com 2h de antecedência: taxa de 50% do valor da consulta. Reembolsos seguem o CDC.
+
+8. DIREITOS DO PACIENTE
+Tenho direito a: receber informações claras sobre diagnóstico e tratamento; acessar meu prontuário; solicitar encaminhamento presencial; revogar consentimento a qualquer momento; segunda opinião médica.
+
+9. RESPONSABILIDADES
+Médico: responde tecnicamente conforme Código de Ética Médica e CRM ativo verificado.
+Plataforma: responde por disponibilidade técnica (SLA 99% mensal) e segurança dos dados. Não responde por conduta médica individual nem falhas de conexão do paciente.
+
+10. ACEITE
+Ao clicar "Aceitar e Iniciar Consulta", declaro ter lido e compreendido este termo, manifesto consentimento livre e esclarecido, autorizo o tratamento de dados conforme LGPD. O aceite é registrado com data/hora UTC, IP, User-Agent e versão.
+
+Texto completo: https://aloclinica.com.br/termo-telemedicina`;
 
 const ConsentTCLE = ({ appointmentId, doctorName, onConsented }: ConsentTCLEProps) => {
   const { user } = useAuth();
@@ -89,13 +102,15 @@ const ConsentTCLE = ({ appointmentId, doctorName, onConsented }: ConsentTCLEProp
     setSubmitting(true);
 
     try {
-      const { error } = await db.from("patient_consents").insert({
+      const { error } = await (db as any).from("patient_consents").insert({
         patient_id: user.id,
         appointment_id: appointmentId,
         consent_type: "telemedicine_tcle",
-        consent_text: TCLE_TEXT,
+        version: TCLE_VERSION,
+        accepted: true,
+        accepted_at: new Date().toISOString(),
         ip_address: null,
-        user_agent: navigator.userAgent,
+        user_agent: navigator.userAgent.slice(0, 500),
       });
 
       if (error) throw error;
