@@ -22,6 +22,7 @@ const CartaoDashboard = lazy(() => import("@/components/dashboards/CartaoDashboa
 
 // ── Cartão Benefícios sub-pages ──
 const CarteirinhaDigital = lazy(() => import("@/components/cartao/CarteirinhaDigital"));
+const PingoTicket = lazy(() => import("@/components/cartao/PingoTicket"));
 const RedeCredenciada = lazy(() => import("@/components/cartao/RedeCredenciada"));
 const MeuPlano = lazy(() => import("@/components/cartao/MeuPlano"));
 const FaturasCartao = lazy(() => import("@/components/cartao/FaturasCartao"));
@@ -388,6 +389,7 @@ const Dashboard = () => {
       {/* ─── Cartão Benefícios ─── */}
       <Route path="cartao" element={<RoleGuard allowed={["cartao_beneficios"]} roles={roles}><ContextGuard panel="cartao_beneficios" forceRole={forceRole} roles={roles}><CartaoDashboard /></ContextGuard></RoleGuard>} />
       <Route path="cartao/carteirinha" element={<RoleGuard allowed={["cartao_beneficios"]} roles={roles}><ContextGuard panel="cartao_beneficios" forceRole={forceRole} roles={roles}><CarteirinhaDigital /></ContextGuard></RoleGuard>} />
+      <Route path="cartao/ticket" element={<RoleGuard allowed={["cartao_beneficios"]} roles={roles}><ContextGuard panel="cartao_beneficios" forceRole={forceRole} roles={roles}><PingoTicket /></ContextGuard></RoleGuard>} />
       <Route path="cartao/rede" element={<RoleGuard allowed={["cartao_beneficios"]} roles={roles}><ContextGuard panel="cartao_beneficios" forceRole={forceRole} roles={roles}><RedeCredenciada /></ContextGuard></RoleGuard>} />
       <Route path="cartao/plano" element={<RoleGuard allowed={["cartao_beneficios"]} roles={roles}><ContextGuard panel="cartao_beneficios" forceRole={forceRole} roles={roles}><MeuPlano /></ContextGuard></RoleGuard>} />
       <Route path="cartao/faturas" element={<RoleGuard allowed={["cartao_beneficios"]} roles={roles}><ContextGuard panel="cartao_beneficios" forceRole={forceRole} roles={roles}><FaturasCartao /></ContextGuard></RoleGuard>} />
