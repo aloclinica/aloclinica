@@ -32,9 +32,11 @@ const useNotificationTitle = () => {
 
     updateTitle();
 
-    // Listen for changes
+    // Listen for changes — unique channel name per mount to avoid
+    // "cannot add postgres_changes after subscribe()" in StrictMode/HMR
+    const channelName = `title-badge:${user.id}:${Math.random().toString(36).slice(2, 8)}`;
     const channel = db
-      .channel("title-badge")
+      .channel(channelName)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
