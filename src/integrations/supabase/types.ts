@@ -2740,6 +2740,83 @@ export type Database = {
           },
         ]
       }
+      pingo_ticket_accounts: {
+        Row: {
+          balance: number
+          card_number: string
+          created_at: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          card_number?: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          card_number?: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pingo_ticket_transactions: {
+        Row: {
+          account_id: string
+          amount: number
+          balance_after: number
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          merchant: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          amount: number
+          balance_after: number
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          merchant?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          balance_after?: number
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          merchant?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pingo_ticket_transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "pingo_ticket_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plans: {
         Row: {
           created_at: string
@@ -3944,6 +4021,15 @@ export type Database = {
       fn_increment_coupon_usage_atomic: {
         Args: { p_code: string }
         Returns: boolean
+      }
+      fn_spend_pingo_ticket: {
+        Args: {
+          p_amount: number
+          p_category?: string
+          p_description?: string
+          p_merchant: string
+        }
+        Returns: Json
       }
       get_public_doctor_profile: {
         Args: { p_doctor_id: string }
