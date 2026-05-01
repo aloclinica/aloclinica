@@ -329,10 +329,10 @@ const CartaoDashboard = () => {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { label: "Saldo Ticket", value: formatBRL(ticketBalance), icon: Wallet, ring: "emerald", hint: "Disponível agora" },
-              { label: "Economia", value: formatBRL(totalSavings), icon: Sparkle, ring: "amber", hint: "Acumulada" },
-              { label: "Usos do cartão", value: String(usageCount), icon: QrCode, ring: "blue", hint: "Apresentações" },
-              { label: "Parceiros", value: String(partnersCount), icon: Storefront, ring: "rose", hint: "Rede credenciada" },
+              { label: "Saldo Ticket", value: formatBRL(ticketBalance), icon: Wallet, ringClass: "bg-emerald-100 text-emerald-700", hint: "Disponível agora" },
+              { label: "Economia", value: formatBRL(totalSavings), icon: Sparkle, ringClass: "bg-amber-100 text-amber-700", hint: "Acumulada" },
+              { label: "Usos do cartão", value: String(usageCount), icon: QrCode, ringClass: "bg-blue-100 text-blue-700", hint: "Apresentações" },
+              { label: "Parceiros", value: String(partnersCount), icon: Storefront, ringClass: "bg-rose-100 text-rose-700", hint: "Rede credenciada" },
             ].map((k, i) => (
               <motion.div
                 key={k.label}
@@ -343,7 +343,7 @@ const CartaoDashboard = () => {
                 <Card className="rounded-2xl border-border/50 hover:border-border hover:shadow-md transition-all h-full">
                   <CardContent className="p-4 sm:p-5">
                     <div className="flex items-center gap-3">
-                      <div className={`w-11 h-11 rounded-xl bg-${k.ring}-100 text-${k.ring}-700 flex items-center justify-center shrink-0`}>
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${k.ringClass}`}>
                         <k.icon size={20} weight="fill" />
                       </div>
                       <div className="min-w-0">
