@@ -12,7 +12,8 @@ import { getCartaoNav } from "@/components/cartao/cartaoNav";
 import {
   Heart, IdentificationCard, Storefront, Sparkle, Crown,
   ArrowRight, QrCode, Receipt, Users, Headset, ForkKnife, Wallet,
-  ShoppingCart, TrendUp,
+  ShoppingCart, TrendUp, ArrowDown, ArrowUp, Lightning, ShieldCheck,
+  CalendarBlank, CaretRight,
 } from "@phosphor-icons/react";
 import pingoLogo from "@/assets/pingo-cartao.png";
 
@@ -125,11 +126,20 @@ const CartaoDashboard = () => {
     .filter(t => t.type === "debit" && new Date(t.created_at).getMonth() === new Date().getMonth())
     .reduce((s, t) => s + Number(t.amount), 0);
 
+  // Limite mensal estimado: saldo atual + gasto = teto de recarga visualizado
+  const ticketCeiling = Math.max(ticketBalance + ticketSpentMonth, 1000);
+  const ticketUsagePct = Math.min(100, Math.round((ticketSpentMonth / ticketCeiling) * 100));
+  const renewDate = subscription?.current_period_end
+    ? new Date(subscription.current_period_end).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })
+    : null;
+
   const quickActions = [
     { label: "Carteirinha", icon: IdentificationCard, path: "/dashboard/cartao/carteirinha?role=cartao_beneficios", color: "hsl(340,75%,50%)" },
     { label: "Pingo Ticket", icon: ForkKnife, path: "/dashboard/cartao/ticket?role=cartao_beneficios", color: "hsl(155,55%,40%)" },
-    { label: "Rede", icon: Storefront, path: "/dashboard/cartao/rede?role=cartao_beneficios", color: "hsl(155,55%,40%)" },
+    { label: "Rede", icon: Storefront, path: "/dashboard/cartao/rede?role=cartao_beneficios", color: "hsl(190,70%,42%)" },
     { label: "Faturas", icon: Receipt, path: "/dashboard/cartao/faturas?role=cartao_beneficios", color: "hsl(38,92%,50%)" },
+    { label: "Meu Plano", icon: Crown, path: "/dashboard/cartao/plano?role=cartao_beneficios", color: "hsl(45,90%,48%)" },
+    { label: "Suporte", icon: Headset, path: "/dashboard/cartao/suporte?role=cartao_beneficios", color: "hsl(220,70%,55%)" },
   ];
 
   return (
@@ -137,8 +147,10 @@ const CartaoDashboard = () => {
       <div className="space-y-6 max-w-6xl mx-auto pb-20">
         {/* Hero saudação */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className="overflow-hidden border-0 bg-gradient-to-br from-[hsl(340,75%,45%)] via-[hsl(345,70%,50%)] to-[hsl(355,65%,55%)] text-white shadow-xl">
-            <CardContent className="p-6 md:p-8">
+          <Card className="overflow-hidden border-0 text-white shadow-xl relative">
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,hsl(340,75%,42%)_0%,hsl(345,70%,48%)_45%,hsl(15,75%,55%)_100%)]" />
+            <div className="absolute inset-0 opacity-25 mix-blend-screen bg-[radial-gradient(circle_at_85%_15%,rgba(255,220,150,0.6),transparent_45%),radial-gradient(circle_at_15%_85%,rgba(255,180,220,0.4),transparent_50%)]" />
+            <CardContent className="relative p-6 md:p-8">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <Badge className="mb-3 bg-white/20 text-white border-0 backdrop-blur">
@@ -149,11 +161,27 @@ const CartaoDashboard = () => {
                   </h1>
                   <p className="text-white/85 text-sm md:text-base">
                     {isActive
-                      ? `Seu plano ${subscription?.plan?.name ?? "Cartão"} está ativo. Use em ${partnersCount} parceiros credenciados.`
+                      ? `Seu plano ${subscription?.plan?.name ?? "Cartão"} está ativo · ${partnersCount} parceiros disponíveis.`
                       : "Ative um plano para começar a economizar em farmácias, exames e mais."}
                   </p>
+                  {/* Mini KPIs inline */}
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur px-3 py-1.5 rounded-full text-[12px] font-semibold">
+                      <ShieldCheck size={13} weight="fill" className="text-emerald-200" />
+                      {isActive ? "Plano ativo" : "Sem plano"}
+                    </div>
+                    {renewDate && (
+                      <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur px-3 py-1.5 rounded-full text-[12px] font-semibold">
+                        <CalendarBlank size={13} weight="fill" /> Renova em {renewDate}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur px-3 py-1.5 rounded-full text-[12px] font-semibold">
+                      <Sparkle size={13} weight="fill" className="text-amber-200" />
+                      {formatBRL(totalSavings)} economizados
+                    </div>
+                  </div>
                 </div>
-                <div className="hidden sm:flex w-14 h-14 rounded-2xl bg-white/15 items-center justify-center shrink-0">
+                <div className="hidden sm:flex w-14 h-14 rounded-2xl bg-white/15 items-center justify-center shrink-0 backdrop-blur">
                   <Crown size={28} weight="fill" className="text-amber-200" />
                 </div>
               </div>
@@ -162,25 +190,25 @@ const CartaoDashboard = () => {
         </motion.div>
 
         {/* Quick actions */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-2.5">
           {quickActions.map((a, i) => (
             <motion.button
               key={a.label}
               onClick={() => navigate(a.path)}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
+              transition={{ delay: i * 0.04 }}
               whileHover={{ y: -4 }}
               whileTap={{ scale: 0.97 }}
-              className="group flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border hover:shadow-lg transition-all"
+              className="group flex flex-col items-center gap-2 p-3 md:p-4 rounded-2xl bg-card border border-border/50 hover:shadow-lg hover:border-border transition-all"
             >
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm"
+                className="w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110"
                 style={{ background: `${a.color}15`, color: a.color }}
               >
-                <a.icon size={22} weight="fill" />
+                <a.icon size={20} weight="fill" />
               </div>
-              <span className="text-xs font-semibold text-center">{a.label}</span>
+              <span className="text-[11px] md:text-xs font-semibold text-center leading-tight">{a.label}</span>
             </motion.button>
           ))}
         </div>
@@ -217,6 +245,21 @@ const CartaoDashboard = () => {
                   <p className="relative text-3xl md:text-4xl font-extrabold tabular-nums mt-1">
                     {loading ? "—" : formatBRL(ticketBalance)}
                   </p>
+                  {/* Barra de uso mensal */}
+                  <div className="relative mt-3 space-y-1">
+                    <div className="flex items-center justify-between text-[10px] font-semibold text-white/80">
+                      <span>Uso do mês</span>
+                      <span className="tabular-nums">{ticketUsagePct}%</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-white/20 overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${ticketUsagePct}%` }}
+                        transition={{ duration: 0.9, ease: "easeOut" }}
+                        className="h-full bg-gradient-to-r from-amber-200 to-white rounded-full"
+                      />
+                    </div>
+                  </div>
                   <div className="relative mt-4 inline-flex items-center gap-2 text-[12px] font-semibold bg-white/15 backdrop-blur px-3 py-1.5 rounded-full">
                     <ShoppingCart size={14} weight="fill" /> Pagar com Pingo Ticket
                     <ArrowRight size={12} weight="bold" />
@@ -227,9 +270,12 @@ const CartaoDashboard = () => {
                 <div className="p-6 bg-card">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Últimos gastos</p>
-                    <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
-                      <TrendUp size={12} weight="bold" /> {formatBRL(ticketSpentMonth)} no mês
-                    </span>
+                    <button
+                      onClick={() => navigate("/dashboard/cartao/ticket?role=cartao_beneficios")}
+                      className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1 hover:underline"
+                    >
+                      Ver extrato <CaretRight size={11} weight="bold" />
+                    </button>
                   </div>
                   {ticketTxs.length === 0 ? (
                     <div className="text-center py-6 text-sm text-muted-foreground">
@@ -237,23 +283,35 @@ const CartaoDashboard = () => {
                       Nenhum gasto ainda. Use seu Pingo Ticket no primeiro estabelecimento!
                     </div>
                   ) : (
-                    <ul className="space-y-2">
-                      {ticketTxs.slice(0, 4).map(t => (
-                        <li key={t.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/40 transition">
-                          <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
-                            <ShoppingCart size={14} weight="fill" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-semibold truncate">{t.merchant ?? "Pagamento"}</p>
-                            <p className="text-[10px] text-muted-foreground">{t.category ?? "—"}</p>
-                          </div>
-                          <p className="text-[13px] font-bold text-rose-700 tabular-nums">
-                            -{formatBRL(Number(t.amount))}
-                          </p>
-                        </li>
-                      ))}
+                    <ul className="space-y-1.5">
+                      {ticketTxs.slice(0, 4).map(t => {
+                        const debit = t.type === "debit";
+                        return (
+                          <li key={t.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/40 transition">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${debit ? "bg-rose-100 text-rose-700" : "bg-emerald-100 text-emerald-700"}`}>
+                              {debit ? <ArrowUp size={13} weight="bold" /> : <ArrowDown size={13} weight="bold" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[13px] font-semibold truncate">{t.merchant ?? (debit ? "Pagamento" : "Recarga")}</p>
+                              <p className="text-[10px] text-muted-foreground">
+                                {t.category ?? "—"} · {new Date(t.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
+                              </p>
+                            </div>
+                            <p className={`text-[13px] font-bold tabular-nums ${debit ? "text-rose-700" : "text-emerald-700"}`}>
+                              {debit ? "-" : "+"}{formatBRL(Number(t.amount))}
+                            </p>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
+                  <div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between text-[11px]">
+                    <span className="text-muted-foreground">Gasto no mês</span>
+                    <span className="font-bold text-foreground tabular-nums flex items-center gap-1">
+                      <TrendUp size={11} weight="bold" className="text-emerald-600" />
+                      {formatBRL(ticketSpentMonth)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -270,112 +328,115 @@ const CartaoDashboard = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <Card className="rounded-2xl">
-              <CardContent className="p-5 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                  <Wallet size={22} weight="fill" />
-                </div>
-                <div>
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-bold">Saldo Ticket</p>
-                  <p className="text-xl font-bold tabular-nums">{formatBRL(ticketBalance)}</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-2xl">
-              <CardContent className="p-5 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
-                  <Sparkle size={22} weight="fill" />
-                </div>
-                <div>
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-bold">Economia</p>
-                  <p className="text-xl font-bold">{formatBRL(totalSavings)}</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-2xl">
-              <CardContent className="p-5 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
-                  <QrCode size={22} weight="fill" />
-                </div>
-                <div>
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-bold">Usos</p>
-                  <p className="text-xl font-bold">{usageCount}</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-2xl">
-              <CardContent className="p-5 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
-                  <Storefront size={22} weight="fill" />
-                </div>
-                <div>
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-bold">Parceiros</p>
-                  <p className="text-xl font-bold">{partnersCount}</p>
-                </div>
-              </CardContent>
-            </Card>
+            {[
+              { label: "Saldo Ticket", value: formatBRL(ticketBalance), icon: Wallet, ring: "emerald", hint: "Disponível agora" },
+              { label: "Economia", value: formatBRL(totalSavings), icon: Sparkle, ring: "amber", hint: "Acumulada" },
+              { label: "Usos do cartão", value: String(usageCount), icon: QrCode, ring: "blue", hint: "Apresentações" },
+              { label: "Parceiros", value: String(partnersCount), icon: Storefront, ring: "rose", hint: "Rede credenciada" },
+            ].map((k, i) => (
+              <motion.div
+                key={k.label}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 + i * 0.05 }}
+              >
+                <Card className="rounded-2xl border-border/50 hover:border-border hover:shadow-md transition-all h-full">
+                  <CardContent className="p-4 sm:p-5">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-11 h-11 rounded-xl bg-${k.ring}-100 text-${k.ring}-700 flex items-center justify-center shrink-0`}>
+                        <k.icon size={20} weight="fill" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-bold">{k.label}</p>
+                        <p className="text-lg sm:text-xl font-bold tabular-nums truncate">{k.value}</p>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-[10px] text-muted-foreground">{k.hint}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         )}
 
-        {/* Família / Dependentes — fica em card separado já que saiu dos quick actions */}
-        <Card className="rounded-2xl">
-          <CardContent className="p-5 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
-                <Users size={20} weight="fill" />
-              </div>
-              <div>
-                <p className="font-semibold">Adicione sua família</p>
-                <p className="text-xs text-muted-foreground">Estenda os benefícios para até 4 dependentes.</p>
-              </div>
-            </div>
-            <Button variant="outline" onClick={() => navigate("/dashboard/cartao/dependentes?role=cartao_beneficios")} className="rounded-xl">
-              Gerenciar
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* CTA carteirinha / ativação */}
-        <Card className="rounded-2xl">
-          <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center shrink-0">
+        {/* Trio: Carteirinha · Família · Suporte (grade) */}
+        <div className="grid md:grid-cols-3 gap-4">
+          {/* Carteirinha / Ativação */}
+          <Card className="rounded-2xl border-border/50 hover:shadow-lg transition group cursor-pointer overflow-hidden"
+            onClick={() => navigate(isActive ? "/dashboard/cartao/carteirinha?role=cartao_beneficios" : "/dashboard/cartao/plano?role=cartao_beneficios")}>
+            <div className="h-1.5 bg-gradient-to-r from-rose-500 to-pink-600" />
+            <CardContent className="p-5 space-y-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center shadow-md">
                 <IdentificationCard size={24} weight="fill" />
               </div>
               <div>
-                <p className="font-bold">
-                  {isActive ? "Sua carteirinha digital está pronta" : "Ative sua carteirinha digital"}
+                <p className="font-bold text-[15px]">
+                  {isActive ? "Carteirinha digital" : "Ative sua carteirinha"}
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {isActive
-                    ? "Apresente o QR Code na rede credenciada e aproveite seus descontos."
-                    : "Escolha um plano para gerar sua carteirinha com QR Code exclusivo."}
+                    ? "QR Code para apresentar na rede."
+                    : "Escolha um plano e gere seu cartão."}
                 </p>
               </div>
-            </div>
-            <Button
-              onClick={() => navigate(isActive ? "/dashboard/cartao/carteirinha?role=cartao_beneficios" : "/dashboard/cartao/plano?role=cartao_beneficios")}
-              className="rounded-xl gap-2"
-            >
-              {isActive ? "Ver carteirinha" : "Ativar plano"} <ArrowRight size={16} weight="bold" />
-            </Button>
-          </CardContent>
-        </Card>
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-700 group-hover:gap-2 transition-all">
+                {isActive ? "Abrir" : "Ver planos"} <ArrowRight size={13} weight="bold" />
+              </span>
+            </CardContent>
+          </Card>
 
-        {/* Suporte */}
-        <Card className="rounded-2xl">
-          <CardContent className="p-6 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                <Headset size={20} weight="fill" />
+          {/* Dependentes */}
+          <Card className="rounded-2xl border-border/50 hover:shadow-lg transition group cursor-pointer overflow-hidden"
+            onClick={() => navigate("/dashboard/cartao/dependentes?role=cartao_beneficios")}>
+            <div className="h-1.5 bg-gradient-to-r from-blue-500 to-indigo-600" />
+            <CardContent className="p-5 space-y-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-md">
+                <Users size={24} weight="fill" />
               </div>
               <div>
-                <p className="font-semibold">Precisa de ajuda?</p>
-                <p className="text-sm text-muted-foreground">Nossa equipe atende pelo chat em horário comercial.</p>
+                <p className="font-bold text-[15px]">Sua família coberta</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Inclua até 4 dependentes no plano.</p>
               </div>
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 group-hover:gap-2 transition-all">
+                Gerenciar <ArrowRight size={13} weight="bold" />
+              </span>
+            </CardContent>
+          </Card>
+
+          {/* Suporte */}
+          <Card className="rounded-2xl border-border/50 hover:shadow-lg transition group cursor-pointer overflow-hidden"
+            onClick={() => navigate("/dashboard/cartao/suporte?role=cartao_beneficios")}>
+            <div className="h-1.5 bg-gradient-to-r from-emerald-500 to-teal-600" />
+            <CardContent className="p-5 space-y-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md">
+                <Headset size={24} weight="fill" />
+              </div>
+              <div>
+                <p className="font-bold text-[15px]">Suporte 24/7</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Chat com nossa equipe a qualquer hora.</p>
+              </div>
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 group-hover:gap-2 transition-all">
+                Abrir chat <ArrowRight size={13} weight="bold" />
+              </span>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Dica/CTA promocional */}
+        <Card className="rounded-2xl border-amber-200/60 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-transparent">
+          <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="w-11 h-11 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-md">
+              <Lightning size={22} weight="fill" />
             </div>
-            <Button variant="outline" onClick={() => navigate("/dashboard/cartao/suporte?role=cartao_beneficios")} className="rounded-xl">
-              Abrir chat
+            <div className="flex-1">
+              <p className="text-sm font-bold">Dica do dia</p>
+              <p className="text-xs text-muted-foreground">
+                Use seu Pingo Ticket em supermercados parceiros e ganhe até <span className="font-bold text-amber-700">5% de cashback</span> em produtos selecionados.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" className="rounded-xl border-amber-300 text-amber-800 hover:bg-amber-100"
+              onClick={() => navigate("/dashboard/cartao/rede?role=cartao_beneficios")}>
+              Ver parceiros
             </Button>
           </CardContent>
         </Card>
