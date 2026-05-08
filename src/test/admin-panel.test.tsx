@@ -36,13 +36,19 @@ vi.mock("@/components/dashboards/DashboardLayout", () => ({
 }));
 
 vi.mock("@/components/admin/adminNav", () => ({ getAdminNav: () => [] }));
-vi.mock("framer-motion", () => ({
-  motion: {
-    div: ({ children, ...p }: any) => <div {...p}>{children}</div>,
-    tr: ({ children, ...p }: any) => <tr {...p}>{children}</tr>,
-  },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
-}));
+vi.mock("framer-motion", () => {
+  // Proxy: motion.<anyTag> retorna um wrapper passthrough
+  // (cobre header, section, h1, button, etc — sem precisar enumerar)
+  const passthrough = (Tag: any) =>
+    function Wrapped({ children, ...p }: any) {
+      const { initial, animate, exit, transition, variants, whileHover, whileTap, layout, layoutId, ...rest } = p;
+      return <Tag {...rest}>{children}</Tag>;
+    };
+  return {
+    motion: new Proxy({}, { get: (_t, tag: string) => passthrough(tag) }),
+    AnimatePresence: ({ children }: any) => <>{children}</>,
+  };
+});
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("recharts", () => ({
   ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
@@ -128,7 +134,7 @@ describe("AdminDoctors - gerenciamento de médicos", () => {
       </BrowserRouter>
     );
     await waitFor(() => {
-      expect(screen.getByText(/2 médico|médicos/i)).toBeInTheDocument();
+      expect(screen.getByText(/2 médicos?/i)).toBeInTheDocument();
     });
   });
 });
