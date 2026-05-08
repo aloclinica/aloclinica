@@ -816,31 +816,8 @@ const VideoRoom = () => {
     : user?.user_metadata?.first_name || "Paciente";
 
   const showQueueBanner = !isDoctor && doctorBusy && queuePosition !== null;
-   const showSidePanel = (showChat || showNotes || showInfo || activePanel === "referral") && !isMobile;
-   const showBottomSheet = (showChat || showNotes || showInfo || activePanel === "referral") && isMobile;
-             {isDoctor && (
-               <Button
-                 onClick={() => openPanel("referral")}
-                 variant={activePanel === "referral" ? "default" : "ghost"}
-                 size="icon"
-                 className={cn(
-                   "w-11 h-11 rounded-2xl transition-all duration-300",
-                   activePanel === "referral" ? "bg-primary shadow-lg shadow-primary/30" : "bg-white/5 hover:bg-white/10 text-white"
-                 )}
-                 title="Encaminhar Paciente"
-               >
-                 <UserPlus className="w-5 h-5" />
-               </Button>
-             )}
-                   {activePanel === "referral" && (
-                     <div className="flex-1 overflow-auto p-4">
-                       <ReferralSystem 
-                         patientId={appointment?.patient_id || undefined} 
-                         patientName={otherPartyName} 
-                         onClose={() => setActivePanel(null)}
-                       />
-                     </div>
-                   )}
+  const showSidePanel = (showChat || showNotes || showInfo || activePanel === "referral") && !isMobile;
+  const showBottomSheet = (showChat || showNotes || showInfo || activePanel === "referral") && isMobile;
 
   // Timer color based on duration
   const timerColor = elapsed > 3600
