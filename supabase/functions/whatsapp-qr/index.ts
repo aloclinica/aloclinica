@@ -86,21 +86,15 @@ serve(async (req) => {
       const data = await res.json();
       if (!res.ok) {
         console.error("Create instance error:", data);
-        return new Response(JSON.stringify({ error: "Failed to create instance", details: data }), {
-          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ success: false, error: "Failed to create instance", details: data }, res.status);
       }
-      return new Response(JSON.stringify({ success: true, data, instanceName: name }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ success: true, data, instanceName: name });
     }
 
     // Get QR code
     if (action === "qrcode") {
       if (!instanceName) {
-        return new Response(JSON.stringify({ error: "instanceName is required" }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ success: false, error: "instanceName is required" }, 400);
       }
       const res = await fetchEvo(`${baseUrl}/instance/connect/${instanceName}`, {
         method: "GET",
@@ -109,30 +103,22 @@ serve(async (req) => {
       const data = await res.json();
       if (!res.ok) {
         console.error("QR code error:", data);
-        return new Response(JSON.stringify({ error: "Failed to get QR code", details: data }), {
-          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ success: false, error: "Failed to get QR code", details: data }, res.status);
       }
-      return new Response(JSON.stringify({ success: true, data }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ success: true, data });
     }
 
     // Check connection status
     if (action === "status") {
       if (!instanceName) {
-        return new Response(JSON.stringify({ error: "instanceName is required" }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ success: false, error: "instanceName is required" }, 400);
       }
       const res = await fetchEvo(`${baseUrl}/instance/connectionState/${instanceName}`, {
         method: "GET",
         headers,
       });
       const data = await res.json();
-      return new Response(JSON.stringify({ success: true, data }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ success: true, data });
     }
 
     // List instances
@@ -142,35 +128,25 @@ serve(async (req) => {
         headers,
       });
       const data = await res.json();
-      return new Response(JSON.stringify({ success: true, data }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ success: true, data });
     }
 
     // Delete instance
     if (action === "delete") {
       if (!instanceName) {
-        return new Response(JSON.stringify({ error: "instanceName is required" }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ success: false, error: "instanceName is required" }, 400);
       }
       const res = await fetchEvo(`${baseUrl}/instance/delete/${instanceName}`, {
         method: "DELETE",
         headers,
       });
       const data = await res.json();
-      return new Response(JSON.stringify({ success: true, data }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ success: true, data });
     }
 
-    return new Response(JSON.stringify({ error: "Invalid action. Use: create, qrcode, status, list, delete" }), {
-      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ success: false, error: "Invalid action. Use: create, qrcode, status, list, delete" }, 400);
   } catch (error: any) {
     console.error("Error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ success: false, error: error.message || "Unexpected WhatsApp integration error" }, 500);
   }
 });
