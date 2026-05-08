@@ -128,23 +128,25 @@ describe("Jitsi Meet — src/lib/jitsi.ts", () => {
   it("getJitsiUrl inclui o displayName encoded na URL", async () => {
     const { getJitsiUrl, gerarRoomId } = await import("@/lib/jitsi");
     const url = getJitsiUrl(gerarRoomId("test"), "Dr. Maria");
-    expect(url).toContain("Dr.%20Maria");
+    // Pós-migração Jitsi → MiroTalk: URLSearchParams codifica espaço como '+'
+    expect(url).toMatch(/name=Dr\.(%20|\+)Maria/);
   });
 
-  it("getJitsiUrl inclui parâmetros de configuração médica", async () => {
+  it("getJitsiUrl inclui parâmetros de configuração da videochamada", async () => {
+    // Após migração Jitsi → MiroTalk, params mudaram para audio/video/screen/notify.
     const { getJitsiUrl, gerarRoomId } = await import("@/lib/jitsi");
     const url = getJitsiUrl(gerarRoomId("test"), "Paciente");
-    expect(url).toContain("prejoinPageEnabled=false");
-    expect(url).toContain("disableDeepLinking=true");
-    expect(url).toContain("enableWelcomePage=false");
-    expect(url).toContain("SHOW_JITSI_WATERMARK=false");
-    expect(url).toContain("SHOW_BRAND_WATERMARK=false");
+    expect(url).toContain("audio=1");
+    expect(url).toContain("video=1");
+    expect(url).toContain("screen=0");
+    expect(url).toContain("notify=0");
   });
 
-  it("getJitsiUrl inclui fullscreen nos botões da toolbar", async () => {
+  it("getJitsiUrl monta endpoint /join/<roomId>", async () => {
     const { getJitsiUrl, gerarRoomId } = await import("@/lib/jitsi");
-    const url = getJitsiUrl(gerarRoomId("test"), "User");
-    expect(url).toContain("fullscreen");
+    const roomId = gerarRoomId("test-xyz");
+    const url = getJitsiUrl(roomId, "User");
+    expect(url).toContain(`/join/${encodeURIComponent(roomId)}`);
   });
 
   it("JITSI_BASE_URL não aponta para localhost", async () => {
