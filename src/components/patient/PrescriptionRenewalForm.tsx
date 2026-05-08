@@ -1,3 +1,4 @@
+ import { invokePaymentFunction } from "@/lib/payment-utils";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { db } from "@/integrations/supabase/untyped";
@@ -141,7 +142,7 @@ const PrescriptionRenewalForm = () => {
         payload.creditCardToken = tokenData.creditCardToken;
       }
 
-      const { data, error } = await db.functions.invoke("create-asaas-payment", { body: payload });
+       const { data, error } = await invokePaymentFunction(payload);
       if (error || !data?.success) { toast.error("Erro no pagamento", { description: data?.error }); setProcessing(false); return; }
 
       if (paymentMethod === "pix" && data.pixQrCode) {
