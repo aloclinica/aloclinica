@@ -304,7 +304,8 @@ const AdminDashboard = () => {
           { label: "Médicos", icon: "🩺", iconBg: "bg-emerald-50 dark:bg-emerald-950/30", path: "/dashboard/admin/doctors" },
           { label: "Financeiro", icon: "💰", iconBg: "bg-amber-50 dark:bg-amber-950/30", path: "/dashboard/admin/financial" },
           { label: "Painéis", icon: "🎛️", iconBg: "bg-violet-50 dark:bg-violet-950/30", path: "/dashboard/admin/switch-panel" },
-          { label: "Relatórios", icon: "📊", iconBg: "bg-red-50 dark:bg-red-950/30", path: "/dashboard/admin/reports" },
+           { label: "Relatórios", icon: "📊", iconBg: "bg-red-50 dark:bg-red-950/30", path: "/dashboard/admin/reports" },
+           { label: "Automações", icon: "⚡", iconBg: "bg-amber-50 dark:bg-amber-950/30", path: "/dashboard/admin/automations" },
         ]} />
 
         {/* ── Bento Stats ── */}
