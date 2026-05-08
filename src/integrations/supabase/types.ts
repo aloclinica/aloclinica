@@ -3351,9 +3351,12 @@ export type Database = {
           created_at: string
           display_name: string | null
           display_order: number | null
+          draft_config: Json | null
+          has_draft: boolean
           id: string
           is_enabled: boolean | null
           key: string
+          last_published_at: string | null
           schema: Json
           updated_at: string
         }
@@ -3362,9 +3365,12 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           display_order?: number | null
+          draft_config?: Json | null
+          has_draft?: boolean
           id?: string
           is_enabled?: boolean | null
           key: string
+          last_published_at?: string | null
           schema?: Json
           updated_at?: string
         }
@@ -3373,9 +3379,12 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           display_order?: number | null
+          draft_config?: Json | null
+          has_draft?: boolean
           id?: string
           is_enabled?: boolean | null
           key?: string
+          last_published_at?: string | null
           schema?: Json
           updated_at?: string
         }
