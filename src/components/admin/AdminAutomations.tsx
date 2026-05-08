@@ -1,3 +1,4 @@
+ import { Link } from "react-router-dom";
  import { useState, useEffect } from "react";
  import { db } from "@/integrations/supabase/untyped";
  import DashboardLayout from "@/components/dashboards/DashboardLayout";
@@ -87,14 +88,16 @@
              subtitle="E-mails processados"
              color="blue"
            />
-           <AutomationStatCard
-             title="Pagamentos"
-             icon={CreditCard}
-             active={stats.payments.active}
-             value={stats.payments.total_processed}
-             subtitle="Transações via PagBank/Asaas"
-             color="purple"
-           />
+           <Link to="/dashboard/admin/pagbank?role=admin">
+             <AutomationStatCard
+               title="Pagamentos"
+               icon={CreditCard}
+               active={stats.payments.active}
+               value={stats.payments.total_processed}
+               subtitle="Configurar PagBank"
+               color="purple"
+             />
+           </Link>
            <AutomationStatCard
              title="Tarefas"
              icon={Clock}
