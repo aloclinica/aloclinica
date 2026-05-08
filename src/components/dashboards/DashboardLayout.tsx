@@ -248,38 +248,69 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
     return groups;
   }, [nav]);
 
-   // Enhanced Bottom nav for mobile
+   // Mobile-Specific Bottom Nav Resolution
    const bottomNav = useMemo(() => {
      const items: NavItem[] = [];
-     // Home
-     items.push({ 
-       label: "Início", 
-       href: "/dashboard", 
-       icon: <House size={20} weight={location.pathname === "/dashboard" ? "fill" : "regular"} />,
-       active: location.pathname === "/dashboard"
+     const currentPath = location.pathname;
+ 
+     // 1. Home (Dynamic based on role if needed, but /dashboard is standard)
+     items.push({
+       label: "Início",
+       href: `/dashboard?role=${role}`,
+       icon: <House size={22} weight={currentPath === "/dashboard" ? "fill" : "regular"} />,
+       active: currentPath === "/dashboard" && (!forceRole || forceRole === role)
      });
-     // Top items from nav prop (up to 2 more)
-     if (nav) {
-       nav.slice(0, 2).forEach(item => {
-         if (item.href !== "/dashboard") items.push(item);
+ 
+     // 2. Core Operational Item (Role-based)
+     if (role === "patient") {
+       items.push({
+         label: "Agendar",
+         href: "/dashboard/schedule?role=patient",
+         icon: <MagnifyingGlass size={22} weight={currentPath.includes("schedule") ? "fill" : "regular"} />,
+         active: currentPath.includes("schedule")
+       });
+     } else if (role === "doctor") {
+       items.push({
+         label: "Espera",
+         href: "/dashboard/doctor/waiting-room?role=doctor",
+         icon: <Timer size={22} weight={currentPath.includes("waiting-room") ? "fill" : "regular"} />,
+         active: currentPath.includes("waiting-room")
+       });
+     } else if (role === "admin") {
+       items.push({
+         label: "Ao Vivo",
+         href: "/dashboard/admin/live?role=admin",
+         icon: <VideoCamera size={22} weight={currentPath.includes("live") ? "fill" : "regular"} />,
+         active: currentPath.includes("live")
        });
      }
-     // Notifications
-     items.push({ 
-       label: "Avisos", 
-       href: "/dashboard/notifications", 
-       icon: <Bell size={20} weight={location.pathname.includes("notifications") ? "fill" : "regular"} />,
-       active: location.pathname.includes("notifications")
+ 
+     // 3. Messages / Chat
+     items.push({
+       label: "Chat",
+       href: `/dashboard/chat?role=${role}`,
+       icon: <ChatCircleText size={22} weight={currentPath.includes("chat") ? "fill" : "regular"} />,
+       active: currentPath.includes("chat")
      });
-     // Profile
-     items.push({ 
-       label: "Perfil", 
-       href: "/dashboard/profile", 
-       icon: <UserCircle size={20} weight={location.pathname.includes("profile") ? "fill" : "regular"} />,
-       active: location.pathname.includes("profile")
+ 
+     // 4. Notifications / Alerts
+     items.push({
+       label: "Avisos",
+       href: `/dashboard/notifications?role=${role}`,
+       icon: <Bell size={22} weight={currentPath.includes("notifications") ? "fill" : "regular"} />,
+       active: currentPath.includes("notifications")
      });
+ 
+     // 5. Profile
+     items.push({
+       label: "Perfil",
+       href: `/dashboard/profile?role=${role}`,
+       icon: <UserCircle size={22} weight={currentPath.includes("profile") ? "fill" : "regular"} />,
+       active: currentPath.includes("profile")
+     });
+ 
      return items;
-   }, [nav, location.pathname]);
+   }, [role, location.pathname, forceRole]);
 
   // CSS-only entrance — no GSAP import needed, saves ~30KB dynamic load
   useEffect(() => {
