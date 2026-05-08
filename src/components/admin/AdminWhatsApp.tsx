@@ -158,6 +158,7 @@ const AdminWhatsApp = () => {
   const [savingAutomations, setSavingAutomations] = useState(false);
   const [testPhone, setTestPhone] = useState("");
   const [sendingTest, setSendingTest] = useState(false);
+  const [integrationError, setIntegrationError] = useState<string | null>(null);
 
   // Load saved automation settings from app_settings
   useEffect(() => {
@@ -271,6 +272,12 @@ const AdminWhatsApp = () => {
       body: { action, instanceName },
     });
     if (error) throw error;
+    if (data?.success === false) {
+      const message = data.message || data.error || "Integração do WhatsApp indisponível";
+      if (data.code === "EVOLUTION_API_CONFIG_INVALID") setIntegrationError(message);
+      throw new Error(message);
+    }
+    setIntegrationError(null);
     return data;
   };
 
@@ -287,6 +294,7 @@ const AdminWhatsApp = () => {
       }
     } catch (err) {
       logError("AdminWhatsApp fetch instances error", err);
+      setInstances([]);
     }
   }, []);
 
@@ -521,6 +529,22 @@ const AdminWhatsApp = () => {
 
           {/* ═════════ CONNECTION TAB ═════════ */}
           <TabsContent value="connection" className="space-y-6 mt-4">
+            {integrationError && (
+              <Card className="border-destructive/30 bg-destructive/5">
+                <CardContent className="pt-4">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="mt-0.5 h-5 w-5 text-destructive" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-foreground">Evolution API precisa ser configurada</p>
+                      <p className="text-sm text-muted-foreground">
+                        O painel está funcionando, mas o secret EVOLUTION_API_URL ainda está com valor placeholder. Atualize a URL real da Evolution API nos secrets para liberar criação de instâncias e QR Code.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Create new instance */}
             <Card>
               <CardHeader>
