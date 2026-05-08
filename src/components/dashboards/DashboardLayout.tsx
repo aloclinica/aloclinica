@@ -10,8 +10,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
-  SignOut, User, GearSix, List, MagnifyingGlass, ShieldCheck as ShieldCheckIcon,
-  CaretDown, DownloadSimple, X as XIcon, DeviceMobile, SidebarSimple, ArrowLineLeft,
+   SignOut, User, GearSix, List, MagnifyingGlass, ShieldCheck as ShieldCheckIcon,
+   CaretDown, DownloadSimple, X as XIcon, DeviceMobile, SidebarSimple, ArrowLineLeft,
+   House, Bell, ChatCircleText, UserCircle,
 } from "@phosphor-icons/react";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -247,10 +248,38 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
     return groups;
   }, [nav]);
 
-  // Bottom nav: first 5 items + Pingo + More
-  const BOTTOM_COUNT = 5;
-  const bottomNav = nav?.slice(0, BOTTOM_COUNT) ?? [];
-  const moreNav  = nav && nav.length > BOTTOM_COUNT ? nav.slice(BOTTOM_COUNT) : [];
+   // Enhanced Bottom nav for mobile
+   const bottomNav = useMemo(() => {
+     const items: NavItem[] = [];
+     // Home
+     items.push({ 
+       label: "Início", 
+       href: "/dashboard", 
+       icon: <House size={20} weight={location.pathname === "/dashboard" ? "fill" : "regular"} />,
+       active: location.pathname === "/dashboard"
+     });
+     // Top items from nav prop (up to 2 more)
+     if (nav) {
+       nav.slice(0, 2).forEach(item => {
+         if (item.href !== "/dashboard") items.push(item);
+       });
+     }
+     // Notifications
+     items.push({ 
+       label: "Avisos", 
+       href: "/dashboard/notifications", 
+       icon: <Bell size={20} weight={location.pathname.includes("notifications") ? "fill" : "regular"} />,
+       active: location.pathname.includes("notifications")
+     });
+     // Profile
+     items.push({ 
+       label: "Perfil", 
+       href: "/dashboard/profile", 
+       icon: <UserCircle size={20} weight={location.pathname.includes("profile") ? "fill" : "regular"} />,
+       active: location.pathname.includes("profile")
+     });
+     return items;
+   }, [nav, location.pathname]);
 
   // CSS-only entrance — no GSAP import needed, saves ~30KB dynamic load
   useEffect(() => {
@@ -444,74 +473,41 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
         className="sticky top-0 z-50 md:h-14 md:bg-background/90 md:backdrop-blur-md md:border-b md:border-border/40 supports-[backdrop-filter]:md:bg-background/80 flex items-center gap-3"
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
-        {/* Mobile: gradient header */}
-        <div className={`md:hidden w-full ${ROLE_HEADER_GRADIENT[role] ?? ROLE_HEADER_GRADIENT.patient} px-3 xs:px-4 py-2.5 xs:py-3 flex items-center gap-2 xs:gap-3`}
-          style={{ paddingLeft: "max(0.75rem, env(safe-area-inset-left, 0px))", paddingRight: "max(0.75rem, env(safe-area-inset-right, 0px))" }}>
-          {nav && nav.length > 0 && (
-            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-white/90 hover:bg-white/15" aria-label="Abrir menu">
-                  <List className="w-5 h-5" aria-hidden="true" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-[85vw] max-w-[340px] border-border/20 bg-background flex flex-col h-full">
-                <SidebarContent onItemClick={() => setSidebarOpen(false)} />
-              </SheetContent>
-            </Sheet>
-          )}
-
-          <Link to="/" className="flex items-center gap-2 shrink-0" aria-label="Home">
-            <img src={mascotImg} alt="AloClínica" className="w-8 h-8 object-contain select-none" style={{ filter: "drop-shadow(0 2px 6px rgba(0,0,0,.2))" }} />
-            <span className="font-black text-white text-[15px] tracking-tight">AloClínica</span>
-          </Link>
-
-          <div className="flex-1" />
-
-          <div className="flex items-center gap-1.5">
-            <NotificationBell />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="relative focus-visible:outline-none" aria-label="Menu do usuário">
-                  <Avatar className="h-8 w-8 ring-2 ring-white/30">
-                    {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
-                    <AvatarFallback className="bg-white/20 text-white text-[10px] font-bold">{initials}</AvatarFallback>
-                  </Avatar>
-                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[hsl(var(--success))] border-2 border-[hsl(var(--primary))]" aria-hidden="true" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" sideOffset={8} className="w-64 rounded-2xl border-border/20 shadow-elevated p-2 backdrop-blur-xl bg-popover/95">
-                <div className="flex items-center gap-3 px-2 py-3 mb-1">
-                  <Avatar className="h-11 w-11 ring-2 ring-primary/15 shadow-sm">
-                    {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
-                    <AvatarFallback className={`bg-gradient-to-br ${grad} text-white text-sm font-bold`}>{initials}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-bold text-foreground truncate leading-tight">{fullName}</p>
-                    <p className="text-[11px] text-muted-foreground/80 mt-0.5">{ROLE_LABELS[role] ?? title}</p>
-                  </div>
-                </div>
-                <DropdownMenuSeparator className="bg-border/10 -mx-2" />
-                <div className="py-1 space-y-0.5">
-                  <DropdownMenuItem onClick={() => navigate("/dashboard/profile")} className="rounded-xl gap-3 cursor-pointer text-[13px] py-2.5 px-2.5 focus:bg-primary/8">
-                    <span className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary/10"><User className="h-3.5 w-3.5 text-primary" /></span>
-                    <span className="font-medium">Meu Perfil</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/dashboard/settings")} className="rounded-xl gap-3 cursor-pointer text-[13px] py-2.5 px-2.5 focus:bg-muted">
-                    <span className="flex items-center justify-center h-7 w-7 rounded-lg bg-muted"><GearSix className="h-3.5 w-3.5 text-muted-foreground" /></span>
-                    <span className="font-medium">Configurações</span>
-                  </DropdownMenuItem>
-                </div>
-                <DropdownMenuSeparator className="bg-border/10 -mx-2" />
-                <div className="pt-1">
-                  <DropdownMenuItem onClick={handleSignOut} className="rounded-xl gap-3 cursor-pointer text-[13px] py-2.5 px-2.5 text-destructive focus:text-destructive focus:bg-destructive/8">
-                    <span className="flex items-center justify-center h-7 w-7 rounded-lg bg-destructive/10"><SignOut className="h-3.5 w-3.5" /></span>
-                    <span className="font-medium">Sair</span>
-                  </DropdownMenuItem>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
+       {/* Mobile: iOS-style glass header */}
+       <div className="md:hidden w-full px-4 py-3 flex items-center justify-between bg-background/80 backdrop-blur-xl border-b border-border/10 sticky top-0"
+         style={{ paddingLeft: "max(1rem, env(safe-area-inset-left, 0px))", paddingRight: "max(1rem, env(safe-area-inset-right, 0px))" }}>
+         <div className="flex items-center gap-3">
+           {nav && nav.length > 0 && (
+             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+               <SheetTrigger asChild>
+                 <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-muted/40 border border-border/10 shadow-sm active:scale-90 transition-transform" aria-label="Abrir menu">
+                   <List size={20} weight="bold" className="text-foreground/90" />
+                 </Button>
+               </SheetTrigger>
+               <SheetContent side="left" className="p-0 w-[85vw] max-w-[320px] border-r border-border/10 bg-background flex flex-col h-full shadow-2xl">
+                 <SidebarContent onItemClick={() => setSidebarOpen(false)} />
+               </SheetContent>
+             </Sheet>
+           )}
+           <div className="flex flex-col">
+             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary leading-none mb-1 opacity-80">AloClínica</span>
+             <h1 className="text-[17px] font-bold text-foreground leading-none tracking-tight">{title}</h1>
+           </div>
+         </div>
+ 
+         <div className="flex items-center gap-2">
+           <NotificationBell />
+           <button 
+             onClick={() => navigate("/dashboard/profile")}
+             className="relative p-0.5 rounded-full ring-2 ring-primary/20 transition-transform active:scale-95"
+           >
+             <Avatar className="h-8 w-8">
+               {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
+               <AvatarFallback className={`bg-gradient-to-br ${grad} text-white text-[10px] font-bold`}>{initials}</AvatarFallback>
+             </Avatar>
+           </button>
+         </div>
+       </div>
 
         {/* Desktop: standard header */}
         <div className="hidden md:flex w-full items-center px-4 h-14 gap-3">
@@ -646,82 +642,76 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
       <GlobalCommand role={role} />
       <PWABanner role={role} />
 
-      {/* ═══ Mobile bottom nav ═══ */}
-      {nav && nav.length > 0 && (
-        <nav
-          className="md:hidden fixed bottom-0 left-0 right-0 z-50"
-          style={{
-            paddingBottom: "max(4px, env(safe-area-inset-bottom, 4px))",
-            paddingLeft: "calc(env(safe-area-inset-left, 0px) + 6px)",
-            paddingRight: "calc(env(safe-area-inset-right, 0px) + 6px)",
-          }}
-          aria-label="Navegação principal"
-        >
-          <div
-            className="rounded-[22px] border border-border/10 dark:border-white/8 mx-auto max-w-[420px] bg-white/[0.94] dark:bg-background/[0.92]"
-            style={{
-              backdropFilter: "saturate(200%) blur(30px)",
-              WebkitBackdropFilter: "saturate(200%) blur(30px)",
-              boxShadow: "0 -4px 32px -6px rgba(0,0,0,0.08), 0 2px 12px -2px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.35)",
-            }}
-          >
-            <div className="flex items-end justify-around h-[64px] px-1 pb-1.5">
-              {bottomNav.map(item => {
-                const activeColor = ROLE_ACTIVE_COLOR[role] ?? ROLE_ACTIVE_COLOR.patient;
-                const activeBg = ROLE_ACTIVE_BG[role] ?? ROLE_ACTIVE_BG.patient;
-                return (
-                  <Link key={item.href} to={item.href}
-                    className={`relative flex flex-col items-center justify-end gap-0.5 flex-1 select-none group py-1 ${
-                      item.active ? activeColor : "text-muted-foreground/50"
-                    }`}
-                  >
-                    {/* Active pill indicator at top */}
-                    {item.active && (
-                      <motion.span
-                        layoutId="bottomNavPill"
-                        className="absolute -top-0.5 w-8 h-[3px] rounded-full bg-current"
-                        transition={{ type: "spring", stiffness: 500, damping: 32 }}
-                      />
-                    )}
-
-                    {/* Icon */}
-                    <motion.span
-                      className={`relative flex items-center justify-center rounded-2xl transition-all duration-250 ${
-                        item.active
-                          ? `${activeBg} w-11 h-11`
-                          : "w-10 h-10 group-active:bg-muted/40"
-                      }`}
-                      animate={item.active ? { scale: 1, y: -2 } : { scale: 1, y: 0 }}
-                      whileTap={{ scale: 0.85 }}
-                      transition={{ type: "spring", stiffness: 420, damping: 24 }}
-                    >
-                      <span className={`relative z-10 transition-all duration-200 ${
-                        item.active
-                          ? "[&>span]:!bg-transparent [&_svg]:w-[22px] [&_svg]:h-[22px]"
-                          : "[&_svg]:w-[20px] [&_svg]:h-[20px] opacity-60 group-active:opacity-80"
-                      }`}>
-                        {item.icon}
-                      </span>
-                      {(item.badge ?? 0) > 0 && (
-                        <span className="absolute -top-1 -right-1 text-[7px] font-bold min-w-[15px] h-[15px] px-1 rounded-full bg-destructive text-white flex items-center justify-center tabular-nums shadow ring-2 ring-white dark:ring-background">
-                          {(item.badge ?? 0) > 9 ? "9+" : item.badge}
-                        </span>
-                      )}
-                    </motion.span>
-
-                    {/* Label */}
-                    <span className={`text-[10px] truncate max-w-[52px] leading-none mt-0.5 ${
-                      item.active ? "font-bold" : "font-medium opacity-70"
-                    }`}>
-                      {item.label}
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </nav>
-      )}
+       {/* ═══ Mobile bottom nav — Premium Floating TabBar ═══ */}
+       {nav && nav.length > 0 && (
+         <nav
+           className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[400px]"
+           aria-label="Navegação principal"
+         >
+           <div
+             className="relative rounded-[32px] border border-white/20 dark:border-white/10 bg-background/70 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden"
+             style={{ WebkitBackdropFilter: "blur(24px) saturate(180%)" }}
+           >
+             {/* Glossy overlay effect */}
+             <div className="absolute inset-0 bg-gradient-to-t from-white/5 to-transparent pointer-events-none" />
+             
+             <div className="flex items-center justify-around h-[72px] px-2">
+               {bottomNav.map(item => {
+                 const activeColor = ROLE_ACTIVE_COLOR[role] ?? ROLE_ACTIVE_COLOR.patient;
+                 return (
+                   <Link key={item.href} to={item.href}
+                     className={`relative flex flex-col items-center justify-center flex-1 h-full select-none transition-all duration-300 ${
+                       item.active ? activeColor : "text-muted-foreground/40 hover:text-muted-foreground/60"
+                     }`}
+                   >
+                     {/* Active Glow Effect */}
+                     {item.active && (
+                       <motion.div
+                         layoutId="navGlow"
+                         className="absolute inset-0 bg-primary/10 blur-xl rounded-full"
+                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                       />
+                     )}
+ 
+                     <div className="relative flex flex-col items-center">
+                       {/* Icon Container with animation */}
+                       <motion.div
+                         animate={item.active ? { scale: 1.1, y: -2 } : { scale: 1, y: 0 }}
+                         whileTap={{ scale: 0.9 }}
+                         className="relative z-10"
+                       >
+                         {item.icon}
+                         
+                         {(item.badge ?? 0) > 0 && (
+                           <span className="absolute -top-1 -right-1 text-[8px] font-black min-w-[16px] h-[16px] px-1 rounded-full bg-destructive text-white flex items-center justify-center shadow-lg ring-2 ring-background">
+                             {(item.badge ?? 0) > 9 ? "9+" : item.badge}
+                           </span>
+                         )}
+                       </motion.div>
+ 
+                       {/* Label */}
+                       <span className={`text-[10px] mt-1.5 transition-all duration-300 ${
+                         item.active ? "font-black opacity-100 tracking-tight" : "font-medium opacity-0 -translate-y-1"
+                       }`}>
+                         {item.label}
+                       </span>
+                     </div>
+ 
+                     {/* Active Indicator Line */}
+                     {item.active && (
+                       <motion.div
+                         layoutId="navIndicator"
+                         className="absolute bottom-2 w-1.5 h-1.5 rounded-full bg-current"
+                         transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                       />
+                     )}
+                   </Link>
+                 );
+               })}
+             </div>
+           </div>
+         </nav>
+       )}
     </div>
   );
 };
