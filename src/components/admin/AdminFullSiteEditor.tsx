@@ -11,10 +11,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { invalidateSiteSections } from "@/lib/site-sections";
-import { 
-  ArrowUp, ArrowDown, Save, RefreshCw, Monitor, Tablet, Smartphone, 
-  History, Upload, Plus, Trash2, Layout, Image as ImageIcon, 
-  Type, Settings, Eye, Search, AlertCircle
+import {
+  ArrowUp, ArrowDown, Save, RefreshCw, Monitor, Tablet, Smartphone,
+  History, Upload, Plus, Trash2, Layout, Image as ImageIcon,
+  Type, Settings, Eye, Search, AlertCircle, Globe, FileEdit, Undo2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -33,6 +33,9 @@ type Section = {
   display_order: number;
   is_enabled: boolean;
   config: Record<string, any>;
+  draft_config?: Record<string, any> | null;
+  has_draft?: boolean;
+  last_published_at?: string | null;
   schema: { fields?: Field[] };
 };
 
@@ -74,7 +77,8 @@ export default function AdminFullSiteEditor() {
 
   useEffect(() => {
     if (selected) {
-      setEditing(selected.config ?? {});
+      // Carrega o rascunho se existir, senão a versão publicada
+      setEditing(selected.draft_config ?? selected.config ?? {});
       setIsDirty(false);
     }
   }, [selectedKey]); // eslint-disable-line
@@ -84,20 +88,72 @@ export default function AdminFullSiteEditor() {
     setIsDirty(true);
   };
 
-  const saveConfig = async () => {
+  const saveDraft = async () => {
     if (!selected) return;
     const { error } = await (db as any)
       .from("site_sections")
-      .update({ config: editing, updated_at: new Date().toISOString() })
+      .update({
+        draft_config: editing,
+        has_draft: true,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", selected.id);
     if (error) {
-      toast.error("Erro ao salvar: " + error.message);
+      toast.error("Erro ao salvar rascunho: " + error.message);
       return;
     }
-    toast.success("Seção salva com sucesso!");
+    toast.success("Rascunho salvo (não publicado)");
+    setIsDirty(false);
+    await load();
+  };
+
+  const publishSection = async () => {
+    if (!selected) return;
+    if (!confirm(`Publicar alterações de "${selected.display_name}"? O site público será atualizado imediatamente.`)) {
+      return;
+    }
+    // Snapshot da versão atual no histórico antes de sobrescrever
+    if (selected.config && Object.keys(selected.config).length > 0) {
+      await (db as any).from("site_sections_history").insert({
+        section_key: selected.key,
+        config: selected.config,
+      });
+    }
+    const { error } = await (db as any)
+      .from("site_sections")
+      .update({
+        config: editing,
+        draft_config: null,
+        has_draft: false,
+        last_published_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", selected.id);
+    if (error) {
+      toast.error("Erro ao publicar: " + error.message);
+      return;
+    }
+    toast.success("Seção publicada no site!");
     setIsDirty(false);
     invalidateSiteSections();
     setPreviewKey((k) => k + 1);
+    await load();
+  };
+
+  const discardDraft = async () => {
+    if (!selected || !selected.has_draft) return;
+    if (!confirm("Descartar rascunho e voltar para a versão publicada?")) return;
+    const { error } = await (db as any)
+      .from("site_sections")
+      .update({ draft_config: null, has_draft: false })
+      .eq("id", selected.id);
+    if (error) {
+      toast.error("Erro ao descartar: " + error.message);
+      return;
+    }
+    toast.success("Rascunho descartado");
+    setEditing(selected.config ?? {});
+    setIsDirty(false);
     await load();
   };
 
@@ -155,6 +211,16 @@ export default function AdminFullSiteEditor() {
               <AlertCircle className="w-3 h-3 mr-1" /> Alterações não salvas
             </Badge>
           )}
+          {!isDirty && selected?.has_draft && (
+            <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100">
+              <FileEdit className="w-3 h-3 mr-1" /> Rascunho aguardando publicação
+            </Badge>
+          )}
+          {!isDirty && selected && !selected.has_draft && selected.last_published_at && (
+            <Badge variant="outline" className="text-emerald-700 border-emerald-200">
+              <Globe className="w-3 h-3 mr-1" /> Publicado em {new Date(selected.last_published_at).toLocaleDateString("pt-BR")}
+            </Badge>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -196,8 +262,36 @@ export default function AdminFullSiteEditor() {
             <RefreshCw className="w-4 h-4 mr-2" /> Recarregar
           </Button>
 
-          <Button size="sm" className="h-9 px-6 font-bold" onClick={saveConfig} disabled={!selected || !isDirty}>
-            <Save className="w-4 h-4 mr-2" /> Salvar Alterações
+          {selected?.has_draft && !isDirty && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-9 text-muted-foreground hover:text-destructive"
+              onClick={discardDraft}
+              title="Descartar rascunho e voltar para versão publicada"
+            >
+              <Undo2 className="w-4 h-4 mr-1" /> Descartar
+            </Button>
+          )}
+
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-9"
+            onClick={saveDraft}
+            disabled={!selected || !isDirty}
+          >
+            <Save className="w-4 h-4 mr-2" /> Salvar Rascunho
+          </Button>
+
+          <Button
+            size="sm"
+            className="h-9 px-6 font-bold"
+            onClick={publishSection}
+            disabled={!selected || (isDirty === false && !selected.has_draft)}
+            title={isDirty ? "Salve o rascunho antes de publicar" : "Publica o rascunho atual no site"}
+          >
+            <Globe className="w-4 h-4 mr-2" /> Publicar
           </Button>
         </div>
       </div>
@@ -233,7 +327,15 @@ export default function AdminFullSiteEditor() {
                   </button>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className={`text-sm font-bold truncate ${selectedKey === s.key ? "text-white" : "text-foreground"}`}>{s.display_name}</div>
+                  <div className={`text-sm font-bold truncate flex items-center gap-1.5 ${selectedKey === s.key ? "text-white" : "text-foreground"}`}>
+                    {s.display_name}
+                    {s.has_draft && (
+                      <span
+                        className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${selectedKey === s.key ? "bg-amber-300" : "bg-amber-500"}`}
+                        title="Rascunho não publicado"
+                      />
+                    )}
+                  </div>
                   <div className={`text-[10px] truncate ${selectedKey === s.key ? "text-white/70" : "text-muted-foreground"}`}>{s.key}</div>
                 </div>
                 <Switch 
