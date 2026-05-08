@@ -1,11 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import { server } from "@/mocks/server";
+import { TEST_SUPABASE_URL } from "@/mocks/handlers";
 
 beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-const BASE = "https://oaixgmuocuwhsabidpei.supabase.co/rest/v1";
+const BASE = `${TEST_SUPABASE_URL}/rest/v1`;
 
 describe("CRUD flow (MSW integration)", () => {
   it("lists profiles", async () => {
