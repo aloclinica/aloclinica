@@ -1,6 +1,12 @@
 import { http, HttpResponse } from "msw";
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://oaixgmuocuwhsabidpei.supabase.co";
+// URL fixa para testes de integração MSW.
+// IMPORTANTE: tem que casar EXATAMENTE com o que os testes em
+// src/__tests__/integration usam, para o MSW interceptar.
+// Não usar VITE_SUPABASE_URL aqui — em CI esse env var aponta pro
+// projeto real e os testes hardcodam outra URL, causando bypass.
+export const TEST_SUPABASE_URL = "https://test.supabase.co";
+const SUPABASE_URL = TEST_SUPABASE_URL;
 
 export const mockAppointments = [
   { id: "appt-1", doctor_id: "doc-1", patient_id: "pat-1", status: "scheduled", scheduled_at: "2026-04-01T10:00:00Z" },

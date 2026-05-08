@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import { server } from "@/mocks/server";
-import { mockAppointments, errorHandlers } from "@/mocks/handlers";
+import { mockAppointments, errorHandlers, TEST_SUPABASE_URL } from "@/mocks/handlers";
 
 beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
 afterEach(() => server.resetHandlers());
@@ -8,7 +8,7 @@ afterAll(() => server.close());
 
 describe("Appointments API (MSW integration)", () => {
   it("GET returns list of appointments", async () => {
-    const url = `https://oaixgmuocuwhsabidpei.supabase.co/rest/v1/appointments`;
+    const url = `${TEST_SUPABASE_URL}/rest/v1/appointments`;
     const res = await fetch(url);
     const data = await res.json();
     expect(res.status).toBe(200);
@@ -17,7 +17,7 @@ describe("Appointments API (MSW integration)", () => {
   });
 
   it("POST creates a new appointment", async () => {
-    const url = `https://oaixgmuocuwhsabidpei.supabase.co/rest/v1/appointments`;
+    const url = `${TEST_SUPABASE_URL}/rest/v1/appointments`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -29,14 +29,14 @@ describe("Appointments API (MSW integration)", () => {
   });
 
   it("DELETE removes an appointment", async () => {
-    const url = `https://oaixgmuocuwhsabidpei.supabase.co/rest/v1/appointments?id=eq.appt-1`;
+    const url = `${TEST_SUPABASE_URL}/rest/v1/appointments?id=eq.appt-1`;
     const res = await fetch(url, { method: "DELETE" });
     expect(res.status).toBe(204);
   });
 
   it("handles 500 error", async () => {
     server.use(...errorHandlers);
-    const url = `https://oaixgmuocuwhsabidpei.supabase.co/rest/v1/appointments`;
+    const url = `${TEST_SUPABASE_URL}/rest/v1/appointments`;
     const res = await fetch(url);
     expect(res.status).toBe(500);
   });
