@@ -2,8 +2,8 @@ import {
   SquaresFour, VideoCamera, Wallet, ChartLineUp, Star,
   UserCircleCheck, ClipboardText, UserGear, Users, Stethoscope,
   Buildings, CalendarCheck, ShieldStar,
-  Key, Tag, ClockCounterClockwise, WhatsappLogo, Sliders,
-  PaintBrush, Image as ImageIcon, Heart
+   Key, Tag, ClockCounterClockwise, WhatsappLogo, Sliders,
+   PaintBrush, Image as ImageIcon, Heart, Lightning
 } from "@phosphor-icons/react";
 import { NavIcon } from "@/components/ui/nav-icon";
 
@@ -39,7 +39,8 @@ export const getAdminNav = (active: string) => [
   { label: "Mídia",          href: "/dashboard/admin/media?role=admin",        icon: <NavIcon icon={<ImageIcon size={16} weight="fill" />}   color="purple" />, active: active === "media",        group: "Conteúdo" },
 
   // ── Sistema ──
-  { label: "WhatsApp",      href: "/dashboard/admin/whatsapp?role=admin", icon: <NavIcon icon={<WhatsappLogo size={16} weight="fill" />}          color="green" />, active: active === "whatsapp", group: "Sistema" },
+   { label: "WhatsApp",      href: "/dashboard/admin/whatsapp?role=admin", icon: <NavIcon icon={<WhatsappLogo size={16} weight="fill" />}          color="green" />, active: active === "whatsapp", group: "Sistema" },
+   { label: "Automações",    href: "/dashboard/admin/automations?role=admin", icon: <NavIcon icon={<Lightning size={16} weight="fill" />}         color="amber" />, active: active === "automations", group: "Sistema" },
   { label: "Histórico",     href: "/dashboard/admin/logs?role=admin",     icon: <NavIcon icon={<ClockCounterClockwise size={16} weight="fill" />} color="slate" />, active: active === "logs",     group: "Sistema" },
   { label: "Configurações", href: "/dashboard/settings?role=admin",       icon: <NavIcon icon={<Sliders size={16} weight="fill" />}               color="slate" />, active: active === "settings", group: "Sistema" },
 ];
