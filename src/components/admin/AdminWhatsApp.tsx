@@ -530,15 +530,30 @@ const AdminWhatsApp = () => {
           {/* ═════════ CONNECTION TAB ═════════ */}
           <TabsContent value="connection" className="space-y-6 mt-4">
             {integrationError && (
-              <Card className="border-destructive/30 bg-destructive/5">
-                <CardContent className="pt-4">
-                  <div className="flex items-start gap-3">
-                    <AlertTriangle className="mt-0.5 h-5 w-5 text-destructive" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-foreground">Evolution API precisa ser configurada</p>
-                      <p className="text-sm text-muted-foreground">
-                        O painel está funcionando, mas o secret EVOLUTION_API_URL ainda está com valor placeholder. Atualize a URL real da Evolution API nos secrets para liberar criação de instâncias e QR Code.
-                      </p>
+              <Card className="border-amber-500/30 bg-amber-500/5 overflow-hidden">
+                <div className="h-1 bg-amber-500" />
+                <CardContent className="pt-6 pb-6">
+                  <div className="flex flex-col md:flex-row items-center gap-6">
+                    <div className="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+                      <AlertTriangle className="h-8 w-8 text-amber-600" />
+                    </div>
+                    <div className="space-y-3 flex-1 text-center md:text-left">
+                      <div>
+                        <h3 className="text-lg font-bold text-foreground">Configuração Necessária</h3>
+                        <p className="text-sm text-muted-foreground max-w-2xl">
+                          A integração com o WhatsApp via Evolution API ainda não foi configurada nos segredos do projeto (Secrets).
+                        </p>
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="bg-background/50 p-3 rounded-lg border border-border/50">
+                          <p className="text-[10px] font-bold uppercase text-muted-foreground mb-1">Passo 1</p>
+                          <p className="text-xs">Acesse o painel do seu Evolution API e copie a <strong>API Key</strong> e a <strong>URL</strong>.</p>
+                        </div>
+                        <div className="bg-background/50 p-3 rounded-lg border border-border/50">
+                          <p className="text-[10px] font-bold uppercase text-muted-foreground mb-1">Passo 2</p>
+                          <p className="text-xs">No Lovable, vá em <strong>Cloud -> Secrets</strong> e defina <code>EVOLUTION_API_URL</code> e <code>EVOLUTION_API_KEY</code>.</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
