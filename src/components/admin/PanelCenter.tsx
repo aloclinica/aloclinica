@@ -15,7 +15,7 @@ import {
   FileText, PieChart, ShieldAlert, Database,
   CreditCard,
 } from "lucide-react";
-import { SquaresFour } from "@phosphor-icons/react";
+ import { SquaresFour, WhatsappLogo } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
