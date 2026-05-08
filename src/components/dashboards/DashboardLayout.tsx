@@ -10,8 +10,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
-  SignOut, User, GearSix, List, MagnifyingGlass, ShieldCheck as ShieldCheckIcon,
-  CaretDown, DownloadSimple, X as XIcon, DeviceMobile, SidebarSimple, ArrowLineLeft,
+   SignOut, User, GearSix, List, MagnifyingGlass, ShieldCheck as ShieldCheckIcon,
+   CaretDown, DownloadSimple, X as XIcon, DeviceMobile, SidebarSimple, ArrowLineLeft,
+   House, Bell, ChatCircleText, UserCircle,
 } from "@phosphor-icons/react";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -247,10 +248,38 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
     return groups;
   }, [nav]);
 
-  // Bottom nav: first 5 items + Pingo + More
-  const BOTTOM_COUNT = 5;
-  const bottomNav = nav?.slice(0, BOTTOM_COUNT) ?? [];
-  const moreNav  = nav && nav.length > BOTTOM_COUNT ? nav.slice(BOTTOM_COUNT) : [];
+   // Enhanced Bottom nav for mobile
+   const bottomNav = useMemo(() => {
+     const items: NavItem[] = [];
+     // Home
+     items.push({ 
+       label: "Início", 
+       href: "/dashboard", 
+       icon: <House size={20} weight={location.pathname === "/dashboard" ? "fill" : "regular"} />,
+       active: location.pathname === "/dashboard"
+     });
+     // Top items from nav prop (up to 2 more)
+     if (nav) {
+       nav.slice(0, 2).forEach(item => {
+         if (item.href !== "/dashboard") items.push(item);
+       });
+     }
+     // Notifications
+     items.push({ 
+       label: "Avisos", 
+       href: "/dashboard/notifications", 
+       icon: <Bell size={20} weight={location.pathname.includes("notifications") ? "fill" : "regular"} />,
+       active: location.pathname.includes("notifications")
+     });
+     // Profile
+     items.push({ 
+       label: "Perfil", 
+       href: "/dashboard/profile", 
+       icon: <UserCircle size={20} weight={location.pathname.includes("profile") ? "fill" : "regular"} />,
+       active: location.pathname.includes("profile")
+     });
+     return items;
+   }, [nav, location.pathname]);
 
   // CSS-only entrance — no GSAP import needed, saves ~30KB dynamic load
   useEffect(() => {
@@ -444,74 +473,41 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
         className="sticky top-0 z-50 md:h-14 md:bg-background/90 md:backdrop-blur-md md:border-b md:border-border/40 supports-[backdrop-filter]:md:bg-background/80 flex items-center gap-3"
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
-        {/* Mobile: gradient header */}
-        <div className={`md:hidden w-full ${ROLE_HEADER_GRADIENT[role] ?? ROLE_HEADER_GRADIENT.patient} px-3 xs:px-4 py-2.5 xs:py-3 flex items-center gap-2 xs:gap-3`}
-          style={{ paddingLeft: "max(0.75rem, env(safe-area-inset-left, 0px))", paddingRight: "max(0.75rem, env(safe-area-inset-right, 0px))" }}>
-          {nav && nav.length > 0 && (
-            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-white/90 hover:bg-white/15" aria-label="Abrir menu">
-                  <List className="w-5 h-5" aria-hidden="true" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-[85vw] max-w-[340px] border-border/20 bg-background flex flex-col h-full">
-                <SidebarContent onItemClick={() => setSidebarOpen(false)} />
-              </SheetContent>
-            </Sheet>
-          )}
-
-          <Link to="/" className="flex items-center gap-2 shrink-0" aria-label="Home">
-            <img src={mascotImg} alt="AloClínica" className="w-8 h-8 object-contain select-none" style={{ filter: "drop-shadow(0 2px 6px rgba(0,0,0,.2))" }} />
-            <span className="font-black text-white text-[15px] tracking-tight">AloClínica</span>
-          </Link>
-
-          <div className="flex-1" />
-
-          <div className="flex items-center gap-1.5">
-            <NotificationBell />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="relative focus-visible:outline-none" aria-label="Menu do usuário">
-                  <Avatar className="h-8 w-8 ring-2 ring-white/30">
-                    {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
-                    <AvatarFallback className="bg-white/20 text-white text-[10px] font-bold">{initials}</AvatarFallback>
-                  </Avatar>
-                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[hsl(var(--success))] border-2 border-[hsl(var(--primary))]" aria-hidden="true" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" sideOffset={8} className="w-64 rounded-2xl border-border/20 shadow-elevated p-2 backdrop-blur-xl bg-popover/95">
-                <div className="flex items-center gap-3 px-2 py-3 mb-1">
-                  <Avatar className="h-11 w-11 ring-2 ring-primary/15 shadow-sm">
-                    {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
-                    <AvatarFallback className={`bg-gradient-to-br ${grad} text-white text-sm font-bold`}>{initials}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-bold text-foreground truncate leading-tight">{fullName}</p>
-                    <p className="text-[11px] text-muted-foreground/80 mt-0.5">{ROLE_LABELS[role] ?? title}</p>
-                  </div>
-                </div>
-                <DropdownMenuSeparator className="bg-border/10 -mx-2" />
-                <div className="py-1 space-y-0.5">
-                  <DropdownMenuItem onClick={() => navigate("/dashboard/profile")} className="rounded-xl gap-3 cursor-pointer text-[13px] py-2.5 px-2.5 focus:bg-primary/8">
-                    <span className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary/10"><User className="h-3.5 w-3.5 text-primary" /></span>
-                    <span className="font-medium">Meu Perfil</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/dashboard/settings")} className="rounded-xl gap-3 cursor-pointer text-[13px] py-2.5 px-2.5 focus:bg-muted">
-                    <span className="flex items-center justify-center h-7 w-7 rounded-lg bg-muted"><GearSix className="h-3.5 w-3.5 text-muted-foreground" /></span>
-                    <span className="font-medium">Configurações</span>
-                  </DropdownMenuItem>
-                </div>
-                <DropdownMenuSeparator className="bg-border/10 -mx-2" />
-                <div className="pt-1">
-                  <DropdownMenuItem onClick={handleSignOut} className="rounded-xl gap-3 cursor-pointer text-[13px] py-2.5 px-2.5 text-destructive focus:text-destructive focus:bg-destructive/8">
-                    <span className="flex items-center justify-center h-7 w-7 rounded-lg bg-destructive/10"><SignOut className="h-3.5 w-3.5" /></span>
-                    <span className="font-medium">Sair</span>
-                  </DropdownMenuItem>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
+       {/* Mobile: iOS-style glass header */}
+       <div className="md:hidden w-full px-4 py-3 flex items-center justify-between bg-background/80 backdrop-blur-xl border-b border-border/10 sticky top-0"
+         style={{ paddingLeft: "max(1rem, env(safe-area-inset-left, 0px))", paddingRight: "max(1rem, env(safe-area-inset-right, 0px))" }}>
+         <div className="flex items-center gap-3">
+           {nav && nav.length > 0 && (
+             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+               <SheetTrigger asChild>
+                 <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-muted/30 border border-border/10" aria-label="Abrir menu">
+                   <List size={22} weight="bold" className="text-foreground/80" />
+                 </Button>
+               </SheetTrigger>
+               <SheetContent side="left" className="p-0 w-[85vw] max-w-[320px] border-r border-border/10 bg-background/95 backdrop-blur-xl flex flex-col h-full shadow-2xl">
+                 <SidebarContent onItemClick={() => setSidebarOpen(false)} />
+               </SheetContent>
+             </Sheet>
+           )}
+           <div className="flex flex-col">
+             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/70 leading-none mb-1">AloClínica</span>
+             <h1 className="text-[17px] font-bold text-foreground leading-none">{title}</h1>
+           </div>
+         </div>
+ 
+         <div className="flex items-center gap-2">
+           <NotificationBell />
+           <button 
+             onClick={() => navigate("/dashboard/profile")}
+             className="relative p-0.5 rounded-full ring-2 ring-primary/20 transition-transform active:scale-95"
+           >
+             <Avatar className="h-8 w-8">
+               {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
+               <AvatarFallback className={`bg-gradient-to-br ${grad} text-white text-[10px] font-bold`}>{initials}</AvatarFallback>
+             </Avatar>
+           </button>
+         </div>
+       </div>
 
         {/* Desktop: standard header */}
         <div className="hidden md:flex w-full items-center px-4 h-14 gap-3">
