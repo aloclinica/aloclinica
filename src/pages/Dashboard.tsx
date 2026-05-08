@@ -113,6 +113,7 @@ const AdminSwitchPanel = lazy(() => import("@/components/admin/AdminSwitchPanel"
 const AdminNPS = lazy(() => import("@/components/admin/AdminNPS"));
  const AdminWhatsApp = lazy(() => import("@/components/admin/AdminWhatsApp"));
  const AdminAutomations = lazy(() => import("@/components/admin/AdminAutomations"));
+ const AdminPagBank = lazy(() => import("@/components/admin/AdminPagBank"));
 const AdminLiveConsultations = lazy(() => import("@/components/admin/AdminLiveConsultations"));
 const SystemHealth = lazy(() => import("@/components/admin/SystemHealth"));
 const AdminFinancial = lazy(() => import("@/components/admin/AdminFinancial"));
@@ -369,6 +370,7 @@ const Dashboard = () => {
       <Route path="admin/nps" element={<RoleGuard allowed={[]} roles={roles}><AdminNPS /></RoleGuard>} />
        <Route path="admin/whatsapp" element={<RoleGuard allowed={[]} roles={roles}><AdminWhatsApp /></RoleGuard>} />
        <Route path="admin/automations" element={<RoleGuard allowed={[]} roles={roles}><AdminAutomations /></RoleGuard>} />
+       <Route path="admin/pagbank" element={<RoleGuard allowed={[]} roles={roles}><AdminPagBank /></RoleGuard>} />
       <Route path="admin/health" element={<RoleGuard allowed={[]} roles={roles}><SystemHealth /></RoleGuard>} />
       <Route path="admin/live" element={<RoleGuard allowed={[]} roles={roles}><AdminLiveConsultations /></RoleGuard>} />
       <Route path="admin/panel-center" element={<RoleGuard allowed={[]} roles={roles}><PanelCenter /></RoleGuard>} />
