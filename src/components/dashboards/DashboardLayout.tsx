@@ -480,18 +480,18 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
            {nav && nav.length > 0 && (
              <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
                <SheetTrigger asChild>
-                 <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-muted/30 border border-border/10" aria-label="Abrir menu">
-                   <List size={22} weight="bold" className="text-foreground/80" />
+                 <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-muted/40 border border-border/10 shadow-sm active:scale-90 transition-transform" aria-label="Abrir menu">
+                   <List size={20} weight="bold" className="text-foreground/90" />
                  </Button>
                </SheetTrigger>
-               <SheetContent side="left" className="p-0 w-[85vw] max-w-[320px] border-r border-border/10 bg-background/95 backdrop-blur-xl flex flex-col h-full shadow-2xl">
+               <SheetContent side="left" className="p-0 w-[85vw] max-w-[320px] border-r border-border/10 bg-background flex flex-col h-full shadow-2xl">
                  <SidebarContent onItemClick={() => setSidebarOpen(false)} />
                </SheetContent>
              </Sheet>
            )}
            <div className="flex flex-col">
-             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/70 leading-none mb-1">AloClínica</span>
-             <h1 className="text-[17px] font-bold text-foreground leading-none">{title}</h1>
+             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary leading-none mb-1 opacity-80">AloClínica</span>
+             <h1 className="text-[17px] font-bold text-foreground leading-none tracking-tight">{title}</h1>
            </div>
          </div>
  
