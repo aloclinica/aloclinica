@@ -21,7 +21,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import pingoAdmin from "@/assets/pingo-admin.png";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartTooltip, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartTooltip, Cell, LineChart, Line } from "recharts";
 
 interface RecentUser { name: string; page: string; lastSeen: string }
 interface PanelInfo {
@@ -222,7 +222,20 @@ const PanelCenter = () => {
      { label: "Aprovar Médicos", icon: UserPlus, route: "/dashboard/admin/approvals?role=admin", color: "text-emerald-500", bg: "bg-emerald-500/10" },
      { label: "Relatório Financeiro", icon: ClipboardList, route: "/dashboard/admin/financial?role=admin", color: "text-blue-500", bg: "bg-blue-500/10" },
      { label: "Configurar WhatsApp", icon: WhatsappLogo, route: "/dashboard/admin/whatsapp?role=admin", color: "text-green-500", bg: "bg-green-500/10" },
+     { label: "Novas Especialidades", icon: ShieldStar, route: "/dashboard/admin/specialties?role=admin", color: "text-cyan-500", bg: "bg-cyan-500/10" },
+     { label: "Cupons de Desconto", icon: Tag, route: "/dashboard/admin/coupons?role=admin", color: "text-orange-500", bg: "bg-orange-500/10" },
      { label: "Ver Logs", icon: Database, route: "/dashboard/admin/logs?role=admin", color: "text-slate-500", bg: "bg-slate-500/10" },
+   ];
+
+   // Simulated revenue data for the chart
+   const revenueData = [
+     { day: "Seg", revenue: 1200 },
+     { day: "Ter", revenue: 1800 },
+     { day: "Qua", revenue: 1400 },
+     { day: "Qui", revenue: 2200 },
+     { day: "Sex", revenue: 2800 },
+     { day: "Sáb", revenue: 2100 },
+     { day: "Dom", revenue: 1900 },
    ];
 
   return (
@@ -318,6 +331,90 @@ const PanelCenter = () => {
               </Button>
             ))}
           </div>
+        </motion.section>
+
+        {/* ─────── QUICK ACTIONS ─────── */}
+        <motion.section variants={fadeUp} className="space-y-4">
+          <div className="flex items-center gap-2 px-1">
+            <Zap className="w-5 h-5 text-amber-500" fill="currentColor" />
+            <h2 className="text-lg font-bold text-foreground">Ações Rápidas</h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {quickActions.map((action) => (
+              <Button
+                key={action.label}
+                variant="outline"
+                className="h-auto py-4 px-4 flex flex-col items-center gap-3 bg-card hover:bg-muted/50 border-border/40 rounded-2xl group transition-all"
+                onClick={() => navigate(action.route)}
+              >
+                <div className={cn("p-3 rounded-xl transition-transform group-hover:scale-110", action.bg)}>
+                  <action.icon className={cn("w-5 h-5", action.color)} />
+                </div>
+                <span className="text-[11px] font-bold text-foreground text-center line-clamp-1">{action.label}</span>
+              </Button>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* ─────── PLATFORM PULSE ─────── */}
+        <motion.section variants={fadeUp} className="grid lg:grid-cols-3 gap-4">
+          <Card className="lg:col-span-2 border-border/40 bg-card/50 overflow-hidden">
+            <div className="p-5 border-b border-border/40 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-emerald-500" />
+                <h3 className="text-sm font-bold text-foreground">Faturamento Estimado (7d)</h3>
+              </div>
+              <Badge variant="outline" className="font-mono text-[10px] text-emerald-600 border-emerald-500/20 bg-emerald-500/5">
+                +12% vs última semana
+              </Badge>
+            </div>
+            <div className="h-[200px] p-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueData}>
+                  <defs>
+                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
+                  <YAxis hide />
+                  <RechartTooltip />
+                  <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorRev)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          <Card className="border-border/40 bg-card/50">
+            <div className="p-5 border-b border-border/40 flex items-center gap-2">
+              <ShieldAlert className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-bold text-foreground">Integridade</h3>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500" /> WhatsApp API
+                </span>
+                <Badge variant="outline" className="text-[9px] font-bold">OPERANTE</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500" /> PagBank Gateway
+                </span>
+                <Badge variant="outline" className="text-[9px] font-bold">CONECTADO</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-amber-500" /> Jitsi Video
+                </span>
+                <Badge variant="outline" className="text-[9px] font-bold text-amber-600 border-amber-500/20 bg-amber-500/5">LATÊNCIA</Badge>
+              </div>
+              <Button variant="ghost" className="w-full text-xs h-8 text-primary hover:bg-primary/5 mt-2" onClick={() => navigate("/dashboard/admin/health?role=admin")}>
+                Ver Diagnóstico Completo
+              </Button>
+            </div>
+          </Card>
         </motion.section>
 
         {/* ─────── KPI CARDS ─────── */}
