@@ -123,6 +123,8 @@ export default function SignupPatient() {
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
+            // role lido pelo trigger handle_new_user para popular user_roles
+            role: "patient",
             first_name: firstName,
             last_name: lastName,
             cpf: formData.cpf.replace(/\D/g, ""),

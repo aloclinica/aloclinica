@@ -6,6 +6,42 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+/**
+ * TURN/STUN credentials para WebRTC P2P.
+ *
+ * Estratégia em 3 camadas:
+ *   1. coturn próprio (VPS 72.62.138.208) — STUN + TURN com long-term credentials
+ *   2. Metered.live (se MET_KEY configurado) — TURN dinâmico expira em 4h
+ *   3. Google STUN público — fallback (apenas STUN, NÃO funciona atrás de NAT simétrico)
+ *
+ * Sempre retorna pelo menos a camada 1 (coturn próprio) que cobre 95%+ dos casos.
+ */
+
+// coturn rodando na VPS — credenciais long-term (não expiram)
+const COTURN_HOST = Deno.env.get("COTURN_HOST") || "72.62.138.208";
+const COTURN_PORT = Deno.env.get("COTURN_PORT") || "3478";
+const COTURN_USER = Deno.env.get("COTURN_USER") || "mirotalk";
+const COTURN_PASS = Deno.env.get("COTURN_PASS") || "a3be93988cc6e759c2c32dbd";
+
+function ownIceServers() {
+  return [
+    // STUN próprio (descoberta de IP)
+    { urls: `stun:${COTURN_HOST}:${COTURN_PORT}` },
+    // TURN próprio (relay quando NAT bloqueia P2P direto)
+    {
+      urls: [
+        `turn:${COTURN_HOST}:${COTURN_PORT}?transport=udp`,
+        `turn:${COTURN_HOST}:${COTURN_PORT}?transport=tcp`,
+      ],
+      username: COTURN_USER,
+      credential: COTURN_PASS,
+    },
+    // Fallbacks STUN públicos
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+  ];
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -35,78 +71,49 @@ Deno.serve(async (req) => {
       });
     }
 
-    const secretKey = Deno.env.get("METERED_SECRET_KEY");
-    const appName = Deno.env.get("METERED_APP_NAME");
+    // Camada 1: sempre incluir coturn próprio
+    const iceServers = ownIceServers();
 
-    if (!secretKey || !appName) {
-      // Return STUN-only fallback if TURN not configured
-      console.info("[TURN] Metered not configured, returning STUN fallback");
-      return new Response(JSON.stringify({
-        iceServers: [
-          { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:stun1.l.google.com:19302" },
-        ],
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Create expiring credential via Metered API
-    const createRes = await fetch(
-      `https://${appName}.metered.live/api/v1/turn/credential?secretKey=${secretKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ expiryInSeconds: 14400 }), // 4 hours
+    // Camada 2: tentar Metered como reforço (não bloqueante)
+    const meteredKey = Deno.env.get("METERED_SECRET_KEY");
+    const meteredApp = Deno.env.get("METERED_APP_NAME");
+    if (meteredKey && meteredApp) {
+      try {
+        const credRes = await fetch(
+          `https://${meteredApp}.metered.live/api/v1/turn/credential?secretKey=${meteredKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ expiryInSeconds: 14400 }),
+          }
+        );
+        if (credRes.ok) {
+          const cred = await credRes.json();
+          const iceRes = await fetch(
+            `https://${meteredApp}.metered.live/api/v1/turn/credentials?apiKey=${cred.apiKey}`
+          );
+          if (iceRes.ok) {
+            const meteredServers = await iceRes.json();
+            if (Array.isArray(meteredServers)) {
+              iceServers.push(...meteredServers);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("[TURN] Metered enrichment failed (não-bloqueante):", e);
       }
-    );
-
-    if (!createRes.ok) {
-      const errText = await createRes.text();
-      console.error("Metered create credential error:", errText);
-      // Return STUN fallback on error
-      return new Response(JSON.stringify({
-        iceServers: [
-          { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:stun1.l.google.com:19302" },
-        ],
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
     }
 
-    const credential = await createRes.json();
-    const apiKey = credential.apiKey;
-
-    // Fetch ICE servers array
-    const iceRes = await fetch(
-      `https://${appName}.metered.live/api/v1/turn/credentials?apiKey=${apiKey}`
-    );
-
-    if (!iceRes.ok) {
-      const errText = await iceRes.text();
-      console.error("Metered get ICE servers error:", errText);
-      return new Response(JSON.stringify({
-        iceServers: [
-          { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:stun1.l.google.com:19302" },
-        ],
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const iceServers = await iceRes.json();
-
-    console.info(`[TURN] Returned ${iceServers.length} ICE servers for user ${user.id}`);
+    console.info(`[TURN] ${iceServers.length} ICE servers para user ${user.id}`);
 
     return new Response(JSON.stringify({ iceServers }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: any) {
     console.error("TURN credentials error:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
+    // Mesmo em erro, devolver coturn próprio para não quebrar vídeo
+    return new Response(JSON.stringify({ iceServers: ownIceServers() }), {
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
