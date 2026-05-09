@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { logError } from "@/lib/logger";
+import { logError, warn } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Camera, RotateCcw, CheckCircle2, XCircle, Loader2, FileImage, User, ShieldCheck, Upload } from "lucide-react";
@@ -178,10 +178,23 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
       setStep("result");
       onComplete?.(kycResult);
 
+      // Notificar usuário por email — non-blocking (não trava UI se Brevo falhar)
+      const userEmail = user.email;
+      if (userEmail) {
+        const userName = verification.nome || (user.user_metadata as any)?.first_name || "";
+        db.functions.invoke("send-email", {
+          body: {
+            type: isApproved ? "kyc_approved" : "kyc_rejected",
+            to: userEmail,
+            data: { name: userName, score, similarity: score },
+          },
+        }).catch((e) => warn("[BiometricKYC] envio de email KYC falhou", e));
+      }
+
       if (isApproved) {
         toast.success("Identidade verificada!", { description: `Similaridade: ${score}%` });
       } else {
-        toast.error("Verificação não aprovada", { description: `Similaridade: ${score}% (mínimo 60%)` });
+        toast.error("Verificação não aprovada", { description: `Similaridade: ${score}% (mínimo 80%)` });
       }
     } catch (err: any) {
       logError("[BiometricKYC] Verification error", err);

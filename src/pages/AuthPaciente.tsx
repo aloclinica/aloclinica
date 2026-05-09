@@ -315,6 +315,8 @@ const AuthPaciente = () => {
         options: {
           emailRedirectTo: window.location.origin,
           data: {
+            // role lido pelo trigger handle_new_user para popular user_roles
+            role: "patient",
             first_name: firstName,
             last_name: lastName,
             cpf: cleanCpf,

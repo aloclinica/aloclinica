@@ -313,7 +313,12 @@ const AuthMedico = () => {
     setLoading(true);
     const { data, error } = await db.auth.signUp({
       email, password,
-      options: { emailRedirectTo: window.location.origin, data: { first_name: firstName, last_name: lastName } },
+      options: {
+        emailRedirectTo: window.location.origin,
+        // role lido pelo trigger handle_new_user para popular user_roles
+        // assign-role abaixo lida com doctor_profiles + invite code
+        data: { role: "doctor", first_name: firstName, last_name: lastName },
+      },
     });
     if (error) { setLoading(false); toast.error("Erro no cadastro", { description: translateAuthError(error.message) }); return; }
     if (data.user) {
