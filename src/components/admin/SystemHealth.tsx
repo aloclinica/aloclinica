@@ -5,7 +5,7 @@ import { getAdminNav } from "@/components/admin/adminNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, CheckCircle2, XCircle, Clock, Database, Bot, Globe, Server, Users, FileText, Calendar, HardDrive, Shield, Monitor, Video } from "lucide-react";
+import { RefreshCw, CheckCircle2, XCircle, Clock, Database, Bot, Globe, Server, Users, FileText, Calendar, HardDrive, Shield, Monitor, Video, MessageCircle, CreditCard, Mail, Brain, Stethoscope, FileSignature, Eye, Bell, Plug } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { SUPABASE_FUNCTIONS_URL, SUPABASE_PUBLISHABLE_KEY } from "@/lib/supabase-config";
@@ -16,6 +16,7 @@ interface HealthCheck {
   latency?: number;
   message?: string;
   icon: React.ReactNode;
+  group?: "core" | "vps" | "integration";
 }
 
 interface DbStats {
@@ -77,9 +78,10 @@ const SystemHealth = () => {
         latency,
         message: error ? error.message : `Respondendo em ${latency}ms`,
         icon: <Database className="w-5 h-5" />,
+        group: "core",
       });
     } catch (e: unknown) {
-      results.push({ name: "Banco de Dados (PostgreSQL)", status: "error", message: e instanceof Error ? e.message : "Erro desconhecido", icon: <Database className="w-5 h-5" /> });
+      results.push({ name: "Banco de Dados (PostgreSQL)", status: "error", message: e instanceof Error ? e.message : "Erro desconhecido", icon: <Database className="w-5 h-5" />, group: "core" });
     }
 
     // 2. Auth
@@ -93,9 +95,10 @@ const SystemHealth = () => {
         latency,
         message: data.session ? `Sessão ativa • ${latency}ms` : `Sem sessão • ${latency}ms`,
         icon: <Server className="w-5 h-5" />,
+        group: "core",
       });
     } catch (e: unknown) {
-      results.push({ name: "Autenticação (GoTrue)", status: "error", message: e instanceof Error ? e.message : "Erro desconhecido", icon: <Server className="w-5 h-5" /> });
+      results.push({ name: "Autenticação (GoTrue)", status: "error", message: e instanceof Error ? e.message : "Erro desconhecido", icon: <Server className="w-5 h-5" />, group: "core" });
     }
 
     // 3. Edge Functions
@@ -116,9 +119,10 @@ const SystemHealth = () => {
         latency,
         message: `Gateway ativo • ${latency}ms`,
         icon: <Bot className="w-5 h-5" />,
+        group: "core",
       });
     } catch (e: unknown) {
-      results.push({ name: "Edge Functions (Deno)", status: "error", message: e instanceof Error ? e.message : "Erro desconhecido", icon: <Bot className="w-5 h-5" /> });
+      results.push({ name: "Edge Functions (Deno)", status: "error", message: e instanceof Error ? e.message : "Erro desconhecido", icon: <Bot className="w-5 h-5" />, group: "core" });
     }
 
     // 4. Realtime
@@ -141,9 +145,10 @@ const SystemHealth = () => {
         latency,
         message: `Conectado • ${latency}ms`,
         icon: <Globe className="w-5 h-5" />,
+        group: "core",
       });
     } catch (e: unknown) {
-      results.push({ name: "Realtime (WebSocket)", status: "error", message: e instanceof Error ? e.message : "Erro desconhecido", icon: <Globe className="w-5 h-5" /> });
+      results.push({ name: "Realtime (WebSocket)", status: "error", message: e instanceof Error ? e.message : "Erro desconhecido", icon: <Globe className="w-5 h-5" />, group: "core" });
     }
 
     // 5. Storage
@@ -157,9 +162,10 @@ const SystemHealth = () => {
         latency,
         message: error ? error.message : `Acessível • ${latency}ms`,
         icon: <HardDrive className="w-5 h-5" />,
+        group: "core",
       });
     } catch (e: unknown) {
-      results.push({ name: "Storage (S3)", status: "error", message: e instanceof Error ? e.message : "Erro desconhecido", icon: <HardDrive className="w-5 h-5" /> });
+      results.push({ name: "Storage (S3)", status: "error", message: e instanceof Error ? e.message : "Erro desconhecido", icon: <HardDrive className="w-5 h-5" />, group: "core" });
     }
 
     // 6–10. VPS Services
@@ -176,12 +182,67 @@ const SystemHealth = () => {
       try {
         const res = await fetch(svc.url, { mode: "no-cors", signal: AbortSignal.timeout(5000) });
         const latency = Math.round(performance.now() - start);
-        results.push({ name: svc.name, status: "ok", latency, message: `Acessível • ${latency}ms`, icon: svc.icon });
+        results.push({ name: svc.name, status: "ok", latency, message: `Acessível • ${latency}ms`, icon: svc.icon, group: "vps" });
       } catch (e: unknown) {
         const latency = Math.round(performance.now() - start);
-        results.push({ name: svc.name, status: "error", latency, message: e instanceof Error ? e.message : "Inacessível", icon: svc.icon });
+        results.push({ name: svc.name, status: "error", latency, message: e instanceof Error ? e.message : "Inacessível", icon: svc.icon, group: "vps" });
       }
     }
+
+    // 11+. Integrações Externas (Edge Functions)
+    const integrations = [
+      { name: "WhatsApp (Evolution API)", fn: "whatsapp-notify", icon: <MessageCircle className="w-5 h-5" /> },
+      { name: "PagBank (Pagamentos)", fn: "pagbank-create-payment", icon: <CreditCard className="w-5 h-5" /> },
+      { name: "Lovable AI Gateway", fn: "ai-assistant", icon: <Brain className="w-5 h-5" /> },
+      { name: "Sugestão de Laudo (Claude)", fn: "sugerir-laudo", icon: <Brain className="w-5 h-5" /> },
+      { name: "Memed (Prescrições)", fn: "memed-prescriber", icon: <Stethoscope className="w-5 h-5" /> },
+      { name: "DocuSeal (Assinatura digital)", fn: "docuseal-proxy", icon: <FileSignature className="w-5 h-5" /> },
+      { name: "VidaaS (Assinatura ICP)", fn: "vidaas-sign", icon: <FileSignature className="w-5 h-5" /> },
+      { name: "CompreFace Proxy (KYC)", fn: "compreface-proxy", icon: <Eye className="w-5 h-5" /> },
+      { name: "Didit KYC", fn: "didit-kyc", icon: <Shield className="w-5 h-5" /> },
+      { name: "Orthanc Proxy (DICOM)", fn: "orthanc-proxy", icon: <Server className="w-5 h-5" /> },
+      { name: "Resend (E-mail)", fn: "send-email", icon: <Mail className="w-5 h-5" /> },
+      { name: "Push Notifications", fn: "send-push-notification", icon: <Bell className="w-5 h-5" /> },
+      { name: "Verify CRM (CFM)", fn: "verify-crm", icon: <Shield className="w-5 h-5" /> },
+      { name: "Triagem por Sintomas (IA)", fn: "symptom-triage", icon: <Brain className="w-5 h-5" /> },
+      { name: "Lembretes WhatsApp", fn: "appointment-reminders", icon: <MessageCircle className="w-5 h-5" /> },
+    ];
+
+    await Promise.all(integrations.map(async (svc) => {
+      const start = performance.now();
+      try {
+        // OPTIONS preflight: confirma deploy + CORS sem efeitos colaterais
+        const res = await fetch(`${SUPABASE_FUNCTIONS_URL}/${svc.fn}`, {
+          method: "OPTIONS",
+          headers: {
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "authorization, content-type",
+            Origin: window.location.origin,
+          },
+          signal: AbortSignal.timeout(8000),
+        });
+        const latency = Math.round(performance.now() - start);
+        const ok = res.status >= 200 && res.status < 500 && res.status !== 404;
+        results.push({
+          name: svc.name,
+          status: ok ? "ok" : "error",
+          latency,
+          message: ok ? `Deployada • ${latency}ms` : `HTTP ${res.status}`,
+          icon: svc.icon,
+          group: "integration",
+        });
+      } catch (e: unknown) {
+        const latency = Math.round(performance.now() - start);
+        results.push({
+          name: svc.name,
+          status: "error",
+          latency,
+          message: e instanceof Error ? e.message : "Sem resposta",
+          icon: svc.icon,
+          group: "integration",
+        });
+      }
+    }));
 
     setChecks(results);
     setLastCheck(new Date());
@@ -248,31 +309,52 @@ const SystemHealth = () => {
           </motion.div>
         )}
 
-        {/* Service checks */}
-        <motion.div variants={fadeUp} className="grid sm:grid-cols-2 gap-3">
-          {checks.map((check, i) => (
-            <Card key={i} className={`border ${check.status === "ok" ? "border-success/20" : "border-destructive/30"}`}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                    check.status === "ok" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
-                  }`}>
-                    {check.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-foreground text-sm">{check.name}</p>
-                      <Badge variant={check.status === "ok" ? "default" : "destructive"} className="text-[10px] h-5">
-                        {check.status === "ok" ? "✓" : "✗"}
-                      </Badge>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{check.message}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </motion.div>
+        {/* Service checks agrupados */}
+        {([
+          { key: "core", label: "🧱 Núcleo Supabase", icon: <Database className="w-4 h-4" /> },
+          { key: "vps", label: "🖥️ Servidores VPS", icon: <Server className="w-4 h-4" /> },
+          { key: "integration", label: "🔌 Integrações & Edge Functions", icon: <Plug className="w-4 h-4" /> },
+        ] as const).map((section) => {
+          const items = checks.filter((c) => (c.group ?? "core") === section.key);
+          if (items.length === 0) return null;
+          const okCount = items.filter((c) => c.status === "ok").length;
+          return (
+            <motion.div key={section.key} variants={fadeUp}>
+              <div className="flex items-center justify-between mb-3 px-1">
+                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                  {section.icon} {section.label}
+                </p>
+                <Badge variant={okCount === items.length ? "default" : "destructive"} className="text-[10px] h-5">
+                  {okCount}/{items.length}
+                </Badge>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {items.map((check, i) => (
+                  <Card key={`${section.key}-${i}`} className={`border ${check.status === "ok" ? "border-success/20" : "border-destructive/30"}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                          check.status === "ok" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
+                        }`}>
+                          {check.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-foreground text-sm truncate">{check.name}</p>
+                            <Badge variant={check.status === "ok" ? "default" : "destructive"} className="text-[10px] h-5 shrink-0">
+                              {check.status === "ok" ? "ATIVO" : "FALHA"}
+                            </Badge>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{check.message}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </motion.div>
+          );
+        })}
 
         {/* DB Stats */}
         {dbStats && (
