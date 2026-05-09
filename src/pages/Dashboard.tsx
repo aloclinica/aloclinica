@@ -111,6 +111,8 @@ const AdminReports = lazy(() => import("@/components/admin/AdminReports"));
 const AdminUsers = lazy(() => import("@/components/admin/AdminUsers"));
 const AdminApprovals = lazy(() => import("@/components/admin/AdminApprovals"));
 const AdminKycReview = lazy(() => import("@/components/admin/AdminKycReview"));
+const AdminBilling = lazy(() => import("@/components/admin/AdminBilling"));
+const BillingPortal = lazy(() => import("@/components/billing/BillingPortal"));
 const AdminSwitchPanel = lazy(() => import("@/components/admin/AdminSwitchPanel"));
 const AdminNPS = lazy(() => import("@/components/admin/AdminNPS"));
 const AdminWhatsApp = lazy(() => import("@/components/admin/AdminWhatsApp"));
@@ -279,6 +281,7 @@ const Dashboard = () => {
       
       <Route path="history" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><MedicalHistory /></ContextGuard></RoleGuard>} />
       <Route path="payment-history" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><PaymentHistory /></ContextGuard></RoleGuard>} />
+      <Route path="billing" element={<RoleGuard allowed={["patient", "doctor", "clinic"]} roles={roles}><BillingPortal /></RoleGuard>} />
       <Route path="patient/documents" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><PatientExamUpload /></ContextGuard></RoleGuard>} />
       <Route path="patient/health" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><PatientHealth /></ContextGuard></RoleGuard>} />
       <Route path="patient/support" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><PatientSupportChat /></ContextGuard></RoleGuard>} />
@@ -367,6 +370,7 @@ const Dashboard = () => {
       <Route path="admin/reports" element={<RoleGuard allowed={[]} roles={roles}><AdminReports /></RoleGuard>} />
       <Route path="admin/approvals" element={<RoleGuard allowed={[]} roles={roles}><AdminApprovals /></RoleGuard>} />
       <Route path="admin/kyc-review" element={<RoleGuard allowed={[]} roles={roles}><AdminKycReview /></RoleGuard>} />
+      <Route path="admin/billing" element={<RoleGuard allowed={[]} roles={roles}><AdminBilling /></RoleGuard>} />
       <Route path="admin/doctor-applications" element={<RoleGuard allowed={[]} roles={roles}><AdminDoctorApplications /></RoleGuard>} />
       <Route path="admin/switch-panel" element={<RoleGuard allowed={[]} roles={roles}><AdminSwitchPanel /></RoleGuard>} />
       <Route path="admin/nps" element={<RoleGuard allowed={[]} roles={roles}><AdminNPS /></RoleGuard>} />
