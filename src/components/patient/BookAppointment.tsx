@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import {
-  ArrowLeft, Clock, Star, Check, UserPlus, UserCheck, AlertTriangle,
+  ArrowLeft, Clock, Star, Check, UserPlus, UserCheck, AlertTriangle, Loader2,
   CalendarDays, CheckCircle2, ChevronRight, Stethoscope, QrCode, CreditCard,
   FileBarChart, Lock, Shield, Copy, Tag, X as XIcon
 } from "lucide-react";
@@ -51,7 +51,7 @@ interface DoctorInfo {
 const STEPS = [
   { key: "date", label: "Data", icon: CalendarDays },
   { key: "time", label: "Horário", icon: Clock },
-  { key: "confirm", label: "Confirmar", icon: CheckCircle2 },
+  { key: "confirm", label: "Confirmação", icon: CheckCircle2 },
   { key: "payment", label: "Pagamento", icon: CreditCard },
 ];
 
@@ -1011,170 +1011,265 @@ const BookAppointment = () => {
             </motion.div>
           )}
 
-          {/* Step 4: Payment */}
+          {/* Step 4: Premium Payment Checkout */}
           {currentStep === 3 && paymentStep && (
-            <motion.div key="payment" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-              <div className="text-center mb-5">
-                <Lock className="w-5 h-5 mx-auto text-muted-foreground mb-1" />
-                <h3 className="text-lg font-bold text-foreground">Pagamento Seguro</h3>
-                <p className="text-xs text-muted-foreground">R$ {totalPrice.toFixed(2)} · via Asaas</p>
+            <motion.div key="payment" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6">
+              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-secondary p-8 text-primary-foreground shadow-2xl">
+                <div className="absolute top-0 right-0 p-4 opacity-10 rotate-12">
+                  <Shield className="w-32 h-32" />
+                </div>
+                <div className="relative z-10 flex flex-col items-center text-center">
+                  <Badge className="mb-4 bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-md px-4 py-1">
+                    <Lock className="w-3 h-3 mr-2" /> Checkout Seguro
+                  </Badge>
+                  <h3 className="text-3xl font-black tracking-tight mb-2">Finalizar Agendamento</h3>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-lg opacity-80 font-medium">R$</span>
+                    <span className="text-5xl font-black">{totalPrice.toFixed(2)}</span>
+                  </div>
+                  <div className="mt-6 flex items-center gap-2 text-sm opacity-90 font-medium bg-black/10 px-4 py-2 rounded-2xl">
+                    <CalendarDays className="w-4 h-4" />
+                    {selectedDate && format(selectedDate, "dd 'de' MMMM", { locale: ptBR })} às {selectedTime}
+                  </div>
+                </div>
               </div>
 
-              {/* Method selector */}
-              <div className="grid grid-cols-3 gap-2 mb-5">
-                {([
-                  { id: "pix" as PaymentMethod, label: "PIX", icon: QrCode, badge: "Instantâneo" },
-                  { id: "card" as PaymentMethod, label: "Cartão", icon: CreditCard, badge: null },
-                  { id: "boleto" as PaymentMethod, label: "Boleto", icon: FileBarChart, badge: null },
-                ] as const).map(method => (
-                  <button key={method.id} onClick={() => setPaymentMethod(method.id)}
-                    className={cn(
-                      "relative flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all",
-                      paymentMethod === method.id
-                        ? "border-primary bg-primary/5 shadow-sm"
-                        : "border-border bg-card hover:border-primary/30"
-                    )}>
-                    <method.icon className={cn("w-5 h-5", paymentMethod === method.id ? "text-primary" : "text-muted-foreground")} />
-                    <span className={cn("text-xs font-semibold", paymentMethod === method.id ? "text-primary" : "text-foreground")}>{method.label}</span>
-                    {method.badge && (
-                      <Badge className="absolute -top-2 -right-2 text-[10px] px-1.5 py-0 bg-secondary text-secondary-foreground border-0">
-                        {method.badge}
-                      </Badge>
-                    )}
-                  </button>
-                ))}
+              <div className="grid grid-cols-3 gap-3 p-1 bg-muted/30 rounded-2xl border border-border/40">
+                {(["pix", "card", "boleto"] as const).map((method) => {
+                  const Icon = method === "pix" ? QrCode : method === "card" ? CreditCard : FileBarChart;
+                  const active = paymentMethod === method;
+                  return (
+                    <button
+                      key={method}
+                      onClick={() => setPaymentMethod(method)}
+                      className={cn(
+                        "flex flex-col items-center justify-center gap-2 py-4 rounded-xl transition-all duration-300 relative overflow-hidden group",
+                        active ? "bg-white dark:bg-card shadow-xl scale-[1.02] border-primary/10 border" : "text-muted-foreground hover:bg-white/50 dark:hover:bg-card/30"
+                      )}
+                    >
+                      {active && (
+                        <motion.div layoutId="active-tab" className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-secondary" />
+                      )}
+                      <Icon className={cn("w-6 h-6 transition-transform duration-500", active ? "text-primary scale-110" : "group-hover:scale-110")} />
+                      <span className={cn("text-xs font-bold uppercase tracking-wider", active ? "text-primary" : "text-muted-foreground")}>
+                        {method === "pix" ? "PIX" : method === "card" ? "Cartão" : "Boleto"}
+                      </span>
+                      {method === "pix" && !active && (
+                        <span className="absolute top-1 right-1 w-2 h-2 bg-secondary rounded-full animate-ping" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
 
               <AnimatePresence mode="wait">
-                {/* PIX */}
-                {paymentMethod === "pix" && (
-                  <motion.div key="pix" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                    <Card className="border-border">
-                      <CardContent className="p-6 text-center">
+                <motion.div
+                  key={paymentMethod}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                >
+                  {paymentMethod === "pix" && (
+                    <Card className="border-border/40 shadow-2xl rounded-3xl overflow-hidden bg-card/50 backdrop-blur-xl">
+                      <CardContent className="p-8 text-center">
                         {pixExpired ? (
-                          <>
-                            <QrCode className="w-12 h-12 mx-auto text-destructive/40 mb-3" />
-                            <p className="text-sm font-semibold text-destructive mb-1">QR Code expirado</p>
-                            <p className="text-xs text-muted-foreground mb-4">O PIX expirou após 30 minutos.</p>
-                            <Button className="w-full bg-gradient-to-r from-primary to-secondary text-primary-foreground h-12 text-base"
-                              onClick={() => { setPixQrCode(null); setPixCopyPaste(null); setPixExpired(false); handlePayment(); }}
-                              disabled={processing}>
-                              {processing ? "Gerando..." : "🔄 Gerar novo PIX"}
+                          <div className="py-8">
+                            <div className="w-20 h-20 mx-auto rounded-3xl bg-destructive/10 flex items-center justify-center mb-6">
+                              <XIcon className="w-10 h-10 text-destructive" />
+                            </div>
+                            <h4 className="text-xl font-bold mb-2">QR Code Expirado</h4>
+                            <p className="text-muted-foreground mb-8">O código PIX tem validade de 30 minutos.</p>
+                            <Button
+                              className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20"
+                              onClick={() => { setPixQrCode(null); setPixExpired(false); handlePayment(); }}
+                              disabled={processing}
+                            >
+                              {processing ? <Loader2 className="animate-spin mr-2" /> : <Clock className="w-5 h-5 mr-2" />}
+                              Gerar Novo PIX
                             </Button>
-                          </>
+                          </div>
                         ) : pixQrCode ? (
-                          <>
-                            <div className="w-48 h-48 mx-auto rounded-2xl bg-card border-2 border-border p-2 mb-3">
-                              <img src={`data:image/png;base64,${pixQrCode}`} alt="QR Code PIX" className="w-full h-full object-contain rounded-xl" loading="lazy" decoding="async" />
+                          <div className="space-y-6">
+                            <div className="relative group mx-auto w-64 h-64">
+                              <div className="absolute inset-0 bg-primary/10 rounded-[2rem] blur-2xl group-hover:bg-primary/20 transition-colors" />
+                              <div className="relative bg-white p-4 rounded-[2rem] shadow-xl border border-white/20">
+                                <img
+                                  src={`data:image/png;base64,${pixQrCode}`}
+                                  alt="QR Code PIX"
+                                  className="w-full h-full rounded-2xl"
+                                />
+                              </div>
                             </div>
-                            {/* Expiry countdown */}
-                            <div className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full mb-3 ${
-                              pixSecondsLeft < 120 ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
-                            }`}>
-                              <Clock className="w-3 h-3" />
-                              Expira em {Math.floor(pixSecondsLeft / 60).toString().padStart(2, "0")}:{(pixSecondsLeft % 60).toString().padStart(2, "0")}
+
+                            <div className={cn(
+                              "inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold shadow-inner transition-colors",
+                              pixSecondsLeft < 120 ? "bg-destructive/10 text-destructive animate-pulse" : "bg-secondary/10 text-secondary"
+                            )}>
+                              <Clock className="w-4 h-4" />
+                              Expira em {Math.floor(pixSecondsLeft / 60)}:{(pixSecondsLeft % 60).toString().padStart(2, '0')}
                             </div>
-                            <p className="text-xs text-muted-foreground mb-3">Escaneie o QR Code ou copie o código</p>
-                            <Button variant="outline" className="w-full mb-4 font-mono text-xs"
-                              onClick={() => { navigator.clipboard.writeText(pixCopyPaste || ""); setPixCopied(true); toast.success("Copiado!"); setTimeout(() => setPixCopied(false), 3000); }}>
-                              {pixCopied ? <><CheckCircle2 className="w-4 h-4 mr-2 text-secondary" /> Copiado!</> : <><Copy className="w-4 h-4 mr-2" /> Copiar código PIX</>}
-                            </Button>
-                            <p className="text-xs text-muted-foreground">Confirmação automática via webhook.</p>
-                          </>
+
+                            <div className="space-y-3">
+                              <p className="text-sm font-medium text-muted-foreground">Pague agora para confirmar na hora</p>
+                              <Button
+                                variant="secondary"
+                                className="w-full h-14 rounded-2xl font-bold text-base shadow-lg shadow-secondary/10 hover:shadow-secondary/20 transition-all active:scale-[0.98]"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(pixCopyPaste || "");
+                                  setPixCopied(true);
+                                  toast.success("Código copiado!");
+                                  setTimeout(() => setPixCopied(false), 3000);
+                                }}
+                              >
+                                {pixCopied ? <CheckCircle2 className="w-5 h-5 mr-2" /> : <Copy className="w-5 h-5 mr-2" />}
+                                {pixCopied ? "Copiado!" : "Copiar Código Copia e Cola"}
+                              </Button>
+                            </div>
+                          </div>
                         ) : (
-                          <>
-                            <QrCode className="w-12 h-12 mx-auto text-primary/60 mb-4" />
-                            <p className="text-sm text-muted-foreground mb-4">Clique para gerar o QR Code PIX</p>
-                            <Button className="w-full bg-gradient-to-r from-primary to-secondary text-primary-foreground h-12 text-base"
-                              onClick={handlePayment} disabled={processing}>
-                              {processing ? (
-                                <span className="flex items-center gap-2">
-                                  <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                                  Gerando PIX...
-                                </span>
-                              ) : `Gerar PIX • R$ ${totalPrice.toFixed(2)}`}
+                          <div className="py-8">
+                            <div className="w-20 h-20 mx-auto rounded-3xl bg-primary/10 flex items-center justify-center mb-6">
+                              <QrCode className="w-10 h-10 text-primary" />
+                            </div>
+                            <h4 className="text-xl font-bold mb-2">Pagar com PIX</h4>
+                            <p className="text-muted-foreground mb-8">Confirmação instantânea e segura.</p>
+                            <Button
+                              className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20"
+                              onClick={handlePayment}
+                              disabled={processing}
+                            >
+                              {processing ? <Loader2 className="animate-spin mr-2" /> : <QrCode className="w-5 h-5 mr-2" />}
+                              Gerar QR Code PIX
                             </Button>
-                          </>
+                          </div>
                         )}
                       </CardContent>
                     </Card>
-                  </motion.div>
-                )}
+                  )}
 
-                {/* Card */}
-                {paymentMethod === "card" && (
-                  <motion.div key="card" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                    <Card className="border-border">
-                      <CardContent className="p-6 space-y-4">
-                        <div>
-                          <Label className="text-xs text-muted-foreground">Nome no cartão</Label>
-                          <Input value={cardName} onChange={e => setCardName(e.target.value)} placeholder="Nome como no cartão" className="mt-1" />
-                        </div>
-                        <div>
-                          <Label className="text-xs text-muted-foreground">Número</Label>
-                          <Input value={cardNumber} onChange={e => setCardNumber(formatCardNumber(e.target.value))} placeholder="0000 0000 0000 0000" className="mt-1 font-mono" maxLength={19} />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <Label className="text-xs text-muted-foreground">Validade</Label>
-                            <Input value={cardExpiry} onChange={e => setCardExpiry(formatExpiry(e.target.value))} placeholder="MM/AA" className="mt-1 font-mono" maxLength={5} />
-                          </div>
-                          <div>
-                            <Label className="text-xs text-muted-foreground">CVV</Label>
-                            <Input value={cardCvv} onChange={e => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="•••" className="mt-1 font-mono" maxLength={4} type="password" />
+                  {paymentMethod === "card" && (
+                    <Card className="border-border/40 shadow-2xl rounded-3xl overflow-hidden bg-card/50 backdrop-blur-xl">
+                      <CardContent className="p-8 space-y-6">
+                        <div className="relative h-44 w-full rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 p-6 text-white shadow-xl overflow-hidden">
+                          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl" />
+                          <div className="relative z-10 flex flex-col justify-between h-full">
+                            <div className="flex justify-between items-start">
+                              <div className="w-12 h-8 bg-gradient-to-br from-amber-400 to-amber-200 rounded-md opacity-80" />
+                              <CreditCard className="w-8 h-8 opacity-40" />
+                            </div>
+                            <div className="space-y-4">
+                              <div className="text-xl font-mono tracking-[0.2em]">
+                                {cardNumber || "•••• •••• •••• ••••"}
+                              </div>
+                              <div className="flex justify-between text-xs font-mono uppercase tracking-widest opacity-70">
+                                <div>{cardName || "NOME DO TITULAR"}</div>
+                                <div>{cardExpiry || "MM/AA"}</div>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        <Button className="w-full bg-gradient-to-r from-primary to-secondary text-primary-foreground h-12 text-base mt-2"
-                          onClick={handlePayment} disabled={processing}>
-                          {processing ? (
-                            <span className="flex items-center gap-2">
-                              <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                              Processando...
-                            </span>
-                          ) : <><Lock className="w-4 h-4 mr-2" /> Pagar R$ {totalPrice.toFixed(2)}</>}
+
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Titular</Label>
+                            <Input
+                              value={cardName}
+                              onChange={e => setCardName(e.target.value)}
+                              placeholder="Nome impresso no cartão"
+                              className="h-14 rounded-2xl border-border/40 bg-background/50 focus:ring-2 focus:ring-primary/20 transition-all"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Número do Cartão</Label>
+                            <div className="relative">
+                              <Input
+                                value={cardNumber}
+                                onChange={e => setCardNumber(formatCardNumber(e.target.value))}
+                                placeholder="0000 0000 0000 0000"
+                                className="h-14 rounded-2xl border-border/40 bg-background/50 font-mono text-lg tracking-wider pr-12"
+                                maxLength={19}
+                              />
+                              <CreditCard className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground/40" />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Validade</Label>
+                              <Input
+                                value={cardExpiry}
+                                onChange={e => setCardExpiry(formatExpiry(e.target.value))}
+                                placeholder="MM/AA"
+                                className="h-14 rounded-2xl border-border/40 bg-background/50 font-mono text-center"
+                                maxLength={5}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">CVC</Label>
+                              <div className="relative">
+                                <Input
+                                  value={cardCvv}
+                                  onChange={e => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                                  placeholder="•••"
+                                  className="h-14 rounded-2xl border-border/40 bg-background/50 font-mono text-center"
+                                  maxLength={4}
+                                  type="password"
+                                />
+                                <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <Button
+                          className="w-full h-16 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-lg shadow-xl shadow-primary/20 transition-all active:scale-[0.98] mt-4"
+                          onClick={handlePayment}
+                          disabled={processing}
+                        >
+                          {processing ? <Loader2 className="animate-spin mr-2" /> : <Shield className="w-6 h-6 mr-2" />}
+                          PAGAR AGORA
                         </Button>
                       </CardContent>
                     </Card>
-                  </motion.div>
-                )}
+                  )}
 
-                {/* Boleto */}
-                {paymentMethod === "boleto" && (
-                  <motion.div key="boleto" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                    <Card className="border-border">
-                      <CardContent className="p-6 text-center">
+                  {paymentMethod === "boleto" && (
+                    <Card className="border-border/40 shadow-2xl rounded-3xl overflow-hidden bg-card/50 backdrop-blur-xl">
+                      <CardContent className="p-8 text-center">
                         {boletoUrl ? (
-                          <>
-                            <CheckCircle2 className="w-12 h-12 mx-auto text-secondary mb-4" />
-                            <h3 className="font-bold text-foreground mb-2">Boleto Gerado!</h3>
-                            <p className="text-sm text-muted-foreground mb-4">Pague o boleto para confirmar sua consulta.</p>
-                            <a href={boletoUrl} target="_blank" rel="noopener noreferrer">
-                              <Button className="w-full bg-gradient-to-r from-primary to-secondary text-primary-foreground h-12 text-base mb-3">
-                                📄 Abrir Boleto
+                          <div className="py-8">
+                            <div className="w-20 h-20 mx-auto rounded-3xl bg-secondary/10 flex items-center justify-center mb-6">
+                              <CheckCircle2 className="w-10 h-10 text-secondary" />
+                            </div>
+                            <h4 className="text-xl font-bold mb-2">Boleto Gerado com Sucesso!</h4>
+                            <p className="text-muted-foreground mb-8 text-sm">Após o pagamento, a compensação pode levar até 2 dias úteis.</p>
+                            <a href={boletoUrl} target="_blank" rel="noopener noreferrer" className="block">
+                              <Button className="w-full h-14 rounded-2xl bg-secondary hover:bg-secondary/90 text-white font-bold shadow-lg shadow-secondary/20">
+                                <FileBarChart className="w-5 h-5 mr-2" /> Visualizar Boleto
                               </Button>
                             </a>
-                            <p className="text-xs text-muted-foreground">Confirmação automática via webhook.</p>
-                          </>
+                          </div>
                         ) : (
-                          <>
-                            <FileBarChart className="w-12 h-12 mx-auto text-primary/60 mb-4" />
-                            <h3 className="font-bold text-foreground mb-2">Boleto Bancário</h3>
-                            <p className="text-sm text-muted-foreground mb-4">Compensação em até 2 dias úteis.</p>
-                            <Button className="w-full bg-gradient-to-r from-primary to-secondary text-primary-foreground h-12 text-base"
-                              onClick={handlePayment} disabled={processing}>
-                              {processing ? (
-                                <span className="flex items-center gap-2">
-                                  <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                                  Gerando boleto...
-                                </span>
-                              ) : `Gerar Boleto • R$ ${totalPrice.toFixed(2)}`}
+                          <div className="py-8">
+                            <div className="w-20 h-20 mx-auto rounded-3xl bg-muted flex items-center justify-center mb-6">
+                              <FileBarChart className="w-10 h-10 text-muted-foreground" />
+                            </div>
+                            <h4 className="text-xl font-bold mb-2">Boleto Bancário</h4>
+                            <p className="text-muted-foreground mb-8 text-sm">Pague em qualquer banco ou casa lotérica.</p>
+                            <Button
+                              className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
+                              onClick={handlePayment}
+                              disabled={processing}
+                            >
+                              {processing ? <Loader2 className="animate-spin mr-2" /> : <FileBarChart className="w-5 h-5 mr-2" />}
+                              Gerar Boleto
                             </Button>
-                          </>
+                          </div>
                         )}
                       </CardContent>
                     </Card>
-                  </motion.div>
-                )}
+                  )}
+                </motion.div>
               </AnimatePresence>
 
               {/* Security badges */}
