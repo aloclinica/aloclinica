@@ -248,11 +248,11 @@ const UrgentCareQueue = () => {
       const payload: Record<string, any> = { customerName, customerCpf: profile.cpf, customerEmail: user.email || "", customerMobilePhone: profile.phone || "", billingType: billingTypeMap[paymentMethod], value: priceWithDiscount, description: `Plantão 24h - AloClínica (${shiftInfo.label})`, appointmentId: `queue_${queueEntry.id}` };
       if (paymentMethod === "card") {
         const [expiryMonth, expiryYear] = cardExpiry.split("/");
-        const { data: tokenData, error: tokenError } = await db.functions.invoke("tokenize-card", { body: { customerName, customerCpf: profile.cpf, customerEmail: user.email, customerPhone: profile.phone, cardHolderName: cardName, cardNumber: cardNumber.replace(/\s/g, ""), cardExpiryMonth: expiryMonth, cardExpiryYear: `20${expiryYear}`, cardCcv: cardCvv, cardHolderCpf: profile.cpf, cardHolderPhone: profile.phone, remoteIp: "0.0.0.0" } });
+        const { data: tokenData, error: tokenError } = await db.functions.invoke("pagbank-tokenize-card", { body: { customerName, customerCpf: profile.cpf, customerEmail: user.email, customerPhone: profile.phone, cardHolderName: cardName, cardNumber: cardNumber.replace(/\s/g, ""), cardExpiryMonth: expiryMonth, cardExpiryYear: `20${expiryYear}`, cardCcv: cardCvv, cardHolderCpf: profile.cpf, cardHolderPhone: profile.phone, remoteIp: "0.0.0.0" } });
         if (tokenError || !tokenData?.success) { toast.error("Erro no cartão", { description: tokenData?.error }); await db.from("on_demand_queue").delete().eq("id", queueEntry.id); setProcessing(false); return; }
         payload.creditCardToken = tokenData.creditCardToken;
       }
-      const { data, error } = await db.functions.invoke("create-asaas-payment", { body: payload });
+      const { data, error } = await db.functions.invoke("pagbank-create-payment", { body: payload });
       if (error || !data?.success) { toast.error("Erro no pagamento", { description: data?.error || "Tente novamente." }); await db.from("on_demand_queue").delete().eq("id", queueEntry.id); setProcessing(false); return; }
       if (paymentMethod === "pix") { setPixQrCode(data.pixQrCode || null); setPixCopyPaste(data.pixCopyPaste || null); setProcessing(false); toast.success("PIX gerado! 🎉"); return; }
       if (paymentMethod === "boleto") { setBoletoUrl(data.bankSlipUrl || data.invoiceUrl || null); setProcessing(false); toast.success("Boleto gerado! 📄"); return; }

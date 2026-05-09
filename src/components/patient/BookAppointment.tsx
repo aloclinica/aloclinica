@@ -497,7 +497,7 @@ const BookAppointment = () => {
       // Card tokenization
       if (paymentMethod === "card") {
         const [expiryMonth, expiryYear] = cardExpiry.split("/");
-        const { data: tokenData, error: tokenError } = await db.functions.invoke("tokenize-card", {
+        const { data: tokenData, error: tokenError } = await db.functions.invoke("pagbank-tokenize-card", {
           body: {
             customerName,
             customerCpf: profile.cpf,
@@ -521,7 +521,7 @@ const BookAppointment = () => {
         payload.creditCardToken = tokenData.creditCardToken;
       }
 
-      const { data, error } = await db.functions.invoke("create-asaas-payment", { body: payload });
+      const { data, error } = await db.functions.invoke("pagbank-create-payment", { body: payload });
 
       if (error || !data?.success) {
         toast.error("Erro no pagamento", { description: data?.error || "Tente novamente." });
