@@ -40,13 +40,13 @@ export default function AdminPaymentTest() {
 
   useEffect(() => {
     (async () => {
-      // Pick a real doctor with a profile
-      const { data } = await db
-        .from("appointments")
-        .select("doctor_id")
-        .not("doctor_id", "is", null)
+      // Pega o primeiro doctor_profile real (appointments.doctor_id → doctor_profiles.id)
+      const { data, error } = await db
+        .from("doctor_profiles")
+        .select("id")
         .limit(1);
-      if (data?.[0]?.doctor_id) setDoctorId(data[0].doctor_id);
+      if (data?.[0]?.id) setDoctorId(data[0].id);
+      else if (error) toast.error("Erro buscando médico", { description: error.message });
     })();
     return () => { if (pollRef.current) window.clearInterval(pollRef.current); };
   }, []);
