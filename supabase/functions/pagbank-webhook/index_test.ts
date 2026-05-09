@@ -1,4 +1,5 @@
-import "https://deno.land/std@0.224.0/dotenv/load.ts";
+import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
+await load({ export: true, allowEmptyValues: true, examplePath: null }).catch(() => {});
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
