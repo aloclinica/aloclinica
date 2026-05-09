@@ -3,11 +3,16 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 /**
  * PagBank webhook receiver.
- * Configure this URL in PagBank panel:
- *   https://<project>.supabase.co/functions/v1/pagbank-webhook
+ * Configure no painel PagBank:
+ *   https://pwxvvimdtmvziynbspgx.supabase.co/functions/v1/pagbank-webhook
  *
- * Auth: PagBank sends an "x-authenticity-token" header containing
- * sha256(account_token + body). We verify it against PAGBANK_TOKEN.
+ * Auth: PagBank envia "x-authenticity-token" = sha256(PAGBANK_TOKEN + body).
+ *
+ * Atualiza:
+ *   - payment_transactions (sempre, se pagbank_charge_id ou pagbank_order_id bate)
+ *   - appointments / on_demand_queue / prescription_renewals (legado por reference_id)
+ *   - subscriptions (se reference_id começa com sub_)
+ *   - notifications + activity_logs
  */
 
 const corsHeaders = {
@@ -32,7 +37,7 @@ serve(async (req) => {
   const PAGBANK_TOKEN = Deno.env.get("PAGBANK_TOKEN") || "";
   const rawBody = await req.text();
 
-  // Verify signature when token configured
+  // Verify signature
   const sig = req.headers.get("x-authenticity-token");
   if (PAGBANK_TOKEN && sig) {
     const expected = await sha256Hex(PAGBANK_TOKEN + rawBody);
@@ -50,10 +55,11 @@ serve(async (req) => {
   try {
     const orderId = payload.id || payload.order_id || payload.charges?.[0]?.order_id;
     const charge = payload.charges?.[0] || payload;
-    const referenceId = payload.reference_id || charge?.reference_id || "";
-    const pagStatus: string = charge?.status || payload.status || "";
+    const chargeId = charge?.id;
+    const referenceId: string = payload.reference_id || charge?.reference_id || "";
+    const pagStatus: string = (charge?.status || payload.status || "").toUpperCase();
 
-    console.info(`[PagBank Webhook] order=${orderId} ref=${referenceId} status=${pagStatus}`);
+    console.info(`[PagBank Webhook] order=${orderId} charge=${chargeId} ref=${referenceId} status=${pagStatus}`);
 
     const map: Record<string, string> = {
       PAID: "approved",
@@ -68,16 +74,55 @@ serve(async (req) => {
     };
     const newStatus = map[pagStatus] || null;
 
+    // ── Atualizar payment_transactions sempre que possível ──────────
+    const txStatus = newStatus === "approved" ? "paid"
+                   : newStatus === "refunded" ? "refunded"
+                   : newStatus === "partially_refunded" ? "partial_refund"
+                   : newStatus === "refused" ? "declined"
+                   : newStatus === "cancelled" ? "cancelled"
+                   : null;
+
+    if (txStatus && (chargeId || orderId)) {
+      const txUpdate: Record<string, unknown> = {
+        status: txStatus,
+        raw_response: payload,
+      };
+      if (txStatus === "paid") txUpdate.paid_at = new Date().toISOString();
+      if (txStatus === "declined") txUpdate.declined_at = new Date().toISOString();
+      if (txStatus === "refunded" || txStatus === "partial_refund") {
+        txUpdate.refunded_at = new Date().toISOString();
+      }
+
+      // Tenta por charge_id primeiro, depois order_id
+      let matched = false;
+      if (chargeId) {
+        const { data } = await supabase
+          .from("payment_transactions")
+          .update(txUpdate)
+          .eq("pagbank_charge_id", chargeId)
+          .select("id");
+        matched = !!(data && data.length);
+      }
+      if (!matched && orderId) {
+        await supabase
+          .from("payment_transactions")
+          .update(txUpdate)
+          .eq("pagbank_order_id", orderId);
+      }
+    }
+
     if (!newStatus) {
       return new Response(JSON.stringify({ received: true, ignored: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Try to resolve appointment via reference_id
+    // ── Roteamento por prefixo do reference_id ──────────────────────
     const isQueue = referenceId.startsWith("queue_");
     const isRenewal = referenceId.startsWith("renewal_");
-    const appointmentId = !isQueue && !isRenewal ? referenceId : null;
+    const isSubscription = referenceId.startsWith("sub_");
+    const isPlainAppointment = !isQueue && !isRenewal && !isSubscription;
+    const appointmentId = isPlainAppointment ? referenceId : null;
 
     if (isQueue && newStatus === "approved") {
       const queueId = referenceId.replace("queue_", "");
@@ -91,6 +136,41 @@ serve(async (req) => {
       await supabase.from("prescription_renewals")
         .update({ paid_at: new Date().toISOString(), status: "pending_review", payment_id: orderId })
         .eq("id", renewalId);
+    }
+
+    if (isSubscription) {
+      const subId = referenceId.replace("sub_", "");
+      const subUpdate: Record<string, unknown> = {
+        last_charge_at: new Date().toISOString(),
+        last_charge_status: txStatus,
+      };
+      if (newStatus === "approved") {
+        // Avança next_charge_at
+        const { data: sub } = await (supabase as any)
+          .from("subscriptions")
+          .select("interval_days")
+          .eq("id", subId)
+          .maybeSingle();
+        const days = sub?.interval_days ?? 30;
+        subUpdate.next_charge_at = new Date(Date.now() + days * 86400000).toISOString();
+        subUpdate.retry_count = 0;
+      }
+      if (newStatus === "refused") {
+        // Falhou — incrementa retry; cron tentará 3x antes de suspender
+        subUpdate.retry_count = (await (supabase as any)
+          .from("subscriptions")
+          .select("retry_count")
+          .eq("id", subId)
+          .maybeSingle()).data?.retry_count + 1 || 1;
+        if (subUpdate.retry_count >= 3) {
+          subUpdate.status = "suspended";
+        }
+      }
+      if (newStatus === "refunded" || newStatus === "cancelled") {
+        subUpdate.status = "cancelled";
+        subUpdate.cancelled_at = new Date().toISOString();
+      }
+      await (supabase as any).from("subscriptions").update(subUpdate).eq("id", subId);
     }
 
     if (appointmentId) {
@@ -129,7 +209,7 @@ serve(async (req) => {
       action: `pagbank_${pagStatus.toLowerCase()}`,
       entity_type: "payment",
       entity_id: orderId,
-      details: { reference_id: referenceId, status: pagStatus, mapped: newStatus },
+      details: { reference_id: referenceId, status: pagStatus, mapped: newStatus, charge_id: chargeId },
     });
 
     return new Response(JSON.stringify({ received: true, status: newStatus }), {
