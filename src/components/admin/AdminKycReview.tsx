@@ -89,14 +89,17 @@ const AdminKycReview = () => {
 
   useEffect(() => { fetchAll(); }, []);
 
+  // SLA: pendente >24h é urgente (mostrar primeiro + badge vermelho)
+  const ageHours = (createdAt: string) => (Date.now() - new Date(createdAt).getTime()) / 3600000;
+  const SLA_HOURS = 24;
+
   const filtered = useMemo(() => {
-    return rows.filter(r => {
+    const list = rows.filter(r => {
       const sim = (r.similarity ?? 0) * 100;
       switch (tab) {
         case "pending":
           return r.status === "pending" || r.status === "pendente";
         case "review":
-          // Limítrofes: rejeitadas com sim ≥70 OU aprovadas com sim 80-89 (auditoria)
           if ((r.status === "rejected" || r.status === "reprovado") && sim >= 70) return true;
           if ((r.status === "approved" || r.status === "aprovado") && sim >= 80 && sim < 90) return true;
           return false;
@@ -106,19 +109,29 @@ const AdminKycReview = () => {
           return r.status === "rejected" || r.status === "reprovado";
       }
     });
+    // Pendentes: ordena por idade (mais antigos primeiro — fora de SLA prioritário)
+    if (tab === "pending") {
+      return list.sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at));
+    }
+    return list;
   }, [rows, tab]);
 
-  const counts = useMemo(() => ({
-    pending: rows.filter(r => r.status === "pending" || r.status === "pendente").length,
-    review: rows.filter(r => {
-      const sim = (r.similarity ?? 0) * 100;
-      if ((r.status === "rejected" || r.status === "reprovado") && sim >= 70) return true;
-      if ((r.status === "approved" || r.status === "aprovado") && sim >= 80 && sim < 90) return true;
-      return false;
-    }).length,
-    approved: rows.filter(r => r.status === "approved" || r.status === "aprovado").length,
-    rejected: rows.filter(r => r.status === "rejected" || r.status === "reprovado").length,
-  }), [rows]);
+  const counts = useMemo(() => {
+    const isPending = (r: KycRow) => r.status === "pending" || r.status === "pendente";
+    const overduePending = rows.filter(r => isPending(r) && ageHours(r.created_at) > SLA_HOURS).length;
+    return {
+      pending: rows.filter(isPending).length,
+      overduePending,
+      review: rows.filter(r => {
+        const sim = (r.similarity ?? 0) * 100;
+        if ((r.status === "rejected" || r.status === "reprovado") && sim >= 70) return true;
+        if ((r.status === "approved" || r.status === "aprovado") && sim >= 80 && sim < 90) return true;
+        return false;
+      }).length,
+      approved: rows.filter(r => r.status === "approved" || r.status === "aprovado").length,
+      rejected: rows.filter(r => r.status === "rejected" || r.status === "reprovado").length,
+    };
+  }, [rows]);
 
   const sendNotification = async (row: KycRow, approved: boolean) => {
     try {
@@ -203,8 +216,15 @@ const AdminKycReview = () => {
   const renderCard = (r: KycRow) => {
     const sim = Math.round((r.similarity ?? 0) * 100);
     const isReview = tab === "review" || tab === "pending";
+    const isPending = r.status === "pending" || r.status === "pendente";
+    const ageH = ageHours(r.created_at);
+    const isOverdue = isPending && ageH > SLA_HOURS;
+    const ageLabel =
+      ageH < 1 ? `${Math.round(ageH * 60)}min` :
+      ageH < 24 ? `${Math.round(ageH)}h` :
+      `${Math.round(ageH / 24)}d`;
     return (
-      <Card key={r.id}>
+      <Card key={r.id} className={isOverdue ? "border-destructive/40 bg-destructive/[0.02]" : ""}>
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             <Avatar className="h-10 w-10">
@@ -221,9 +241,14 @@ const AdminKycReview = () => {
                 <Badge variant={sim >= 80 ? "default" : sim >= 60 ? "secondary" : "destructive"} className="text-[10px]">
                   {sim}% similaridade
                 </Badge>
-                {(r.status === "pending" || r.status === "pendente") && (
+                {isPending && !isOverdue && (
                   <Badge variant="outline" className="text-amber-600 border-amber-200 text-[10px] gap-1">
-                    <Clock className="w-3 h-3" /> Pendente
+                    <Clock className="w-3 h-3" /> Pendente · {ageLabel}
+                  </Badge>
+                )}
+                {isOverdue && (
+                  <Badge variant="destructive" className="text-[10px] gap-1 animate-pulse">
+                    <AlertTriangle className="w-3 h-3" /> Fora do SLA · {ageLabel}
                   </Badge>
                 )}
                 {(r.status === "approved" || r.status === "aprovado") && (
@@ -279,9 +304,11 @@ const AdminKycReview = () => {
           description="Verificações biométricas pendentes ou em zona de auditoria. Aprovações/rejeições disparam email automático."
           accent="from-blue-500 to-cyan-600"
           badge={
-            counts.pending > 0
-              ? { label: `${counts.pending} pendente${counts.pending === 1 ? "" : "s"}`, tone: "warning" }
-              : undefined
+            counts.overduePending > 0
+              ? { label: `${counts.overduePending} fora do SLA (>24h)`, tone: "danger" }
+              : counts.pending > 0
+                ? { label: `${counts.pending} pendente${counts.pending === 1 ? "" : "s"}`, tone: "warning" }
+                : undefined
           }
           actions={
             <Button variant="outline" size="sm" onClick={fetchAll} disabled={loading} className="gap-1.5">
