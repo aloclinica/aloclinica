@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import {
-  ArrowLeft, Clock, Star, Check, UserPlus, UserCheck, AlertTriangle,
+  ArrowLeft, Clock, Star, Check, UserPlus, UserCheck, AlertTriangle, Loader2,
   CalendarDays, CheckCircle2, ChevronRight, Stethoscope, QrCode, CreditCard,
   FileBarChart, Lock, Shield, Copy, Tag, X as XIcon
 } from "lucide-react";
