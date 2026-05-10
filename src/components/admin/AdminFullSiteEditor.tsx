@@ -246,13 +246,74 @@ export default function AdminFullSiteEditor() {
             <DropdownMenuTrigger asChild>
               <Button size="sm" variant="outline" className="h-9">
                 <History className="w-4 h-4 mr-2" /> Histórico
+                {history.length > 0 && (
+                  <Badge variant="secondary" className="ml-2 h-4 px-1.5 text-[10px]">{history.length}</Badge>
+                )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-72">
-              {history.length === 0 && <DropdownMenuItem disabled>Nenhum histórico disponível</DropdownMenuItem>}
-              {history.map((h) => (
-                <DropdownMenuItem key={h.id} onClick={() => { setEditing(h.config); setIsDirty(true); }}>
-                  {new Date(h.saved_at).toLocaleString("pt-BR")}
+            <DropdownMenuContent align="end" className="w-96 max-h-[60vh] overflow-y-auto">
+              {history.length === 0 && <DropdownMenuItem disabled>Nenhuma versão anterior</DropdownMenuItem>}
+              {history.map((h, i) => (
+                <DropdownMenuItem
+                  key={h.id}
+                  onSelect={(e) => { e.preventDefault(); }}
+                  className="flex items-center justify-between gap-2 cursor-default focus:bg-accent"
+                >
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <span className="text-xs font-medium">
+                      {i === 0 ? "Última versão publicada" : `Versão #${history.length - i}`}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {new Date(h.saved_at).toLocaleString("pt-BR")}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => { setEditing(h.config); setIsDirty(true); toast.info("Versão carregada no editor — revise e salve/publique"); }}
+                    >
+                      Carregar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2 text-xs"
+                      onClick={async () => {
+                        if (!selected) return;
+                        if (!confirm(`Restaurar esta versão como a publicada agora?\n\nA versão atual será arquivada no histórico.`)) return;
+                        // Snapshot atual
+                        if (selected.config && Object.keys(selected.config).length > 0) {
+                          await (db as any).from("site_sections_history").insert({
+                            section_key: selected.key,
+                            config: selected.config,
+                          });
+                        }
+                        const { error } = await (db as any)
+                          .from("site_sections")
+                          .update({
+                            config: h.config,
+                            draft_config: null,
+                            has_draft: false,
+                            last_published_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                          })
+                          .eq("id", selected.id);
+                        if (error) {
+                          toast.error("Erro ao restaurar", { description: error.message });
+                          return;
+                        }
+                        toast.success("Versão restaurada e publicada!");
+                        invalidateSiteSections();
+                        setPreviewKey(k => k + 1);
+                        await load();
+                        await loadHistory();
+                      }}
+                    >
+                      Restaurar
+                    </Button>
+                  </div>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>

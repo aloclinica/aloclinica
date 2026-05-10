@@ -47,5 +47,6 @@ export const getAdminNav = (active: string) => [
    { label: "PagBank",        href: "/dashboard/admin/financial?role=admin",    icon: <NavIcon icon={<CreditCard size={16} weight="fill" />}  color="blue" />, active: active === "financial", group: "Sistema" },
   { label: "Teste Pagamento", href: "/dashboard/admin/payment-test?role=admin", icon: <NavIcon icon={<TestTube size={16} weight="fill" />} color="amber" />, active: active === "payment-test", group: "Sistema" },
   { label: "Histórico",     href: "/dashboard/admin/logs?role=admin",     icon: <NavIcon icon={<ClockCounterClockwise size={16} weight="fill" />} color="slate" />, active: active === "logs",     group: "Sistema" },
+  { label: "Plataforma",    href: "/dashboard/admin/platform-settings?role=admin", icon: <NavIcon icon={<Sliders size={16} weight="fill" />}        color="slate" />, active: active === "platform-settings", group: "Sistema" },
   { label: "Configurações", href: "/dashboard/settings?role=admin",       icon: <NavIcon icon={<Sliders size={16} weight="fill" />}               color="slate" />, active: active === "settings", group: "Sistema" },
 ];

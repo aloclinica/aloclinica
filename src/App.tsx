@@ -3,6 +3,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import MaintenanceBanner from "@/components/MaintenanceBanner";
 import { ThemeProvider } from "next-themes";
 import { I18nProvider } from "@/i18n";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
@@ -307,6 +308,7 @@ const App = () => {
                   <Suspense fallback={null}>
                     <KeyboardShortcutsProvider />
                     <SubdomainRedirectProvider />
+                    <MaintenanceBanner />
                   </Suspense>
                   <ScrollToTop />
                   
