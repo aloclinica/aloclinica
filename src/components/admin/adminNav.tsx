@@ -23,6 +23,7 @@ export const getAdminNav = (active: string) => [
   // ── Operação ──
   { label: "Aprovações",          href: "/dashboard/admin/approvals?role=admin",           icon: <NavIcon icon={<UserCircleCheck size={16} weight="fill" />} color="emerald" />, active: active === "approvals",           group: "Operação" },
   { label: "Revisão KYC",         href: "/dashboard/admin/kyc-review?role=admin",          icon: <NavIcon icon={<ShieldStar size={16} weight="fill" />}      color="blue"    />, active: active === "kyc-review",          group: "Operação" },
+  { label: "SLA Médicos",         href: "/dashboard/admin/sla-medicos?role=admin",         icon: <NavIcon icon={<Stethoscope size={16} weight="fill" />}    color="orange"  />, active: active === "sla-medicos",         group: "Operação" },
   { label: "Solicitações Médicos", href: "/dashboard/admin/doctor-applications?role=admin", icon: <NavIcon icon={<ClipboardText size={16} weight="fill" />}  color="purple"  />, active: active === "doctor-applications", group: "Operação" },
   { label: "Consultas",           href: "/dashboard/admin/appointments?role=admin",        icon: <NavIcon icon={<CalendarCheck size={16} weight="fill" />}  color="blue"    />, active: active === "appointments",        group: "Operação" },
    { label: "Faturamento",         href: "/dashboard/admin/financial?role=admin",           icon: <NavIcon icon={<Wallet size={16} weight="fill" />}         color="green"   />, active: active === "financial",           group: "Operação" },
@@ -40,6 +41,7 @@ export const getAdminNav = (active: string) => [
    { label: "Cartão Pingo",   href: "/dashboard/admin/pingo-card?role=admin",   icon: <NavIcon icon={<Heart size={16} weight="fill" />}       color="rose"   />, active: active === "pingo-card",   group: "Conteúdo" },
   { label: "Convites",       href: "/dashboard/admin/invite-codes?role=admin", icon: <NavIcon icon={<Key size={16} weight="fill" />}         color="amber"  />, active: active === "invite-codes", group: "Conteúdo" },
   { label: "Site",           href: "/dashboard/admin/site-editor?role=admin",  icon: <NavIcon icon={<PaintBrush size={16} weight="fill" />}  color="purple" />, active: active === "site-editor" || active === "site-config", group: "Conteúdo" },
+  { label: "Tema",           href: "/dashboard/admin/theme?role=admin",        icon: <NavIcon icon={<PaintBrush size={16} weight="fill" />}  color="rose"   />, active: active === "theme",        group: "Conteúdo" },
   { label: "Mídia",          href: "/dashboard/admin/media?role=admin",        icon: <NavIcon icon={<ImageIcon size={16} weight="fill" />}   color="purple" />, active: active === "media",        group: "Conteúdo" },
 
   // ── Sistema ──
@@ -50,5 +52,6 @@ export const getAdminNav = (active: string) => [
   { label: "Plataforma",    href: "/dashboard/admin/platform-settings?role=admin", icon: <NavIcon icon={<Sliders size={16} weight="fill" />}        color="slate" />, active: active === "platform-settings", group: "Sistema" },
   { label: "Templates Notif.", href: "/dashboard/admin/notification-templates?role=admin", icon: <NavIcon icon={<WhatsappLogo size={16} weight="fill" />} color="blue" />, active: active === "notification-templates", group: "Sistema" },
   { label: "Segurança",  href: "/dashboard/admin/security?role=admin",          icon: <NavIcon icon={<ShieldStar size={16} weight="fill" />}    color="rose"  />, active: active === "security",          group: "Sistema" },
+  { label: "LGPD Exports",  href: "/dashboard/admin/lgpd-exports?role=admin",   icon: <NavIcon icon={<ShieldStar size={16} weight="fill" />}    color="cyan"  />, active: active === "lgpd-exports",      group: "Sistema" },
   { label: "Configurações", href: "/dashboard/settings?role=admin",       icon: <NavIcon icon={<Sliders size={16} weight="fill" />}               color="slate" />, active: active === "settings", group: "Sistema" },
 ];

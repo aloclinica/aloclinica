@@ -45,6 +45,12 @@ const VIEWPORTS = {
   mobile:  { w: "390px", label: "Mobile",  icon: Smartphone },
 } as const;
 
+const LANGUAGES = [
+  { code: "pt-BR", label: "🇧🇷 Português (Brasil)" },
+  { code: "en", label: "🇺🇸 English" },
+  { code: "es", label: "🇪🇸 Español" },
+] as const;
+
 export default function AdminFullSiteEditor() {
   const [sections, setSections] = useState<Section[]>([]);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
@@ -55,6 +61,7 @@ export default function AdminFullSiteEditor() {
   const [history, setHistory] = useState<Array<{ id: string; saved_at: string; config: any }>>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isDirty, setIsDirty] = useState(false);
+  const [language, setLanguage] = useState<string>("pt-BR");
 
   const selected = useMemo(() => sections.find((s) => s.key === selectedKey), [sections, selectedKey]);
 
@@ -63,6 +70,7 @@ export default function AdminFullSiteEditor() {
     const { data, error } = await (db as any)
       .from("site_sections")
       .select("*")
+      .eq("language", language)
       .order("display_order", { ascending: true });
     if (error) {
       toast.error("Erro ao carregar seções");
@@ -71,7 +79,7 @@ export default function AdminFullSiteEditor() {
       if (!selectedKey && data && data[0]) setSelectedKey(data[0].key);
     }
     setLoading(false);
-  }, [selectedKey]);
+  }, [selectedKey, language]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -224,14 +232,33 @@ export default function AdminFullSiteEditor() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Selector de idioma */}
+          <Select
+            value={language}
+            onValueChange={(v) => {
+              if (isDirty && !confirm("Você tem alterações não salvas. Trocar idioma vai descartá-las. Continuar?")) return;
+              setLanguage(v);
+              setSelectedKey(null);
+              setEditing({});
+              setIsDirty(false);
+            }}
+          >
+            <SelectTrigger className="w-[180px] h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {LANGUAGES.map(l => <SelectItem key={l.code} value={l.code}>{l.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+
           <div className="flex items-center bg-muted rounded-lg p-1 mr-2">
             {(Object.keys(VIEWPORTS) as Array<keyof typeof VIEWPORTS>).map((k) => {
               const Icon = VIEWPORTS[k].icon;
               return (
-                <Button 
-                  key={k} 
-                  size="sm" 
-                  variant="ghost" 
+                <Button
+                  key={k}
+                  size="sm"
+                  variant="ghost"
                   className={`h-8 w-10 p-0 ${viewport === k ? "bg-background shadow-sm" : "text-muted-foreground"}`}
                   onClick={() => setViewport(k)}
                   title={VIEWPORTS[k].label}
