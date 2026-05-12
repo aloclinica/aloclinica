@@ -5,6 +5,7 @@ import { triggerAppointmentConfirmed } from "@/lib/whatsapp";
 import { notifyNewAppointment, notifyPaymentConfirmed } from "@/lib/notifications";
 import { useAuth } from "@/contexts/AuthContext";
 import { logError } from "@/lib/logger";
+import { explainError, toastError } from "@/lib/errorMessages";
 import { validateCard } from "@/lib/card-utils";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -449,7 +450,7 @@ const BookAppointment = () => {
     setBooking(false);
 
     if (errorOccurred || !firstApptId) {
-      toast.error("Erro", { description: "Não foi possível agendar. Tente novamente." });
+      toastError(toast, errorOccurred || "agendamento_falhou", "agendamento");
     } else {
       setAppointmentId(firstApptId);
       setPaymentStep(true);
@@ -514,7 +515,7 @@ const BookAppointment = () => {
           },
         });
         if (tokenError || !tokenData?.success) {
-          toast.error("Erro no cartão", { description: tokenData?.error || "Não foi possível processar." });
+          toastError(toast, tokenData?.error || tokenError?.message || "card_declined", "pagamento");
           setProcessing(false);
           return;
         }
@@ -524,7 +525,7 @@ const BookAppointment = () => {
       const { data, error } = await db.functions.invoke("pagbank-create-payment", { body: payload });
 
       if (error || !data?.success) {
-        toast.error("Erro no pagamento", { description: data?.error || "Tente novamente." });
+        toastError(toast, data?.error || error?.message || "pagamento_falhou", "pagamento");
         setProcessing(false);
         return;
       }
