@@ -840,15 +840,49 @@ serve(async (req) => {
     const body: EmailRequest = await req.json();
     const { type, to, data } = body;
 
-    const template = templates[type];
-    if (!template) {
-      return new Response(JSON.stringify({ error: `Unknown email type: ${type}` }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Override: se notification_templates tem o slug+channel='email' ATIVO, usa ele.
+    // Senão, cai no template hardcoded abaixo.
+    let subject: string;
+    let html: string;
+    let usedDbTemplate = false;
+    try {
+      const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+      const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      const { data: dbTpl } = await sb
+        .from("notification_templates")
+        .select("subject, body_html")
+        .eq("slug", type)
+        .eq("channel", "email")
+        .eq("is_active", true)
+        .maybeSingle();
+      if (dbTpl?.body_html && dbTpl?.subject) {
+        // Renderiza variáveis {{key}} → data[key]
+        const interpolate = (s: string) => s.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_, k: string) => String((data as any)?.[k] ?? ""));
+        subject = interpolate(dbTpl.subject);
+        html = interpolate(dbTpl.body_html);
+        usedDbTemplate = true;
+      } else {
+        const template = templates[type];
+        if (!template) {
+          return new Response(JSON.stringify({ error: `Unknown email type: ${type}` }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const rendered = template(data);
+        subject = rendered.subject;
+        html = rendered.html;
+      }
+    } catch {
+      const template = templates[type];
+      if (!template) {
+        return new Response(JSON.stringify({ error: `Unknown email type: ${type}` }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const rendered = template(data);
+      subject = rendered.subject;
+      html = rendered.html;
     }
-
-    const { subject, html } = template(data);
     const fromEmail = Deno.env.get("EMAIL_FROM_ADDRESS") || "noreply@telemedicinaaloclinica.sbs";
     const fromName = Deno.env.get("EMAIL_FROM_NAME") || "AloClínica";
 
@@ -869,16 +903,37 @@ serve(async (req) => {
 
     const result = await res.json();
 
+    // Logging em notification_log (non-blocking)
+    const logEvent = async (status: string, error?: string, providerMsgId?: string) => {
+      try {
+        const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+        const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+        await sb.from("notification_log").insert({
+          template_slug: type,
+          channel: "email",
+          recipient: to,
+          subject,
+          status,
+          provider: "brevo",
+          provider_message_id: providerMsgId ?? null,
+          error: error ?? null,
+          payload: { db_template: usedDbTemplate, data_keys: Object.keys(data || {}) },
+        });
+      } catch { /* logging falha não bloqueia resposta */ }
+    };
+
     if (!res.ok) {
       const errStr = JSON.stringify(result);
       if (errStr.includes("verify") || errStr.includes("domain") || errStr.includes("sender") || errStr.includes("not_authenticated")) {
         console.warn("Brevo domain not authenticated — email skipped:", to, "template:", type);
+        await logEvent("failed", "domain_not_authenticated");
         return new Response(
           JSON.stringify({ success: true, skipped: true, reason: "domain_not_authenticated", details: result }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       console.error("Brevo error:", result);
+      await logEvent("failed", JSON.stringify(result).slice(0, 500));
       return new Response(JSON.stringify({ error: "Failed to send email", details: result }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -886,6 +941,7 @@ serve(async (req) => {
     }
 
     console.log("Email sent via Brevo:", type, "to:", to, "id:", result.messageId);
+    await logEvent("sent", undefined, result.messageId);
     return new Response(JSON.stringify({ success: true, id: result.messageId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

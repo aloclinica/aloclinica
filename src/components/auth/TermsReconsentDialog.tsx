@@ -42,10 +42,29 @@ const TermsReconsentDialog = () => {
         warn("[terms] Falha ao carregar versão dos termos", settingError);
       }
 
-      const version = (setting as { value?: string } | null)?.value ?? "1.0.0";
+      // Suporta ambos formatos: { version: "1.0", ... } JSONB OR string puro (legado)
+      const raw = (setting as { value?: any } | null)?.value;
+      const version = typeof raw === "object" && raw?.version
+        ? String(raw.version)
+        : (typeof raw === "string" ? raw : "1.0.0");
       setRequiredVersion(version);
 
-      const { data: consent, error: consentError } = await db
+      // Checa nova tabela user_consent_log primeiro (preferencial)
+      const { data: newConsent } = await (db as any)
+        .from("user_consent_log")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("document_type", "terms")
+        .eq("version", version)
+        .maybeSingle();
+
+      if (newConsent) {
+        setOpen(false);
+        return;
+      }
+
+      // Fallback: checa a tabela antiga user_consents
+      const { data: oldConsent } = await db
         .from("user_consents")
         .select("id")
         .eq("user_id", user.id)
@@ -53,12 +72,7 @@ const TermsReconsentDialog = () => {
         .eq("consent_type", "terms_of_use")
         .maybeSingle();
 
-      if (consentError) {
-        warn("[terms] Falha ao verificar consentimento", consentError);
-        return;
-      }
-
-      setOpen(!consent);
+      setOpen(!oldConsent);
     } catch (error) {
       warn("[terms] Erro inesperado ao verificar termos", error);
     }
@@ -70,15 +84,26 @@ const TermsReconsentDialog = () => {
     setSaving(true);
 
     try {
+      // Insere em ambas as tabelas (nova é a preferencial; antiga é compat)
+      const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : null;
+
+      await (db as any).from("user_consent_log").insert({
+        user_id: user.id,
+        document_type: "terms",
+        version: requiredVersion,
+        ip_address: null,
+        user_agent: userAgent,
+      });
+
       const { error } = await db.from("user_consents").insert({
         user_id: user.id,
         consent_type: "terms_of_use",
         version: requiredVersion,
         ip_address: null,
-        user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+        user_agent: userAgent,
       });
 
-      if (error) throw error;
+      if (error) warn("[terms] insert legacy table falhou (não-bloqueante)", error);
 
       toast.success("Termos aceitos com sucesso!");
       setOpen(false);

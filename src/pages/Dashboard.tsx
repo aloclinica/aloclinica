@@ -113,6 +113,8 @@ const AdminApprovals = lazy(() => import("@/components/admin/AdminApprovals"));
 const AdminKycReview = lazy(() => import("@/components/admin/AdminKycReview"));
 const AdminBilling = lazy(() => import("@/components/admin/AdminBilling"));
 const AdminPlatformSettings = lazy(() => import("@/components/admin/AdminPlatformSettings"));
+const AdminNotificationTemplates = lazy(() => import("@/components/admin/AdminNotificationTemplates"));
+const AdminSecurity = lazy(() => import("@/components/admin/AdminSecurity"));
 const BillingPortal = lazy(() => import("@/components/billing/BillingPortal"));
 const AdminSwitchPanel = lazy(() => import("@/components/admin/AdminSwitchPanel"));
 const AdminNPS = lazy(() => import("@/components/admin/AdminNPS"));
@@ -373,6 +375,8 @@ const Dashboard = () => {
       <Route path="admin/kyc-review" element={<RoleGuard allowed={[]} roles={roles}><AdminKycReview /></RoleGuard>} />
       <Route path="admin/billing" element={<RoleGuard allowed={[]} roles={roles}><AdminBilling /></RoleGuard>} />
       <Route path="admin/platform-settings" element={<RoleGuard allowed={[]} roles={roles}><AdminPlatformSettings /></RoleGuard>} />
+      <Route path="admin/notification-templates" element={<RoleGuard allowed={[]} roles={roles}><AdminNotificationTemplates /></RoleGuard>} />
+      <Route path="admin/security" element={<RoleGuard allowed={[]} roles={roles}><AdminSecurity /></RoleGuard>} />
       <Route path="admin/doctor-applications" element={<RoleGuard allowed={[]} roles={roles}><AdminDoctorApplications /></RoleGuard>} />
       <Route path="admin/switch-panel" element={<RoleGuard allowed={[]} roles={roles}><AdminSwitchPanel /></RoleGuard>} />
       <Route path="admin/nps" element={<RoleGuard allowed={[]} roles={roles}><AdminNPS /></RoleGuard>} />
