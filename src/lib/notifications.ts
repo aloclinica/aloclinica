@@ -82,6 +82,45 @@ const insertNotification = (
     .insert({ user_id, title, message, type, link })
     .then(() => {});
 
+/**
+ * notify — wrapper unificado pra disparar push + criar registro in-app.
+ *
+ * Por padrão dispara push (best-effort) e cria a notificação in-app. O
+ * push só vai pra usuários que ativaram notificações via PushNotificationToggle.
+ * Falhas no push não afetam o registro in-app.
+ *
+ * Use `{ push: false }` para notificações silenciosas (ex.: badge counters).
+ */
+export const notify = async (
+  user_id: string,
+  title: string,
+  message: string,
+  type: string,
+  options: { link?: string; push?: boolean } = {},
+) => {
+  const { link, push = true } = options;
+  await insertNotification(user_id, title, message, type, link);
+  if (push) sendPush(user_id, title, message, link);
+};
+
+/** Envia a mesma notificação para vários usuários de uma vez. */
+export const notifyMany = async (
+  user_ids: string[],
+  title: string,
+  message: string,
+  type: string,
+  options: { link?: string; push?: boolean } = {},
+) => {
+  const { link, push = true } = options;
+  if (user_ids.length === 0) return;
+  await db.from("notifications").insert(
+    user_ids.map(user_id => ({ user_id, title, message, type, link }))
+  );
+  if (push) {
+    await Promise.allSettled(user_ids.map(uid => sendPush(uid, title, message, link)));
+  }
+};
+
 // ─── Exported notification functions ──────────────────────────────────────────
 
 /** Notify appointment cancellation via Email + WhatsApp + In-App */

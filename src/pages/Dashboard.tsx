@@ -122,6 +122,7 @@ const BillingPortal = lazy(() => import("@/components/billing/BillingPortal"));
 const AdminSwitchPanel = lazy(() => import("@/components/admin/AdminSwitchPanel"));
 const AdminNPS = lazy(() => import("@/components/admin/AdminNPS"));
 const AdminWhatsApp = lazy(() => import("@/components/admin/AdminWhatsApp"));
+const AdminBroadcast = lazy(() => import("@/components/admin/AdminBroadcast"));
 const AdminLiveConsultations = lazy(() => import("@/components/admin/AdminLiveConsultations"));
 const SystemHealth = lazy(() => import("@/components/admin/SystemHealth"));
 const AdminFinancial = lazy(() => import("@/components/admin/AdminFinancial"));
@@ -380,6 +381,7 @@ const Dashboard = () => {
       <Route path="admin/billing" element={<RoleGuard allowed={[]} roles={roles}><AdminBilling /></RoleGuard>} />
       <Route path="admin/platform-settings" element={<RoleGuard allowed={[]} roles={roles}><AdminPlatformSettings /></RoleGuard>} />
       <Route path="admin/notification-templates" element={<RoleGuard allowed={[]} roles={roles}><AdminNotificationTemplates /></RoleGuard>} />
+      <Route path="admin/broadcast" element={<RoleGuard allowed={[]} roles={roles}><AdminBroadcast /></RoleGuard>} />
       <Route path="admin/security" element={<RoleGuard allowed={[]} roles={roles}><AdminSecurity /></RoleGuard>} />
       <Route path="admin/lgpd-exports" element={<RoleGuard allowed={[]} roles={roles}><AdminLgpdExports /></RoleGuard>} />
       <Route path="admin/theme" element={<RoleGuard allowed={[]} roles={roles}><AdminThemeEditor /></RoleGuard>} />
