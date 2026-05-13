@@ -46,4 +46,34 @@ export const trackEvent = (name: string, data?: Record<string, unknown>) => {
   Sentry.captureMessage(name, { level: "info", extra: data });
 };
 
+/**
+ * Adiciona um breadcrumb pra rastrear contexto antes do erro.
+ * Categorias úteis: "webrtc", "payment", "auth", "navigation", "ui".
+ */
+export const captureBreadcrumb = (
+  category: string,
+  message: string,
+  data?: Record<string, unknown>,
+  level: "info" | "warning" | "error" = "info",
+) => {
+  if (!SENTRY_DSN) return;
+  Sentry.addBreadcrumb({ category, message, data, level, timestamp: Date.now() / 1000 });
+};
+
+/**
+ * Identifica o usuário corrente em todos os eventos subsequentes.
+ * Nunca envia PII sensível — só user_id e role. Limpa com `identifyUser(null)`.
+ */
+export const identifyUser = (user: { id: string; role?: string } | null) => {
+  if (!SENTRY_DSN) return;
+  if (user) Sentry.setUser({ id: user.id, ...(user.role ? { role: user.role } : {}) });
+  else Sentry.setUser(null);
+};
+
+/** Define uma tag global (ex.: "feature_flag.icp_brasil_signature": "on"). */
+export const setTag = (key: string, value: string) => {
+  if (!SENTRY_DSN) return;
+  Sentry.setTag(key, value);
+};
+
 export { Sentry };
