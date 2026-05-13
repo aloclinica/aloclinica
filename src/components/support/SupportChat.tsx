@@ -30,6 +30,7 @@ const SupportChat = () => {
 
   // Load chat history from DB
   useEffect(() => {
+    localStorage.setItem("support_visited_chat", "true");
     if (!user) return;
     const loadHistory = async () => {
       const { data } = await db

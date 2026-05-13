@@ -23,6 +23,7 @@ import { ActionPills } from "./ActionPills";
 import { PingoBannerCard } from "@/components/mascot/PingoBannerCard";
 import { PremiumHero } from "./PremiumHero";
 import { DoctorRanking } from "./DoctorRanking";
+import RoleOnboarding from "@/components/onboarding/RoleOnboarding";
 import pingoAdmin from "@/assets/pingo-admin.png";
 
 const CHART_COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))", "hsl(var(--warning))", "hsl(var(--destructive))"];
@@ -224,6 +225,8 @@ const ClinicDashboard = () => {
 
       {/* ── CONTENT ── */}
       <div className="mt-5 space-y-5 pb-24 md:pb-8">
+
+        <RoleOnboarding role="clinic" />
 
         {/* ── Action Pills ── */}
         <ActionPills title="Ações da clínica" actions={[

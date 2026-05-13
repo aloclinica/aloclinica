@@ -69,6 +69,7 @@ const SupportInbox = () => {
   useEffect(() => {
     // Use a simple beep sound via Web Audio API
     audioRef.current = null; // We'll use Web Audio API instead
+    localStorage.setItem("support_visited_inbox", "true");
   }, []);
 
   const playNotificationSound = useCallback(() => {

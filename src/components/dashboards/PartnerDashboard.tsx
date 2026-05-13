@@ -16,6 +16,7 @@ import { PingoBannerCard } from "@/components/mascot/PingoBannerCard";
 import { PremiumHero } from "./PremiumHero";
 import { PrescriptionFinder } from "./PrescriptionFinder";
 import { AlertBox } from "./AlertBox";
+import RoleOnboarding from "@/components/onboarding/RoleOnboarding";
 import pingoPartner from "@/assets/pingo-partner.png";
 
 const getPartnerNav = (active: string) => [
@@ -39,7 +40,8 @@ const PartnerDashboard = () => {
     if (user?.id) {
       loadPartnerName();
     }
-  }, [user?.id]);
+    if (activeNav === "history") localStorage.setItem("partner_visited_history", "true");
+  }, [user?.id, activeNav]);
 
   const loadPartnerName = async () => {
     try {
@@ -76,6 +78,8 @@ const PartnerDashboard = () => {
   return (
     <DashboardLayout title="Portal do Parceiro" nav={getPartnerNav(activeNav)}>
       <div className="mx-auto w-full max-w-3xl space-y-5 pb-24">
+
+        <RoleOnboarding role="partner" />
 
                 <div className="-mx-4 -mt-5 md:-mx-6 md:-mt-5 lg:-mx-8 lg:-mt-6">
         <HeroBanner

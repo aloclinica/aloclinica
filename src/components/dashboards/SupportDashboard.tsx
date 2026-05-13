@@ -25,6 +25,7 @@ import { StatBento } from "./StatBento";
 import { ActionPills } from "./ActionPills";
 import { PingoBannerCard } from "@/components/mascot/PingoBannerCard";
 import { PremiumHero } from "./PremiumHero";
+import RoleOnboarding from "@/components/onboarding/RoleOnboarding";
 import pingoSupport from "@/assets/pingo-support.png";
 
 const getSupportNav = (active: string) => [
@@ -278,6 +279,8 @@ const SupportDashboard = () => {
       </div>
 
 
+
+        <RoleOnboarding role="support" />
 
         {/* ── Action Pills ── */}
         <ActionPills title="Ações do suporte" actions={[
