@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Routes, Route, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { usePresence } from "@/hooks/use-presence";
+import { useSentryUser } from "@/hooks/useSentryUser";
 import { prefetchOnIdle } from "@/hooks/use-prefetch-route";
 import { lazy, Suspense, ReactNode, useEffect } from "react";
 import { db } from "@/integrations/supabase/untyped";
@@ -178,6 +179,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const forceRole = searchParams.get("role");
   usePresence();
+  useSentryUser();
 
   // Prefetch secondary routes after dashboard renders
   useEffect(() => {

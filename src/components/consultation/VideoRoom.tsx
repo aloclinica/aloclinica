@@ -7,6 +7,7 @@ import { notifyConsultationStarted, notifyConsultationCompleted } from "@/lib/no
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
+import { captureBreadcrumb, trackEvent } from "@/lib/sentry";
 import {
   MessageSquare, FileText, Clock, Send, X, PanelLeftClose, PanelLeft,
    UserRound, Pill, PhoneOff, Mic, MicOff, Video, VideoOff, Shield, UserPlus,
@@ -1284,7 +1285,13 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
                 appointmentId={appointmentId!}
                 userName={currentUserName}
                 onEndCall={endCall}
-                onStatusChange={(s) => setWebrtcStatus(s)}
+                onStatusChange={(s) => {
+                  setWebrtcStatus(s);
+                  captureBreadcrumb("webrtc", `status: ${s}`, { appointmentId });
+                  if (s === "failed") {
+                    trackEvent("webrtc.failed", { appointmentId, role: isDoctor ? "doctor" : "patient" });
+                  }
+                }}
               />
             )}
           </VideoErrorBoundary>
