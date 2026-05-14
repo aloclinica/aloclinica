@@ -102,9 +102,9 @@ const PATTERNS: Array<{
     result: { title: "Senha muito fraca",
               description: "Use no mínimo 6 caracteres com letras e números." } },
 
-  { match: /rate.*limit|too.*many.*requests|over_email_send/i,
-    result: { title: "Muitas tentativas",
-              description: "Aguarde 1 minuto antes de tentar de novo." } },
+  { match: /rate.*limit|too.*many.*requests|over_email_send|for security purposes|you can only request this after|429/i,
+    result: { title: "Aguarde alguns segundos",
+              description: "Por segurança, só permitimos uma tentativa por vez. Aguarde ~30s e tente de novo. Se você já recebeu o email de confirmação, sua conta foi criada — basta confirmar pelo link." } },
 
   // Rede / sessão
   { match: /network|fetch.*failed|connection.*refused|offline/i,
@@ -128,11 +128,7 @@ const PATTERNS: Array<{
     result: { title: "CPF inválido",
               description: "Confira o número informado." } },
 
-  // Rate limit Supabase email
-  { match: /over_email_send_rate_limit/i,
-    result: { title: "Limite de emails atingido",
-              description: "Tente novamente em alguns minutos.",
-              action: "Aguardar" } },
+  // (rate-limit já tratado acima — padrão amplo)
 ];
 
 const FALLBACK: Record<Context, ExplainedError> = {

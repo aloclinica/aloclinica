@@ -304,6 +304,7 @@ const VideoRoom = () => {
     if (webrtcStatus === "connected") {
       reconnectStartRef.current = null;
     }
+    return undefined;
   }, [webrtcStatus, useJitsi, appointmentId, switchToJitsi]);
 
   // ─── Load persisted chat messages on mount ───
