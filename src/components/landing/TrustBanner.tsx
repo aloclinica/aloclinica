@@ -18,15 +18,6 @@ const TrustBanner = () => {
       aria-label="Segurança e credibilidade AloClínica"
       className="relative w-full overflow-hidden border-y border-primary/20 bg-gradient-to-r from-[hsl(215,60%,18%)] via-[hsl(215,60%,12%)] to-[hsl(215,60%,18%)]"
     >
-      {/* Padrão de malha sutil */}
-      <div
-        className="absolute inset-0 opacity-[0.06] pointer-events-none"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)",
-          backgroundSize: "28px 28px",
-        }}
-      />
 
       {/* Cabeçalho */}
       <div className="relative px-6 md:px-12 lg:px-20 pt-5 md:pt-6 pb-2">
