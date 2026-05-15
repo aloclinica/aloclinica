@@ -1,83 +1,74 @@
 import { motion } from "framer-motion";
 import { Smartphone, Wifi, FileText, Clock, Pill, ShieldCheck } from "lucide-react";
 
-const steps = [
-  {
-    icon: Smartphone,
-    title: "Celular ou computador",
-    description: "Acesse pelo app ou site. Funciona em qualquer dispositivo com internet.",
-  },
-  {
-    icon: Wifi,
-    title: "Conexão estável",
-    description: "Use Wi-Fi ou dados móveis 4G/5G. Não precisa instalar nada.",
-  },
-  {
-    icon: Clock,
-    title: "Atendimento 24 horas",
-    description: "Plantão clínico disponível todos os dias, inclusive feriados.",
-  },
-  {
-    icon: FileText,
-    title: "Documentos digitais",
-    description: "Receba atestados, receitas e pedidos de exames com validade legal.",
-  },
-  {
-    icon: Pill,
-    title: "Farmácias parceiras",
-    description: "Apresente a receita digital em qualquer farmácia do Brasil.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "100% seguro e sigiloso",
-    description: "Seus dados são criptografados. Atendimento segue o CFM e a LGPD.",
-  },
+const INFO_ITEMS = [
+  { icon: Smartphone, label: "Pelocelular ou PC" },
+  { icon: Wifi, label: "Só precisa de internet" },
+  { icon: Clock, label: "Plantão 24h, todos os dias" },
+  { icon: FileText, label: "Atestados e receitas digitais" },
+  { icon: Pill, label: "Válido em qualquer farmácia" },
+  { icon: ShieldCheck, label: "100% seguro e sigiloso" },
 ];
 
 const ConsultaInfoBanner = () => {
+  const items = [...INFO_ITEMS, ...INFO_ITEMS];
+
   return (
-    <section className="relative py-16 md:py-24 overflow-hidden bg-gradient-to-b from-[#F8FAFC] to-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
+    <section
+      aria-label="Informações sobre a consulta online"
+      className="relative w-full overflow-hidden border-y border-secondary/30 bg-gradient-to-r from-[hsl(168,50%,35%)] via-secondary to-[hsl(215,75%,38%)]"
+    >
+      {/* Padrão de linhas diagonais sutil */}
+      <div
+        className="absolute inset-0 opacity-[0.08] pointer-events-none"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(45deg, rgba(255,255,255,0.4) 0, rgba(255,255,255,0.4) 1px, transparent 0, transparent 50%)",
+          backgroundSize: "20px 20px",
+        }}
+      />
+
+      {/* Cabeçalho da faixa */}
+      <div className="relative px-6 md:px-12 lg:px-20 pt-5 md:pt-6 pb-2">
+        <motion.p
+          className="text-white/70 text-[10px] md:text-xs font-bold uppercase tracking-[0.25em] text-center"
+          initial={{ opacity: 0, y: 6 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-12"
+          transition={{ duration: 0.4 }}
         >
-          <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary bg-primary/5 px-4 py-2 rounded-full mb-4">
-            <Smartphone className="w-3.5 h-3.5" /> COMO FUNCIONA
-          </span>
-          <h2 className="text-3xl md:text-5xl font-extrabold text-foreground leading-tight">
-            Sua consulta <span className="text-primary">na palma da mão</span>
-          </h2>
-          <p className="text-muted-foreground text-lg mt-4 max-w-2xl mx-auto">
-            Tudo que você precisa para cuidar da sua saúde, sem sair de casa. Rápido, fácil e seguro.
-          </p>
-        </motion.div>
+          Sua consulta online — simples assim
+        </motion.p>
+      </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {steps.map((step, i) => {
-            const Icon = step.icon;
+      {/* Marquee de ícones colorido */}
+      <div className="relative py-4 md:py-5">
+        <motion.div
+          className="flex items-center gap-8 md:gap-14 whitespace-nowrap will-change-transform"
+          animate={{ x: ["0%", "-50%"] }}
+          transition={{ duration: 24, ease: "linear", repeat: Infinity }}
+        >
+          {items.map((it, i) => {
+            const Icon = it.icon;
             return (
-              <motion.div
+              <div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08, duration: 0.4 }}
-                className="group relative flex flex-col items-start p-6 rounded-2xl bg-card border border-border/60 shadow-sm hover:shadow-lg hover:border-primary/30 transition-all"
+                className="flex items-center gap-2.5 md:gap-3 text-white font-semibold text-xs md:text-sm uppercase tracking-[0.12em] shrink-0"
               >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white text-primary transition-colors">
-                  <Icon className="w-5 h-5" strokeWidth={2} />
-                </div>
-                <h3 className="font-bold text-foreground text-lg mb-1.5">{step.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
-              </motion.div>
+                <span className="inline-flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full bg-white/15 backdrop-blur-sm">
+                  <Icon className="w-3.5 h-3.5 md:w-4 md:h-4" strokeWidth={2.5} />
+                </span>
+                <span>{it.label}</span>
+                <span className="text-white/25 text-lg md:text-xl">•</span>
+              </div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
+
+      {/* Fades laterais para suavizar */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-14 md:w-20 bg-gradient-to-r from-[hsl(168,50%,35%)] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-14 md:w-20 bg-gradient-to-l from-[hsl(215,75%,38%)] to-transparent" />
     </section>
   );
 };
