@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
 import Header from "@/components/landing/Header";
 import HeroSection from "@/components/landing/HeroSection";
+import PingoRunBanner from "@/components/landing/PingoRunBanner";
 import SpecialtiesSection from "@/components/landing/SpecialtiesSection";
 import Footer from "@/components/landing/Footer";
 import TechnologySection from "@/components/landing/TechnologySection";
@@ -56,6 +57,7 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
       
       {isOn("header") && <Header config={sectionData.header} />}
       {isOn("hero") && <HeroSection config={sectionData.hero} />}
+      <PingoRunBanner />
 
       {/* ═══════════════ AGENDAR CONSULTA ═══════════════ */}
       <section className="relative py-24 md:py-40 overflow-hidden">
