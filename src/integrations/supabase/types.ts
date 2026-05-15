@@ -262,32 +262,32 @@ export type Database = {
       appointment_waitlist: {
         Row: {
           created_at: string
+          desired_date: string | null
           doctor_id: string | null
           id: string
-          is_notified: boolean | null
           notes: string | null
+          notified: boolean | null
           patient_id: string
-          preferred_date: string | null
           specialty_id: string | null
         }
         Insert: {
           created_at?: string
+          desired_date?: string | null
           doctor_id?: string | null
           id?: string
-          is_notified?: boolean | null
           notes?: string | null
+          notified?: boolean | null
           patient_id: string
-          preferred_date?: string | null
           specialty_id?: string | null
         }
         Update: {
           created_at?: string
+          desired_date?: string | null
           doctor_id?: string | null
           id?: string
-          is_notified?: boolean | null
           notes?: string | null
+          notified?: boolean | null
           patient_id?: string
-          preferred_date?: string | null
           specialty_id?: string | null
         }
         Relationships: [
@@ -2917,8 +2917,6 @@ export type Database = {
           mp_preapproval_id: string | null
           mp_qr_code: string | null
           mp_qr_code_base64: string | null
-          pagbank_charge_id: string | null
-          pagbank_order_id: string | null
           paid_at: string | null
           payment_method: string
           raw_response: Json | null
@@ -2948,8 +2946,6 @@ export type Database = {
           mp_preapproval_id?: string | null
           mp_qr_code?: string | null
           mp_qr_code_base64?: string | null
-          pagbank_charge_id?: string | null
-          pagbank_order_id?: string | null
           paid_at?: string | null
           payment_method: string
           raw_response?: Json | null
@@ -2979,8 +2975,6 @@ export type Database = {
           mp_preapproval_id?: string | null
           mp_qr_code?: string | null
           mp_qr_code_base64?: string | null
-          pagbank_charge_id?: string | null
-          pagbank_order_id?: string | null
           paid_at?: string | null
           payment_method?: string
           raw_response?: Json | null
@@ -4062,13 +4056,13 @@ export type Database = {
           mp_payer_id: string | null
           mp_preapproval_id: string | null
           next_charge_at: string | null
-          pagbank_subscription_id: string | null
           payment_id: string | null
           plan_id: string | null
           retry_count: number
           saved_card_id: string | null
           started_at: string | null
           status: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -4086,13 +4080,13 @@ export type Database = {
           mp_payer_id?: string | null
           mp_preapproval_id?: string | null
           next_charge_at?: string | null
-          pagbank_subscription_id?: string | null
           payment_id?: string | null
           plan_id?: string | null
           retry_count?: number
           saved_card_id?: string | null
           started_at?: string | null
           status?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -4110,13 +4104,13 @@ export type Database = {
           mp_payer_id?: string | null
           mp_preapproval_id?: string | null
           next_charge_at?: string | null
-          pagbank_subscription_id?: string | null
           payment_id?: string | null
           plan_id?: string | null
           retry_count?: number
           saved_card_id?: string | null
           started_at?: string | null
           status?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
