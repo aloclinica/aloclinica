@@ -77,7 +77,7 @@ const Footer = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
                 placeholder="Seu melhor e-mail"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="bg-white/[0.06] border-white/10 text-white placeholder:text-white/30 rounded-full h-12 px-5 text-sm focus-visible:ring-primary/40 focus-visible:border-primary/40"
+                className="bg-white/[0.06] border-white/10 text-white placeholder:text-white/70 rounded-full h-12 px-5 text-sm focus-visible:ring-primary/40 focus-visible:border-primary/40"
                 required
               />
               <Button
@@ -156,7 +156,7 @@ const Footer = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
 
           {/* Empresa */}
           <div className="lg:col-span-2">
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-4">Empresa</h4>
+            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/75 mb-4">Empresa</h4>
             <ul className="space-y-3 text-sm text-white/60">
               <li><Link to="/sobre/quem-somos" className="hover:text-primary transition-colors">Quem somos</Link></li>
               <li><Link to="/sobre/porque-nos" className="hover:text-primary transition-colors">Porque nós</Link></li>
@@ -167,7 +167,7 @@ const Footer = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
 
           {/* Serviços */}
           <div className="lg:col-span-3">
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-4">Serviços</h4>
+            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/75 mb-4">Serviços</h4>
             <ul className="space-y-3 text-sm text-white/60">
               {isFeatureEnabled("cartao_pingo") && (
                 <li><Link to="/pingo-card" className="hover:text-primary transition-colors flex items-center gap-2"><CreditCard className="w-3.5 h-3.5 text-amber-400" weight="fill" /> Pingo Card</Link></li>
@@ -180,7 +180,7 @@ const Footer = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
 
           {/* Suporte / Legal */}
           <div className="lg:col-span-3">
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-4">Suporte & Legal</h4>
+            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/75 mb-4">Suporte & Legal</h4>
             <ul className="space-y-3 text-sm text-white/60">
               <li><Link to="/ajuda" className="hover:text-primary transition-colors flex items-center gap-2"><Question className="w-3.5 h-3.5 text-teal-400" weight="fill" /> Central de Ajuda</Link></li>
               <li><Link to="/termos" className="hover:text-primary transition-colors">Termos de Uso</Link></li>
@@ -194,13 +194,13 @@ const Footer = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
       {/* Selos / Trust badges */}
       <div className="relative border-t border-white/[0.06]">
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-white/40 font-medium">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-white/75 font-medium">
             <span className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-400" weight="fill" /> Certificado CFM</span>
             <span className="flex items-center gap-1.5"><Lock className="w-4 h-4 text-sky-400" weight="fill" /> LGPD Compliance</span>
             <span className="flex items-center gap-1.5"><SealCheck className="w-4 h-4 text-violet-400" weight="fill" /> SSL 256-bit</span>
             <span className="flex items-center gap-1.5"><Heart className="w-4 h-4 text-rose-400" weight="fill" /> Telemedicina ANS</span>
           </div>
-          <div className="flex items-center gap-1.5 text-[10px] text-white/30">
+          <div className="flex items-center gap-1.5 text-[10px] text-white/70">
             Pagamentos:
             <span className="px-2 py-0.5 rounded bg-white/[0.05] border border-white/[0.06] font-bold tracking-wider">PIX</span>
             <span className="px-2 py-0.5 rounded bg-white/[0.05] border border-white/[0.06] font-bold tracking-wider">VISA</span>
@@ -213,10 +213,10 @@ const Footer = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
       {/* Copyright */}
       <div className="relative border-t border-white/[0.05] py-5">
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28 flex flex-col sm:flex-row justify-between items-center gap-2">
-          <p className="text-[11px] text-white/30 flex items-center gap-1.5 text-center sm:text-left">
+          <p className="text-[11px] text-white/70 flex items-center gap-1.5 text-center sm:text-left">
             {copyright}
           </p>
-          <p className="text-[11px] text-white/30 flex items-center gap-1.5">
+          <p className="text-[11px] text-white/70 flex items-center gap-1.5">
             Feito com <Heart className="w-3 h-3 text-rose-400" weight="fill" /> no Brasil
           </p>
         </div>
