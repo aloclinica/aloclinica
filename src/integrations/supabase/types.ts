@@ -4795,6 +4795,17 @@ export type Database = {
       mark_no_shows: { Args: never; Returns: undefined }
       resolve_doctor_slug: { Args: { p_slug: string }; Returns: string }
       search_doctor_by_name: { Args: { p_query: string }; Returns: Json[] }
+      verify_document_by_code: {
+        Args: { _code: string }
+        Returns: {
+          doctor_crm: string
+          doctor_name: string
+          document_type: string
+          is_valid: boolean
+          patient_name_masked: string
+          verified_at: string
+        }[]
+      }
     }
     Enums: {
       app_role:
