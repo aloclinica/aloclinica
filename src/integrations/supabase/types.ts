@@ -316,6 +316,8 @@ export type Database = {
       }
       appointments: {
         Row: {
+          ai_clinical_summary: string | null
+          ai_summary_generated_at: string | null
           appointment_type:
             | Database["public"]["Enums"]["appointment_type"]
             | null
@@ -345,6 +347,8 @@ export type Database = {
           video_room_url: string | null
         }
         Insert: {
+          ai_clinical_summary?: string | null
+          ai_summary_generated_at?: string | null
           appointment_type?:
             | Database["public"]["Enums"]["appointment_type"]
             | null
@@ -374,6 +378,8 @@ export type Database = {
           video_room_url?: string | null
         }
         Update: {
+          ai_clinical_summary?: string | null
+          ai_summary_generated_at?: string | null
           appointment_type?:
             | Database["public"]["Enums"]["appointment_type"]
             | null
@@ -956,6 +962,8 @@ export type Database = {
       doctor_profiles: {
         Row: {
           areas_of_expertise: string[] | null
+          auto_pause_reason: string | null
+          auto_paused_at: string | null
           bio: string | null
           consultation_duration: number | null
           created_at: string
@@ -974,6 +982,7 @@ export type Database = {
           kyc_status: string | null
           kyc_verified_at: string | null
           price: number | null
+          price_suggestion_sent_at: string | null
           professional_photo_url: string | null
           rating_avg: number | null
           rating_count: number | null
@@ -985,6 +994,8 @@ export type Database = {
         }
         Insert: {
           areas_of_expertise?: string[] | null
+          auto_pause_reason?: string | null
+          auto_paused_at?: string | null
           bio?: string | null
           consultation_duration?: number | null
           created_at?: string
@@ -1003,6 +1014,7 @@ export type Database = {
           kyc_status?: string | null
           kyc_verified_at?: string | null
           price?: number | null
+          price_suggestion_sent_at?: string | null
           professional_photo_url?: string | null
           rating_avg?: number | null
           rating_count?: number | null
@@ -1014,6 +1026,8 @@ export type Database = {
         }
         Update: {
           areas_of_expertise?: string[] | null
+          auto_pause_reason?: string | null
+          auto_paused_at?: string | null
           bio?: string | null
           consultation_duration?: number | null
           created_at?: string
@@ -1032,6 +1046,7 @@ export type Database = {
           kyc_status?: string | null
           kyc_verified_at?: string | null
           price?: number | null
+          price_suggestion_sent_at?: string | null
           professional_photo_url?: string | null
           rating_avg?: number | null
           rating_count?: number | null
@@ -3648,6 +3663,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_blocked_reason: string | null
+          account_status: string
           address_city: string | null
           address_state: string | null
           address_street: string | null
@@ -3656,21 +3673,26 @@ export type Database = {
           avatar_url: string | null
           blood_type: string | null
           chronic_conditions: string[] | null
+          churn_flagged_at: string | null
           cpf: string | null
           created_at: string
           date_of_birth: string | null
           first_name: string | null
           gender: string | null
           id: string
+          last_consultation_at: string | null
           last_name: string | null
           mp_customer_id: string | null
           phone: string | null
+          reengagement_sent_at: string | null
           settings: Json | null
           social_name: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          account_blocked_reason?: string | null
+          account_status?: string
           address_city?: string | null
           address_state?: string | null
           address_street?: string | null
@@ -3679,21 +3701,26 @@ export type Database = {
           avatar_url?: string | null
           blood_type?: string | null
           chronic_conditions?: string[] | null
+          churn_flagged_at?: string | null
           cpf?: string | null
           created_at?: string
           date_of_birth?: string | null
           first_name?: string | null
           gender?: string | null
           id?: string
+          last_consultation_at?: string | null
           last_name?: string | null
           mp_customer_id?: string | null
           phone?: string | null
+          reengagement_sent_at?: string | null
           settings?: Json | null
           social_name?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          account_blocked_reason?: string | null
+          account_status?: string
           address_city?: string | null
           address_state?: string | null
           address_street?: string | null
@@ -3702,15 +3729,18 @@ export type Database = {
           avatar_url?: string | null
           blood_type?: string | null
           chronic_conditions?: string[] | null
+          churn_flagged_at?: string | null
           cpf?: string | null
           created_at?: string
           date_of_birth?: string | null
           first_name?: string | null
           gender?: string | null
           id?: string
+          last_consultation_at?: string | null
           last_name?: string | null
           mp_customer_id?: string | null
           phone?: string | null
+          reengagement_sent_at?: string | null
           settings?: Json | null
           social_name?: string | null
           updated_at?: string
@@ -4052,11 +4082,13 @@ export type Database = {
           interval_days: number
           last_charge_at: string | null
           last_charge_status: string | null
+          last_retry_at: string | null
           metadata: Json
           mp_payer_id: string | null
           mp_preapproval_id: string | null
           next_charge_at: string | null
           payment_id: string | null
+          pix_reminder_sent_at: string | null
           plan_id: string | null
           retry_count: number
           saved_card_id: string | null
@@ -4076,11 +4108,13 @@ export type Database = {
           interval_days?: number
           last_charge_at?: string | null
           last_charge_status?: string | null
+          last_retry_at?: string | null
           metadata?: Json
           mp_payer_id?: string | null
           mp_preapproval_id?: string | null
           next_charge_at?: string | null
           payment_id?: string | null
+          pix_reminder_sent_at?: string | null
           plan_id?: string | null
           retry_count?: number
           saved_card_id?: string | null
@@ -4100,11 +4134,13 @@ export type Database = {
           interval_days?: number
           last_charge_at?: string | null
           last_charge_status?: string | null
+          last_retry_at?: string | null
           metadata?: Json
           mp_payer_id?: string | null
           mp_preapproval_id?: string | null
           next_charge_at?: string | null
           payment_id?: string | null
+          pix_reminder_sent_at?: string | null
           plan_id?: string | null
           retry_count?: number
           saved_card_id?: string | null
@@ -4197,6 +4233,10 @@ export type Database = {
       }
       support_tickets: {
         Row: {
+          ai_category_suggested: string | null
+          ai_priority_suggested: string | null
+          ai_summary: string | null
+          ai_triaged_at: string | null
           assigned_to: string | null
           category: string | null
           created_at: string
@@ -4210,6 +4250,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_category_suggested?: string | null
+          ai_priority_suggested?: string | null
+          ai_summary?: string | null
+          ai_triaged_at?: string | null
           assigned_to?: string | null
           category?: string | null
           created_at?: string
@@ -4223,6 +4267,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_category_suggested?: string | null
+          ai_priority_suggested?: string | null
+          ai_summary?: string | null
+          ai_triaged_at?: string | null
           assigned_to?: string | null
           category?: string | null
           created_at?: string
@@ -4746,10 +4794,13 @@ export type Database = {
         Returns: undefined
       }
       fn_alert_sla_breach: { Args: never; Returns: undefined }
+      fn_anonymize_old_patients: { Args: never; Returns: undefined }
       fn_auto_cancel_unpaid: { Args: never; Returns: undefined }
       fn_auto_close_resolved_tickets: { Args: never; Returns: undefined }
       fn_auto_complete_stale_consultations: { Args: never; Returns: undefined }
       fn_auto_no_show: { Args: never; Returns: undefined }
+      fn_auto_pause_doctor_no_shows: { Args: never; Returns: undefined }
+      fn_detect_churn: { Args: never; Returns: undefined }
       fn_expire_available_now: { Args: never; Returns: undefined }
       fn_expire_discount_cards: { Args: never; Returns: undefined }
       fn_expire_invite_codes: { Args: never; Returns: undefined }
@@ -4759,6 +4810,9 @@ export type Database = {
         Args: { p_code: string }
         Returns: boolean
       }
+      fn_nps_whatsapp_followup: { Args: never; Returns: undefined }
+      fn_pix_expiry_reminder: { Args: never; Returns: undefined }
+      fn_reengagement_inactive: { Args: never; Returns: undefined }
       fn_spend_pingo_ticket: {
         Args: {
           p_amount: number
@@ -4768,6 +4822,8 @@ export type Database = {
         }
         Returns: Json
       }
+      fn_subscription_retry: { Args: never; Returns: undefined }
+      fn_suggest_price_increase: { Args: never; Returns: undefined }
       get_active_theme: { Args: never; Returns: Json }
       get_maintenance_status: { Args: never; Returns: Json }
       get_public_doctor_profile: {
