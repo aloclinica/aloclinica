@@ -7,21 +7,19 @@ const PingoCardBanner = () => {
   return (
     <section
       aria-label="Pingo Card - Cartão de saúde digital"
-      className="relative w-full"
+      onClick={() => navigate("/pingo-card")}
+      className="relative w-full overflow-hidden cursor-pointer group"
+      style={{
+        backgroundImage: `url(${bannerImg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundColor: "hsl(215, 80%, 10%)",
+      }}
     >
-      <button
-        type="button"
-        onClick={() => navigate("/pingo-card")}
-        className="block w-full group focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
-        aria-label="Conhecer o Pingo Card"
-      >
-        <img
-          src={bannerImg}
-          alt="Novo Pingo Card — Seu cartão de saúde digital. Consultas ilimitadas a partir de R$ 29/mês."
-          className="w-full h-auto block transition-transform duration-500 group-hover:scale-[1.005]"
-          loading="lazy"
-        />
-      </button>
+      {/* Mantém proporção da arte (≈ 1920x540) */}
+      <div className="w-full" style={{ aspectRatio: "1920 / 540" }} />
+      <span className="sr-only">Conhecer o Pingo Card</span>
     </section>
   );
 };
