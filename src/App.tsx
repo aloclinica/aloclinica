@@ -52,19 +52,14 @@ const PrescriptionVerification = lazy(() => import("./pages/PrescriptionVerifica
 const KycMobile = lazy(() => import("./pages/KycMobile"));
 const Kyc = lazy(() => import("./pages/Kyc"));
 
-const B2BTelelaudo = lazy(() => import("./pages/B2BTelelaudo"));
 const Teleconsulta = lazy(() => import("./pages/Teleconsulta"));
-const AuthLaudista = lazy(() => import("./pages/AuthLaudista"));
-const AuthOftalmologista = lazy(() => import("./pages/AuthOftalmologista"));
 const AuthClinica = lazy(() => import("./pages/AuthClinica"));
 
 // Signup pages
 const SignupPatient = lazy(() => import("./pages/SignupPatient"));
 const SignupDoctor = lazy(() => import("./pages/SignupDoctor"));
-const SignupOftalmologist = lazy(() => import("./pages/SignupOftalmologist"));
 const SignupClinic = lazy(() => import("./pages/SignupClinic"));
 const SignupSupport = lazy(() => import("./pages/SignupSupport"));
-const SignupLaudista = lazy(() => import("./pages/SignupLaudista"));
 
 // Landing pages
 const ForDoctors = lazy(() => import("./pages/ForDoctors"));
@@ -160,15 +155,11 @@ const AnimatedRoutes = () => {
       <Route path="/paciente/cadastro" element={<SignupPatient />} />
       <Route path="/medico" element={<AuthMedico />} />
       <Route path="/medico/cadastro" element={<SignupDoctor />} />
-      <Route path="/oftalmologista" element={<AuthOftalmologista />} />
-      <Route path="/oftalmologista/cadastro" element={<SignupOftalmologist />} />
       <Route path="/clinica" element={<AuthClinica />} />
       <Route path="/clinica/cadastro" element={<SignupClinic />} />
       <Route path="/admin" element={<AuthAdmin />} />
       <Route path="/suporte" element={<AuthSuporte />} />
       <Route path="/suporte/cadastro" element={<SignupSupport />} />
-      <Route path="/laudista" element={<AuthLaudista />} />
-      <Route path="/laudista/cadastro" element={<SignupLaudista />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/terms" element={<Terms />} />
@@ -187,7 +178,6 @@ const AnimatedRoutes = () => {
       <Route path="/kyc-mobile" element={<KycMobile />} />
       <Route path="/kyc" element={<Kyc />} />
 
-      <Route path="/para-empresas/telelaudo" element={<B2BTelelaudo />} />
       <Route path="/servicos" element={<Servicos />} />
       <Route path="/teleconsulta" element={<Teleconsulta />} />
       <Route path="/para-profissionais" element={<ParaProfissionais />} />
@@ -259,7 +249,6 @@ const App = () => {
         [
           () => import("./pages/AuthAdmin"),
           () => import("./pages/AuthSuporte"),
-          () => import("./pages/AuthLaudista"),
           () => import("./pages/ForgotPassword"),
         ],
         20000,

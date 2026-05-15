@@ -22,27 +22,6 @@ const services = [
     stats: "500+ médicos • Desde R$ 89",
     color: "from-blue-500 to-cyan-500",
   },
-  {
-    id: 2,
-    title: "Oftalmologia Digital",
-    description: "Exame completo de visão, prescrição de óculos e lentes com campos OD/OE — tudo online. Laudos assinados digitalmente e válidos em qualquer loja.",
-    icon: "👁️",
-    image: dashboardRef,
-    href: "/oftalmologia",
-    badge: "🎯 Especializado",
-    stats: "50+ oftalmologistas • Aprovado CFM",
-    color: "from-purple-500 to-pink-500",
-  },
-  {
-    id: 3,
-    title: "Telelaudo B2B",
-    description: "Para clínicas: envie exames, receba laudos assinados digitalmente em até 24h. Fila inteligente, conformidade garantida, zero papel.",
-    icon: "📋",
-    href: "/para-empresas/telelaudo",
-    badge: "🏢 Para Clínicas",
-    stats: "100+ clínicas • SLA 24h",
-    color: "from-green-500 to-emerald-500",
-  },
 ];
 
 const Servicos = forwardRef<HTMLDivElement>((_, ref) => {

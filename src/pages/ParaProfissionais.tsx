@@ -219,24 +219,6 @@ const professions = [
     gradient: "from-blue-500 to-cyan-500",
   },
   {
-    id: 2,
-    title: "Sou Laudista",
-    description: "Emita laudos do sofá. Fila inteligente, assinatura digital integrada, ganhe por exame. Home office 100% com conformidade garantida.",
-    icon: "📋",
-    image: refDashboard3,
-    href: "/laudista",
-    badge: "🏠 Home Office",
-    stats: "100+ laudistas • Taxa competitiva",
-    benefits: [
-      "Trabalhe de qualquer lugar",
-      "Fila organizada por prioridade",
-      "Assinatura digital automática",
-      "Conformidade CFM + LGPD",
-      "Suporte 24/7 dedicado",
-    ],
-    gradient: "from-green-500 to-emerald-500",
-  },
-  {
     id: 3,
     title: "Sou Clínica",
     description: "Digitalize seus exames. Envie, receba laudos assinados em 24h. Integração fácil, zero papel, mais eficiência e receita extra.",
@@ -793,17 +775,6 @@ const ParaProfissionais = forwardRef<HTMLDivElement>((_, ref) => {
               >
                 <span className="flex items-center gap-2">
                   👨‍⚕️ Cadastro Médico
-                  <ArrowRight className="w-5 h-5" weight="bold" />
-                </span>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="rounded-xl px-10 h-14 font-bold text-base"
-                onClick={() => navigate("/laudista")}
-              >
-                <span className="flex items-center gap-2">
-                  📋 Cadastro Laudista
                   <ArrowRight className="w-5 h-5" weight="bold" />
                 </span>
               </Button>
