@@ -1,27 +1,26 @@
 /**
- * SignupClinic - Formulário de cadastro para clínica/empresa
- * Campos: Nome da Empresa, CNPJ, Email, Telefone, Nome do Representante, Senha
+ * SignupClinic — Cadastro de clínica/empresa com layout split-screen unificado.
  */
-
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { db } from "@/integrations/supabase/untyped";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import {
+  Mail, Lock, Building2, User as UserIcon, ArrowRight,
+  ShieldCheck, Sparkles, Users, ChartLine, Briefcase,
+} from "lucide-react";
+import AuthShell from "@/components/auth/AuthShell";
+import {
+  AuthField, AuthPasswordField, AuthSubmitButton, AuthHeading,
+} from "@/components/auth/AuthFields";
 import { CNPJInput, PhoneInput } from "@/components/ui/masked-inputs";
 import {
-  validarNomeEmpresa,
-  validarEmail,
-  validarTelefone,
-  validarCNPJ,
-  validarSenha,
-  validarNome,
+  validarNomeEmpresa, validarEmail, validarTelefone, validarCNPJ,
+  validarSenha, validarNome,
 } from "@/lib/form-validators";
-import { ArrowLeft, Eye, EyeSlash } from "@phosphor-icons/react";
 import { toastError } from "@/lib/errorMessages";
+import pingoClinic from "@/assets/pingo-clinica-medica.png";
 
 interface FormData {
   company_name: string;
@@ -33,311 +32,204 @@ interface FormData {
   password_confirm: string;
 }
 
-interface FormErrors {
-  [key: string]: string;
-}
+const initial: FormData = {
+  company_name: "", cnpj: "", email: "", phone: "",
+  representative_name: "", password: "", password_confirm: "",
+};
+
+const PasswordStrength = ({ password }: { password: string }) => {
+  if (!password) return null;
+  const score =
+    (password.length >= 8 ? 1 : 0) +
+    (/[A-Z]/.test(password) ? 1 : 0) +
+    (/[0-9]/.test(password) ? 1 : 0) +
+    (/[^A-Za-z0-9]/.test(password) ? 1 : 0);
+  const labels = ["Fraca", "Razoável", "Boa", "Forte"];
+  const colors = ["bg-destructive", "bg-amber-500", "bg-blue-500", "bg-emerald-500"];
+  const idx = Math.max(0, score - 1);
+  return (
+    <div className="space-y-1.5 pt-2">
+      <div className="flex gap-1">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className={`h-1.5 flex-1 rounded-full transition-colors ${i < score ? colors[idx] : "bg-muted"}`} />
+        ))}
+      </div>
+      <p className="text-[11px] text-muted-foreground">
+        Força da senha: <span className="font-semibold text-foreground">{labels[idx]}</span>
+      </p>
+    </div>
+  );
+};
 
 export default function SignupClinic() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+  const [data, setData] = useState<FormData>(initial);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const [formData, setFormData] = useState<FormData>({
-    company_name: "",
-    cnpj: "",
-    email: "",
-    phone: "",
-    representative_name: "",
-    password: "",
-    password_confirm: "",
-  });
-
-  const [errors, setErrors] = useState<FormErrors>({});
-
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!validarNomeEmpresa(formData.company_name)) {
-      newErrors.company_name = "Nome da empresa inválido (mínimo 3 caracteres)";
-    }
-
-    if (!validarCNPJ(formData.cnpj)) {
-      newErrors.cnpj = "CNPJ inválido";
-    }
-
-    if (!validarEmail(formData.email)) {
-      newErrors.email = "Email inválido";
-    }
-
-    if (!validarTelefone(formData.phone)) {
-      newErrors.phone = "Telefone inválido (formato: (11) 9XXXX-XXXX)";
-    }
-
-    if (!validarNome(formData.representative_name)) {
-      newErrors.representative_name = "Nome deve ter pelo menos 2 nomes completos";
-    }
-
-    const passwordValidation = validarSenha(formData.password);
-    if (!passwordValidation.isValid) {
-      newErrors.password = passwordValidation.feedback.join(", ");
-    }
-
-    if (formData.password !== formData.password_confirm) {
-      newErrors.password_confirm = "Senhas não conferem";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const set = <K extends keyof FormData>(k: K, v: FormData[K]) => {
+    setData((p) => ({ ...p, [k]: v }));
+    if (errors[k as string]) setErrors((p) => ({ ...p, [k as string]: "" }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!validarNomeEmpresa(data.company_name)) e.company_name = "Nome da empresa inválido";
+    if (!validarCNPJ(data.cnpj)) e.cnpj = "CNPJ inválido";
+    if (!validarEmail(data.email)) e.email = "Email inválido";
+    if (!validarTelefone(data.phone)) e.phone = "Telefone inválido";
+    if (!validarNome(data.representative_name)) e.representative_name = "Informe nome e sobrenome";
+    const pv = validarSenha(data.password);
+    if (!pv.isValid) e.password = pv.feedback.join(", ");
+    if (data.password !== data.password_confirm) e.password_confirm = "Senhas não conferem";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
-    if (!validateForm()) {
+  const submit = async (ev: React.FormEvent) => {
+    ev.preventDefault();
+    if (!validate()) {
       toast.error("Preencha todos os campos corretamente");
       return;
     }
-
     setLoading(true);
     try {
-      // 1. Create auth user with company email
-      const { data: authData, error: authError } = await db.auth.signUp({
-        email: formData.email,
-        password: formData.password,
+      const { data: auth, error } = await db.auth.signUp({
+        email: data.email,
+        password: data.password,
       });
+      if (error) throw error;
+      if (!auth.user) throw new Error("Falha ao criar usuário");
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("Falha ao criar usuário");
+      const { error: pErr } = await (db as any).from("profiles").insert([{
+        id: auth.user.id,
+        full_name: data.representative_name,
+        email: data.email,
+        phone: data.phone,
+        company_name: data.company_name,
+        cnpj: data.cnpj.replace(/\D/g, ""),
+        role: "clinic",
+        avatar_url: null,
+        created_at: new Date().toISOString(),
+      }]);
+      if (pErr) throw pErr;
 
-      // 2. Create clinic profile
-      const { error: profileError } = await (db as any).from("profiles").insert([
-        {
-          id: authData.user.id,
-          full_name: formData.representative_name,
-          email: formData.email,
-          phone: formData.phone,
-          company_name: formData.company_name,
-          cnpj: formData.cnpj.replace(/\D/g, ""),
-          role: "clinic",
-          avatar_url: null,
-          created_at: new Date().toISOString(),
-        },
-      ]);
-
-      if (profileError) throw profileError;
-
-      toast.success("Cadastro realizado com sucesso! Verifique seu email.");
+      toast.success("Cadastro realizado! Verifique seu email.");
       navigate("/clinica");
-    } catch (error) {
-      toastError(toast, error, "signup");
-      console.error(error);
+    } catch (err) {
+      toastError(toast, err, "signup");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-md mx-auto">
-        <motion.button
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+    <AuthShell
+      seoTitle="Criar conta — Clínica | AloClínica"
+      seoDescription="Cadastre sua clínica na AloClínica e gerencie agenda, prontuários e equipe em um só lugar."
+      icon={Building2}
+      eyebrow="Para clínicas"
+      headline="Gestão completa para sua clínica."
+      highlightWord="completa"
+      description="Centralize agenda, prontuários, equipe médica e atendimentos em uma plataforma feita para escalar."
+      mascotSrc={pingoClinic}
+      theme={{
+        panelGradient: "from-[hsl(215,70%,22%)] via-[hsl(218,60%,28%)] to-[hsl(195,55%,35%)]",
+        benefits: [
+          { icon: Users, title: "Equipe ilimitada", desc: "Gerencie médicos, recepcionistas e financeiro." },
+          { icon: ChartLine, title: "Indicadores em tempo real", desc: "Receita, ocupação e satisfação." },
+          { icon: ShieldCheck, title: "Conformidade CFM e LGPD", desc: "Prontuário seguro e rastreável." },
+        ],
+      }}
+      footerItems={[
+        { icon: ShieldCheck, label: "LGPD", tone: "success" },
+        { icon: Briefcase, label: "Onboarding em 24h" },
+      ]}
+    >
+      <AuthHeading title="Cadastrar clínica" subtitle="Vamos preparar seu ambiente em poucos passos" />
+
+      <form onSubmit={submit} className="space-y-4" noValidate>
+        <AuthField
+          label="Nome da empresa"
+          icon={Building2}
+          value={data.company_name}
+          onChange={(e) => set("company_name", e.target.value)}
+          placeholder="Clínica Saúde Total"
+          required
+          hint={errors.company_name && <p className="text-[12px] text-destructive">{errors.company_name}</p>}
+        />
+
+        <div className="grid sm:grid-cols-2 gap-4">
+          <CNPJInput value={data.cnpj} onChange={(v) => set("cnpj", v)} required error={errors.cnpj} />
+          <PhoneInput value={data.phone} onChange={(v) => set("phone", v)} required error={errors.phone} />
+        </div>
+
+        <AuthField
+          label="Email corporativo"
+          icon={Mail}
+          type="email"
+          value={data.email}
+          onChange={(e) => set("email", e.target.value)}
+          placeholder="contato@clinica.com"
+          autoComplete="email"
+          required
+          hint={errors.email && <p className="text-[12px] text-destructive">{errors.email}</p>}
+        />
+
+        <AuthField
+          label="Nome do representante"
+          icon={UserIcon}
+          value={data.representative_name}
+          onChange={(e) => set("representative_name", e.target.value)}
+          placeholder="Dr. João Silva"
+          autoComplete="name"
+          required
+          hint={errors.representative_name && <p className="text-[12px] text-destructive">{errors.representative_name}</p>}
+        />
+
+        <AuthPasswordField
+          label="Senha"
+          icon={Lock}
+          value={data.password}
+          onChange={(e) => set("password", e.target.value)}
+          placeholder="Mínimo 8 caracteres"
+          autoComplete="new-password"
+          required
+          strength={errors.password
+            ? <p className="text-[12px] text-destructive mt-1.5">{errors.password}</p>
+            : <PasswordStrength password={data.password} />}
+        />
+
+        <AuthPasswordField
+          label="Confirmar senha"
+          icon={Lock}
+          value={data.password_confirm}
+          onChange={(e) => set("password_confirm", e.target.value)}
+          placeholder="Repita a senha"
+          autoComplete="new-password"
+          required
+          strength={errors.password_confirm && <p className="text-[12px] text-destructive mt-1.5">{errors.password_confirm}</p>}
+        />
+
+        <AuthSubmitButton
+          loading={loading}
+          loadingLabel="Criando conta..."
+          icon={<ArrowRight className="w-4 h-4" />}
+          variantClassName="bg-gradient-to-r from-primary via-primary/90 to-secondary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:brightness-110"
         >
-          <ArrowLeft className="h-4 w-4" />
-          <span className="text-sm font-medium">Voltar</span>
-        </motion.button>
+          Cadastrar clínica
+        </AuthSubmitButton>
 
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mb-8"
+        <motion.p
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+          className="text-center text-[13px] text-muted-foreground pt-1"
         >
-          <h1 className="text-3xl font-bold text-gray-900">Cadastro de Clínica</h1>
-          <p className="text-gray-600 mt-2">Preencha os dados da sua clínica para criar sua conta</p>
-        </motion.div>
-
-        <motion.form
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-          onSubmit={handleSubmit}
-          className="space-y-4 bg-white p-6 rounded-lg shadow-sm border border-gray-200"
-        >
-          {/* Nome da Empresa */}
-          <div className="space-y-2">
-            <Label htmlFor="company_name">
-              Nome da Empresa <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="company_name"
-              name="company_name"
-              type="text"
-              placeholder="Clínica Médica Silva"
-              value={formData.company_name}
-              onChange={handleChange}
-              className={errors.company_name ? "border-red-500" : ""}
-            />
-            {errors.company_name && (
-              <p className="text-sm text-red-500">{errors.company_name}</p>
-            )}
-          </div>
-
-          {/* CNPJ */}
-          <CNPJInput
-            value={formData.cnpj}
-            onChange={(cnpj) =>
-              setFormData((prev) => ({ ...prev, cnpj }))
-            }
-            required
-            error={errors.cnpj}
-          />
-
-          {/* Email */}
-          <div className="space-y-2">
-            <Label htmlFor="email">
-              Email Corporativo <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="contato@clinica.com"
-              value={formData.email}
-              onChange={handleChange}
-              className={errors.email ? "border-red-500" : ""}
-            />
-            {errors.email && (
-              <p className="text-sm text-red-500">{errors.email}</p>
-            )}
-          </div>
-
-          {/* Telefone */}
-          <PhoneInput
-            value={formData.phone}
-            onChange={(phone) =>
-              setFormData((prev) => ({ ...prev, phone }))
-            }
-            required
-            error={errors.phone}
-          />
-
-          {/* Nome do Representante */}
-          <div className="space-y-2">
-            <Label htmlFor="representative_name">
-              Nome do Representante <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="representative_name"
-              name="representative_name"
-              type="text"
-              placeholder="João Silva Santos"
-              value={formData.representative_name}
-              onChange={handleChange}
-              className={errors.representative_name ? "border-red-500" : ""}
-            />
-            {errors.representative_name && (
-              <p className="text-sm text-red-500">{errors.representative_name}</p>
-            )}
-          </div>
-
-          {/* Senha */}
-          <div className="space-y-2">
-            <Label htmlFor="password">
-              Senha <span className="text-red-500">*</span>
-            </Label>
-            <div className="relative">
-              <Input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Mínimo 8 caracteres"
-                value={formData.password}
-                onChange={handleChange}
-                className={errors.password ? "border-red-500 pr-10" : "pr-10"}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
-                {showPassword ? (
-                  <EyeSlash className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="text-sm text-red-500">{errors.password}</p>
-            )}
-          </div>
-
-          {/* Confirmar Senha */}
-          <div className="space-y-2">
-            <Label htmlFor="password_confirm">
-              Confirmar Senha <span className="text-red-500">*</span>
-            </Label>
-            <div className="relative">
-              <Input
-                id="password_confirm"
-                name="password_confirm"
-                type={showPasswordConfirm ? "text" : "password"}
-                placeholder="Confirme sua senha"
-                value={formData.password_confirm}
-                onChange={handleChange}
-                className={errors.password_confirm ? "border-red-500 pr-10" : "pr-10"}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
-                {showPasswordConfirm ? (
-                  <EyeSlash className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-            {errors.password_confirm && (
-              <p className="text-sm text-red-500">{errors.password_confirm}</p>
-            )}
-          </div>
-
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            {loading ? "Cadastrando..." : "Criar Conta"}
-          </Button>
-
-          {/* Login Link */}
-          <p className="text-center text-sm text-gray-600">
-            Já tem conta?{" "}
-            <button
-              type="button"
-              onClick={() => navigate("/clinica")}
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Fazer login
-            </button>
-          </p>
-        </motion.form>
-      </div>
-    </div>
+          Já tem conta?{" "}
+          <Link to="/clinica" className="font-bold text-primary hover:underline">
+            Fazer login
+          </Link>
+        </motion.p>
+      </form>
+    </AuthShell>
   );
 }
