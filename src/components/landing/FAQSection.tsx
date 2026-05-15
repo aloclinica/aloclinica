@@ -1,19 +1,19 @@
-import { useEffect, useState, forwardRef, useCallback } from "react";
+import { useEffect, useState, forwardRef } from "react";
 import { db } from "@/integrations/supabase/untyped";
 import { motion, AnimatePresence } from "framer-motion";
-import { MagnifyingGlass, ChatCircleDots, Question, ArrowRight, CaretDown, Stethoscope, FileText, CreditCard, ShieldCheck, UserGear } from "@phosphor-icons/react";
+import { MagnifyingGlass, ChatCircleDots, Question, ArrowRight, Plus, Stethoscope, FileText, CreditCard, ShieldCheck, UserGear, Sparkle } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-const categoryConfig: Record<string, { icon: typeof Question; color: string }> = {
-  consulta: { icon: Stethoscope, color: "text-blue-500" },
-  receita: { icon: FileText, color: "text-emerald-500" },
-  plano: { icon: CreditCard, color: "text-violet-500" },
-  segurança: { icon: ShieldCheck, color: "text-amber-500" },
-  médico: { icon: UserGear, color: "text-rose-500" },
+const categoryConfig: Record<string, { icon: typeof Question; tone: string; label: string }> = {
+  consulta:   { icon: Stethoscope, tone: "from-primary/15 to-primary/5 text-primary",          label: "Consultas" },
+  receita:    { icon: FileText,    tone: "from-emerald-500/15 to-emerald-500/5 text-emerald-600", label: "Receitas" },
+  plano:      { icon: CreditCard,  tone: "from-violet-500/15 to-violet-500/5 text-violet-600",   label: "Planos" },
+  segurança:  { icon: ShieldCheck, tone: "from-amber-500/15 to-amber-500/5 text-amber-600",      label: "Segurança" },
+  médico:     { icon: UserGear,    tone: "from-rose-500/15 to-rose-500/5 text-rose-600",         label: "Médicos" },
 };
 
-type FaqEntry = { q: string; a: string; category: string; };
+type FaqEntry = { q: string; a: string; category: string };
 
 const staticFaqs: FaqEntry[] = [
   { q: "A consulta por vídeo tem a mesma validade de uma presencial?", a: "Sim! A telemedicina é regulamentada pelo CFM e as consultas realizadas pela AloClinica têm a mesma validade legal de uma consulta presencial, incluindo receitas e atestados.", category: "consulta" },
@@ -26,14 +26,7 @@ const staticFaqs: FaqEntry[] = [
   { q: "Posso agendar consulta para dependentes?", a: "Sim! Você pode cadastrar até 5 dependentes e agendar consultas para eles diretamente pelo seu perfil.", category: "consulta" },
 ];
 
-const categories = [
-  { key: "all", label: "Todas" },
-  { key: "consulta", label: "Consultas" },
-  { key: "receita", label: "Receitas" },
-  { key: "plano", label: "Planos" },
-  { key: "segurança", label: "Segurança" },
-  { key: "médico", label: "Médicos" },
-];
+const categoryOrder = ["all", "consulta", "receita", "plano", "segurança", "médico"];
 
 const FAQSection = forwardRef<HTMLElement>((_, ref) => {
   const navigate = useNavigate();
@@ -43,8 +36,7 @@ const FAQSection = forwardRef<HTMLElement>((_, ref) => {
   const [faqs, setFaqs] = useState<FaqEntry[]>(staticFaqs);
 
   useEffect(() => {
-    db
-      .from("faq_items")
+    db.from("faq_items")
       .select("question, answer, category")
       .eq("is_active", true)
       .order("order_index")
@@ -55,10 +47,11 @@ const FAQSection = forwardRef<HTMLElement>((_, ref) => {
       });
   }, []);
 
-  const filtered = faqs.filter((faq) => {
-    const matchSearch = search === "" || faq.q.toLowerCase().includes(search.toLowerCase()) || faq.a.toLowerCase().includes(search.toLowerCase());
-    const matchCategory = activeCategory === "all" || faq.category === activeCategory;
-    return matchSearch && matchCategory;
+  const filtered = faqs.filter((f) => {
+    const s = search.toLowerCase();
+    const matchSearch = !s || f.q.toLowerCase().includes(s) || f.a.toLowerCase().includes(s);
+    const matchCat = activeCategory === "all" || f.category === activeCategory;
+    return matchSearch && matchCat;
   });
 
   useEffect(() => {
@@ -66,7 +59,7 @@ const FAQSection = forwardRef<HTMLElement>((_, ref) => {
     const jsonLd = {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      mainEntity: faqs.map(f => ({
+      mainEntity: faqs.map((f) => ({
         "@type": "Question",
         name: f.q,
         acceptedAnswer: { "@type": "Answer", text: f.a },
@@ -82,173 +75,164 @@ const FAQSection = forwardRef<HTMLElement>((_, ref) => {
   }, [faqs]);
 
   return (
-    <section id="faq" className="py-16 md:py-28 relative overflow-hidden" aria-labelledby="faq-heading">
-      {/* Background decoration */}
+    <section id="faq" ref={ref} className="py-20 md:py-32 relative overflow-hidden bg-gradient-to-b from-background via-muted/20 to-background" aria-labelledby="faq-heading">
+      {/* Decorative background */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] rounded-full bg-primary/[0.03] blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-secondary/[0.03] blur-3xl" />
+        <div className="absolute top-20 -left-24 w-[480px] h-[480px] rounded-full bg-primary/[0.06] blur-3xl" />
+        <div className="absolute bottom-10 -right-24 w-[520px] h-[520px] rounded-full bg-secondary/[0.06] blur-3xl" />
+        <div
+          className="absolute inset-0 opacity-[0.025]"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)",
+            backgroundSize: "28px 28px",
+          }}
+        />
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
-          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center mb-12 md:mb-16"
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/8 border border-primary/15 text-primary text-xs font-bold tracking-wide uppercase mb-5">
-            <Question className="w-3.5 h-3.5" weight="fill" />
-            Central de ajuda
-          </div>
-          <h2 id="faq-heading" className="text-3xl md:text-5xl font-extrabold text-foreground mb-4" style={{ lineHeight: "1.1" }}>
-            Perguntas frequentes
-          </h2>
-          <p className="text-muted-foreground text-base md:text-lg max-w-xl mx-auto" style={{ textWrap: "balance" } as React.CSSProperties}>
-            Encontre respostas rápidas sobre consultas, receitas, planos e segurança.
-          </p>
-        </motion.div>
-
-        <div className="max-w-3xl mx-auto">
-          {/* Search bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="relative mb-8"
-          >
-            <div className="relative group">
-              <MagnifyingGlass className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60 transition-colors group-focus-within:text-primary" weight="bold" />
-              <input
-                type="text"
-                placeholder="Pesquisar dúvida..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-13 pr-12 py-4 rounded-2xl bg-card border-2 border-border/60 text-foreground text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-0 focus:border-primary/40 transition-all duration-300 shadow-sm focus:shadow-lg focus:shadow-primary/5"
-                style={{ paddingLeft: "3.25rem" }}
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs font-medium bg-muted/60 px-2.5 py-1 rounded-lg transition-colors"
-                >
-                  Limpar
-                </button>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Category pills */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.15, duration: 0.5 }}
-            className="mb-8"
-          >
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-            {categories.map((cat, i) => {
-              const isActive = activeCategory === cat.key;
-              const count = cat.key === "all" ? faqs.length : faqs.filter((f) => f.category === cat.key).length;
-              return (
-                <motion.button
-                  key={cat.key}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.15 + i * 0.04 }}
-                  onClick={() => setActiveCategory(cat.key)}
-                  className={`shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all duration-300 flex items-center gap-2 active:scale-95 ${
-                    isActive
-                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                      : "bg-card text-muted-foreground border border-border/60 hover:border-primary/30 hover:text-foreground hover:shadow-sm"
-                  }`}
-                >
-                  {cat.label}
-                  <span className={`text-[10px] tabular-nums px-1.5 py-0.5 rounded-md font-bold ${
-                    isActive ? "bg-white/20" : "bg-muted/80"
-                  }`}>
-                    {count}
-                  </span>
-                </motion.button>
-              );
-            })}
-          </div>
-          </motion.div>
-
-          {/* Search results count */}
-          <AnimatePresence>
-            {search && (
-              <motion.p
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="text-xs text-muted-foreground mb-4"
+        <div className="grid lg:grid-cols-[380px_1fr] gap-10 lg:gap-16 max-w-6xl mx-auto">
+          {/* LEFT — sticky info column */}
+          <aside className="lg:sticky lg:top-24 lg:self-start space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
+              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              viewport={{ once: true, amount: 0.4 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] font-bold tracking-wider uppercase mb-5">
+                <Sparkle className="w-3.5 h-3.5" weight="fill" />
+                Central de ajuda
+              </div>
+              <h2
+                id="faq-heading"
+                className="text-4xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight"
+                style={{ lineHeight: "1.05" }}
               >
-                {filtered.length} resultado{filtered.length !== 1 ? "s" : ""} para "<span className="font-semibold text-foreground">{search}</span>"
-              </motion.p>
-            )}
-          </AnimatePresence>
+                Perguntas
+                <br />
+                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  frequentes
+                </span>
+              </h2>
+              <p className="text-muted-foreground text-[15px] leading-relaxed mb-6">
+                Tire suas dúvidas sobre consultas, receitas, planos e segurança. Se precisar de mais ajuda, fale com a gente.
+              </p>
 
-          {/* FAQ Accordion */}
-          <div className="space-y-3">
-            <AnimatePresence mode="popLayout">
-              {filtered.map((faq, i) => {
-                const isOpen = openItem === faq.q;
-                const catConfig = categoryConfig[faq.category];
-                const CatIcon = catConfig?.icon || Question;
+              {/* Search */}
+              <div className="relative group mb-6">
+                <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground/60 group-focus-within:text-primary transition-colors" weight="bold" style={{ width: 18, height: 18 }} />
+                <input
+                  type="text"
+                  placeholder="Buscar uma dúvida..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 rounded-xl bg-card border border-border/70 text-foreground text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all shadow-sm"
+                />
+              </div>
 
-                return (
-                  <motion.div
-                    key={faq.q}
-                    initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
-                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                    exit={{ opacity: 0, scale: 0.96 }}
-                    transition={{ delay: i * 0.04, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                    layout
-                  >
-                    <div
-                      className={`rounded-2xl border-2 transition-all duration-300 overflow-hidden ${
+              {/* Categories — vertical list */}
+              <div className="space-y-1.5">
+                {categoryOrder.map((key) => {
+                  const isActive = activeCategory === key;
+                  const cfg = categoryConfig[key];
+                  const label = key === "all" ? "Todas as perguntas" : cfg?.label ?? key;
+                  const Icon = cfg?.icon;
+                  const count = key === "all" ? faqs.length : faqs.filter((f) => f.category === key).length;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setActiveCategory(key)}
+                      className={`w-full group flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                        isActive
+                          ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                          : "hover:bg-card text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {Icon ? (
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                          isActive ? "bg-primary-foreground/15" : "bg-muted/70 group-hover:bg-muted"
+                        }`}>
+                          <Icon weight="fill" style={{ width: 14, height: 14 }} />
+                        </div>
+                      ) : (
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                          isActive ? "bg-primary-foreground/15" : "bg-muted/70"
+                        }`}>
+                          <Question weight="fill" style={{ width: 14, height: 14 }} />
+                        </div>
+                      )}
+                      <span className="flex-1 text-sm font-semibold">{label}</span>
+                      <span className={`text-[11px] tabular-nums font-bold px-2 py-0.5 rounded-md ${
+                        isActive ? "bg-primary-foreground/20" : "bg-muted/80"
+                      }`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </aside>
+
+          {/* RIGHT — accordion */}
+          <div>
+            <AnimatePresence>
+              {search && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="text-xs text-muted-foreground mb-3"
+                >
+                  {filtered.length} resultado{filtered.length !== 1 ? "s" : ""} para "<span className="font-semibold text-foreground">{search}</span>"
+                </motion.p>
+              )}
+            </AnimatePresence>
+
+            <div className="space-y-3">
+              <AnimatePresence mode="popLayout">
+                {filtered.map((faq, i) => {
+                  const isOpen = openItem === faq.q;
+                  const cfg = categoryConfig[faq.category];
+                  const CatIcon = cfg?.icon || Question;
+                  return (
+                    <motion.div
+                      key={faq.q}
+                      initial={{ opacity: 0, y: 12, filter: "blur(4px)" }}
+                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                      exit={{ opacity: 0, scale: 0.97 }}
+                      transition={{ delay: i * 0.035, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                      layout
+                      className={`group rounded-2xl border transition-all duration-300 overflow-hidden ${
                         isOpen
-                          ? "bg-card border-primary/25 shadow-xl shadow-primary/[0.06]"
-                          : "bg-card/80 border-border/50 hover:border-primary/15 hover:shadow-md hover:-translate-y-0.5"
+                          ? "bg-card border-primary/30 shadow-2xl shadow-primary/[0.08]"
+                          : "bg-card/70 backdrop-blur-sm border-border/50 hover:border-primary/20 hover:shadow-md"
                       }`}
                     >
                       <button
                         onClick={() => setOpenItem(isOpen ? null : faq.q)}
-                        className="w-full flex items-center gap-4 px-5 sm:px-6 py-5 text-left cursor-pointer active:scale-[0.995] transition-transform"
+                        className="w-full flex items-start gap-4 px-5 sm:px-6 py-5 text-left"
                       >
-                        {/* Category icon */}
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-300 ${
-                          isOpen ? "bg-primary/10" : "bg-muted/60"
-                        }`}>
-                          <CatIcon className={`transition-colors duration-300 ${
-                            isOpen ? "text-primary" : (catConfig?.color || "text-muted-foreground")
-                          }`} weight="fill" style={{ width: "18px", height: "18px" }} />
+                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br transition-all duration-300 ${cfg?.tone || "from-muted to-muted/50 text-muted-foreground"} ${isOpen ? "scale-110 shadow-md" : ""}`}>
+                          <CatIcon weight="fill" style={{ width: 18, height: 18 }} />
                         </div>
-
-                        {/* Question text */}
-                        <span className={`flex-1 text-sm sm:text-[15px] font-semibold leading-snug transition-colors duration-200 ${
-                          isOpen ? "text-foreground" : "text-foreground/85"
+                        <span className={`flex-1 text-[15px] sm:text-base font-semibold leading-snug pt-1.5 transition-colors ${
+                          isOpen ? "text-foreground" : "text-foreground/85 group-hover:text-foreground"
                         }`}>
                           {faq.q}
                         </span>
-
-                        {/* Chevron */}
                         <motion.div
-                          animate={{ rotate: isOpen ? 180 : 0 }}
+                          animate={{ rotate: isOpen ? 45 : 0 }}
                           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                          className="shrink-0"
+                          className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
+                            isOpen ? "bg-primary text-primary-foreground" : "bg-muted/70 text-muted-foreground group-hover:bg-muted"
+                          }`}
                         >
-                          <CaretDown className={`w-5 h-5 transition-colors duration-300 ${
-                            isOpen ? "text-primary" : "text-muted-foreground/40"
-                          }`} weight="bold" />
+                          <Plus weight="bold" style={{ width: 16, height: 16 }} />
                         </motion.div>
                       </button>
 
-                      {/* Answer */}
                       <AnimatePresence>
                         {isOpen && (
                           <motion.div
@@ -258,75 +242,79 @@ const FAQSection = forwardRef<HTMLElement>((_, ref) => {
                             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                             className="overflow-hidden"
                           >
-                            <div className="px-5 sm:px-6 pb-5 pl-[4.5rem]">
-                              <p className="text-sm text-muted-foreground leading-relaxed">
+                            <div className="px-5 sm:px-6 pb-6 pl-[4.75rem]">
+                              <div className="h-px bg-gradient-to-r from-border to-transparent mb-4" />
+                              <p className="text-[14.5px] text-muted-foreground leading-relaxed">
                                 {faq.a}
                               </p>
                             </div>
                           </motion.div>
                         )}
                       </AnimatePresence>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
 
-            {filtered.length === 0 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-14"
-              >
-                <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
-                  <MagnifyingGlass className="w-7 h-7 text-muted-foreground/40" weight="bold" />
-                </div>
-                <p className="text-sm font-medium text-muted-foreground mb-1">Nenhuma pergunta encontrada</p>
-                <p className="text-xs text-muted-foreground/60 mb-3">Tente buscar com outros termos</p>
-                <button
-                  onClick={() => { setSearch(""); setActiveCategory("all"); }}
-                  className="text-primary text-xs font-semibold hover:underline underline-offset-2"
+              {filtered.length === 0 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-16 rounded-2xl border border-dashed border-border/60 bg-card/40"
                 >
-                  Limpar filtros
-                </button>
-              </motion.div>
-            )}
-          </div>
-
-          {/* Contact CTA */}
-          <motion.div
-            initial={{ opacity: 0, y: 18, filter: "blur(4px)" }}
-            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-12 text-center relative overflow-hidden rounded-3xl border-2 border-border/50 bg-gradient-to-br from-card to-muted/30 p-8 sm:p-10 shadow-lg"
-          >
-            <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-primary/[0.04] blur-3xl pointer-events-none" />
-            <div className="relative z-10">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <ChatCircleDots className="w-7 h-7 text-primary" weight="fill" />
-              </div>
-              <h3 className="text-xl font-extrabold text-foreground mb-2">Ainda tem dúvidas?</h3>
-              <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
-                Nossa equipe de suporte está disponível para ajudar você por chat ou WhatsApp.
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-3">
-                <Button
-                  className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground rounded-2xl px-7 font-bold shadow-lg shadow-primary/20"
-                  onClick={() => navigate("/suporte")}
-                >
-                  Falar com suporte <ArrowRight className="w-4 h-4 ml-1" weight="bold" />
-                </Button>
-                <Button
-                  variant="outline"
-                  className="rounded-2xl px-7 font-bold border-2"
-                  onClick={() => window.open("https://wa.me/5511999999999", "_blank")}
-                >
-                  WhatsApp
-                </Button>
-              </div>
+                  <div className="w-14 h-14 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto mb-4">
+                    <MagnifyingGlass className="w-6 h-6 text-muted-foreground/50" weight="bold" />
+                  </div>
+                  <p className="text-sm font-semibold text-foreground mb-1">Nenhuma pergunta encontrada</p>
+                  <p className="text-xs text-muted-foreground mb-4">Tente outros termos ou outra categoria</p>
+                  <button
+                    onClick={() => { setSearch(""); setActiveCategory("all"); }}
+                    className="text-primary text-xs font-bold hover:underline underline-offset-2"
+                  >
+                    Limpar filtros
+                  </button>
+                </motion.div>
+              )}
             </div>
-          </motion.div>
+
+            {/* Contact CTA */}
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.15, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-8 relative overflow-hidden rounded-3xl p-7 sm:p-9 bg-gradient-to-br from-primary via-primary to-secondary text-primary-foreground shadow-xl shadow-primary/20"
+            >
+              <div className="absolute -top-12 -right-12 w-56 h-56 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-16 -left-10 w-44 h-44 rounded-full bg-white/5 blur-3xl pointer-events-none" />
+              <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-6">
+                <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center shrink-0 ring-1 ring-white/20">
+                  <ChatCircleDots className="w-7 h-7" weight="fill" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-extrabold mb-1">Ainda tem dúvidas?</h3>
+                  <p className="text-sm text-primary-foreground/80">
+                    Nossa equipe responde por chat ou WhatsApp, todos os dias.
+                  </p>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Button
+                    onClick={() => navigate("/suporte")}
+                    className="bg-white text-primary hover:bg-white/90 rounded-xl px-5 font-bold"
+                  >
+                    Suporte <ArrowRight className="w-4 h-4 ml-1" weight="bold" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => window.open("https://wa.me/5511999999999", "_blank")}
+                    className="rounded-xl px-5 font-bold border-2 border-white/40 bg-transparent text-primary-foreground hover:bg-white/10 hover:text-primary-foreground"
+                  >
+                    WhatsApp
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </div>
     </section>
