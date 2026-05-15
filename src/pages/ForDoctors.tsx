@@ -296,37 +296,76 @@ const ForDoctors = forwardRef<HTMLDivElement>((_, ref) => {
             <motion.div {...fadeUp} transition={{ duration: 0.5 }}>
               <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-4 py-1.5 rounded-full mb-5">
                 <Wallet className="w-3.5 h-3.5" weight="fill" />
-                Financeiro
+                Simulador de Renda
               </span>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground leading-tight mb-6">
-                Transparência no <span className="text-primary">seu ganho</span>
+                Quanto você pode <span className="text-primary">ganhar?</span>
               </h2>
               <p className="text-muted-foreground leading-relaxed mb-8">
-                Acompanhe seus ganhos em tempo real, solicite saques via PIX e tenha total 
-                controle sobre sua carteira digital.
+                Ajuste o número de consultas semanais e o valor médio para descobrir
+                seu potencial de renda mensal e anual com a AloClínica.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-6 p-6 rounded-2xl border border-border bg-card/80">
+                <div>
+                  <div className="flex justify-between items-baseline mb-3">
+                    <label className="text-sm font-semibold text-foreground">Consultas por semana</label>
+                    <span className="text-lg font-extrabold text-primary tabular-nums">{consultsPerWeek}</span>
+                  </div>
+                  <Slider
+                    value={[consultsPerWeek]}
+                    onValueChange={(v) => setConsultsPerWeek(v[0])}
+                    min={1}
+                    max={50}
+                    step={1}
+                  />
+                </div>
+                <div>
+                  <div className="flex justify-between items-baseline mb-3">
+                    <label className="text-sm font-semibold text-foreground">Valor médio por consulta</label>
+                    <span className="text-lg font-extrabold text-primary tabular-nums">R$ {pricePerConsult}</span>
+                  </div>
+                  <Slider
+                    value={[pricePerConsult]}
+                    onValueChange={(v) => setPricePerConsult(v[0])}
+                    min={30}
+                    max={150}
+                    step={5}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/60">
+                  <div className="rounded-xl bg-primary/5 p-4">
+                    <p className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Por mês</p>
+                    <p className="text-2xl font-extrabold text-primary tabular-nums mt-1">
+                      R$ {monthlyEarnings.toLocaleString("pt-BR")}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-primary/5 p-4">
+                    <p className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Por ano</p>
+                    <p className="text-2xl font-extrabold text-primary tabular-nums mt-1">
+                      R$ {yearlyEarnings.toLocaleString("pt-BR")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
                 {[
-                  { icon: CurrencyDollar, title: "R$ 30-80/consulta", desc: "Valores variam por especialidade e duração." },
                   { icon: Clock, title: "Pagamento em 48h", desc: "Após a consulta, crédito na carteira digital." },
                   { icon: Wallet, title: "Saque via PIX", desc: "Solicite saques quando quiser, sem burocracia." },
-                  { icon: ChartLineUp, title: "Relatórios mensais", desc: "Dashboard financeiro com métricas detalhadas." },
                 ].map((item, i) => (
-                  <motion.div
+                  <div
                     key={i}
-                    className="flex items-start gap-3 p-4 rounded-xl border border-border bg-card/80 hover:border-primary/20 transition-all"
-                    {...fadeUp}
-                    transition={{ delay: 0.2 + i * 0.08 }}
+                    className="flex items-start gap-3 p-3 rounded-xl border border-border bg-background hover:border-primary/20 transition-all"
                   >
                     <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <item.icon className="w-4.5 h-4.5 text-primary" weight="fill" />
+                      <item.icon className="w-4 h-4 text-primary" weight="fill" />
                     </div>
                     <div>
                       <p className="font-bold text-foreground text-sm">{item.title}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             </motion.div>
