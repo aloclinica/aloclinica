@@ -959,6 +959,79 @@ export type Database = {
           },
         ]
       }
+      doctor_payouts: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          doctor_id: string
+          gross_amount: number
+          id: string
+          net_amount: number
+          notes: string | null
+          paid_at: string | null
+          pix_key: string | null
+          pix_tx_id: string | null
+          platform_fee: number
+          release_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          doctor_id: string
+          gross_amount: number
+          id?: string
+          net_amount: number
+          notes?: string | null
+          paid_at?: string | null
+          pix_key?: string | null
+          pix_tx_id?: string | null
+          platform_fee?: number
+          release_at: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          doctor_id?: string
+          gross_amount?: number
+          id?: string
+          net_amount?: number
+          notes?: string | null
+          paid_at?: string | null
+          pix_key?: string | null
+          pix_tx_id?: string | null
+          platform_fee?: number
+          release_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_payouts_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_payouts_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctor_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_payouts_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctor_sla_dashboard"
+            referencedColumns: ["doctor_id"]
+          },
+        ]
+      }
       doctor_profiles: {
         Row: {
           areas_of_expertise: string[] | null
@@ -981,6 +1054,7 @@ export type Database = {
           kyc_face_match_score: number | null
           kyc_status: string | null
           kyc_verified_at: string | null
+          pix_key: string | null
           price: number | null
           price_suggestion_sent_at: string | null
           professional_photo_url: string | null
@@ -1013,6 +1087,7 @@ export type Database = {
           kyc_face_match_score?: number | null
           kyc_status?: string | null
           kyc_verified_at?: string | null
+          pix_key?: string | null
           price?: number | null
           price_suggestion_sent_at?: string | null
           professional_photo_url?: string | null
@@ -1045,6 +1120,7 @@ export type Database = {
           kyc_face_match_score?: number | null
           kyc_status?: string | null
           kyc_verified_at?: string | null
+          pix_key?: string | null
           price?: number | null
           price_suggestion_sent_at?: string | null
           professional_photo_url?: string | null
@@ -4801,11 +4877,16 @@ export type Database = {
       fn_auto_no_show: { Args: never; Returns: undefined }
       fn_auto_pause_doctor_no_shows: { Args: never; Returns: undefined }
       fn_detect_churn: { Args: never; Returns: undefined }
+      fn_doctor_onboarding_progress: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       fn_expire_available_now: { Args: never; Returns: undefined }
       fn_expire_discount_cards: { Args: never; Returns: undefined }
       fn_expire_invite_codes: { Args: never; Returns: undefined }
       fn_expire_queue_entries: { Args: never; Returns: undefined }
       fn_handle_doctor_no_show: { Args: never; Returns: undefined }
+      fn_idle_slot_suggestion: { Args: never; Returns: undefined }
       fn_increment_coupon_usage_atomic: {
         Args: { p_code: string }
         Returns: boolean
@@ -4813,6 +4894,7 @@ export type Database = {
       fn_nps_whatsapp_followup: { Args: never; Returns: undefined }
       fn_pix_expiry_reminder: { Args: never; Returns: undefined }
       fn_reengagement_inactive: { Args: never; Returns: undefined }
+      fn_release_doctor_payouts: { Args: never; Returns: undefined }
       fn_spend_pingo_ticket: {
         Args: {
           p_amount: number
