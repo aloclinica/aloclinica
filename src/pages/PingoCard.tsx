@@ -124,8 +124,17 @@ const PingoCard = () => {
       <Header />
 
       {/* HERO */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80 pt-24 pb-16 md:pt-32 md:pb-24">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.15),transparent_50%)]" />
+      <section
+        className="relative overflow-hidden pt-24 pb-16 md:pt-32 md:pb-24 bg-primary"
+        style={{
+          backgroundImage: `url(${pingoCardHero})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        {/* Overlay para legibilidade do texto */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/80 to-primary/30" />
         <div className="container relative mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -175,14 +184,8 @@ const PingoCard = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7, delay: 0.2 }}
               className="hidden lg:block"
-            >
-              <img
-                src={pingoCardHero}
-                alt="Pingo Card — mascote Pingo apresentando o cartão de benefícios"
-                className="w-full h-auto rounded-3xl shadow-2xl"
-                loading="eager"
-              />
-            </motion.div>
+              aria-hidden="true"
+            />
           </div>
         </div>
       </section>
