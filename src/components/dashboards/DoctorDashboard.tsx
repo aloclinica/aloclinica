@@ -30,6 +30,7 @@ import mascotWelcome from "@/assets/mascot-welcome.png";
 import DoctorCommandCenter from "./DoctorCommandCenter";
 import DoctorSmartInsights from "./DoctorSmartInsights";
 import DoctorWeeklyPulse from "./DoctorWeeklyPulse";
+import ImminentConsultationBar from "./ImminentConsultationBar";
 
 const statusColor: Record<string, string> = {
   scheduled:   "bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400",
@@ -180,6 +181,15 @@ const DoctorDashboard = () => {
       )}
 
       <motion.div variants={container} initial="hidden" animate="show">
+
+      {/* Sticky imminent consultation strip */}
+      <ImminentConsultationBar
+        appt={
+          (todayAppts.find(a => a.status === "in_progress" || a.status === "waiting") as any) ??
+          (upcomingAppts[0] as any)
+        }
+        role="doctor"
+      />
 
       {/* Full-width hero */}
       <div className="-mx-4 -mt-5 md:-mx-6 md:-mt-5 lg:-mx-8 lg:-mt-6">
