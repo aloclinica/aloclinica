@@ -11,7 +11,6 @@ import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
  *   parceiro.aloclinica.com  → /parceiro     → /dashboard?role=partner
  *   recepcionista.aloclinica.com → /recepcionista → /dashboard?role=receptionist
  *   suporte.aloclinica.com   → /suporte      → /dashboard?role=support
- *   laudista.aloclinica.com  → /laudista     → /dashboard?role=laudista
  */
 
 interface SubdomainConfig {
@@ -27,7 +26,6 @@ const SUBDOMAIN_CONFIG: Record<string, SubdomainConfig> = {
   parceiro:      { authRoute: "/parceiro",      dashboardRole: "partner" },
   recepcionista: { authRoute: "/recepcionista", dashboardRole: "receptionist" },
   suporte:       { authRoute: "/suporte",       dashboardRole: "support" },
-  laudista:      { authRoute: "/laudista",      dashboardRole: "laudista" },
 };
 
 function getSubdomain(): string | null {

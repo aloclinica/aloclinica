@@ -152,8 +152,6 @@ const Auth = () => {
           <div className="flex flex-wrap items-center justify-center gap-2">
             {[
               { to: "/clinica", label: "Clínica" },
-              { to: "/oftalmologia/login", label: "Oftalmologista" },
-              { to: "/laudista", label: "Laudista" },
               { to: "/suporte", label: "Suporte" },
               { to: "/admin", label: "Admin" },
             ].map((r) => (
