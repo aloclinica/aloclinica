@@ -33,6 +33,7 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import FirstConsultationTour from "@/components/patient/FirstConsultationTour";
+import ImminentConsultationBar from "./ImminentConsultationBar";
 
 /* ── Constants ── */
 const HEALTH_TIPS = [
@@ -171,6 +172,10 @@ const PatientDashboard = () => {
       {showOnboarding && <PatientOnboarding onComplete={() => setShowOnboarding(false)} />}
       {!showOnboarding && <FirstConsultationTour />}
       <div ref={scrollRef} className="space-y-6 pb-24 md:pb-12 max-w-7xl mx-auto">
+        <ImminentConsultationBar
+          appt={waitingAppt ?? nextAppt}
+          role="patient"
+        />
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <div className="lg:col-span-8 space-y-6">
             <HeroSection firstName={firstName} nextAppt={nextAppt} upcoming={upcoming} stats={stats} getGreeting={getGreeting} getAvatarRingColor={getAvatarRingColor} getContextualSubtitle={getContextualSubtitle} profile={profile} />
