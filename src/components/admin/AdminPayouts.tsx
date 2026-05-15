@@ -49,12 +49,12 @@ const AdminPayouts = () => {
 
   const markPaid = async (id: string) => {
     const tx = txMap[id]?.trim();
-    if (!tx) return toast.error("Informe o ID da transação PIX");
+    if (!tx) { toast.error("Informe o ID da transação PIX"); return; }
     const { error } = await db
       .from("doctor_payouts")
       .update({ status: "paid", paid_at: new Date().toISOString(), pix_tx_id: tx })
       .eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Repasse marcado como pago");
     qc.invalidateQueries({ queryKey: ["admin-payouts"] });
   };
