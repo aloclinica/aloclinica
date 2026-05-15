@@ -65,6 +65,8 @@ const PingoRunBanner = () => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
+          {/* eslint-disable-next-line no-console */}
+          {console.log("Pingo img src:", pingoPhone)}
           <motion.img
             src={pingoPhone}
             alt=""
