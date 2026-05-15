@@ -124,18 +124,21 @@ const PingoCard = () => {
       <Header />
 
       {/* HERO */}
-      <section
-        className="relative overflow-hidden pt-24 pb-16 md:pt-32 md:pb-24 bg-primary"
-        style={{
-          backgroundImage: `url(${pingoCardHero})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      >
-        {/* Overlay para legibilidade do texto */}
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/80 to-primary/30" />
-        <div className="container relative mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <section className="relative overflow-hidden bg-primary pt-20 md:pt-24">
+        {/* Imagem de fundo em alta resolução, sem cortes */}
+        <img
+          src={pingoCardHero}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover object-right"
+          loading="eager"
+        />
+        {/* Overlay para legibilidade do texto à esquerda */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/85 to-transparent" />
+        <div
+          className="container relative mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-16 md:py-24"
+          style={{ minHeight: "min(72vh, 720px)" }}
+        >
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
