@@ -12,6 +12,7 @@ import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import BenefitsGrid from "@/components/landing/BenefitsGrid";
 import ForDoctorsSection from "@/components/landing/ForDoctorsSection";
 import CTABanner from "@/components/landing/CTABanner";
+import ConsultaInfoBanner from "@/components/landing/ConsultaInfoBanner";
 import FAQSection from "@/components/landing/FAQSection";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Video, Star } from "lucide-react";
@@ -116,6 +117,7 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
       </section>
 
       <TechnologySection config={sectionData.technology} />
+      <ConsultaInfoBanner />
       {isOn("how_it_works") !== false && <HowItWorksSection />}
       {isOn("benefits") !== false && <BenefitsGrid />}
       <SpecialtiesSection config={sectionData.specialties} />
