@@ -1,12 +1,11 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Heart, User, Star, Shield, Check, ArrowRight, QrCode, Sparkle, MapPin, Storefront, Flask, Eyeglasses, Quotes, Calculator, Question, CaretDown } from "@phosphor-icons/react";
+import { Heart, User, Star, Shield, Check, X, ArrowRight, QrCode, Sparkle, MapPin, Storefront, Flask, Eyeglasses, Quotes, Question, Lightning, Users, Clock, Buildings } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Slider } from "@/components/ui/slider";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Header from "@/components/landing/Header";
 import SEOHead from "@/components/SEOHead";
@@ -59,8 +58,7 @@ const PingoCard = () => {
   const [plans, setPlans] = useState<PingoPlan[]>([]);
   const [partners, setPartners] = useState<PingoPartner[]>([]);
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
-  const [consultations, setConsultations] = useState<number>(2);
-  const [exams, setExams] = useState<number>(1);
+  const [partnerCategory, setPartnerCategory] = useState<string>("todas");
 
   useEffect(() => {
     const load = async () => {
@@ -74,23 +72,39 @@ const PingoCard = () => {
     load();
   }, []);
 
-  // Calculadora — economia estimada baseada no plano destacado (ou primeiro)
-  const featuredPlan = useMemo(
-    () => plans.find(p => p.is_highlighted) ?? plans[0],
-    [plans]
+  const partnerCategories = useMemo(() => {
+    const set = new Set<string>(partners.map(p => p.category));
+    return ["todas", ...Array.from(set)];
+  }, [partners]);
+
+  const filteredPartners = useMemo(
+    () => partnerCategory === "todas" ? partners : partners.filter(p => p.category === partnerCategory),
+    [partners, partnerCategory]
   );
 
-  const savings = useMemo(() => {
-    const consultPrice = 120;
-    const examPrice = 80;
-    const consultDisc = featuredPlan?.consultation_discount_percent ?? 30;
-    const examDisc = featuredPlan?.exam_discount_percent ?? 40;
-    const monthlySaving =
-      consultations * consultPrice * (consultDisc / 100) +
-      exams * examPrice * (examDisc / 100);
-    const yearlyNet = monthlySaving * 12 - (featuredPlan?.price_monthly ?? 19.9) * 12;
-    return { monthly: monthlySaving, yearly: yearlyNet };
-  }, [consultations, exams, featuredPlan]);
+  const categoryLabels: Record<string, string> = {
+    todas: "Todas",
+    farmacia: "Farmácias",
+    laboratorio: "Laboratórios",
+    otica: "Óticas",
+    academia: "Academias",
+  };
+
+  const stats = [
+    { icon: <Users size={24} weight="fill" />, value: "+15 mil", label: "Vidas cuidadas" },
+    { icon: <Buildings size={24} weight="fill" />, value: "+800", label: "Parceiros credenciados" },
+    { icon: <Lightning size={24} weight="fill" />, value: "Até 60%", label: "De desconto em exames" },
+    { icon: <Clock size={24} weight="fill" />, value: "0 dias", label: "De carência" },
+  ];
+
+  const comparison = [
+    { feature: "Mensalidade a partir de", pingo: "R$ 19,90", plano: "R$ 250+", pingoOk: true },
+    { feature: "Carência", pingo: "Nenhuma", plano: "Até 180 dias", pingoOk: true },
+    { feature: "Fidelidade / multa", pingo: "Não", plano: "Sim", pingoOk: true },
+    { feature: "Consultas online ilimitadas", pingo: true, plano: false, pingoOk: true },
+    { feature: "Descontos em farmácias", pingo: true, plano: false, pingoOk: true },
+    { feature: "Aceito em todo Brasil", pingo: true, plano: "Regional", pingoOk: true },
+  ];
 
   const testimonials = [
     { name: "Mariana C.", role: "Mãe de 2 filhos", text: "Em 3 meses já paguei o cartão de um ano inteiro. Os descontos em laboratório fizeram total diferença.", rating: 5 },
@@ -164,6 +178,13 @@ const PingoCard = () => {
                 </Button>
               </div>
 
+              {/* Trust signals */}
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-6 text-sm text-white/85">
+                <span className="flex items-center gap-1.5"><Check size={16} weight="bold" className="text-emerald-300" /> Sem carência</span>
+                <span className="flex items-center gap-1.5"><Check size={16} weight="bold" className="text-emerald-300" /> Sem fidelidade</span>
+                <span className="flex items-center gap-1.5"><Check size={16} weight="bold" className="text-emerald-300" /> Cancela a qualquer momento</span>
+              </div>
+
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12">
                 {benefits.map((b, i) => (
                   <motion.div
@@ -189,6 +210,32 @@ const PingoCard = () => {
               className="hidden lg:block"
               aria-hidden="true"
             />
+          </div>
+        </div>
+      </section>
+
+      {/* STATS BAR */}
+      <section className="border-b border-border/60 bg-card/50">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {stats.map((s, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.06 }}
+                className="flex items-center gap-3"
+              >
+                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  {s.icon}
+                </div>
+                <div>
+                  <div className="text-2xl font-extrabold leading-none">{s.value}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{s.label}</div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -332,8 +379,27 @@ const PingoCard = () => {
             </p>
           </motion.div>
 
+          {/* Filtro de categorias */}
+          {partnerCategories.length > 1 && (
+            <div className="flex flex-wrap justify-center gap-2 mb-8">
+              {partnerCategories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setPartnerCategory(cat)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium border-2 transition-all ${
+                    partnerCategory === cat
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card border-border hover:border-primary/40"
+                  }`}
+                >
+                  {categoryLabels[cat] ?? cat}
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {partners.map((p, i) => (
+            {filteredPartners.map((p, i) => (
               <motion.div
                 key={p.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -368,8 +434,60 @@ const PingoCard = () => {
         </div>
       </section>
 
-      {/* DEPOIMENTOS */}
+      {/* COMPARATIVO */}
       <section className="py-16 md:py-24 bg-muted/30">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <Badge className="mb-3 bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-0">
+              <Lightning size={14} weight="fill" className="mr-1" /> COMPARATIVO
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-3">Pingo Card vs. plano de saúde tradicional</h2>
+            <p className="text-muted-foreground text-lg">Veja por que tantas famílias escolhem o Pingo Card.</p>
+          </motion.div>
+
+          <Card className="overflow-hidden border-2">
+            <div className="grid grid-cols-3 bg-card border-b">
+              <div className="p-4 md:p-5 font-semibold text-sm md:text-base">Característica</div>
+              <div className="p-4 md:p-5 font-bold text-primary text-center text-sm md:text-base bg-primary/5">
+                Pingo Card
+              </div>
+              <div className="p-4 md:p-5 font-semibold text-muted-foreground text-center text-sm md:text-base">
+                Plano tradicional
+              </div>
+            </div>
+            {comparison.map((row, i) => (
+              <div
+                key={i}
+                className={`grid grid-cols-3 border-b last:border-b-0 ${i % 2 === 0 ? "bg-muted/20" : "bg-card"}`}
+              >
+                <div className="p-4 md:p-5 text-sm md:text-base font-medium">{row.feature}</div>
+                <div className="p-4 md:p-5 text-center bg-primary/5 flex items-center justify-center text-sm md:text-base font-semibold text-primary">
+                  {typeof row.pingo === "boolean" ? (
+                    row.pingo ? <Check size={22} weight="bold" /> : <X size={22} weight="bold" />
+                  ) : (
+                    row.pingo
+                  )}
+                </div>
+                <div className="p-4 md:p-5 text-center flex items-center justify-center text-sm md:text-base text-muted-foreground">
+                  {typeof row.plano === "boolean" ? (
+                    row.plano ? <Check size={22} weight="bold" className="text-emerald-500" /> : <X size={22} weight="bold" className="text-destructive/70" />
+                  ) : (
+                    row.plano
+                  )}
+                </div>
+              </div>
+            ))}
+          </Card>
+        </div>
+      </section>
+
+      {/* DEPOIMENTOS */}
+      <section className="py-16 md:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
