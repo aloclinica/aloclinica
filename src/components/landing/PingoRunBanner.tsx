@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
-import pingoRun from "@/assets/pingo-clinico-geral.png";
+import pingoPhone from "@/assets/pingo-videocall.png";
 import { Stethoscope, HeartPulse, Pill, Video, Calendar, ShieldCheck } from "lucide-react";
 
 /**
- * Faixa animada com o Pingo correndo da esquerda para a direita,
- * sobre um fundo em gradiente da marca com ícones em marquee de fundo.
+ * Faixa animada com ícones em marquee e o Pingo fixo
+ * segurando um celular, com animação sutil de flutuação.
  */
 const MARQUEE_ITEMS = [
   { icon: Stethoscope, label: "Consulta 24h" },
@@ -16,7 +16,6 @@ const MARQUEE_ITEMS = [
 ];
 
 const PingoRunBanner = () => {
-  // Duplicamos para criar um loop contínuo
   const items = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
 
   return (
@@ -34,10 +33,62 @@ const PingoRunBanner = () => {
         }}
       />
 
-      {/* Marquee de ícones / textos no fundo */}
-      <div className="relative py-6 md:py-7">
+      {/* Conteúdo principal: texto à esquerda + Pingo fixo à direita */}
+      <div className="relative flex items-center justify-between gap-6 px-6 md:px-12 lg:px-20 py-6 md:py-8">
+        {/* Texto chamativo */}
+        <div className="z-10 max-w-xl">
+          <motion.p
+            className="text-white/80 text-xs md:text-sm font-semibold uppercase tracking-widest mb-2"
+            initial={{ opacity: 0, y: 8 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            Na palma da sua mão
+          </motion.p>
+          <motion.h2
+            className="text-white text-2xl md:text-4xl font-bold leading-tight"
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            Agende sua consulta em{" "}
+            <span className="text-[hsl(168,70%,65%)]">menos de 2 minutos</span>{" "}
+            pelo app
+          </motion.h2>
+        </div>
+
+        {/* Pingo fixo com celular — animação sutil de flutuação */}
         <motion.div
-          className="flex items-center gap-12 md:gap-20 whitespace-nowrap will-change-transform"
+          aria-hidden="true"
+          className="relative shrink-0 hidden sm:block"
+          initial={{ opacity: 0, scale: 0.85 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <motion.img
+            src={pingoPhone}
+            alt=""
+            loading="lazy"
+            className="h-28 md:h-40 lg:h-44 w-auto drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)] select-none"
+            animate={{ y: [0, -8, 0], rotate: [0, 1.5, 0, -1.5, 0] }}
+            transition={{ duration: 4, ease: "easeInOut", repeat: Infinity }}
+            style={{ transformOrigin: "center bottom" }}
+          />
+          {/* Brilho sutil atrás do Pingo */}
+          <div
+            className="absolute inset-0 -z-10 blur-2xl opacity-30 bg-white rounded-full"
+            style={{ transform: "scale(1.2)" }}
+          />
+        </motion.div>
+      </div>
+
+      {/* Marquee de ícones na base */}
+      <div className="relative py-3 md:py-4 border-t border-white/10">
+        <motion.div
+          className="flex items-center gap-10 md:gap-16 whitespace-nowrap will-change-transform"
           animate={{ x: ["0%", "-50%"] }}
           transition={{ duration: 28, ease: "linear", repeat: Infinity }}
         >
@@ -46,40 +97,14 @@ const PingoRunBanner = () => {
             return (
               <div
                 key={i}
-                className="flex items-center gap-3 text-white/95 font-bold text-sm md:text-base uppercase tracking-[0.18em] shrink-0"
+                className="flex items-center gap-2.5 text-white/90 font-medium text-xs md:text-sm uppercase tracking-[0.15em] shrink-0"
               >
-                <Icon className="w-5 h-5 md:w-6 md:h-6" strokeWidth={2.2} />
+                <Icon className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2} />
                 <span>{it.label}</span>
-                <span className="text-white/40 text-xl">•</span>
+                <span className="text-white/30 text-lg">•</span>
               </div>
             );
           })}
-        </motion.div>
-
-        {/* Pingo correndo sobre o marquee */}
-        <motion.div
-          aria-hidden="true"
-          className="absolute top-1/2 left-0 -translate-y-1/2 will-change-transform"
-          initial={{ x: "-15vw" }}
-          animate={{ x: ["-15vw", "115vw"] }}
-          transition={{ duration: 7, ease: "linear", repeat: Infinity }}
-        >
-          <motion.img
-            src={pingoRun}
-            alt=""
-            loading="lazy"
-            className="h-20 md:h-28 w-auto drop-shadow-[0_8px_18px_rgba(0,0,0,0.35)] select-none"
-            animate={{ y: [0, -10, 0], rotate: [-2, 2, -2] }}
-            transition={{ duration: 0.45, ease: "easeInOut", repeat: Infinity }}
-            style={{ transformOrigin: "center bottom" }}
-          />
-          {/* Sombra do Pingo no chão */}
-          <motion.div
-            className="mx-auto -mt-1 h-2 rounded-full bg-black/30 blur-md"
-            animate={{ scaleX: [1, 0.7, 1], opacity: [0.45, 0.25, 0.45] }}
-            transition={{ duration: 0.45, ease: "easeInOut", repeat: Infinity }}
-            style={{ width: "60%" }}
-          />
         </motion.div>
       </div>
 
