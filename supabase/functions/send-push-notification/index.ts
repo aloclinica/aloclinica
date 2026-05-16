@@ -9,7 +9,7 @@ const corsHeaders = {
 };
 
 const VAPID_PUBLIC_KEY =
-  "BAcxZjzip4n-k1ifUoCKTHN8s2fo9woakP0bT1_2bim88q4vvDDFhrm5Ydg2Q_dg8-paX0lg39E6fq0KysNKkmg";
+  "BN2XiIZnnn-5BADRkd1Yrl4C3UK7pMLDaJLjzxxc3ctWHxMeaW9pZm-IvZv3P-rI0rK6o7-h0GQmmnf5FI2H7OI";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -26,7 +26,7 @@ serve(async (req) => {
     }
 
     webpush.setVapidDetails(
-      "mailto:plenasaudebv@gmail.com",
+      "mailto:lopesgustavo4377@gmail.com",
       VAPID_PUBLIC_KEY,
       VAPID_PRIVATE_KEY
     );
