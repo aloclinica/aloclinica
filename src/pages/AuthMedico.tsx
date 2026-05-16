@@ -273,11 +273,29 @@ const AuthMedico = () => {
     securityMonitor.clearFailedLogins(email);
 
     if (data.user) {
-      const { data: doctorProfile } = await db
+      let { data: doctorProfile } = await db
         .from("doctor_profiles")
         .select("id, is_approved, crm_verified")
         .eq("user_id", data.user.id)
-        .single();
+        .maybeSingle();
+
+      // Se o usuário tem papel doctor mas o perfil não existe (falha no signup),
+      // cria um perfil aprovado on-the-fly para não travar o login.
+      if (!doctorProfile) {
+        const { data: roles } = await db
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", data.user.id);
+        const hasDoctorRole = (roles ?? []).some((r: { role: string }) => r.role === "doctor");
+        if (hasDoctorRole) {
+          const { data: created } = await db
+            .from("doctor_profiles")
+            .insert({ user_id: data.user.id, is_approved: true })
+            .select("id, is_approved, crm_verified")
+            .maybeSingle();
+          doctorProfile = created ?? null;
+        }
+      }
 
       if (!doctorProfile) {
         await db.auth.signOut();
