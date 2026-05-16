@@ -350,6 +350,7 @@ export type Database = {
           appointment_type:
             | Database["public"]["Enums"]["appointment_type"]
             | null
+          cancel_reason: string | null
           cancellation_reason: string | null
           cancelled_by: string | null
           clinic_id: string | null
@@ -381,6 +382,7 @@ export type Database = {
           appointment_type?:
             | Database["public"]["Enums"]["appointment_type"]
             | null
+          cancel_reason?: string | null
           cancellation_reason?: string | null
           cancelled_by?: string | null
           clinic_id?: string | null
@@ -412,6 +414,7 @@ export type Database = {
           appointment_type?:
             | Database["public"]["Enums"]["appointment_type"]
             | null
+          cancel_reason?: string | null
           cancellation_reason?: string | null
           cancelled_by?: string | null
           clinic_id?: string | null
@@ -1552,6 +1555,7 @@ export type Database = {
           display_order: number | null
           id: string
           is_active: boolean | null
+          order_index: number | null
           question: string
         }
         Insert: {
@@ -1561,6 +1565,7 @@ export type Database = {
           display_order?: number | null
           id?: string
           is_active?: boolean | null
+          order_index?: number | null
           question: string
         }
         Update: {
@@ -1570,6 +1575,7 @@ export type Database = {
           display_order?: number | null
           id?: string
           is_active?: boolean | null
+          order_index?: number | null
           question?: string
         }
         Relationships: []
@@ -2268,6 +2274,8 @@ export type Database = {
           created_at: string
           id: string
           is_read: boolean | null
+          link: string | null
+          message: string | null
           metadata: Json | null
           title: string
           type: string | null
@@ -2279,6 +2287,8 @@ export type Database = {
           created_at?: string
           id?: string
           is_read?: boolean | null
+          link?: string | null
+          message?: string | null
           metadata?: Json | null
           title: string
           type?: string | null
@@ -2290,6 +2300,8 @@ export type Database = {
           created_at?: string
           id?: string
           is_read?: boolean | null
+          link?: string | null
+          message?: string | null
           metadata?: Json | null
           title?: string
           type?: string | null
@@ -4591,36 +4603,45 @@ export type Database = {
       testimonials: {
         Row: {
           avatar_url: string | null
+          company: string | null
           content: string
           created_at: string
           display_order: number | null
           id: string
           is_active: boolean | null
           name: string
+          order_index: number | null
           rating: number | null
           role: string | null
+          text: string | null
         }
         Insert: {
           avatar_url?: string | null
+          company?: string | null
           content: string
           created_at?: string
           display_order?: number | null
           id?: string
           is_active?: boolean | null
           name: string
+          order_index?: number | null
           rating?: number | null
           role?: string | null
+          text?: string | null
         }
         Update: {
           avatar_url?: string | null
+          company?: string | null
           content?: string
           created_at?: string
           display_order?: number | null
           id?: string
           is_active?: boolean | null
           name?: string
+          order_index?: number | null
           rating?: number | null
           role?: string | null
+          text?: string | null
         }
         Relationships: []
       }
@@ -5008,6 +5029,7 @@ export type Database = {
         | "cancelled"
         | "no_show"
         | "payment_pending"
+        | "confirmed"
       appointment_type: "first_visit" | "return" | "urgency"
       approval_status: "pending" | "approved" | "rejected"
       ticket_priority: "low" | "medium" | "high" | "critical"
@@ -5161,6 +5183,7 @@ export const Constants = {
         "cancelled",
         "no_show",
         "payment_pending",
+        "confirmed",
       ],
       appointment_type: ["first_visit", "return", "urgency"],
       approval_status: ["pending", "approved", "rejected"],
