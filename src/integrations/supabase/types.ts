@@ -363,6 +363,7 @@ export type Database = {
           jitsi_room_id: string | null
           lembrete_enviado: boolean | null
           notes: string | null
+          original_appointment_id: string | null
           patient_id: string | null
           payment_confirmed_at: string | null
           payment_confirmed_by: string | null
@@ -395,6 +396,7 @@ export type Database = {
           jitsi_room_id?: string | null
           lembrete_enviado?: boolean | null
           notes?: string | null
+          original_appointment_id?: string | null
           patient_id?: string | null
           payment_confirmed_at?: string | null
           payment_confirmed_by?: string | null
@@ -427,6 +429,7 @@ export type Database = {
           jitsi_room_id?: string | null
           lembrete_enviado?: boolean | null
           notes?: string | null
+          original_appointment_id?: string | null
           patient_id?: string | null
           payment_confirmed_at?: string | null
           payment_confirmed_by?: string | null
@@ -461,6 +464,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "doctor_sla_dashboard"
             referencedColumns: ["doctor_id"]
+          },
+          {
+            foreignKeyName: "appointments_original_appointment_id_fkey"
+            columns: ["original_appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
           },
         ]
       }
