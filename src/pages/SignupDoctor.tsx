@@ -20,6 +20,7 @@ import {
   validarSenha,
   validarEspecialidade,
   VALID_SPECIALTIES,
+  validarCRM,
 } from "@/lib/form-validators";
 import {
   ArrowLeft, Eye, EyeSlash, Stethoscope, IdentificationCard,
@@ -96,12 +97,16 @@ export default function SignupDoctor() {
       newErrors.cpf = "CPF inválido";
     }
 
-    if (!formData.crm || formData.crm.length < 4) {
-      newErrors.crm = "CRM inválido";
-    }
-
     if (!formData.crm_state) {
       newErrors.crm_state = "Estado do CRM é obrigatório";
+    }
+
+    if (!formData.crm) {
+      newErrors.crm = "CRM é obrigatório";
+    } else if (!validarCRM(formData.crm, formData.crm_state || undefined)) {
+      newErrors.crm = formData.crm_state
+        ? "CRM inválido (4 a 6 dígitos) ou UF inválida"
+        : "CRM inválido (4 a 6 dígitos)";
     }
 
     if (!formData.specialty) {
