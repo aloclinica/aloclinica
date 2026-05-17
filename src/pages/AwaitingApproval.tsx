@@ -10,7 +10,7 @@ import { db } from "@/integrations/supabase/untyped";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { toastError } from "@/lib/errorMessages";
-import { CheckCircle, Clock, Mail, ShieldCheck, ArrowRight, SignOut } from "@phosphor-icons/react";
+import { CheckCircle, Clock, Envelope, ShieldCheck, ArrowRight, SignOut } from "@phosphor-icons/react";
 
 type RoleParam = "doctor" | "clinic";
 
@@ -130,7 +130,7 @@ export default function AwaitingApproval() {
               }`}>
                 {emailConfirmed
                   ? <CheckCircle className="w-5 h-5" weight="fill" />
-                  : <Mail className="w-5 h-5" weight="fill" />}
+                  : <Envelope className="w-5 h-5" weight="fill" />}
               </span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground">
