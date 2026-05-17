@@ -115,8 +115,12 @@ export default function SignupPatient() {
       });
       if (error) throw error;
       if (!auth.user) throw new Error("Falha ao criar usuário");
-      toast.success("Cadastro realizado! Verifique seu email.");
-      navigate("/paciente");
+      // Auto-login (caso confirmação de email esteja desativada)
+      if (!auth.session) {
+        await db.auth.signInWithPassword({ email: data.email, password: data.password });
+      }
+      toast.success("Cadastro realizado com sucesso!");
+      navigate("/dashboard");
     } catch (err) {
       toastError(toast, err, "signup");
     } finally {
