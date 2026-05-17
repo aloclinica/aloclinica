@@ -58,7 +58,7 @@ export default defineConfig(({ mode }) => ({
             },
           },
           {
-            urlPattern: /^https:\/\/oaixgmuocuwhsabidpei\.supabase\.co\/rest\/v1\/(medical_records|prescriptions|profiles|appointments).*/i,
+            urlPattern: /^https:\/\/pwxvvimdtmvziynbspgx\.supabase\.co\/rest\/v1\/(medical_records|prescriptions|profiles|appointments).*/i,
             handler: "StaleWhileRevalidate",
             options: {
               cacheName: "supabase-medical-data",
@@ -67,7 +67,7 @@ export default defineConfig(({ mode }) => ({
             },
           },
           {
-            urlPattern: /^https:\/\/oaixgmuocuwhsabidpei\.supabase\.co\/rest\/.*/i,
+            urlPattern: /^https:\/\/pwxvvimdtmvziynbspgx\.supabase\.co\/rest\/.*/i,
             handler: "NetworkFirst",
             options: {
               cacheName: "supabase-api",
@@ -76,7 +76,7 @@ export default defineConfig(({ mode }) => ({
             },
           },
           {
-            urlPattern: /^https:\/\/oaixgmuocuwhsabidpei\.supabase\.co\/storage\/.*/i,
+            urlPattern: /^https:\/\/pwxvvimdtmvziynbspgx\.supabase\.co\/storage\/.*/i,
             handler: "CacheFirst",
             options: {
               cacheName: "supabase-storage",
