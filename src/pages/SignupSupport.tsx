@@ -90,26 +90,28 @@ export default function SignupSupport() {
     }
     setLoading(true);
     try {
+      const parts = data.full_name.trim().split(/\s+/);
       const { data: auth, error } = await db.auth.signUp({
         email: data.email,
         password: data.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            role: "support",
+            first_name: parts[0] || "",
+            last_name: parts.slice(1).join(" ") || "",
+            cpf: data.cpf.replace(/\D/g, ""),
+            phone: data.phone.replace(/\D/g, ""),
+          },
+        },
       });
       if (error) throw error;
       if (!auth.user) throw new Error("Falha ao criar usuário");
 
-      const { error: pErr } = await (db as any).from("profiles").insert([{
-        id: auth.user.id,
-        full_name: data.full_name,
-        email: data.email,
-        phone: data.phone,
-        cpf: data.cpf.replace(/\D/g, ""),
-        role: "support",
-        avatar_url: null,
-        created_at: new Date().toISOString(),
-      }]);
-      if (pErr) throw pErr;
-
-      toast.success("Cadastro realizado! Verifique seu email.");
+      if (!auth.session) {
+        await db.auth.signInWithPassword({ email: data.email, password: data.password });
+      }
+      toast.success("Cadastro realizado com sucesso!");
       navigate("/suporte");
     } catch (err) {
       toastError(toast, err, "signup");
