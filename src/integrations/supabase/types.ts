@@ -5016,6 +5016,14 @@ export type Database = {
           verified_at: string
         }[]
       }
+      verify_prescription_code: {
+        Args: { p_code: string }
+        Returns: {
+          is_valid: boolean
+          validated_at: string
+          verification_code: string
+        }[]
+      }
     }
     Enums: {
       app_role:

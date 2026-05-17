@@ -81,27 +81,18 @@ const ValidateDocument = () => {
       .maybeSingle();
 
     if (prescription) {
-      const { data: doc } = await db
-        .from("doctor_profiles")
-        .select("crm, crm_state, user_id")
-        .eq("id", prescription.doctor_id)
-        .maybeSingle();
-
-      let doctorName = "Médico";
-      if (doc) {
-        const { data: p } = await db
-          .from("profiles")
-          .select("first_name, last_name")
-          .eq("user_id", doc.user_id)
-          .maybeSingle();
-        if (p) doctorName = `Dr(a). ${p.first_name} ${p.last_name}`;
-      }
+      const { data: docJson } = await (db as any)
+        .rpc("get_public_doctor_profile", { p_doctor_id: prescription.doctor_id });
+      const doc: any = docJson || null;
+      const doctorName = doc?.display_name
+        ? `Dr(a). ${doc.display_name}`
+        : "Médico";
 
       setResult({
         type: "prescription",
         id: prescription.id,
         doctor_name: doctorName,
-        crm: doc ? `${doc.crm}/${doc.crm_state}` : null,
+        crm: doc?.crm ? `${doc.crm}/${doc.crm_state ?? ""}` : null,
         created_at: prescription.created_at,
         diagnosis: prescription.diagnosis,
         medications: prescription.medications,
