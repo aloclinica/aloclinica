@@ -94,27 +94,37 @@ export default function SignupClinic() {
     }
     setLoading(true);
     try {
+      const parts = data.representative_name.trim().split(/\s+/);
       const { data: auth, error } = await db.auth.signUp({
         email: data.email,
         password: data.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            role: "clinic",
+            first_name: parts[0] || "",
+            last_name: parts.slice(1).join(" ") || "",
+            phone: data.phone.replace(/\D/g, ""),
+          },
+        },
       });
       if (error) throw error;
       if (!auth.user) throw new Error("Falha ao criar usuário");
 
-      const { error: pErr } = await (db as any).from("profiles").insert([{
-        id: auth.user.id,
-        full_name: data.representative_name,
-        email: data.email,
-        phone: data.phone,
-        company_name: data.company_name,
-        cnpj: data.cnpj.replace(/\D/g, ""),
-        role: "clinic",
-        avatar_url: null,
-        created_at: new Date().toISOString(),
-      }]);
-      if (pErr) throw pErr;
+      if (!auth.session) {
+        await db.auth.signInWithPassword({ email: data.email, password: data.password });
+      }
 
-      toast.success("Cadastro realizado! Verifique seu email.");
+      const { error: cErr } = await (db as any).from("clinic_profiles").insert({
+        user_id: auth.user.id,
+        name: data.company_name,
+        cnpj: data.cnpj.replace(/\D/g, ""),
+        phone: data.phone.replace(/\D/g, ""),
+        is_approved: false,
+      });
+      if (cErr && !String(cErr.message || "").includes("duplicate")) throw cErr;
+
+      toast.success("Cadastro realizado! Sua clínica está em análise.");
       navigate("/clinica");
     } catch (err) {
       toastError(toast, err, "signup");
