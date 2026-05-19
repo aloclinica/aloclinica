@@ -6,7 +6,7 @@ describe("SEOHead", () => {
   it("sets document title with site name suffix", () => {
     render(<SEOHead title="Teleconsulta" />);
     expect(document.title).toContain("Teleconsulta");
-    expect(document.title).toContain("AloClinica");
+    expect(document.title).toContain("AloClínica");
   });
 
   it("creates og:title meta tag", () => {
@@ -23,9 +23,9 @@ describe("SEOHead", () => {
   });
 
   it("injects JSON-LD script", () => {
-    render(<SEOHead jsonLd={{ "@type": "Organization", name: "AloClinica" }} />);
+    render(<SEOHead jsonLd={{ "@type": "Organization", name: "AloClínica" }} />);
     const script = document.getElementById("seo-jsonld");
     expect(script).toBeTruthy();
-    expect(script?.textContent).toContain("AloClinica");
+    expect(script?.textContent).toContain("AloClínica");
   });
 });
