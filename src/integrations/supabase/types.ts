@@ -3146,6 +3146,106 @@ export type Database = {
           },
         ]
       }
+      pingo_card_benefit_usage: {
+        Row: {
+          benefit_type: string
+          description: string | null
+          discount_amount: number
+          final_amount: number
+          id: string
+          original_amount: number
+          reference_id: string | null
+          subscription_id: string | null
+          used_at: string
+          user_id: string
+        }
+        Insert: {
+          benefit_type: string
+          description?: string | null
+          discount_amount?: number
+          final_amount?: number
+          id?: string
+          original_amount?: number
+          reference_id?: string | null
+          subscription_id?: string | null
+          used_at?: string
+          user_id: string
+        }
+        Update: {
+          benefit_type?: string
+          description?: string | null
+          discount_amount?: number
+          final_amount?: number
+          id?: string
+          original_amount?: number
+          reference_id?: string | null
+          subscription_id?: string | null
+          used_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pingo_card_benefit_usage_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "pingo_card_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pingo_card_invoices: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          due_date: string
+          id: string
+          mp_payment_id: string | null
+          paid_at: string | null
+          pdf_url: string | null
+          status: string
+          subscription_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          due_date?: string
+          id?: string
+          mp_payment_id?: string | null
+          paid_at?: string | null
+          pdf_url?: string | null
+          status?: string
+          subscription_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          due_date?: string
+          id?: string
+          mp_payment_id?: string | null
+          paid_at?: string | null
+          pdf_url?: string | null
+          status?: string
+          subscription_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pingo_card_invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "pingo_card_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pingo_card_partners: {
         Row: {
           address: string | null
@@ -3221,19 +3321,23 @@ export type Database = {
           color: string | null
           consultation_discount_percent: number
           created_at: string
+          cta_label: string
           description: string | null
           display_order: number
           exam_discount_percent: number
+          features_included: Json
           id: string
           is_active: boolean
           is_highlighted: boolean
           max_dependents: number
           name: string
           partner_discount_percent: number
+          pingo_ticket_monthly_credit: number
           price_monthly: number
           price_yearly: number
           slug: string
           tagline: string | null
+          trial_days: number
           updated_at: string
         }
         Insert: {
@@ -3241,19 +3345,23 @@ export type Database = {
           color?: string | null
           consultation_discount_percent?: number
           created_at?: string
+          cta_label?: string
           description?: string | null
           display_order?: number
           exam_discount_percent?: number
+          features_included?: Json
           id?: string
           is_active?: boolean
           is_highlighted?: boolean
           max_dependents?: number
           name: string
           partner_discount_percent?: number
+          pingo_ticket_monthly_credit?: number
           price_monthly?: number
           price_yearly?: number
           slug: string
           tagline?: string | null
+          trial_days?: number
           updated_at?: string
         }
         Update: {
@@ -3261,19 +3369,23 @@ export type Database = {
           color?: string | null
           consultation_discount_percent?: number
           created_at?: string
+          cta_label?: string
           description?: string | null
           display_order?: number
           exam_discount_percent?: number
+          features_included?: Json
           id?: string
           is_active?: boolean
           is_highlighted?: boolean
           max_dependents?: number
           name?: string
           partner_discount_percent?: number
+          pingo_ticket_monthly_credit?: number
           price_monthly?: number
           price_yearly?: number
           slug?: string
           tagline?: string | null
+          trial_days?: number
           updated_at?: string
         }
         Relationships: []
@@ -3285,18 +3397,22 @@ export type Database = {
           billing_cycle: string
           canceled_at: string | null
           cancellation_reason: string | null
+          card_holder_name: string | null
           card_number: string
           created_at: string
           current_period_end: string | null
+          dependents_included: number
           gateway: string
           id: string
           mp_payer_id: string | null
           mp_preapproval_id: string | null
+          mp_subscription_id: string | null
           next_charge_at: string | null
           plan_id: string
           started_at: string
           status: string
           total_savings: number
+          trial_ends_at: string | null
           updated_at: string
           user_id: string
         }
@@ -3306,18 +3422,22 @@ export type Database = {
           billing_cycle?: string
           canceled_at?: string | null
           cancellation_reason?: string | null
+          card_holder_name?: string | null
           card_number: string
           created_at?: string
           current_period_end?: string | null
+          dependents_included?: number
           gateway?: string
           id?: string
           mp_payer_id?: string | null
           mp_preapproval_id?: string | null
+          mp_subscription_id?: string | null
           next_charge_at?: string | null
           plan_id: string
           started_at?: string
           status?: string
           total_savings?: number
+          trial_ends_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -3327,18 +3447,22 @@ export type Database = {
           billing_cycle?: string
           canceled_at?: string | null
           cancellation_reason?: string | null
+          card_holder_name?: string | null
           card_number?: string
           created_at?: string
           current_period_end?: string | null
+          dependents_included?: number
           gateway?: string
           id?: string
           mp_payer_id?: string | null
           mp_preapproval_id?: string | null
+          mp_subscription_id?: string | null
           next_charge_at?: string | null
           plan_id?: string
           started_at?: string
           status?: string
           total_savings?: number
+          trial_ends_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -4961,6 +5085,7 @@ export type Database = {
       fn_expire_discount_cards: { Args: never; Returns: undefined }
       fn_expire_invite_codes: { Args: never; Returns: undefined }
       fn_expire_queue_entries: { Args: never; Returns: undefined }
+      fn_get_cartao_summary: { Args: { p_user_id?: string }; Returns: Json }
       fn_handle_doctor_no_show: { Args: never; Returns: undefined }
       fn_idle_slot_suggestion: { Args: never; Returns: undefined }
       fn_increment_coupon_usage_atomic: {
