@@ -1,72 +1,63 @@
-## Plano: melhorias nos apps Paciente + Médico
+## Plano: Estrutura completa do Cartão Benefícios
 
-Escopo é amplo (40+ componentes nos dois painéis). Para entregar com qualidade sem quebrar nada, proponho 3 fases focadas. **Confirme a fase 1** e eu já implemento — depois seguimos para a 2 e a 3.
+Boa parte da fundação já existe (tabelas `pingo_card_plans`, `pingo_card_subscriptions`, `pingo_card_partners`, `pingo_card_transactions`, `pingo_ticket_accounts`, `pingo_ticket_transactions`, `dependents`, `AdminPingoCard.tsx`, `PingoCard.tsx`, edge functions MercadoPago). O plano abaixo conecta tudo, fecha o ciclo de venda recorrente e padroniza UX.
 
----
+### 1. Banco de dados (migration única)
+- Garantir colunas em `pingo_card_subscriptions`: `plan_id`, `status` (active/past_due/cancelled/trial), `billing_cycle` (monthly/yearly), `mp_subscription_id`, `mp_preapproval_id`, `next_charge_at`, `trial_ends_at`, `cancelled_at`, `card_holder_user_id`, `dependents_included int`.
+- Garantir colunas em `pingo_card_plans`: `pingo_ticket_monthly_credit numeric default 0`, `trial_days int default 0`, `display_order int`, `features_included jsonb`, `is_active`, `is_highlighted`, `cta_label`.
+- Nova tabela `pingo_card_invoices` (subscription_id, mp_payment_id, amount, status, due_date, paid_at, pdf_url).
+- Nova tabela `pingo_card_benefit_usage` (subscription_id, type [consultation/exam/partner/ticket], reference_id, discount_applied, used_at) — auditoria para o titular ver economia acumulada.
+- Triggers: `fn_credit_pingo_ticket_on_invoice_paid` (credita `pingo_ticket_accounts.balance` quando fatura paga e plano tem `pingo_ticket_monthly_credit > 0`); `fn_block_dependents_over_limit` (não permite cadastrar dependente além de `plan.max_dependents`).
+- RPC `fn_get_cartao_summary(user_id)` retornando plano, status, próximo vencimento, saldo Pingo Ticket, dependentes ativos, economia do mês.
+- RLS para tudo (titular vê seus dados; admin vê tudo via `has_role('admin')`).
 
-### Fase 1 — Visual unificado (impacto imediato, baixo risco)
+### 2. Admin — editor de planos
+- Estender `AdminPingoCard.tsx` (ou criar `AdminPingoCardPlans.tsx`) com CRUD completo de `pingo_card_plans`: nome, slug, preço mensal/anual, descontos (consulta/exame/parceiro), crédito mensal Pingo Ticket, max dependentes, lista de benefícios (jsonb editável), cor, ordem, destaque, dias de trial, CTA.
+- Tab adicional "Assinaturas" com lista, filtros por status, ações (cancelar, marcar past_due, abrir fatura).
+- Tab "Parceiros" já existe — só padronizar com `AdminPageHeader`.
+- Adicionar item no `AdminSiteConfig`/Editor para alterar copy do hero do Pingo Card (título, subtítulo, badges).
 
-Aplicar a mesma linguagem visual nos dois dashboards: hero limpo, cards com hierarquia clara, tipografia consistente, motion sutil.
+### 3. Frontend público de vendas (`/pingo-card`)
+- Refatorar `PingoCard.tsx` carregando planos ativos do banco (já parcial), mostrando: Hero, Como funciona, Cards de planos (mensal/anual toggle), Benefícios detalhados, Rede credenciada destaque (`pingo_card_partners` featured), FAQ específico, CTA "Assinar agora".
+- Botão "Assinar" → se não logado, leva ao /auth com `?redirect=/checkout/pingo-card?plan=slug`; se logado, vai direto pro checkout.
+- Nova página `CheckoutPingoCard.tsx`: resumo do plano, escolha mensal/anual, formulário de cartão (já temos `AddCardForm`), confirma assinatura.
 
-**Paciente (`/dashboard?role=patient`)**
-- Hero compacto com saudação + próxima consulta destacada (countdown se < 24h)
-- Grid 4 KPIs: consultas, receitas ativas, exames pendentes, dependentes
-- Quick actions em "pílulas" maiores (Agendar, Urgência, Pingo IA, Chat, Exames)
-- Card de "Próxima consulta" com botão grande "Entrar na sala" quando estiver próximo
-- Linha do tempo de saúde colapsável
+### 4. Edge function — assinatura recorrente
+- Reaproveitar `mercadopago-create-subscription` ajustando payload para passar `plan_id` do cartão benefícios e gravar `pingo_card_subscriptions` com `mp_preapproval_id`.
+- Estender `mercadopago-webhook` para tratar evento `preapproval` + `authorized_payment`: atualiza status da assinatura, cria registro em `pingo_card_invoices`, dispara trigger de crédito Pingo Ticket.
+- Nova edge function `pingo-card-cancel` (chama `mercadopago-cancel-subscription` e marca `cancelled_at`).
 
-**Médico (`/dashboard?role=doctor`)**
-- Hero com toggle "Disponível agora" em destaque + resumo do dia (consultas, ganhos, NPS)
-- Command center: fila ao vivo + próximos horários lado a lado
-- Cards de receita, prescrições, pacientes recentes
-- Insights da semana (gráfico mini sparkline)
+### 5. Painel do titular (`/dashboard/cartao/*`)
+- `MeuPlano.tsx`: mostrar plano atual via RPC `fn_get_cartao_summary`, próxima cobrança, botão upgrade/downgrade/cancelar, histórico de economia.
+- `CarteirinhaDigital.tsx`: já existe — padronizar branding com mascote Pingo + QR code com URL pública de validação.
+- `FaturasCartao.tsx`: listar `pingo_card_invoices`, status, link PDF, botão "pagar agora" se past_due.
+- `RedeCredenciada.tsx`: busca por categoria/cidade com `pingo_card_partners`, mapa opcional fase 2.
+- `PingoTicket.tsx`: saldo, extrato de `pingo_ticket_transactions`, lista de estabelecimentos (categoria = restaurante/mercado dos parceiros), botão "como usar".
+- `DependentesCartao.tsx`: validar contra `plan.max_dependents` antes de inserir.
+- `LgpdCartao.tsx`: já ok.
 
-**Padrões compartilhados**
-- Espaçamento `gap-6`, raios `rounded-2xl`, sombras suaves `shadow-sm hover:shadow-md`
-- Estados vazios ilustrados com Pingo
-- Skeletons coerentes em todos os cards
-- Mobile: stack vertical com sticky bottom nav
+### 6. Gating de acesso
+- Hook `useCartaoSubscription()` retornando assinatura ativa do usuário.
+- `KycRequiredGate`-style `ActiveCartaoGate` para `/dashboard/cartao/*` exceto carteirinha (sempre acessível em modo "sem plano" mostrando CTA de assinar).
+- Ao agendar consulta, aplicar desconto automático se o paciente tem assinatura ativa e gravar `pingo_card_benefit_usage`.
 
----
+### Stack técnico
+- Cliente untyped `db` para todas as queries (regra do projeto).
+- MercadoPago Preapproval API para recorrência.
+- Sem PagBank/Asaas.
+- Tailwind tokens semânticos; sem cores hardcoded.
 
-### Fase 2 — UX/Fluxo (reduzir cliques)
+### Ordem de entrega
+1. Migration (schema + RPC + triggers + RLS).
+2. Admin editor de planos + tab de assinaturas.
+3. Página pública `/pingo-card` dinâmica + checkout.
+4. Edge functions (criar/cancelar/webhook).
+5. Painel do titular conectado.
+6. Gating + desconto automático no agendamento.
 
-**Paciente**
-- "Continue de onde parou" (consulta em andamento, formulário pré-consulta pendente, receita para renovar)
-- Atalho 1-clique para repetir última consulta (mesmo médico/horário)
-- Notificações empilhadas no topo com ações inline (Confirmar / Reagendar)
-- Onboarding progressivo (barra de % completude do perfil)
+### Riscos / decisões em aberto
+- Aprovação da migration: vou disparar primeiro, aguardar OK do usuário, depois codar.
+- Política de reembolso/proração no upgrade/downgrade — proposta: prorata simples no MP; confirmar com você.
+- Pingo Ticket — saldo mensal expira? Proposta: acumula até 90 dias, depois zera. Confirmar.
 
-**Médico**
-- "Próximo paciente" sempre visível no topo durante expediente
-- Atalhos de teclado: `n` próximo paciente, `p` prescrição, `r` relatório
-- Templates de prescrição/atestado em 1 clique a partir do prontuário
-- Agenda: drag-to-reschedule
-
----
-
-### Fase 3 — Features novas
-
-**Paciente**
-- Diário de sintomas com Pingo IA (já existe `SymptomDiary` — integrar ao dashboard)
-- Lembretes de medicação com push notification
-- Compartilhar prontuário com familiar via link assinado
-
-**Médico**
-- Painel de retornos elegíveis (60 dias) com CTA "Convidar para retorno"
-- Resumo automático do prontuário antes da consulta (via Claude)
-- Indicadores de SLA: tempo médio de resposta, taxa de no-show
-
----
-
-### Detalhes técnicos
-
-- Sem mudanças de schema (usa tabelas existentes: `appointments`, `prescriptions`, `exam_requests`, `notifications`)
-- Reuso dos hooks já prontos: `usePatientDashboard`, `useDoctorDashboard`
-- Cliente `db` (untyped) mantido conforme regra do projeto
-- Mascote Pingo integrado nos estados vazios e onboarding
-- Tokens semânticos do `index.css` — sem cores hardcoded
-
----
-
-**Posso começar pela Fase 1?** Ou prefere ajustar o escopo (ex: só paciente primeiro, ou pular features novas)?
+Posso seguir nessa ordem?
