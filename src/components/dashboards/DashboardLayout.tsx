@@ -584,23 +584,42 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
             </Button>
           )}
 
-          <div className="flex items-center gap-1">
-            <LanguageSwitcher />
-            <ThemeToggle />
-            <NotificationBell />
+          <div className="flex items-center gap-2">
+            {/* Cluster de utilidades — agrupadas em uma cápsula coesa */}
+            <div className="hidden sm:flex items-center h-9 px-1 rounded-full bg-muted/40 border border-border/40 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+              <LanguageSwitcher />
+              <span className="w-px h-4 bg-border/60 mx-0.5" aria-hidden="true" />
+              <ThemeToggle />
+              <span className="w-px h-4 bg-border/60 mx-0.5" aria-hidden="true" />
+              <NotificationBell />
+            </div>
+
+            {/* Fallback compacto em telas pequenas */}
+            <div className="flex sm:hidden items-center gap-0.5">
+              <ThemeToggle />
+              <NotificationBell />
+            </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="group flex items-center gap-2 h-9 pl-0.5 pr-2.5 rounded-xl hover:bg-muted/60 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+                <button
+                  className="group relative flex items-center gap-2 h-9 pl-1 pr-3 rounded-full bg-gradient-to-r from-muted/50 to-muted/20 hover:from-primary/10 hover:to-secondary/10 border border-border/50 hover:border-primary/30 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 shadow-sm hover:shadow-md"
+                  aria-label={`Menu da conta de ${fullName}`}
+                >
                   <div className="relative">
-                    <Avatar className={`h-7 w-7 ring-2 ${avatarRing}`}>
+                    <Avatar className={`h-7 w-7 ring-2 ${avatarRing} ring-offset-[1.5px] ring-offset-background transition-transform duration-300 group-hover:scale-105`}>
                       {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
                       <AvatarFallback className={`bg-gradient-to-br ${grad} text-white text-[10px] font-bold`}>{initials}</AvatarFallback>
                     </Avatar>
-                    <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-[hsl(var(--success))] border-[1.5px] border-background" aria-hidden="true" />
+                    <span
+                      className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[hsl(var(--success))] border-[1.5px] border-background shadow-[0_0_0_2px_hsl(var(--success)/0.25)] animate-pulse"
+                      aria-label="Online"
+                    />
                   </div>
-                  <span className="text-xs font-medium text-foreground max-w-[90px] truncate">{profile?.first_name ?? "Usuário"}</span>
-                  <CaretDown className="w-3 h-3 text-muted-foreground" aria-hidden="true" />
+                  <span className="hidden md:inline text-[12.5px] font-semibold text-foreground max-w-[100px] truncate tracking-tight">
+                    {profile?.first_name ?? "Usuário"}
+                  </span>
+                  <CaretDown className="w-3 h-3 text-muted-foreground transition-transform duration-300 group-data-[state=open]:rotate-180" aria-hidden="true" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" sideOffset={8} className="w-64 rounded-2xl border-border/20 shadow-elevated p-2 backdrop-blur-xl bg-popover/95">
