@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { logError, warn } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Camera, RotateCcw, CheckCircle2, XCircle, Loader2, FileImage, User, ShieldCheck, Upload, Sparkles, Lock } from "lucide-react";
 import { db } from "@/integrations/supabase/untyped";
@@ -67,6 +68,7 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
   const [result, setResult] = useState<KYCResult | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [captureTarget, setCaptureTarget] = useState<"document" | "selfie">("document");
+  const [lgpdConsent, setLgpdConsent] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -207,6 +209,7 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
     setDocumentImage(null);
     setSelfieImage(null);
     setResult(null);
+    setLgpdConsent(false);
     stopCamera();
   };
 
@@ -269,9 +272,23 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
               ))}
             </div>
 
+            <div className="flex items-start gap-3 rounded-2xl border border-border/50 p-4 bg-card">
+              <Checkbox
+                id="lgpd-consent"
+                checked={lgpdConsent}
+                onCheckedChange={(v) => setLgpdConsent(v === true)}
+                className="mt-0.5 shrink-0"
+              />
+              <label htmlFor="lgpd-consent" className="text-xs text-muted-foreground leading-relaxed cursor-pointer select-none">
+                <span className="font-semibold text-foreground block mb-0.5">Autorizo o tratamento dos meus dados biométricos</span>
+                Declaro que li e concordo com a coleta, processamento e armazenamento seguro dos meus dados pessoais e biométricos para fins de verificação de identidade, conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD). Entendo que meus dados serão criptografados, não serão compartilhados com terceiros e poderei solicitar sua exclusão a qualquer momento.
+              </label>
+            </div>
+
             <Button
               onClick={() => { setStep("document"); startCamera("document"); }}
-              className="w-full h-12 rounded-2xl bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/25 gap-2 hover:shadow-xl hover:shadow-primary/30 transition-all"
+              disabled={!lgpdConsent}
+              className="w-full h-12 rounded-2xl bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/25 gap-2 hover:shadow-xl hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Camera className="w-5 h-5" /> Iniciar verificação
             </Button>
