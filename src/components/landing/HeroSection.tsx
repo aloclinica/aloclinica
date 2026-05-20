@@ -4,15 +4,9 @@ import { memo, forwardRef } from "react";
 import { motion } from "framer-motion";
 import { usePrefetchRoute } from "@/hooks/use-prefetch-route";
 import OptimizedImage from "@/components/ui/optimized-image";
-import { ArrowRight, ShieldCheck, Lock, Star, CheckCircle, CreditCard, Clock, Heartbeat, VideoCamera } from "@phosphor-icons/react";
+import { ArrowRight, Star, CheckCircle, CreditCard, VideoCamera } from "@phosphor-icons/react";
 import heroPingoFamily from "@/assets/hero-pingo-family.png";
 import { isFeatureEnabled } from "@/lib/featureFlags";
-
-const trustItems = [
-  { label: "Regulamentado CFM", icon: ShieldCheck },
-  { label: "Criptografia E2E", icon: Lock },
-  { label: "4.9★ — 12k avaliações", icon: Star },
-];
 
 const highlights = [
   "Receita digital válida em todo o Brasil",
@@ -25,185 +19,189 @@ const HeroSection = memo(
     const navigate = useNavigate();
     const prefetchPaciente = usePrefetchRoute(() => import("@/pages/AuthPaciente"));
 
-    const title      = config?.title || "Cuidado médico de excelência para você";
-    const subtitle   = config?.subtitle || "Conecte-se a médicos especialistas verificados pelo CFM em poucos cliques. Atendimento humano, seguro e disponível a qualquer momento do seu dia.";
-    const ctaText    = config?.cta_text || "Agendar consulta";
-    const ctaUrl     = config?.cta_url || "/agendar";
-    const badgeText  = config?.badge_text || "Médicos disponíveis agora";
-    const heroImgUrl = heroPingoFamily;
+    const subtitle  = config?.subtitle || "Conecte-se a médicos especialistas verificados pelo CFM. Consultas por vídeo em HD, receitas digitais válidas e prontuário eletrônico completo.";
+    const ctaText   = config?.cta_text || "Agendar consulta";
+    const ctaUrl    = config?.cta_url || "/agendar";
+    const badgeText = config?.badge_text || "Médicos disponíveis agora";
+    const showPingo = isFeatureEnabled("cartao_pingo");
 
     return (
       <section
         ref={ref}
         aria-label="Início"
-        className="relative flex items-center pt-24 sm:pt-28 lg:pt-36 pb-20 sm:pb-24 lg:pb-32 overflow-hidden"
+        className="relative pt-24 sm:pt-28 lg:pt-32 pb-16 sm:pb-20 lg:pb-24 overflow-hidden bg-[#f0f9ff]"
       >
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-primary/[0.02]" />
-          <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full bg-primary/[0.06] blur-[120px] animate-pulse" />
-          <div className="absolute bottom-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-secondary/[0.05] blur-[120px]" />
-          <div
-            aria-hidden
-            className="absolute inset-0 opacity-[0.025]"
-            style={{
-              backgroundImage:
-                "linear-gradient(to right, hsl(var(--foreground) / 0.5) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--foreground) / 0.5) 1px, transparent 1px)",
-              backgroundSize: "48px 48px",
-              maskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
-            }}
-          />
+        {/* Ambient glow */}
+        <div aria-hidden className="absolute inset-0 -z-10 pointer-events-none">
+          <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full bg-[#0ea5e9]/[0.08] blur-[120px]" />
+          <div className="absolute bottom-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#0284c7]/[0.06] blur-[120px]" />
         </div>
 
-        <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
-          <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-16 xl:gap-24 items-center">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-4 lg:auto-rows-[110px]">
+
+            {/* Headline + CTA principal */}
             <motion.div
-              className="max-w-2xl"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="lg:col-span-7 lg:row-span-4 bg-white rounded-3xl p-8 md:p-10 flex flex-col justify-center border border-[#e0f2fe] shadow-sm relative overflow-hidden"
             >
-              <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-success/20 bg-success/[0.06] text-success text-xs font-bold mb-8 shadow-sm">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-60" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success" />
+              <div aria-hidden className="absolute top-0 right-0 w-32 h-32 bg-[#e0f2fe]/50 rounded-bl-full" />
+
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold mb-6 border border-emerald-100 w-fit relative">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                 </span>
                 {badgeText}
               </div>
 
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[3.6rem] font-black leading-[1.05] tracking-tight text-foreground mb-6">
-                <span className="text-gradient block">{title}</span>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#0284c7] leading-[1.05] mb-5 tracking-tight relative">
+                Cuidado médico de <br className="hidden sm:block" />
+                <span className="text-[#0ea5e9]">excelência</span>
               </h1>
 
-              <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-lg mb-8">
+              <p className="text-base sm:text-lg text-slate-500 max-w-lg mb-8 leading-relaxed relative">
                 {subtitle}
               </p>
 
-              <div className="flex flex-col gap-3 mb-10">
-                {highlights.map((h) => (
-                  <div key={h} className="flex items-center gap-3 text-[15px] font-medium text-foreground/80">
-                    <CheckCircle className="w-5 h-5 text-success shrink-0" weight="fill" />
-                    {h}
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-center gap-3">
+              <div className="flex flex-wrap items-center gap-4 relative">
                 <Button
                   size="lg"
-                  className="w-full sm:w-auto rounded-2xl h-[60px] px-10 text-[15px] font-extrabold shadow-xl shadow-primary/25 group transition-all duration-300 hover:scale-[1.02] bg-primary hover:bg-primary/90"
                   onClick={() => navigate(ctaUrl)}
                   onMouseEnter={prefetchPaciente}
+                  className="rounded-2xl h-[60px] px-8 text-base font-bold bg-[#0ea5e9] hover:bg-[#0284c7] text-white shadow-lg shadow-sky-300/40 transition-all duration-300 hover:scale-[1.02] group"
                 >
                   {ctaText}
-                  <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" weight="bold" />
+                  <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" weight="bold" />
                 </Button>
 
-                 {isFeatureEnabled("cartao_pingo") && (
-                   <motion.div
-                     whileHover={{ scale: 1.03 }}
-                     whileTap={{ scale: 0.98 }}
-                     className="w-full sm:w-auto"
-                   >
-                     <Button
-                       size="lg"
-                       variant="outline"
-                       className="w-full sm:w-auto rounded-2xl h-[60px] px-8 text-[15px] font-bold border-amber-400/60 bg-amber-400/5 hover:bg-amber-400/10 hover:border-amber-500 text-foreground transition-all duration-300 gap-3 group relative overflow-hidden"
-                       onClick={() => navigate("/pingo-card")}
-                     >
-                       <div className="absolute inset-0 bg-gradient-to-r from-amber-400/0 via-amber-400/5 to-amber-400/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                       <div className="w-9 h-9 rounded-xl bg-amber-400 flex items-center justify-center shadow-[0_4px_12px_rgba(245,158,11,0.3)] group-hover:shadow-[0_4px_20px_rgba(245,158,11,0.5)] transition-all shrink-0">
-                         <CreditCard className="w-5 h-5 text-amber-950" weight="fill" />
-                       </div>
-                       <div className="flex flex-col items-start leading-tight">
-                         <span className="text-amber-600 text-[10px] font-bold uppercase tracking-wider">Cartão de Benefícios</span>
-                         <span className="text-[16px]">Pingo Card</span>
-                       </div>
-                     </Button>
-                   </motion.div>
-                 )}
-                
-                <div className="flex -space-x-2 ml-2 hidden xl:flex">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="w-10 h-10 rounded-full border-2 border-background bg-muted flex items-center justify-center overflow-hidden">
-                      <img src={`https://i.pravatar.cc/150?u=${i}`} alt="Avatar" className="w-full h-full object-cover" />
+                <div className="hidden sm:flex items-center gap-2">
+                  <div className="flex -space-x-2">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-muted overflow-hidden">
+                        <img src={`https://i.pravatar.cc/80?u=${i}`} alt="Paciente" className="w-full h-full object-cover" loading="lazy" />
+                      </div>
+                    ))}
+                    <div className="w-10 h-10 rounded-full bg-[#e0f2fe] border-2 border-white flex items-center justify-center text-[10px] font-bold text-[#0284c7]">
+                      +12k
                     </div>
-                  ))}
-                  <div className="w-10 h-10 rounded-full border-2 border-background bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
-                    +12k
                   </div>
+                  <span className="text-xs text-slate-500 font-medium ml-1">pacientes atendidos</span>
                 </div>
               </div>
             </motion.div>
 
+            {/* Pingo — célula âncora */}
             <motion.div
-              className="relative hidden lg:flex justify-center items-center"
-              initial={{ opacity: 0, scale: 0.8, rotate: 5 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
+              className="lg:col-span-5 lg:row-span-6 bg-gradient-to-br from-[#e0f2fe] to-[#f0f9ff] rounded-3xl overflow-hidden relative group min-h-[440px] border border-white shadow-sm"
             >
-              {/* Halo */}
-              <div className="absolute inset-0 -z-10">
-                <div className="absolute inset-10 rounded-full bg-gradient-to-br from-primary/20 via-secondary/15 to-transparent blur-3xl" />
-              </div>
-
               <motion.div
-                animate={{ y: [0, -15, 0] }}
+                animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                className="relative z-10 w-full"
+                className="absolute inset-0 flex items-end justify-center pt-20 px-4"
               >
                 <OptimizedImage
-                  src={heroImgUrl}
-                  alt="Médico e pacientes"
-                  className="w-full h-auto max-w-[600px] mx-auto mix-blend-multiply"
+                  src={heroPingoFamily}
+                  alt="Pingo, mascote da AloClínica, junto a pacientes"
+                  className="w-full h-auto max-h-full object-contain mix-blend-multiply"
                 />
               </motion.div>
 
-              {/* Floating stats card — top-left */}
+              <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#0ea5e9]/10 to-transparent pointer-events-none" />
+
               <motion.div
-                initial={{ opacity: 0, x: -30, y: -10 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.6 }}
-                className="absolute top-6 left-0 xl:left-2 z-20 hidden xl:flex items-center gap-3 rounded-2xl border border-border/60 bg-background/80 backdrop-blur-md p-3 pr-4 shadow-xl shadow-primary/10"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+                className="absolute top-5 right-5 z-10"
               >
-                <div className="w-11 h-11 rounded-xl bg-success/15 flex items-center justify-center">
-                  <VideoCamera className="w-5 h-5 text-success" weight="fill" />
-                </div>
-                <div className="leading-tight">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Em consulta agora</p>
-                  <p className="text-base font-extrabold text-foreground">847 pacientes</p>
+                <div className="bg-white/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white shadow-lg flex items-center gap-3">
+                  <div className="p-2 bg-[#0ea5e9]/10 rounded-lg">
+                    <VideoCamera className="w-5 h-5 text-[#0ea5e9]" weight="fill" />
+                  </div>
+                  <div className="leading-tight">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Em consulta agora</p>
+                    <p className="text-sm font-bold text-slate-800">847 pacientes</p>
+                  </div>
                 </div>
               </motion.div>
 
-              {/* Floating rating card — bottom-right */}
               <motion.div
-                initial={{ opacity: 0, x: 30, y: 10 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                transition={{ delay: 0.8, duration: 0.6 }}
-                className="absolute bottom-8 right-0 xl:right-2 z-20 hidden xl:block rounded-2xl border border-border/60 bg-background/80 backdrop-blur-md p-4 shadow-xl shadow-primary/10 max-w-[220px]"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
+                className="absolute bottom-5 left-5 right-5 z-10"
               >
-                <div className="flex items-center gap-1 mb-1.5">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} className="w-3.5 h-3.5 text-amber-400" weight="fill" />
-                  ))}
-                  <span className="text-xs font-extrabold text-foreground ml-1">4.9</span>
+                <div className="bg-white/85 backdrop-blur-md p-4 rounded-2xl border border-white shadow-xl">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex items-center gap-1.5">
+                      <div className="flex text-amber-400">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <Star key={i} className="w-3.5 h-3.5" weight="fill" />
+                        ))}
+                      </div>
+                      <span className="text-xs font-bold text-slate-800">4.9</span>
+                    </div>
+                    <div className="bg-rose-50 px-2 py-1 rounded text-[10px] font-bold text-rose-600 border border-rose-100 uppercase tracking-tighter">
+                      CFM Verificado
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-600 italic leading-snug">
+                    "Resolvi minha consulta em 8 minutos, sem sair do sofá."
+                  </p>
+                  <p className="text-[10px] text-slate-400 font-bold mt-1.5 uppercase">— Maria, SP</p>
                 </div>
-                <p className="text-[12px] text-foreground/80 leading-snug font-medium italic">
-                  "Resolvi minha consulta em 8 minutos, do sofá."
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-1.5 font-semibold">— Maria, SP</p>
-              </motion.div>
-
-              {/* Floating heartbeat pulse — middle-right */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1, duration: 0.5, type: "spring" }}
-                className="absolute top-1/2 right-4 z-20 hidden 2xl:flex items-center gap-2 rounded-full border border-border/60 bg-background/80 backdrop-blur-md px-3 py-2 shadow-lg"
-              >
-                <Heartbeat className="w-4 h-4 text-destructive animate-pulse" weight="fill" />
-                <span className="text-[11px] font-bold text-foreground">CFM Verificado</span>
               </motion.div>
             </motion.div>
+
+            {/* Pingo Card (CTA secundária) */}
+            {showPingo && (
+              <motion.button
+                type="button"
+                onClick={() => navigate("/pingo-card")}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="lg:col-span-4 lg:row-span-2 text-left bg-[#ffedd5] rounded-3xl p-6 border border-orange-200 flex flex-col justify-between group cursor-pointer overflow-hidden relative"
+              >
+                <div aria-hidden className="absolute -right-4 -bottom-4 bg-orange-200/40 w-24 h-24 rounded-full group-hover:scale-110 transition-transform" />
+                <div className="flex justify-between items-start z-10 relative">
+                  <div className="bg-orange-400 text-white p-2 rounded-xl">
+                    <CreditCard className="w-6 h-6" weight="fill" />
+                  </div>
+                  <span className="text-[10px] font-bold text-orange-600 uppercase tracking-widest">Vantagens exclusivas</span>
+                </div>
+                <div className="z-10 relative mt-4">
+                  <h3 className="text-xl font-bold text-orange-900">Pingo Card</h3>
+                  <p className="text-sm text-orange-800/70">Seu cartão de benefícios por apenas R$ 29/mês.</p>
+                </div>
+              </motion.button>
+            )}
+
+            {/* Benefícios principais */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className={`${showPingo ? "lg:col-span-3" : "lg:col-span-7"} lg:row-span-2 bg-white rounded-3xl p-6 border border-[#e0f2fe] flex flex-col gap-3 justify-center shadow-sm`}
+            >
+              {highlights.map((h) => (
+                <div key={h} className="flex items-center gap-3">
+                  <div className="bg-sky-100 p-2 rounded-lg flex-shrink-0">
+                    <CheckCircle className="w-4 h-4 text-[#0ea5e9]" weight="fill" />
+                  </div>
+                  <p className="text-sm font-semibold text-slate-700">{h}</p>
+                </div>
+              ))}
+            </motion.div>
+
           </div>
         </div>
       </section>
