@@ -4,8 +4,10 @@ import { db } from "@/integrations/supabase/untyped";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { CheckCircle2, Calendar, Clock, Video, ArrowRight, Stethoscope, Download, Home, ListChecks, Loader2, Copy, Wifi, Mic, Camera, FileText, Receipt, RefreshCw, X, ShieldCheck, AlertTriangle, Info } from "lucide-react";
+import { CheckCircle2, Calendar, Clock, Video, ArrowRight, Stethoscope, Download, Home, ListChecks, Loader2, Copy, Wifi, Mic, Camera, FileText, Receipt, RefreshCw, X, ShieldCheck, AlertTriangle, Info, BellRing, ChevronDown, Check } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -52,7 +54,7 @@ const fmtUtc = (d: Date) =>
 const escapeIcs = (s: string) =>
   String(s).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
 
-const buildIcsDataUri = (appt: ConfirmedAppointment, roomUrl: string) => {
+const buildIcsDataUri = (appt: ConfirmedAppointment, roomUrl: string, reminderMinutes: number | null) => {
   const start = new Date(appt.scheduled_at);
   const duration = Math.max(5, Number(appt.duration_minutes) || 30);
   const end = new Date(start.getTime() + duration * 60 * 1000);
@@ -78,6 +80,16 @@ const buildIcsDataUri = (appt: ConfirmedAppointment, roomUrl: string) => {
     `Entre 5 minutos antes para testar câmera e microfone.`
   );
 
+  const alarm = reminderMinutes != null && reminderMinutes > 0
+    ? [
+        "BEGIN:VALARM",
+        "ACTION:DISPLAY",
+        `DESCRIPTION:Sua teleconsulta começa em ${reminderMinutes >= 60 ? `${reminderMinutes / 60} h` : `${reminderMinutes} minutos`}`,
+        `TRIGGER:-PT${reminderMinutes}M`,
+        "END:VALARM",
+      ]
+    : [];
+
   const ics = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
@@ -97,16 +109,25 @@ const buildIcsDataUri = (appt: ConfirmedAppointment, roomUrl: string) => {
     `LOCATION:${escapeIcs(roomUrl)}`,
     "STATUS:CONFIRMED",
     "TRANSP:OPAQUE",
-    "BEGIN:VALARM",
-    "ACTION:DISPLAY",
-    "DESCRIPTION:Sua teleconsulta começa em 15 minutos",
-    "TRIGGER:-PT15M",
-    "END:VALARM",
+    ...alarm,
     "END:VEVENT",
     "END:VCALENDAR",
   ].join("\r\n");
   return "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);
 };
+
+const REMINDER_OPTIONS: { value: number | null; label: string }[] = [
+  { value: null, label: "Sem lembrete" },
+  { value: 5, label: "5 minutos antes" },
+  { value: 10, label: "10 minutos antes" },
+  { value: 15, label: "15 minutos antes" },
+  { value: 30, label: "30 minutos antes" },
+  { value: 60, label: "1 hora antes" },
+  { value: 120, label: "2 horas antes" },
+  { value: 1440, label: "1 dia antes" },
+];
+
+const REMINDER_STORAGE_KEY = "alo_ics_reminder_minutes";
 
 const AppointmentConfirmed = () => {
   const { appointmentId } = useParams();
@@ -114,6 +135,20 @@ const AppointmentConfirmed = () => {
   const [appt, setAppt] = useState<ConfirmedAppointment | null>(null);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(() => Date.now());
+  const [reminderMinutes, setReminderMinutes] = useState<number | null>(() => {
+    if (typeof window === "undefined") return 15;
+    const raw = window.localStorage.getItem(REMINDER_STORAGE_KEY);
+    if (raw === null) return 15;
+    if (raw === "none") return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : 15;
+  });
+  const persistReminder = (v: number | null) => {
+    setReminderMinutes(v);
+    try {
+      window.localStorage.setItem(REMINDER_STORAGE_KEY, v == null ? "none" : String(v));
+    } catch { /* noop */ }
+  };
   const nav = getPatientNav("appointments");
 
   // Tick a cada 30s para reavaliar a janela de entrada na sala
