@@ -87,7 +87,7 @@ interface PublicDoctor {
   has_availability?: boolean | null;
 }
 
-type SortMode = "rating" | "price" | "available";
+type SortMode = "rating" | "price" | "available" | "nextSlot";
 
 /* ─── Steps indicator ─── */
 const StepIndicator = ({ step }: { step: 1 | 2 }) => (
@@ -114,6 +114,50 @@ const StepIndicator = ({ step }: { step: 1 | 2 }) => (
 const formatBRL = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
+/* ─── Next available slot helpers ─── */
+const getNextSlotDate = (dayOfWeek: number, startTime: string, from: Date = new Date()): Date => {
+  const [hours, minutes] = startTime.split(":").map(Number);
+  const candidate = new Date(from);
+  candidate.setHours(hours, minutes, 0, 0);
+  const daysUntil = (dayOfWeek - from.getDay() + 7) % 7;
+  if (daysUntil === 0) {
+    if (candidate <= from) candidate.setDate(candidate.getDate() + 7);
+  } else {
+    candidate.setDate(candidate.getDate() + daysUntil);
+  }
+  return candidate;
+};
+
+const computeNextAvailable = (
+  doctorId: string,
+  slotsMap: Record<string, {day_of_week: number; start_time: string}[]>
+): Date | null => {
+  const slots = slotsMap[doctorId] ?? [];
+  if (slots.length === 0) return null;
+  const now = new Date();
+  let nearest: Date | null = null;
+  for (const slot of slots) {
+    const candidate = getNextSlotDate(slot.day_of_week, slot.start_time, now);
+    if (!nearest || candidate < nearest) nearest = candidate;
+  }
+  return nearest;
+};
+
+const formatNextSlot = (date: Date): string => {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const targetDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.round((targetDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const timeStr = format(date, "HH:mm", { locale: ptBR });
+  if (diffDays === 0) return `Hoje, ${timeStr}`;
+  if (diffDays === 1) return `Amanhã, ${timeStr}`;
+  if (diffDays >= 2 && diffDays <= 6) {
+    const dayName = format(date, "EEEE", { locale: ptBR });
+    return `${dayName.charAt(0).toUpperCase() + dayName.slice(1)}, ${timeStr}`;
+  }
+  return `${format(date, "dd/MM", { locale: ptBR })}, ${timeStr}`;
+};
+
 const Agendar = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -127,6 +171,9 @@ const Agendar = () => {
   const [expandedBio, setExpandedBio] = useState<string | null>(null);
   const [showAllSpecs, setShowAllSpecs] = useState(false);
   const [onlyAvailable, setOnlyAvailable] = useState(true);
+  const [priceMin, setPriceMin] = useState<number | "">("");
+  const [priceMax, setPriceMax] = useState<number | "">("");
+  const [doctorSlots, setDoctorSlots] = useState<Record<string, {day_of_week: number; start_time: string}[]>>({});
 
   // Load doctors when a specialty is selected
   useEffect(() => {
@@ -147,10 +194,10 @@ const Agendar = () => {
 
       if (doctorList.length > 0) {
         const ids = doctorList.map((d) => d.id);
-        const { data: areas } = await db
-          .from("doctor_care_areas")
-          .select("doctor_id, area_name")
-          .in("doctor_id", ids);
+        const [{ data: areas }, { data: slotsData }] = await Promise.all([
+          db.from("doctor_care_areas").select("doctor_id, area_name").in("doctor_id", ids),
+          db.from("availability_slots").select("doctor_id, day_of_week, start_time").in("doctor_id", ids).eq("is_active", true),
+        ]);
         if (areas) {
           const areaMap: Record<string, string[]> = {};
           (areas as any[]).forEach((a: any) => {
@@ -159,6 +206,14 @@ const Agendar = () => {
           });
           doctorList = doctorList.map((d) => ({ ...d, care_areas: areaMap[d.id] ?? [] }));
         }
+        if (slotsData) {
+          const slotMap: Record<string, {day_of_week: number; start_time: string}[]> = {};
+          (slotsData as any[]).forEach((s: any) => {
+            if (!slotMap[s.doctor_id]) slotMap[s.doctor_id] = [];
+            slotMap[s.doctor_id].push({ day_of_week: s.day_of_week, start_time: s.start_time });
+          });
+          setDoctorSlots(slotMap);
+        }
       }
 
       setDoctors(doctorList);
@@ -166,6 +221,12 @@ const Agendar = () => {
     };
     fetchDoctors();
   }, [selectedSpecialty]);
+
+  const doctorNextSlots = useMemo(() => {
+    const map: Record<string, Date | null> = {};
+    doctors.forEach((d) => { map[d.id] = computeNextAvailable(d.id, doctorSlots); });
+    return map;
+  }, [doctors, doctorSlots]);
 
   // Filter + sort
   const filteredDoctors = useMemo(() => {
@@ -179,6 +240,13 @@ const Agendar = () => {
     if (onlyAvailable) {
       list = list.filter((d) => d.has_availability === true);
     }
+    // Faixa de preço
+    if (priceMin !== "") {
+      list = list.filter((d) => (d.consultation_price ?? 89) >= Number(priceMin));
+    }
+    if (priceMax !== "") {
+      list = list.filter((d) => (d.consultation_price ?? 89) <= Number(priceMax));
+    }
     if (debouncedSearch.trim()) {
       const q = debouncedSearch.toLowerCase();
       list = list.filter((d) => {
@@ -191,9 +259,20 @@ const Agendar = () => {
     }
     if (sort === "rating") list.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     else if (sort === "price") list.sort((a, b) => (a.consultation_price ?? 89) - (b.consultation_price ?? 89));
-    else list.sort((a, b) => (b.available_now ? 1 : 0) - (a.available_now ? 1 : 0));
+    else if (sort === "nextSlot") {
+      list.sort((a, b) => {
+        const aNext = doctorNextSlots[a.id];
+        const bNext = doctorNextSlots[b.id];
+        if (!aNext && !bNext) return 0;
+        if (!aNext) return 1;
+        if (!bNext) return -1;
+        return aNext.getTime() - bNext.getTime();
+      });
+    } else {
+      list.sort((a, b) => (b.available_now ? 1 : 0) - (a.available_now ? 1 : 0));
+    }
     return list;
-  }, [doctors, debouncedSearch, sort, selectedSpecialty, onlyAvailable]);
+  }, [doctors, debouncedSearch, sort, selectedSpecialty, onlyAvailable, priceMin, priceMax, doctorNextSlots]);
 
   const handleSelectDoctor = (doctorId: string) => {
     const returnUrl = `/dashboard/schedule/${doctorId}?specialty=${encodeURIComponent(selectedSpecialty || "Clínico Geral")}`;
@@ -414,6 +493,7 @@ const Agendar = () => {
                         { key: "rating" as SortMode, label: "Avaliação", icon: Star },
                         { key: "price" as SortMode, label: "Preço", icon: BadgePercent },
                         { key: "available" as SortMode, label: "Online", icon: Zap },
+                        { key: "nextSlot" as SortMode, label: "Próximo horário", icon: CalendarClock },
                       ]).map(({ key, label, icon: Icon }) => (
                         <button
                           key={key}
@@ -459,31 +539,73 @@ const Agendar = () => {
                       </div>
                     </div>
 
-                    <label className="inline-flex items-center gap-2 cursor-pointer select-none">
-                      <span
-                        className={cn(
-                          "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
-                          onlyAvailable ? "bg-primary" : "bg-muted"
-                        )}
-                      >
-                        <input
-                          type="checkbox"
-                          className="sr-only"
-                          checked={onlyAvailable}
-                          onChange={(e) => setOnlyAvailable(e.target.checked)}
-                        />
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+                      <label className="inline-flex items-center gap-2 cursor-pointer select-none">
                         <span
                           className={cn(
-                            "inline-block h-4 w-4 rounded-full bg-background shadow transition-transform",
-                            onlyAvailable ? "translate-x-4" : "translate-x-0.5"
+                            "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
+                            onlyAvailable ? "bg-primary" : "bg-muted"
                           )}
-                        />
-                      </span>
-                      <span className="text-xs font-medium text-foreground inline-flex items-center gap-1.5">
-                        <CalendarClock className="w-3.5 h-3.5 text-primary" />
-                        Apenas com horários disponíveis
-                      </span>
-                    </label>
+                        >
+                          <input
+                            type="checkbox"
+                            className="sr-only"
+                            checked={onlyAvailable}
+                            onChange={(e) => setOnlyAvailable(e.target.checked)}
+                          />
+                          <span
+                            className={cn(
+                              "inline-block h-4 w-4 rounded-full bg-background shadow transition-transform",
+                              onlyAvailable ? "translate-x-4" : "translate-x-0.5"
+                            )}
+                          />
+                        </span>
+                        <span className="text-xs font-medium text-foreground inline-flex items-center gap-1.5">
+                          <CalendarClock className="w-3.5 h-3.5 text-primary" />
+                          Apenas com horários disponíveis
+                        </span>
+                      </label>
+
+                      {/* Price range filter */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shrink-0">
+                          Preço
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">R$</span>
+                            <input
+                              type="number"
+                              placeholder="Min"
+                              min={0}
+                              value={priceMin}
+                              onChange={(e) => setPriceMin(e.target.value === "" ? "" : Number(e.target.value))}
+                              className="w-20 h-8 pl-6 pr-2 rounded-lg border border-border/60 bg-card text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
+                            />
+                          </div>
+                          <span className="text-xs text-muted-foreground">-</span>
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">R$</span>
+                            <input
+                              type="number"
+                              placeholder="Max"
+                              min={0}
+                              value={priceMax}
+                              onChange={(e) => setPriceMax(e.target.value === "" ? "" : Number(e.target.value))}
+                              className="w-20 h-8 pl-6 pr-2 rounded-lg border border-border/60 bg-card text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
+                            />
+                          </div>
+                          {(priceMin !== "" || priceMax !== "") && (
+                            <button
+                              onClick={() => { setPriceMin(""); setPriceMax(""); }}
+                              className="text-[10px] text-primary font-medium hover:underline"
+                            >
+                              Limpar
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Doctor List */}
@@ -657,6 +779,12 @@ const Agendar = () => {
                                       {doc.available_now && (
                                         <Badge className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-300 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 font-semibold">
                                           <Zap className="w-3 h-3 mr-0.5" /> Disponível agora
+                                        </Badge>
+                                      )}
+                                      {sort === "nextSlot" && doctorNextSlots[doc.id] && (
+                                        <Badge variant="outline" className="text-[10px] px-2 py-0.5 rounded-md border-amber-200 dark:border-amber-700 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-semibold">
+                                          <CalendarClock className="w-3 h-3 mr-1" />
+                                          {formatNextSlot(doctorNextSlots[doc.id]!)}
                                         </Badge>
                                       )}
                                     </div>
