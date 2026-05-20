@@ -14,6 +14,7 @@ import { ptBR } from "date-fns/locale";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getPatientNav } from "./patientNav";
 import CancelRescheduleDialog from "./CancelRescheduleDialog";
+import { validateIcs, logIcsValidation } from "@/lib/icsValidator";
 
 interface ConfirmedAppointment {
   id: string;
@@ -54,7 +55,7 @@ const fmtUtc = (d: Date) =>
 const escapeIcs = (s: string) =>
   String(s).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
 
-const buildIcsDataUri = (appt: ConfirmedAppointment, roomUrl: string, reminderMinutes: number | null) => {
+const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinutes: number | null) => {
   const start = new Date(appt.scheduled_at);
   const duration = Math.max(5, Number(appt.duration_minutes) || 30);
   const end = new Date(start.getTime() + duration * 60 * 1000);
@@ -114,8 +115,11 @@ const buildIcsDataUri = (appt: ConfirmedAppointment, roomUrl: string, reminderMi
     "END:VEVENT",
     "END:VCALENDAR",
   ].join("\r\n");
-  return "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);
+  return ics;
 };
+
+const toIcsDataUri = (ics: string) =>
+  "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);
 
 const REMINDER_OPTIONS: { value: number | null; label: string }[] = [
   { value: null, label: "Sem lembrete" },
