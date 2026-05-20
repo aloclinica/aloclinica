@@ -1,0 +1,182 @@
+import { useEffect, useState } from "react";
+import { db } from "@/integrations/supabase/untyped";
+import { useAuth } from "@/contexts/AuthContext";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Loader2, UserCheck } from "lucide-react";
+import { logError } from "@/lib/logger";
+
+interface QuickPatientCheckoutDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onComplete: () => void;
+}
+
+interface FormState {
+  first_name: string;
+  last_name: string;
+  cpf: string;
+  phone: string;
+  date_of_birth: string;
+}
+
+const empty: FormState = { first_name: "", last_name: "", cpf: "", phone: "", date_of_birth: "" };
+
+const maskCPF = (v: string) =>
+  v.replace(/\D/g, "").slice(0, 11)
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+
+const maskPhone = (v: string) => {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 10) return d.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3").trim();
+  return d.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3").trim();
+};
+
+const isValidCPF = (cpf: string) => cpf.replace(/\D/g, "").length === 11;
+
+const QuickPatientCheckoutDialog = ({ open, onOpenChange, onComplete }: QuickPatientCheckoutDialogProps) => {
+  const { user } = useAuth();
+  const [form, setForm] = useState<FormState>(empty);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!open || !user) return;
+    setLoading(true);
+    db.from("profiles")
+      .select("first_name, last_name, cpf, phone, date_of_birth")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setForm({
+          first_name: data?.first_name ?? "",
+          last_name: data?.last_name ?? "",
+          cpf: data?.cpf ? maskCPF(data.cpf) : "",
+          phone: data?.phone ? maskPhone(data.phone) : "",
+          date_of_birth: data?.date_of_birth ?? "",
+        });
+        setLoading(false);
+      });
+  }, [open, user]);
+
+  const handleSave = async () => {
+    if (!user) return;
+    if (!form.first_name.trim() || !form.last_name.trim()) {
+      toast.error("Informe nome e sobrenome");
+      return;
+    }
+    if (!isValidCPF(form.cpf)) {
+      toast.error("CPF inválido", { description: "Digite os 11 dígitos." });
+      return;
+    }
+    if (form.phone.replace(/\D/g, "").length < 10) {
+      toast.error("Telefone inválido");
+      return;
+    }
+    if (!form.date_of_birth) {
+      toast.error("Informe a data de nascimento");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { error } = await db.from("profiles").update({
+        first_name: form.first_name.trim(),
+        last_name: form.last_name.trim(),
+        cpf: form.cpf.replace(/\D/g, ""),
+        phone: form.phone.replace(/\D/g, ""),
+        date_of_birth: form.date_of_birth,
+      }).eq("user_id", user.id);
+
+      if (error) throw error;
+      toast.success("Dados salvos!");
+      onOpenChange(false);
+      onComplete();
+    } catch (err) {
+      logError("QuickPatientCheckout save", err);
+      toast.error("Não foi possível salvar", { description: "Tente novamente." });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md rounded-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <UserCheck className="w-5 h-5 text-primary" />
+            Cadastro rápido do paciente
+          </DialogTitle>
+          <DialogDescription>
+            Precisamos destes dados para emitir seu recibo e seguir com o agendamento.
+          </DialogDescription>
+        </DialogHeader>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="qpc-first">Nome</Label>
+                <Input id="qpc-first" value={form.first_name}
+                  onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+                  className="h-11 rounded-xl" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="qpc-last">Sobrenome</Label>
+                <Input id="qpc-last" value={form.last_name}
+                  onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+                  className="h-11 rounded-xl" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="qpc-cpf">CPF</Label>
+              <Input id="qpc-cpf" value={form.cpf} inputMode="numeric"
+                placeholder="000.000.000-00"
+                onChange={(e) => setForm({ ...form, cpf: maskCPF(e.target.value) })}
+                className="h-11 rounded-xl" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="qpc-phone">Telefone (WhatsApp)</Label>
+              <Input id="qpc-phone" value={form.phone} inputMode="tel"
+                placeholder="(11) 91234-5678"
+                onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })}
+                className="h-11 rounded-xl" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="qpc-dob">Data de nascimento</Label>
+              <Input id="qpc-dob" type="date" value={form.date_of_birth}
+                onChange={(e) => setForm({ ...form, date_of_birth: e.target.value })}
+                className="h-11 rounded-xl" />
+            </div>
+          </div>
+        )}
+
+        <DialogFooter className="gap-2">
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={saving}>Cancelar</Button>
+          <Button onClick={handleSave} disabled={saving || loading}
+            className="rounded-xl bg-gradient-to-r from-primary to-secondary text-primary-foreground">
+            {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+            Salvar e continuar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default QuickPatientCheckoutDialog;
+
+export const isProfileComplete = (p: Partial<{ first_name: string | null; last_name: string | null; cpf: string | null; phone: string | null; date_of_birth: string | null; }> | null | undefined) => {
+  if (!p) return false;
+  return Boolean(p.first_name && p.last_name && p.cpf && p.phone && p.date_of_birth);
+};
