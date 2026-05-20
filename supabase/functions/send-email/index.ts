@@ -105,6 +105,7 @@ const TEMPLATE_BANNER: Record<string, string> = {
   appointment_reminder: "appointment",
   appointment_cancelled: "alert",
   appointment_rescheduled: "alert",
+  payment_receipt: "payment",
   prescription_sent: "prescription",
   certificate_sent: "certificate",
   welcome: "welcome",
