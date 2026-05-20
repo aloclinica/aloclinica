@@ -11,7 +11,7 @@ import {
   ArrowLeft, ArrowRight, Star, Video, Clock, Shield,
   Search, Stethoscope, UserCheck, BadgePercent,
   ChevronDown, MapPin, GraduationCap, Heart, Zap,
-  CalendarCheck, CheckCircle2, HeartPulse,
+  CalendarCheck, CheckCircle2, HeartPulse, CalendarClock, Filter,
 } from "lucide-react";
 import Header from "@/components/landing/Header";
 import SEOHead from "@/components/SEOHead";
@@ -81,6 +81,8 @@ interface PublicDoctor {
   sub_specialties: string[] | null;
   education: string | null;
   care_areas?: string[];
+  specialty_names?: string[] | null;
+  has_availability?: boolean | null;
 }
 
 type SortMode = "rating" | "price" | "available";
@@ -122,6 +124,7 @@ const Agendar = () => {
   const [sort, setSort] = useState<SortMode>("rating");
   const [expandedBio, setExpandedBio] = useState<string | null>(null);
   const [showAllSpecs, setShowAllSpecs] = useState(false);
+  const [onlyAvailable, setOnlyAvailable] = useState(true);
 
   // Load doctors when a specialty is selected
   useEffect(() => {
@@ -135,7 +138,7 @@ const Agendar = () => {
       setLoading(true);
       const { data } = await db
         .from("doctor_profiles_public" as any)
-        .select("id, full_name, display_name, avatar_url, crm, crm_state, crm_verified, bio, short_description, consultation_price, consultation_duration_min, rating, total_reviews, experience_years, available_now, available_for_telemedicine, sub_specialties, education")
+        .select("id, full_name, display_name, avatar_url, crm, crm_state, crm_verified, bio, short_description, consultation_price, consultation_duration_min, rating, total_reviews, experience_years, available_now, available_for_telemedicine, sub_specialties, education, specialty_names, has_availability")
         .eq("available_for_telemedicine", true);
 
       let doctorList = (data as unknown as PublicDoctor[]) ?? [];
@@ -165,20 +168,30 @@ const Agendar = () => {
   // Filter + sort
   const filteredDoctors = useMemo(() => {
     let list = [...doctors];
+    // Filtra por especialidade selecionada
+    if (selectedSpecialty) {
+      const target = selectedSpecialty.toLowerCase();
+      list = list.filter((d) => (d.specialty_names ?? []).some((n) => n.toLowerCase() === target));
+    }
+    // Apenas médicos com horários cadastrados
+    if (onlyAvailable) {
+      list = list.filter((d) => d.has_availability === true);
+    }
     if (debouncedSearch.trim()) {
       const q = debouncedSearch.toLowerCase();
       list = list.filter((d) => {
         const name = (d.display_name || d.full_name || "").toLowerCase();
         const bio = (d.bio || d.short_description || "").toLowerCase();
         const areas = (d.care_areas ?? []).join(" ").toLowerCase();
-        return name.includes(q) || bio.includes(q) || areas.includes(q);
+        const specs = (d.specialty_names ?? []).join(" ").toLowerCase();
+        return name.includes(q) || bio.includes(q) || areas.includes(q) || specs.includes(q);
       });
     }
     if (sort === "rating") list.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     else if (sort === "price") list.sort((a, b) => (a.consultation_price ?? 89) - (b.consultation_price ?? 89));
     else list.sort((a, b) => (b.available_now ? 1 : 0) - (a.available_now ? 1 : 0));
     return list;
-  }, [doctors, debouncedSearch, sort]);
+  }, [doctors, debouncedSearch, sort, selectedSpecialty, onlyAvailable]);
 
   const handleSelectDoctor = (doctorId: string) => {
     const returnUrl = `/dashboard/schedule?doctor=${doctorId}&specialty=${encodeURIComponent(selectedSpecialty || "Clínico Geral")}`;
