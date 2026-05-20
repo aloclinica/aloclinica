@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
-import { Calendar as CalendarIcon, X, RefreshCw, AlertTriangle, Clock, CheckCircle2, CalendarDays, Stethoscope, MapPin } from "lucide-react";
+import { Calendar as CalendarIcon, X, RefreshCw, AlertTriangle, Clock, CheckCircle2, CalendarDays, Stethoscope } from "lucide-react";
 import { toast } from "sonner";
 import { format, setHours, setMinutes, differenceInHours, isBefore, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
