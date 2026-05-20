@@ -144,7 +144,9 @@ const SpecialtyCard = ({ name, desc, index }: { name: string; desc?: string; ind
               loading="lazy"
             />
           ) : (
-            <Icon className="w-8 h-8 md:w-10 md:h-10 text-primary relative z-10" weight="duotone" />
+            <div className="relative z-10 w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 via-secondary/10 to-primary/10 rounded-full">
+              <Icon className="w-10 h-10 md:w-12 md:h-12 text-primary drop-shadow-[0_2px_8px_hsl(var(--primary)/0.3)]" weight="duotone" />
+            </div>
           )}
         </div>
       </div>
