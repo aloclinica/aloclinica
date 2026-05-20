@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { CheckCircle2, Calendar, Clock, Video, ArrowRight, Stethoscope, Download, Home, ListChecks, Loader2, Copy, Wifi, Mic, Camera, FileText, Receipt, RefreshCw, X, ShieldCheck, AlertTriangle, Info, BellRing, ChevronDown, Check } from "lucide-react";
+import { CheckCircle2, Calendar, Clock, Video, ArrowRight, Stethoscope, Download, Home, ListChecks, Loader2, Copy, Wifi, Mic, Camera, FileText, Receipt, RefreshCw, X, ShieldCheck, AlertTriangle, Info, BellRing, ChevronDown, Check, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -503,6 +503,21 @@ const AppointmentConfirmed = () => {
                 </div>
                 <Button onClick={handleDownloadIcs} className="w-full h-10 mt-3 rounded-lg">
                   <Download className="w-4 h-4 mr-2" /> Baixar .ics
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full h-10 mt-2 rounded-lg"
+                  onClick={async () => {
+                    const t = toast.loading("Reenviando agenda por e-mail...");
+                    const { error } = await db.functions.invoke("appointment-confirmed", {
+                      body: { appointment_id: appt.id, resend_only: true },
+                    });
+                    toast.dismiss(t);
+                    if (error) toast.error("Não foi possível reenviar a agenda");
+                    else toast.success("Agenda reenviada para o seu e-mail!");
+                  }}
+                >
+                  <Mail className="w-4 h-4 mr-2" /> Reenviar por e-mail
                 </Button>
               </PopoverContent>
             </Popover>
