@@ -2,6 +2,12 @@
  * Form Validators - CPF, CNPJ, CRM, Email, Telefone
  */
 
+export interface CPFValidationResult {
+  valido: boolean;
+  mensagem: string;
+  codigo: "OK" | "Vazio" | "Curto" | "Longo" | "DigitosIguais" | "DV1" | "DV2";
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CPF VALIDATION
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -12,7 +18,7 @@ export function validarCPF(cpf: string): boolean {
   if (cleanCPF.length !== 11) return false;
 
   // Check if all digits are the same (invalid CPF)
-  if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
+  if (/(\d)\1{10}$/.test(cleanCPF)) return false;
 
   // Calculate first check digit
   let sum = 0;
@@ -33,6 +39,51 @@ export function validarCPF(cpf: string): boolean {
   if (remainder !== parseInt(cleanCPF[10])) return false;
 
   return true;
+}
+
+/**
+ * Valida CPF com mensagens de erro específicas para cada falha.
+ * Útil para exibir feedback inline em formulários.
+ */
+export function validarCPFDetalhado(cpf: string): CPFValidationResult {
+  const clean = cpf.replace(/\D/g, "");
+
+  if (!clean) {
+    return { valido: false, mensagem: "CPF é obrigatório", codigo: "Vazio" };
+  }
+  if (clean.length < 11) {
+    return { valido: false, mensagem: `CPF incompleto (${clean.length}/11 dígitos)`, codigo: "Curto" };
+  }
+  if (clean.length > 11) {
+    return { valido: false, mensagem: "CPF possui dígitos demais", codigo: "Longo" };
+  }
+  if (/(\d)\1{10}$/.test(clean)) {
+    return { valido: false, mensagem: "CPF inválido (dígitos repetidos)", codigo: "DigitosIguais" };
+  }
+
+  // First check digit
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(clean[i]) * (10 - i);
+  }
+  let remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(clean[9])) {
+    return { valido: false, mensagem: "CPF inválido (1º dígito verificador incorreto)", codigo: "DV1" };
+  }
+
+  // Second check digit
+  sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(clean[i]) * (11 - i);
+  }
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(clean[10])) {
+    return { valido: false, mensagem: "CPF inválido (2º dígito verificador incorreto)", codigo: "DV2" };
+  }
+
+  return { valido: true, mensagem: "CPF válido", codigo: "OK" };
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Loader2, UserCheck } from "lucide-react";
+import { Loader2, UserCheck, AlertCircle } from "lucide-react";
 import { logError } from "@/lib/logger";
+import { validarCPFDetalhado } from "@/lib/form-validators";
 
 interface QuickPatientCheckoutDialogProps {
   open: boolean;
@@ -21,6 +22,14 @@ interface FormState {
   cpf: string;
   phone: string;
   date_of_birth: string;
+}
+
+interface FieldErrors {
+  first_name?: string;
+  last_name?: string;
+  cpf?: string;
+  phone?: string;
+  date_of_birth?: string;
 }
 
 const empty: FormState = { first_name: "", last_name: "", cpf: "", phone: "", date_of_birth: "" };
@@ -37,11 +46,10 @@ const maskPhone = (v: string) => {
   return d.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3").trim();
 };
 
-const isValidCPF = (cpf: string) => cpf.replace(/\D/g, "").length === 11;
-
 const QuickPatientCheckoutDialog = ({ open, onOpenChange, onComplete }: QuickPatientCheckoutDialogProps) => {
   const { user } = useAuth();
   const [form, setForm] = useState<FormState>(empty);
+  const [errors, setErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -60,26 +68,65 @@ const QuickPatientCheckoutDialog = ({ open, onOpenChange, onComplete }: QuickPat
           phone: data?.phone ? maskPhone(data.phone) : "",
           date_of_birth: data?.date_of_birth ?? "",
         });
+        setErrors({});
         setLoading(false);
       });
   }, [open, user]);
 
+  const validate = (): boolean => {
+    const e: FieldErrors = {};
+
+    if (!form.first_name.trim()) {
+      e.first_name = "Informe seu nome";
+    } else if (form.first_name.trim().length < 2) {
+      e.first_name = "Nome muito curto";
+    }
+
+    if (!form.last_name.trim()) {
+      e.last_name = "Informe seu sobrenome";
+    } else if (form.last_name.trim().length < 2) {
+      e.last_name = "Sobrenome muito curto";
+    }
+
+    const cpfCheck = validarCPFDetalhado(form.cpf);
+    if (!cpfCheck.valido) {
+      e.cpf = cpfCheck.mensagem;
+    }
+
+    const phoneDigits = form.phone.replace(/\D/g, "");
+    if (!phoneDigits) {
+      e.phone = "Informe seu telefone";
+    } else if (phoneDigits.length < 10) {
+      e.phone = `Telefone incompleto (${phoneDigits.length}/10 ou 11 dígitos)`;
+    } else if (phoneDigits.length > 11) {
+      e.phone = "Telefone possui dígitos demais";
+    }
+
+    if (!form.date_of_birth) {
+      e.date_of_birth = "Informe sua data de nascimento";
+    } else {
+      const birth = new Date(form.date_of_birth);
+      const today = new Date();
+      if (isNaN(birth.getTime())) {
+        e.date_of_birth = "Data inválida";
+      } else {
+        let age = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+        if (age < 16) e.date_of_birth = "É necessário ter 16 anos ou mais";
+        if (age > 120) e.date_of_birth = "Data de nascimento inválida";
+      }
+    }
+
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
   const handleSave = async () => {
     if (!user) return;
-    if (!form.first_name.trim() || !form.last_name.trim()) {
-      toast.error("Informe nome e sobrenome");
-      return;
-    }
-    if (!isValidCPF(form.cpf)) {
-      toast.error("CPF inválido", { description: "Digite os 11 dígitos." });
-      return;
-    }
-    if (form.phone.replace(/\D/g, "").length < 10) {
-      toast.error("Telefone inválido");
-      return;
-    }
-    if (!form.date_of_birth) {
-      toast.error("Informe a data de nascimento");
+    if (!validate()) {
+      const firstError = Object.values(errors)[0];
+      if (firstError) toast.error("Corrija os campos", { description: firstError });
       return;
     }
 
@@ -105,6 +152,11 @@ const QuickPatientCheckoutDialog = ({ open, onOpenChange, onComplete }: QuickPat
     }
   };
 
+  const updateField = <K extends keyof FormState>(field: K, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md rounded-2xl">
@@ -127,36 +179,82 @@ const QuickPatientCheckoutDialog = ({ open, onOpenChange, onComplete }: QuickPat
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="qpc-first">Nome</Label>
-                <Input id="qpc-first" value={form.first_name}
-                  onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-                  className="h-11 rounded-xl" />
+                <Input
+                  id="qpc-first"
+                  value={form.first_name}
+                  onChange={(e) => updateField("first_name", e.target.value)}
+                  className={`h-11 rounded-xl ${errors.first_name ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                />
+                {errors.first_name && (
+                  <p className="text-[12px] text-destructive flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" /> {errors.first_name}
+                  </p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="qpc-last">Sobrenome</Label>
-                <Input id="qpc-last" value={form.last_name}
-                  onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-                  className="h-11 rounded-xl" />
+                <Input
+                  id="qpc-last"
+                  value={form.last_name}
+                  onChange={(e) => updateField("last_name", e.target.value)}
+                  className={`h-11 rounded-xl ${errors.last_name ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                />
+                {errors.last_name && (
+                  <p className="text-[12px] text-destructive flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" /> {errors.last_name}
+                  </p>
+                )}
               </div>
             </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="qpc-cpf">CPF</Label>
-              <Input id="qpc-cpf" value={form.cpf} inputMode="numeric"
+              <Input
+                id="qpc-cpf"
+                value={form.cpf}
+                inputMode="numeric"
                 placeholder="000.000.000-00"
-                onChange={(e) => setForm({ ...form, cpf: maskCPF(e.target.value) })}
-                className="h-11 rounded-xl" />
+                onChange={(e) => updateField("cpf", maskCPF(e.target.value))}
+                className={`h-11 rounded-xl ${errors.cpf ? "border-destructive focus-visible:ring-destructive" : ""}`}
+              />
+              {errors.cpf && (
+                <p className="text-[12px] text-destructive flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> {errors.cpf}
+                </p>
+              )}
             </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="qpc-phone">Telefone (WhatsApp)</Label>
-              <Input id="qpc-phone" value={form.phone} inputMode="tel"
+              <Input
+                id="qpc-phone"
+                value={form.phone}
+                inputMode="tel"
                 placeholder="(11) 91234-5678"
-                onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })}
-                className="h-11 rounded-xl" />
+                onChange={(e) => updateField("phone", maskPhone(e.target.value))}
+                className={`h-11 rounded-xl ${errors.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
+              />
+              {errors.phone && (
+                <p className="text-[12px] text-destructive flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> {errors.phone}
+                </p>
+              )}
             </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="qpc-dob">Data de nascimento</Label>
-              <Input id="qpc-dob" type="date" value={form.date_of_birth}
-                onChange={(e) => setForm({ ...form, date_of_birth: e.target.value })}
-                className="h-11 rounded-xl" />
+              <Input
+                id="qpc-dob"
+                type="date"
+                value={form.date_of_birth}
+                onChange={(e) => updateField("date_of_birth", e.target.value)}
+                className={`h-11 rounded-xl ${errors.date_of_birth ? "border-destructive focus-visible:ring-destructive" : ""}`}
+              />
+              {errors.date_of_birth && (
+                <p className="text-[12px] text-destructive flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> {errors.date_of_birth}
+                </p>
+              )}
             </div>
           </div>
         )}
