@@ -140,7 +140,7 @@ const SpecialtyCard = ({ name, desc, index }: { name: string; desc?: string; ind
             <img
               src={imageSrc}
               alt={`Pingo ${name}`}
-              className="w-[115%] h-[115%] object-cover object-top md:w-[125%] md:h-[125%] md:object-center pingo-float"
+              className="w-full h-full object-contain object-bottom md:w-[125%] md:h-[125%] md:object-cover md:object-center pingo-float"
               loading="lazy"
             />
           ) : (
