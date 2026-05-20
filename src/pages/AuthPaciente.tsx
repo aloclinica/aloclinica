@@ -309,6 +309,17 @@ const AuthPaciente = () => {
 
     setLoading(true);
     try {
+      // Pré-checagem: CPF já cadastrado evita erro 500 no signup
+      const { data: cpfExists } = await db.rpc("cpf_in_use", { _cpf: cleanCpf });
+      if (cpfExists === true) {
+        toast.error("CPF já cadastrado", {
+          description: "Este CPF já está vinculado a uma conta. Faça login ou use 'Esqueci minha senha'.",
+        });
+        setMode("login");
+        setLoading(false);
+        return;
+      }
+
       const { data: signUpData, error: signUpError } = await db.auth.signUp({
         email,
         password,
@@ -329,6 +340,14 @@ const AuthPaciente = () => {
       if (signUpError) {
         if (signUpError.message.includes("already registered")) {
           toast.error("Email já cadastrado", { description: "Tente fazer login." });
+          setMode("login");
+          setLoading(false);
+          return;
+        }
+        if (signUpError.message.includes("CPF_ALREADY_REGISTERED")) {
+          toast.error("CPF já cadastrado", {
+            description: "Este CPF já está vinculado a uma conta. Faça login ou use 'Esqueci minha senha'.",
+          });
           setMode("login");
           setLoading(false);
           return;

@@ -5327,6 +5327,7 @@ export type Database = {
         }[]
       }
       cleanup_rate_limits: { Args: never; Returns: undefined }
+      cpf_in_use: { Args: { _cpf: string }; Returns: boolean }
       expire_subscriptions_and_cards: { Args: never; Returns: undefined }
       fn_admin_doctor_kyc_list: { Args: never; Returns: Json[] }
       fn_admin_set_doctor_kyc: {
