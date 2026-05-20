@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { motion } from "framer-motion";
-import { ShieldCheck, Lightning, Receipt, UsersFour, SealCheck } from "@phosphor-icons/react";
+import { ShieldCheck, Lightning, Receipt, UsersFour, SealCheck, ArrowRight } from "@phosphor-icons/react";
+import { Link } from "react-router-dom";
 
 import familyImg from "@/assets/pingo-king-familia.png";
 import doctorAppImg from "@/assets/doctor-phone-teleconsulta.png";
@@ -37,16 +38,19 @@ const bottomCards = [
     image: multiplatformImg,
     title: "Multiplataforma",
     description: "Acesse pelo celular, tablet ou computador. Sem instalações complexas.",
+    cta: { label: "Baixar app", href: "/agendar" },
   },
   {
     image: familyPlanImg,
     title: "Plano família",
     description: "Adicione dependentes e cuide de toda a família em uma conta única.",
+    cta: { label: "Conhecer planos", href: "/cartao-pingo" },
   },
   {
     image: medicalRecordsImg,
     title: "Prontuário completo",
     description: "Todo seu histórico de consultas, exames e receitas sempre à mão.",
+    cta: { label: "Ver detalhes", href: "/sobre/tecnologia" },
   },
 ];
 
@@ -132,7 +136,7 @@ function BenefitsGrid() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1, duration: 0.5 }}
-              className="group bg-card p-6 sm:p-7 md:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-border/40 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center flex flex-col items-center"
+              className="group bg-card p-6 sm:p-7 md:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-border/40 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center flex flex-col items-center h-full"
             >
               <div className="w-full h-40 sm:h-44 md:h-48 mb-5 sm:mb-6 flex items-end justify-center overflow-hidden">
                 <img
@@ -144,7 +148,14 @@ function BenefitsGrid() {
                 />
               </div>
               <h4 className="font-bold text-foreground text-lg mb-2">{c.title}</h4>
-              <p className="text-muted-foreground text-sm leading-relaxed">{c.description}</p>
+              <p className="text-muted-foreground text-sm leading-relaxed mb-5">{c.description}</p>
+              <Link
+                to={c.cta.href}
+                className="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all"
+              >
+                {c.cta.label}
+                <ArrowRight className="w-4 h-4" weight="bold" />
+              </Link>
             </motion.div>
           ))}
 
