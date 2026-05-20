@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { motion } from "framer-motion";
-import { ShieldCheck, Lightning, Devices, Receipt, UsersFour, FirstAid } from "@phosphor-icons/react";
+import { ShieldCheck, Lightning, Receipt, UsersFour, SealCheck } from "@phosphor-icons/react";
 
 import familyImg from "@/assets/pingo-king-familia.png";
 import doctorAppImg from "@/assets/doctor-phone-teleconsulta.png";
@@ -8,177 +8,173 @@ import multiplatformImg from "@/assets/devices-mascot.png";
 import familyPlanImg from "@/assets/pingo-mini-familia.png";
 import medicalRecordsImg from "@/assets/pingo-medico-ferramentas.png";
 
-const cardImages: Record<string, string> = {
-  "Multiplataforma": multiplatformImg,
-  "Plano família": familyPlanImg,
-  "Prontuário completo": medicalRecordsImg,
-};
-
-const benefits = [
+const sideBenefits = [
   {
     icon: Lightning,
     title: "Atendimento em minutos",
-    description: "Sem filas, sem deslocamento. Consulte médicos de qualquer lugar do Brasil.",
-    accent: "bg-amber-500/10 text-amber-600",
+    description: "Sem filas ou deslocamento. Consulte médicos especialistas de qualquer lugar do Brasil.",
+    iconBg: "bg-amber-500/10",
+    iconColor: "text-amber-600",
   },
   {
     icon: ShieldCheck,
     title: "Segurança total",
-    description: "Dados criptografados end-to-end, em conformidade com LGPD e regulamentação CFM.",
-    accent: "bg-emerald-500/10 text-emerald-600",
+    description: "Dados criptografados end-to-end em total conformidade com a LGPD e o CFM.",
+    iconBg: "bg-secondary/10",
+    iconColor: "text-secondary",
   },
   {
     icon: Receipt,
     title: "Receita digital válida",
-    description: "Receitas assinadas digitalmente e aceitas em todo o Brasil.",
-    accent: "bg-blue-500/10 text-blue-600",
-  },
-  {
-    icon: Devices,
-    title: "Multiplataforma",
-    description: "Acesse pelo celular, tablet ou computador. Sem necessidade de instalar nada.",
-    accent: "bg-violet-500/10 text-violet-600",
-  },
-  {
-    icon: UsersFour,
-    title: "Plano família",
-    description: "Adicione dependentes e cuide de toda a família em uma única conta.",
-    accent: "bg-rose-500/10 text-rose-600",
-  },
-  {
-    icon: FirstAid,
-    title: "Prontuário completo",
-    description: "Histórico de consultas, exames e receitas sempre acessíveis na palma da mão.",
-    accent: "bg-teal-500/10 text-teal-600",
+    description: "Receitas e atestados assinados digitalmente, aceitos em farmácias de todo o país.",
+    iconBg: "bg-primary/10",
+    iconColor: "text-primary",
   },
 ];
+
+const bottomCards = [
+  {
+    image: multiplatformImg,
+    title: "Multiplataforma",
+    description: "Acesse pelo celular, tablet ou computador. Sem instalações complexas.",
+  },
+  {
+    image: familyPlanImg,
+    title: "Plano família",
+    description: "Adicione dependentes e cuide de toda a família em uma conta única.",
+  },
+  {
+    image: medicalRecordsImg,
+    title: "Prontuário completo",
+    description: "Todo seu histórico de consultas, exames e receitas sempre à mão.",
+  },
+];
+
 function BenefitsGrid() {
   return (
     <section className="py-16 md:py-28 overflow-hidden">
-      <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 flex flex-col gap-12">
+        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-14"
+          className="flex flex-col items-center text-center space-y-4"
         >
-          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-primary/60 mb-3 block">
-            Por que escolher a AloClínica
-          </span>
-          <h2 className="text-2xl md:text-4xl font-extrabold text-foreground mb-3 tracking-tight">
-            Saúde moderna,{" "}
-            <span className="text-gradient">sem complicação</span>
+          <div className="px-4 py-1.5 rounded-full bg-primary/5 text-primary text-xs font-bold tracking-widest uppercase border border-primary/10">
+            Soluções Modernas
+          </div>
+          <h2 className="text-3xl md:text-5xl font-extrabold text-foreground tracking-tight">
+            Saúde moderna, <span className="text-primary">sem complicação</span>
           </h2>
         </motion.div>
 
-        {/* Bento grid layout */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5">
-          {/* Large feature image card */}
+        {/* Top Grid: Hero + side benefits */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+          {/* Hero family card */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="md:col-span-7 relative rounded-3xl overflow-hidden min-h-[280px] md:min-h-[380px] group"
+            className="md:col-span-8 group relative overflow-hidden rounded-[2.5rem] bg-muted aspect-[16/10] md:aspect-auto md:min-h-[480px] flex flex-col shadow-2xl shadow-primary/10"
           >
             <img
               src={familyImg}
-              alt="Família em teleconsulta"
-              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              alt="Família em teleconsulta com Pingo"
               loading="lazy"
               decoding="async"
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-foreground/20 to-transparent" />
-            <div className="relative z-10 flex flex-col justify-end h-full p-6 md:p-8">
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider w-fit mb-3">
-                <UsersFour className="w-3 h-3" weight="fill" />
-                Para toda família
-              </span>
-              <h3 className="text-xl md:text-2xl font-extrabold text-white leading-tight mb-2">
+            <div className="absolute inset-0 bg-gradient-to-t from-foreground/85 via-foreground/30 to-transparent" />
+            <div className="relative mt-auto p-8 md:p-12 space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-xl border border-white/20 w-fit">
+                <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+                <span className="text-white text-[10px] font-bold uppercase tracking-widest">Para toda a família</span>
+              </div>
+              <h3 className="text-2xl md:text-4xl font-bold text-white leading-tight max-w-xl">
                 Consultas para toda a família, de onde vocês estiverem
               </h3>
-              <p className="text-white/80 text-sm max-w-md">
+              <p className="text-white/80 text-base md:text-lg max-w-lg leading-relaxed">
                 Cuide de quem você ama com praticidade. Adicione dependentes e gerencie a saúde de todos em um só lugar.
               </p>
             </div>
           </motion.div>
 
-          {/* Right column - 3 benefit cards */}
-          <div className="md:col-span-5 grid gap-4 md:gap-5">
-            {benefits.slice(0, 3).map((b, i) => (
+          {/* Right column: 3 benefit cards */}
+          <div className="md:col-span-4 flex flex-col gap-6">
+            {sideBenefits.map((b, i) => (
               <motion.div
                 key={b.title}
                 initial={{ opacity: 0, x: 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                className="bg-card rounded-2xl border border-border/40 p-5 flex items-start gap-4 hover:shadow-lg hover:border-primary/15 transition-all duration-300 hover:-translate-y-0.5"
+                className="flex-1 bg-card p-7 rounded-[2rem] border border-border/40 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
               >
-                <div className={`w-11 h-11 rounded-xl ${b.accent} flex items-center justify-center shrink-0`}>
-                  <b.icon className="w-5 h-5" weight="fill" />
+                <div className={`w-12 h-12 rounded-2xl ${b.iconBg} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
+                  <b.icon className={`w-6 h-6 ${b.iconColor}`} weight="fill" />
                 </div>
-                <div>
-                  <h4 className="text-sm font-bold text-foreground mb-1">{b.title}</h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{b.description}</p>
-                </div>
+                <h4 className="font-bold text-foreground text-lg mb-2">{b.title}</h4>
+                <p className="text-muted-foreground text-sm leading-relaxed">{b.description}</p>
               </motion.div>
             ))}
           </div>
+        </div>
 
-          {/* Bottom row - 3 more benefit cards + image */}
-          {benefits.slice(3).map((b, i) => {
-            const img = cardImages[b.title];
-            return (
-              <motion.div
-                key={b.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-                className="md:col-span-3 bg-card rounded-2xl border border-border/40 overflow-hidden flex flex-col hover:shadow-lg hover:border-primary/15 transition-all duration-300 hover:-translate-y-0.5"
-              >
-                {img && (
-                  <div className="relative h-32 overflow-hidden">
-                    <img
-                      src={img}
-                      alt={b.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-                  </div>
-                )}
-                <div className="p-5 flex flex-col gap-3">
-                  <div className={`w-11 h-11 rounded-xl ${b.accent} flex items-center justify-center`}>
-                    <b.icon className="w-5 h-5" weight="fill" />
-                  </div>
-                  <h4 className="text-sm font-bold text-foreground">{b.title}</h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{b.description}</p>
-                </div>
-              </motion.div>
-            );
-          })}
+        {/* Bottom row: 3 mascot cards + CFM trust card */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {bottomCards.map((c, i) => (
+            <motion.div
+              key={c.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1, duration: 0.5 }}
+              className="group bg-card p-8 rounded-[2.5rem] border border-border/40 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center flex flex-col items-center"
+            >
+              <div className="h-36 mb-6 flex items-center justify-center">
+                <img
+                  src={c.image}
+                  alt={c.title}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-auto object-contain group-hover:scale-110 transition-transform duration-500"
+                />
+              </div>
+              <h4 className="font-bold text-foreground text-lg mb-2">{c.title}</h4>
+              <p className="text-muted-foreground text-sm leading-relaxed">{c.description}</p>
+            </motion.div>
+          ))}
 
-          {/* Doctor image card */}
+          {/* CFM Verified */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="md:col-span-3 relative rounded-3xl overflow-hidden min-h-[200px] group"
+            className="relative overflow-hidden rounded-[2.5rem] group min-h-[320px] shadow-xl shadow-primary/10"
           >
+            <div className="absolute inset-0 bg-primary" />
             <img
               src={doctorAppImg}
-              alt="Médica com app AloClínica"
-              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              alt="Médica verificada com Pingo"
               loading="lazy"
               decoding="async"
+              className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay group-hover:scale-110 transition-transform duration-700"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent" />
-            <div className="relative z-10 flex flex-col justify-end h-full p-5">
-              <p className="text-white font-bold text-sm">Médicos verificados pelo CFM</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/40 to-transparent" />
+            <div className="relative h-full p-8 flex flex-col justify-between">
+              <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/25">
+                <SealCheck className="w-6 h-6 text-white" weight="fill" />
+              </div>
+              <div>
+                <h4 className="text-white font-bold text-xl leading-snug mb-2">Médicos verificados pelo CFM</h4>
+                <p className="text-white/75 text-sm leading-relaxed">
+                  Excelência clínica e conformidade ética em cada atendimento realizado.
+                </p>
+              </div>
             </div>
           </motion.div>
         </div>
