@@ -13,6 +13,8 @@ import {
   ChevronDown, MapPin, GraduationCap, Heart, Zap,
   CalendarCheck, CheckCircle2, HeartPulse, CalendarClock, Filter,
 } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import Header from "@/components/landing/Header";
 import SEOHead from "@/components/SEOHead";
 import { cn } from "@/lib/utils";
