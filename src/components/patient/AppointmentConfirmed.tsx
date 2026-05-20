@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
-import { CheckCircle2, Calendar, Clock, Video, ArrowRight, Stethoscope, Download, Home, ListChecks, Loader2, Copy, Wifi, Mic, Camera, FileText } from "lucide-react";
+import { CheckCircle2, Calendar, Clock, Video, ArrowRight, Stethoscope, Download, Home, ListChecks, Loader2, Copy, Wifi, Mic, Camera, FileText, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -272,6 +272,16 @@ const AppointmentConfirmed = () => {
               <Home className="w-4 h-4 mr-1.5" /> Início
             </Button>
           </div>
+
+          {isPaid && (
+            <Button
+              variant="outline"
+              className="w-full h-11 rounded-xl border-primary/30 text-primary hover:bg-primary/5"
+              onClick={() => navigate(`/dashboard/appointments/${appt.id}/recibo`)}
+            >
+              <Receipt className="w-4 h-4 mr-2" /> Baixar recibo da consulta
+            </Button>
+          )}
         </motion.div>
 
         {/* Preparation checklist */}
