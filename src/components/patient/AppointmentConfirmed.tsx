@@ -1,182 +1,256 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { db } from "@/integrations/supabase/untyped";
 import { Button } from "@/components/ui/button";
-import { Check, Calendar, Home, Sparkles, Clock, Stethoscope, FileText, Smartphone } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
-import SEOHead from "@/components/SEOHead";
-import { ChatCircleDots } from "@phosphor-icons/react";
+import { CheckCircle2, Calendar, Clock, Video, ArrowRight, Stethoscope, Download, Home, ListChecks, Loader2 } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import DashboardLayout from "@/components/dashboards/DashboardLayout";
+import { getPatientNav } from "./patientNav";
 
-/* CSS confetti */
-const ConfettiPiece = ({ i }: { i: number }) => {
-  const colors = ["bg-primary", "bg-secondary", "bg-yellow-400", "bg-emerald-400", "bg-pink-400", "bg-blue-400"];
-  const color = colors[i % colors.length];
-  const left = 10 + Math.random() * 80;
-  const delay = Math.random() * 0.6;
-  const dur = 1.2 + Math.random() * 0.8;
-  return (
-    <motion.div
-      className={`absolute w-2 h-2 rounded-sm ${color}`}
-      style={{ left: `${left}%`, top: "-5%" }}
-      initial={{ opacity: 1, y: 0, rotate: 0 }}
-      animate={{ y: [0, 500], x: [(Math.random() - 0.5) * 150], rotate: [0, 360], opacity: [1, 1, 0] }}
-      transition={{ duration: dur, delay, ease: "easeIn" }}
-    />
-  );
+interface ConfirmedAppointment {
+  id: string;
+  scheduled_at: string;
+  appointment_type: string;
+  price_at_booking: number | null;
+  payment_status: string | null;
+  status: string | null;
+  doctor_id: string;
+  doctor_name: string;
+  doctor_specialty: string | null;
+  doctor_crm: string | null;
+  doctor_crm_state: string | null;
+}
+
+const formatBRL = (v: number | null | undefined) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v ?? 0));
+
+const buildIcsDataUri = (appt: ConfirmedAppointment) => {
+  const start = new Date(appt.scheduled_at);
+  const end = new Date(start.getTime() + 30 * 60 * 1000);
+  const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//AloClinica//PT-BR",
+    "BEGIN:VEVENT",
+    `UID:${appt.id}@aloclinica`,
+    `DTSTAMP:${fmt(new Date())}`,
+    `DTSTART:${fmt(start)}`,
+    `DTEND:${fmt(end)}`,
+    `SUMMARY:Teleconsulta com ${appt.doctor_name}`,
+    `DESCRIPTION:Consulta online AloClínica. Acesse seu painel para entrar na chamada.`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+  return "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);
 };
 
-const checklist = [
-  { icon: Stethoscope, text: "Tenha seus exames recentes em mãos" },
-  { icon: FileText, text: "Liste seus medicamentos atuais" },
-  { icon: Smartphone, text: "Teste câmera e microfone antes" },
-  { icon: Clock, text: "Esteja pronto 5 minutos antes" },
-];
-
 const AppointmentConfirmed = () => {
+  const { appointmentId } = useParams();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const doctorName = searchParams.get("doctor") || "seu médico";
-  const appointmentDate = searchParams.get("date") || "em breve";
-  const appointmentTime = searchParams.get("time") || "";
+  const [appt, setAppt] = useState<ConfirmedAppointment | null>(null);
+  const [loading, setLoading] = useState(true);
+  const nav = getPatientNav("appointments");
 
-  const handleAddToCalendar = () => {
-    // Google Calendar URL template
-    const title = encodeURIComponent("Teleconsulta — AloClínica");
-    const details = encodeURIComponent("Sua teleconsulta na AloClínica. Acesse: https://aloclinica.com.br/dashboard");
-    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}`;
-    window.open(url, "_blank");
-  };
+  useEffect(() => {
+    const fetchAppt = async () => {
+      if (!appointmentId) return;
+      const { data } = await db
+        .from("appointments")
+        .select("id, scheduled_at, appointment_type, price_at_booking, payment_status, status, doctor_id")
+        .eq("id", appointmentId)
+        .maybeSingle();
 
-  const handleShareWhatsApp = () => {
-    const message = encodeURIComponent(
-      `📋 *Consulta Confirmada na AloClínica* 📋\n\n` +
-      `👨‍⚕️ Médico: ${doctorName}\n` +
-      `📅 Data: ${appointmentDate}\n` +
-      (appointmentTime ? `⏰ Horário: ${appointmentTime}\n\n` : `\n`) +
-      `Clique aqui para acessar sua consulta:\n` +
-      `https://aloclinica.com.br/dashboard\n\n` +
-      `✅ Sua consulta está confirmada!`
+      if (!data) {
+        setLoading(false);
+        return;
+      }
+
+      // Buscar médico via view pública
+      const { data: doc } = await db
+        .from("doctor_profiles_public" as any)
+        .select("display_name, full_name, crm, crm_state, specialty_names")
+        .eq("id", data.doctor_id)
+        .maybeSingle();
+
+      const docAny = doc as any;
+      setAppt({
+        ...data,
+        doctor_name: docAny?.display_name || docAny?.full_name || "Médico AloClínica",
+        doctor_specialty: docAny?.specialty_names?.[0] ?? null,
+        doctor_crm: docAny?.crm ?? null,
+        doctor_crm_state: docAny?.crm_state ?? null,
+      });
+      setLoading(false);
+    };
+    fetchAppt();
+  }, [appointmentId]);
+
+  if (loading) {
+    return (
+      <DashboardLayout title="Confirmação" nav={nav}>
+        <div className="flex items-center justify-center py-32">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
     );
-    window.open(`https://wa.me/?text=${message}`, "_blank");
-  };
+  }
+
+  if (!appt) {
+    return (
+      <DashboardLayout title="Confirmação" nav={nav}>
+        <div className="text-center py-20">
+          <Stethoscope className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
+          <h2 className="text-lg font-bold mb-1">Consulta não encontrada</h2>
+          <p className="text-sm text-muted-foreground mb-6">Verifique seus agendamentos.</p>
+          <Button onClick={() => navigate("/dashboard/appointments")} className="rounded-xl">
+            <ListChecks className="w-4 h-4 mr-2" /> Ver minhas consultas
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const date = new Date(appt.scheduled_at);
+  const isPaid = ["approved", "confirmed", "received", "paid"].includes(String(appt.payment_status));
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-background relative overflow-hidden">
-      <SEOHead title="Consulta Confirmada — AloClínica" description="Sua consulta foi confirmada com sucesso." />
-
-      {/* Confetti */}
-      <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-        {Array.from({ length: 20 }).map((_, i) => (
-          <ConfettiPiece key={i} i={i} />
-        ))}
-      </div>
-
-      {/* Background */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-primary/[0.03] blur-[80px]" />
-        <div className="absolute bottom-1/3 right-1/4 w-48 h-48 rounded-full bg-emerald-500/[0.04] blur-[60px]" />
-      </div>
-
-      <div className="relative z-10 w-full max-w-md">
-        {/* Animated checkmark */}
-        <div className="flex justify-center mb-6">
+    <DashboardLayout title="Consulta confirmada" nav={nav}>
+      <div className="w-full max-w-xl mx-auto pb-24 md:pb-6">
+        {/* Hero check */}
+        <motion.div
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 240, damping: 18 }}
+          className="flex flex-col items-center text-center py-8"
+        >
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 200, damping: 12 }}
-            className="relative"
+            transition={{ delay: 0.15, type: "spring", stiffness: 260 }}
+            className="relative mb-5"
           >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1.4, opacity: 0 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-              className="absolute inset-0 rounded-full bg-emerald-500/20"
-            />
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                <motion.path
-                  d="M10 20L17 27L30 13"
-                  stroke="white"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-                />
-              </svg>
+            <div className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full" />
+            <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-xl shadow-emerald-500/30">
+              <CheckCircle2 className="w-12 h-12 text-white" strokeWidth={2.5} />
             </div>
           </motion.div>
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-center mb-8"
-        >
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 mb-3">
-            <Sparkles className="w-3 h-3 text-primary" />
-            <span className="text-[11px] font-bold text-primary">Confirmado</span>
-          </div>
-          <h1 className="text-[28px] font-extrabold text-foreground">Tudo pronto!</h1>
-          <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">
-            Sua consulta na AloClínica foi confirmada com sucesso.
+          <h1 className="text-2xl sm:text-3xl font-black text-foreground mb-2">
+            {isPaid ? "Consulta confirmada!" : "Reserva criada!"}
+          </h1>
+          <p className="text-sm text-muted-foreground max-w-sm">
+            {isPaid
+              ? "Seu pagamento foi aprovado. Você receberá um lembrete antes do horário."
+              : "Finalize o pagamento em até 30 minutos para garantir sua vaga."}
           </p>
         </motion.div>
 
-        {/* Checklist */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="bg-card rounded-2xl p-5 border border-border/30 shadow-sm mb-6"
-        >
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
-            O que levar para a consulta
-          </p>
-          <div className="space-y-3">
-            {checklist.map((item, i) => {
-              const Icon = item.icon;
-              return (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <Icon className="w-4 h-4 text-primary" />
+        {/* Appointment summary card */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+          <Card variant="elevated" className="overflow-hidden">
+            <CardContent className="p-0">
+              <div className="bg-gradient-to-br from-primary/10 to-secondary/10 p-5 border-b border-border/40">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[10px] uppercase tracking-wider font-bold text-primary mb-1">Sua teleconsulta</p>
+                    <h2 className="font-bold text-foreground text-lg leading-tight">{appt.doctor_name}</h2>
+                    {appt.doctor_specialty && (
+                      <p className="text-xs text-muted-foreground mt-0.5">{appt.doctor_specialty}</p>
+                    )}
+                    {appt.doctor_crm && (
+                      <p className="text-[11px] text-muted-foreground mt-0.5">CRM {appt.doctor_crm_state} {appt.doctor_crm}</p>
+                    )}
                   </div>
-                  <span className="text-sm text-foreground">{item.text}</span>
+                  <Badge className={isPaid
+                    ? "bg-emerald-500/15 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400"
+                    : "bg-amber-500/15 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400"
+                  }>
+                    {isPaid ? "Pago" : "Aguardando pagamento"}
+                  </Badge>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+
+              <div className="p-5 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Calendar className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider">Data</p>
+                    <p className="text-sm font-semibold text-foreground capitalize">
+                      {format(date, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Clock className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider">Horário</p>
+                    <p className="text-sm font-semibold text-foreground">{format(date, "HH:mm", { locale: ptBR })}h</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Video className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider">Modalidade</p>
+                    <p className="text-sm font-semibold text-foreground">Vídeo · criptografado</p>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-border/40 flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Valor</span>
+                  <span className="text-lg font-black text-foreground tabular-nums">
+                    {formatBRL(appt.price_at_booking)}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Actions */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="space-y-3"
+          className="mt-6 space-y-2.5"
         >
           <Button
-            className="w-full h-[52px] rounded-full font-bold text-[15px] gap-2"
-            onClick={handleAddToCalendar}
+            className="w-full h-12 rounded-xl bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold shadow-md"
+            onClick={() => navigate(`/dashboard/appointments`)}
           >
-            <Calendar className="w-4 h-4" /> Adicionar ao Google Calendar
+            <ListChecks className="w-4 h-4 mr-2" /> Ver minhas consultas
+            <ArrowRight className="w-4 h-4 ml-auto" />
           </Button>
-          <Button
-            className="w-full h-[52px] rounded-full font-semibold text-[15px] gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
-            onClick={handleShareWhatsApp}
-          >
-            <ChatCircleDots className="w-4 h-4" weight="fill" /> Compartilhar no WhatsApp
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full h-[52px] rounded-full font-semibold text-[15px] gap-2 border-border/30"
-            onClick={() => navigate("/dashboard?role=patient")}
-          >
-            <Home className="w-4 h-4" /> Ver no dashboard
-          </Button>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            <Button asChild variant="outline" className="h-11 rounded-xl">
+              <a href={buildIcsDataUri(appt)} download={`consulta-${appt.id}.ics`}>
+                <Download className="w-4 h-4 mr-2" /> Adicionar à agenda
+              </a>
+            </Button>
+            <Button variant="outline" className="h-11 rounded-xl" onClick={() => navigate("/dashboard")}>
+              <Home className="w-4 h-4 mr-2" /> Início
+            </Button>
+          </div>
         </motion.div>
+
+        {/* Trust strip */}
+        <p className="text-center text-[11px] text-muted-foreground mt-8">
+          Você receberá uma confirmação por WhatsApp e e-mail. Em caso de imprevisto, é possível remarcar gratuitamente até 2h antes.
+        </p>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

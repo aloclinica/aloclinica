@@ -161,7 +161,7 @@ const BookAppointment = () => {
         if (isSubscribed && ["approved", "confirmed", "received"].includes(payload.new.payment_status)) {
           cleanup();
           toast.success("✅ Pagamento confirmado! Consulta garantida.");
-          navigate("/dashboard/appointments");
+          navigate(`/dashboard/appointments/${appointmentId}/confirmed`);
         }
       })
       .subscribe((status) => {
@@ -193,7 +193,7 @@ const BookAppointment = () => {
         if (data && data.length > 0) {
           cleanup();
           toast.success("✅ Pagamento confirmado! Consulta garantida.");
-          navigate("/dashboard/appointments");
+          navigate(`/dashboard/appointments/${appointmentId}/confirmed`);
         }
       }, 8000);
     };
@@ -518,7 +518,7 @@ const BookAppointment = () => {
           .catch(err => logError("notifyPaymentConfirmed", err));
 
         toast.success("Pagamento confirmado! ✅");
-        navigate("/dashboard/appointments");
+        navigate(`/dashboard/appointments/${appointmentId}/confirmed`);
       } else {
         toast.success("Pagamento criado!", { description: "Aguardando confirmação." });
       }

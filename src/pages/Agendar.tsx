@@ -194,7 +194,7 @@ const Agendar = () => {
   }, [doctors, debouncedSearch, sort, selectedSpecialty, onlyAvailable]);
 
   const handleSelectDoctor = (doctorId: string) => {
-    const returnUrl = `/dashboard/schedule?doctor=${doctorId}&specialty=${encodeURIComponent(selectedSpecialty || "Clínico Geral")}`;
+    const returnUrl = `/dashboard/schedule/${doctorId}?specialty=${encodeURIComponent(selectedSpecialty || "Clínico Geral")}`;
     navigate(`/paciente?redirect=${encodeURIComponent(returnUrl)}`);
   };
 
