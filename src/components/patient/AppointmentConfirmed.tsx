@@ -222,7 +222,7 @@ const AppointmentConfirmed = () => {
       if (!appointmentId) return;
       const { data } = await db
         .from("appointments")
-        .select("id, scheduled_at, appointment_type, price_at_booking, payment_status, status, doctor_id, clinic_id")
+        .select("id, scheduled_at, appointment_type, price_at_booking, payment_status, status, doctor_id, clinic_id, patient_id")
         .eq("id", appointmentId)
         .maybeSingle();
 
@@ -249,6 +249,24 @@ const AppointmentConfirmed = () => {
         clinicName = (clinic as any)?.name ?? null;
       }
 
+      // Buscar dados do paciente (nome e e-mail)
+      let patientName: string | null = null;
+      let patientEmail: string | null = null;
+      if (data.patient_id) {
+        const { data: patientProfile } = await db
+          .from("profiles")
+          .select("first_name, last_name, user_id")
+          .eq("user_id", data.patient_id)
+          .maybeSingle();
+        if (patientProfile) {
+          const p = patientProfile as any;
+          patientName = [p.first_name, p.last_name].filter(Boolean).join(" ") || null;
+        }
+        // Buscar e-mail do auth
+        const { data: authData } = await db.auth.admin.getUser(data.patient_id);
+        patientEmail = authData?.user?.email ?? null;
+      }
+
       const docAny = doc as any;
       setAppt({
         ...data,
@@ -259,6 +277,8 @@ const AppointmentConfirmed = () => {
         duration_minutes: Number(docAny?.consultation_duration) || 30,
         clinic_id: data.clinic_id ?? null,
         clinic_name: clinicName,
+        patient_name: patientName,
+        patient_email: patientEmail,
       });
       setLoading(false);
     };
