@@ -273,6 +273,30 @@ export type Database = {
         }
         Relationships: []
       }
+      appointment_reminder_log: {
+        Row: {
+          appointment_id: string
+          channel: string
+          id: string
+          sent_at: string
+          window_label: string
+        }
+        Insert: {
+          appointment_id: string
+          channel?: string
+          id?: string
+          sent_at?: string
+          window_label: string
+        }
+        Update: {
+          appointment_id?: string
+          channel?: string
+          id?: string
+          sent_at?: string
+          window_label?: string
+        }
+        Relationships: []
+      }
       appointment_reminders_sent: {
         Row: {
           appointment_id: string
