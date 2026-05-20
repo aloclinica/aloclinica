@@ -1161,7 +1161,7 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
 
   return (
     <div className="h-[100dvh] bg-[hsl(220,30%,4%)] flex flex-col overflow-hidden">
-      <ConnectionStatus onReconnect={handleReconnect} />
+      <ConnectionStatus onReconnect={handleReconnect} usingJitsi={!!jitsiRoomId} />
 
       {/* Queue banner */}
       <AnimatePresence>
