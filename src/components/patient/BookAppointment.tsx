@@ -38,6 +38,7 @@ import {
   KYC_PENDING_KEY,
 } from "./BookAppointment.types";
 import { usePixCountdown } from "@/hooks/usePixCountdown";
+import QuickPatientCheckoutDialog, { isProfileComplete } from "./QuickPatientCheckoutDialog";
 
 const patientNav = getPatientNav("schedule");
 
@@ -84,6 +85,10 @@ const BookAppointment = () => {
   const [couponCode, setCouponCode] = useState<string | null>(null);
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponLoading, setCouponLoading] = useState(false);
+
+  // Quick patient checkout dialog (cadastro rápido antes da reserva)
+  const [quickOpen, setQuickOpen] = useState(false);
+  const [profileReady, setProfileReady] = useState(false);
 
   const currentStep = paymentStep ? 3 : !selectedDate ? 0 : !selectedTime ? 1 : 2;
 
@@ -356,6 +361,22 @@ const BookAppointment = () => {
   // Step 1: Create appointment, then move to payment
   const handleBook = async () => {
     if (!selectedDate || !selectedTime || !doctor || !user) return;
+
+    // Cadastro rápido: bloqueia até termos nome/cpf/telefone/nascimento
+    if (!profileReady) {
+      const { data: profile } = await db
+        .from("profiles")
+        .select("first_name, last_name, cpf, phone, date_of_birth")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!isProfileComplete(profile)) {
+        setQuickOpen(true);
+        return;
+      }
+      setProfileReady(true);
+    }
+
     setBooking(true);
 
     const [h, m] = selectedTime.split(":").map(Number);
@@ -542,6 +563,19 @@ const BookAppointment = () => {
   };
 
   const availableTimes = selectedDate ? getAvailableTimesForDate(selectedDate) : [];
+
+  // ── Cadastro rápido dialog ──
+  const quickDialog = (
+    <QuickPatientCheckoutDialog
+      open={quickOpen}
+      onOpenChange={setQuickOpen}
+      onComplete={() => {
+        setProfileReady(true);
+        // continua o fluxo de reserva automaticamente
+        setTimeout(() => handleBook(), 0);
+      }}
+    />
+  );
 
   if (loading) return (
     <DashboardLayout title="Paciente" nav={patientNav}>
