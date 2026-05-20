@@ -7,44 +7,59 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, Crown } from "@phosphor-icons/react";
+import { Check, Crown, ForkKnife, Users, Calendar } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { PingoSubscribeDialog } from "@/components/patient/PingoSubscribeDialog";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Plan {
   id: string; name: string; tagline: string | null;
   price_monthly: number; price_yearly: number;
   benefits: string[]; is_highlighted: boolean;
+  slug?: string;
 }
 
-interface Sub {
-  id: string; plan_id: string; status: string; billing_cycle: string;
-  current_period_end: string | null; card_number: string;
-  plan?: Plan | null;
+interface Summary {
+  has_subscription: boolean;
+  subscription_id?: string;
+  plan_name?: string;
+  status?: string;
+  billing_cycle?: string;
+  next_charge_at?: string | null;
+  current_period_end?: string | null;
+  card_number?: string;
+  pingo_ticket_balance?: number;
+  dependents_count?: number;
+  dependents_limit?: number;
+  total_savings?: number;
+  benefits?: string[];
+  tagline?: string | null;
 }
 
 const formatBRL = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
-
-const generateCardNumber = () => {
-  const block = () => Math.floor(1000 + Math.random() * 9000);
-  return `${block()} ${block()} ${block()} ${block()}`;
-};
 
 const MeuPlano = () => {
   const { user } = useAuth();
   const nav = getCartaoNav("plano");
   const [loading, setLoading] = useState(true);
-  const [sub, setSub] = useState<Sub | null>(null);
+  const [summary, setSummary] = useState<Summary | null>(null);
+  const [subId, setSubId] = useState<string | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
+  const [subscribeOpen, setSubscribeOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
 
   const load = async () => {
     setLoading(true);
-    const [{ data: s }, { data: p }] = await Promise.all([
-      db.from("pingo_card_subscriptions").select("*, plan:pingo_card_plans(*)").eq("user_id", user!.id).maybeSingle(),
+    const [{ data: rpc }, { data: sub }, { data: p }] = await Promise.all([
+      db.rpc("fn_get_cartao_summary", { p_user_id: user!.id }),
+      db.from("pingo_card_subscriptions").select("id").eq("user_id", user!.id).maybeSingle(),
       db.from("pingo_card_plans").select("*").eq("is_active", true).order("display_order"),
     ]);
-    setSub(s as Sub | null);
+    setSummary((rpc as Summary | null) ?? null);
+    setSubId((sub as { id: string } | null)?.id ?? null);
     setPlans((p ?? []) as Plan[]);
     setLoading(false);
   };
@@ -54,35 +69,23 @@ const MeuPlano = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  const subscribe = async (plan: Plan, cycle: "monthly" | "yearly") => {
-    if (!user) return;
-    const { error } = await db.from("pingo_card_subscriptions").insert({
-      user_id: user.id,
-      plan_id: plan.id,
-      card_number: generateCardNumber(),
-      status: "active",
-      billing_cycle: cycle,
-      current_period_end: new Date(Date.now() + (cycle === "yearly" ? 365 : 30) * 86400_000).toISOString(),
-    });
-    if (error) {
-      toast.error("Erro ao assinar", { description: error.message });
-      return;
-    }
-    toast.success(`Plano ${plan.name} ativado!`);
-    void load();
+  const openSubscribe = (plan: Plan, cycle: "monthly" | "yearly") => {
+    setBilling(cycle);
+    setSelectedPlan(plan);
+    setSubscribeOpen(true);
   };
 
   const cancel = async () => {
-    if (!sub) return;
+    if (!subId) return;
     const { error } = await db
       .from("pingo_card_subscriptions")
-      .update({ status: "canceled", canceled_at: new Date().toISOString() })
-      .eq("id", sub.id);
+      .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
+      .eq("id", subId);
     if (error) {
       toast.error("Erro ao cancelar");
       return;
     }
-    toast.success("Assinatura cancelada");
+    toast.success("Assinatura cancelada — você manterá os benefícios até o fim do ciclo atual.");
     void load();
   };
 
@@ -94,8 +97,9 @@ const MeuPlano = () => {
     );
   }
 
-  // Sem assinatura → mostra todos os planos
-  if (!sub) {
+  const hasSub = summary?.has_subscription === true;
+
+  if (!hasSub) {
     return (
       <DashboardLayout title="Meu Plano" nav={nav} role="cartao_beneficios">
         <div className="max-w-6xl mx-auto space-y-5 pb-20">
@@ -105,6 +109,13 @@ const MeuPlano = () => {
               <p className="opacity-90">Ative em segundos e comece a economizar na rede credenciada.</p>
             </CardContent>
           </Card>
+
+          <Tabs value={billing} onValueChange={(v) => setBilling(v as "monthly" | "yearly")} className="w-fit mx-auto">
+            <TabsList>
+              <TabsTrigger value="monthly">Mensal</TabsTrigger>
+              <TabsTrigger value="yearly">Anual <Badge className="ml-2 bg-emerald-500 text-white">-15%</Badge></TabsTrigger>
+            </TabsList>
+          </Tabs>
 
           <div className="grid md:grid-cols-3 gap-4">
             {plans.map((plan) => (
@@ -116,8 +127,15 @@ const MeuPlano = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <span className="text-3xl font-bold">{formatBRL(plan.price_monthly)}</span>
+                    <span className="text-3xl font-bold">
+                      {formatBRL(billing === "yearly" ? plan.price_yearly / 12 : plan.price_monthly)}
+                    </span>
                     <span className="text-muted-foreground">/mês</span>
+                    {billing === "yearly" && (
+                      <p className="text-xs text-emerald-600 font-medium mt-1">
+                        {formatBRL(plan.price_yearly)} cobrados anualmente
+                      </p>
+                    )}
                   </div>
                   <ul className="space-y-2 text-sm">
                     {plan.benefits?.slice(0, 5).map((b, i) => (
@@ -127,23 +145,31 @@ const MeuPlano = () => {
                       </li>
                     ))}
                   </ul>
-                  <div className="flex flex-col gap-2 pt-2">
-                    <Button onClick={() => subscribe(plan, "monthly")} className="rounded-xl">Assinar mensal</Button>
-                    <Button variant="outline" onClick={() => subscribe(plan, "yearly")} className="rounded-xl">
-                      Anual ({formatBRL(plan.price_yearly)})
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={() => openSubscribe(plan, billing)}
+                    className="rounded-xl w-full"
+                    variant={plan.is_highlighted ? "default" : "outline"}
+                  >
+                    Assinar agora
+                  </Button>
                 </CardContent>
               </Card>
             ))}
           </div>
         </div>
+
+        <PingoSubscribeDialog
+          open={subscribeOpen}
+          onOpenChange={setSubscribeOpen}
+          plan={selectedPlan as any}
+          billingCycle={billing}
+          onSubscribed={() => void load()}
+        />
       </DashboardLayout>
     );
   }
 
-  const plan = sub.plan;
-  const isCanceled = sub.status === "canceled";
+  const isCanceled = summary?.status === "cancelled" || summary?.status === "canceled";
 
   return (
     <DashboardLayout title="Meu Plano" nav={nav} role="cartao_beneficios">
@@ -153,7 +179,7 @@ const MeuPlano = () => {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <Crown size={22} weight="fill" className="text-amber-500" />
-                {plan?.name}
+                {summary?.plan_name}
               </CardTitle>
               <Badge variant={isCanceled ? "destructive" : "default"}>
                 {isCanceled ? "Cancelada" : "Ativa"}
@@ -161,26 +187,47 @@ const MeuPlano = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-muted-foreground">{plan?.tagline}</p>
-            <ul className="space-y-2">
-              {plan?.benefits?.map((b, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm">
-                  <Check size={16} weight="bold" className="text-rose-600 mt-0.5 shrink-0" /> {b}
-                </li>
-              ))}
-            </ul>
-            <div className="grid grid-cols-2 gap-4 text-sm pt-4 border-t">
+            {summary?.tagline && <p className="text-muted-foreground">{summary.tagline}</p>}
+            {!!summary?.benefits?.length && (
+              <ul className="space-y-2">
+                {summary.benefits.map((b: string, i: number) => (
+                  <li key={i} className="flex items-start gap-2 text-sm">
+                    <Check size={16} weight="bold" className="text-rose-600 mt-0.5 shrink-0" /> {b}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm pt-4 border-t">
               <div>
-                <p className="text-muted-foreground">Cobrança</p>
-                <p className="font-semibold capitalize">{sub.billing_cycle === "yearly" ? "Anual" : "Mensal"}</p>
+                <p className="text-muted-foreground flex items-center gap-1"><Calendar size={12} /> Cobrança</p>
+                <p className="font-semibold capitalize">{summary?.billing_cycle === "yearly" ? "Anual" : "Mensal"}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Próximo ciclo</p>
                 <p className="font-semibold">
-                  {sub.current_period_end ? format(new Date(sub.current_period_end), "dd/MM/yyyy") : "—"}
+                  {summary?.next_charge_at
+                    ? format(new Date(summary.next_charge_at), "dd/MM/yyyy")
+                    : summary?.current_period_end
+                      ? format(new Date(summary.current_period_end), "dd/MM/yyyy")
+                      : "—"}
                 </p>
               </div>
+              <div>
+                <p className="text-muted-foreground flex items-center gap-1"><ForkKnife size={12} /> Pingo Ticket</p>
+                <p className="font-semibold text-emerald-600">{formatBRL(Number(summary?.pingo_ticket_balance ?? 0))}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground flex items-center gap-1"><Users size={12} /> Dependentes</p>
+                <p className="font-semibold">{summary?.dependents_count ?? 0} / {summary?.dependents_limit ?? 0}</p>
+              </div>
             </div>
+
+            {Number(summary?.total_savings ?? 0) > 0 && (
+              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-sm">
+                💚 Você já economizou <strong className="text-emerald-700">{formatBRL(Number(summary?.total_savings ?? 0))}</strong> usando o seu cartão.
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -199,7 +246,7 @@ const MeuPlano = () => {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Cancelar Cartão Benefícios?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Você perderá os benefícios e descontos imediatamente. Esta ação não pode ser desfeita.
+                      Você manterá os benefícios até o fim do ciclo atual e não será mais cobrado nas próximas faturas.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
