@@ -24,26 +24,83 @@ interface ConfirmedAppointment {
   doctor_specialty: string | null;
   doctor_crm: string | null;
   doctor_crm_state: string | null;
+  duration_minutes: number;
 }
 
 const formatBRL = (v: number | null | undefined) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v ?? 0));
 
-const buildIcsDataUri = (appt: ConfirmedAppointment) => {
+// Formata Date para horário local de São Paulo no formato ICS (YYYYMMDDTHHMMSS)
+const fmtLocalSP = (d: Date) => {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hour12: false,
+  }).formatToParts(d).reduce<Record<string, string>>((acc, p) => {
+    if (p.type !== "literal") acc[p.type] = p.value;
+    return acc;
+  }, {});
+  return `${parts.year}${parts.month}${parts.day}T${parts.hour}${parts.minute}${parts.second}`;
+};
+
+// UTC no formato ICS (YYYYMMDDTHHMMSSZ) — usado em DTSTAMP
+const fmtUtc = (d: Date) =>
+  d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+
+const escapeIcs = (s: string) =>
+  String(s).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+
+const buildIcsDataUri = (appt: ConfirmedAppointment, roomUrl: string) => {
   const start = new Date(appt.scheduled_at);
-  const end = new Date(start.getTime() + 30 * 60 * 1000);
-  const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  const duration = Math.max(5, Number(appt.duration_minutes) || 30);
+  const end = new Date(start.getTime() + duration * 60 * 1000);
+
+  // Bloco VTIMEZONE para America/Sao_Paulo (UTC-3, sem DST desde 2019)
+  const vtimezone = [
+    "BEGIN:VTIMEZONE",
+    "TZID:America/Sao_Paulo",
+    "X-LIC-LOCATION:America/Sao_Paulo",
+    "BEGIN:STANDARD",
+    "DTSTART:19700101T000000",
+    "TZOFFSETFROM:-0300",
+    "TZOFFSETTO:-0300",
+    "TZNAME:-03",
+    "END:STANDARD",
+    "END:VTIMEZONE",
+  ];
+
+  const description = escapeIcs(
+    `Consulta online AloClínica com ${appt.doctor_name}.\n` +
+    `Duração: ${duration} minutos.\n` +
+    `Link da sala: ${roomUrl}\n` +
+    `Entre 5 minutos antes para testar câmera e microfone.`
+  );
+
   const ics = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//AloClinica//PT-BR",
+    "PRODID:-//AloClinica//Telemedicina//PT-BR",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    ...vtimezone,
     "BEGIN:VEVENT",
     `UID:${appt.id}@aloclinica`,
-    `DTSTAMP:${fmt(new Date())}`,
-    `DTSTART:${fmt(start)}`,
-    `DTEND:${fmt(end)}`,
-    `SUMMARY:Teleconsulta com ${appt.doctor_name}`,
-    `DESCRIPTION:Consulta online AloClínica. Acesse seu painel para entrar na chamada.`,
+    `DTSTAMP:${fmtUtc(new Date())}`,
+    `DTSTART;TZID=America/Sao_Paulo:${fmtLocalSP(start)}`,
+    `DTEND;TZID=America/Sao_Paulo:${fmtLocalSP(end)}`,
+    `DURATION:PT${duration}M`,
+    `SUMMARY:${escapeIcs(`Teleconsulta com ${appt.doctor_name}`)}`,
+    `DESCRIPTION:${description}`,
+    `URL:${roomUrl}`,
+    `LOCATION:${escapeIcs(roomUrl)}`,
+    "STATUS:CONFIRMED",
+    "TRANSP:OPAQUE",
+    "BEGIN:VALARM",
+    "ACTION:DISPLAY",
+    "DESCRIPTION:Sua teleconsulta começa em 15 minutos",
+    "TRIGGER:-PT15M",
+    "END:VALARM",
     "END:VEVENT",
     "END:VCALENDAR",
   ].join("\r\n");
@@ -81,7 +138,7 @@ const AppointmentConfirmed = () => {
       // Buscar médico via view pública
       const { data: doc } = await db
         .from("doctor_profiles_public" as any)
-        .select("display_name, full_name, crm, crm_state, specialty_names")
+        .select("display_name, full_name, crm, crm_state, specialty_names, consultation_duration")
         .eq("id", data.doctor_id)
         .maybeSingle();
 
@@ -92,6 +149,7 @@ const AppointmentConfirmed = () => {
         doctor_specialty: docAny?.specialty_names?.[0] ?? null,
         doctor_crm: docAny?.crm ?? null,
         doctor_crm_state: docAny?.crm_state ?? null,
+        duration_minutes: Number(docAny?.consultation_duration) || 30,
       });
       setLoading(false);
     };
@@ -277,7 +335,7 @@ const AppointmentConfirmed = () => {
 
           <div className="grid grid-cols-3 gap-2.5">
             <Button asChild variant="outline" className="h-11 rounded-xl">
-              <a href={buildIcsDataUri(appt)} download={`consulta-${appt.id}.ics`}>
+              <a href={buildIcsDataUri(appt, roomUrl)} download={`consulta-${appt.id}.ics`}>
                 <Download className="w-4 h-4 mr-1.5" /> Agenda
               </a>
             </Button>
