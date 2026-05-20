@@ -254,6 +254,40 @@ const AppointmentConfirmed = () => {
     }
   };
 
+  const handleDownloadIcs = () => {
+    const ics = buildIcsText(appt, roomUrl, reminderMinutes);
+    const result = validateIcs(ics);
+    logIcsValidation(`consulta-${appt.id}.ics`, ics, result);
+
+    if (!result.ok) {
+      toast.error("Arquivo .ics inválido", {
+        description: result.errors.slice(0, 2).join(" • "),
+      });
+      return;
+    }
+
+    // Usa Blob + objectURL — mais confiável que data: URI no Safari/iOS para .ics
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `consulta-${appt.id}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+
+    if (result.warnings.length) {
+      toast.success("Agenda baixada", {
+        description: `Compatível com Google Calendar e iCal. ${result.warnings.length} aviso(s) no console.`,
+      });
+    } else {
+      toast.success("Agenda baixada", {
+        description: "Compatível com Google Calendar e Apple iCal.",
+      });
+    }
+  };
+
   return (
     <DashboardLayout title="Consulta confirmada" nav={nav}>
       <div className="w-full max-w-xl mx-auto pb-24 md:pb-6">
