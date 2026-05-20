@@ -4222,6 +4222,60 @@ export type Database = {
         }
         Relationships: []
       }
+      refund_requests: {
+        Row: {
+          amount_cents: number | null
+          appointment_id: string
+          approved_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          processed_by: string | null
+          reason: string | null
+          refunded_at: string | null
+          rejected_at: string | null
+          requested_at: string
+          status: Database["public"]["Enums"]["refund_status"]
+          tier: Database["public"]["Enums"]["refund_tier"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents?: number | null
+          appointment_id: string
+          approved_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          refunded_at?: string | null
+          rejected_at?: string | null
+          requested_at?: string
+          status?: Database["public"]["Enums"]["refund_status"]
+          tier?: Database["public"]["Enums"]["refund_tier"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number | null
+          appointment_id?: string
+          approved_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          refunded_at?: string | null
+          rejected_at?: string | null
+          requested_at?: string
+          status?: Database["public"]["Enums"]["refund_status"]
+          tier?: Database["public"]["Enums"]["refund_tier"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       satisfaction_surveys: {
         Row: {
           appointment_id: string | null
@@ -5363,6 +5417,8 @@ export type Database = {
         | "confirmed"
       appointment_type: "first_visit" | "return" | "urgency"
       approval_status: "pending" | "approved" | "rejected"
+      refund_status: "pending" | "approved" | "refunded" | "rejected"
+      refund_tier: "full" | "partial" | "none"
       ticket_priority: "low" | "medium" | "high" | "critical"
       ticket_status: "open" | "in_progress" | "resolved" | "closed"
     }
@@ -5519,6 +5575,8 @@ export const Constants = {
       ],
       appointment_type: ["first_visit", "return", "urgency"],
       approval_status: ["pending", "approved", "rejected"],
+      refund_status: ["pending", "approved", "refunded", "rejected"],
+      refund_tier: ["full", "partial", "none"],
       ticket_priority: ["low", "medium", "high", "critical"],
       ticket_status: ["open", "in_progress", "resolved", "closed"],
     },
