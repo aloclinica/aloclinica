@@ -57,7 +57,7 @@ const AdminDashboard = () => {
     total_revenue: 0, active_subs: 0, overdue_subs: 0, total_patients: 0,
     total_doctors: 0, monthly_appts: 0,
     live_now: 0, waiting_now: 0, no_show_rate: 0, cancel_rate: 0, avg_rating: 0,
-    total_laudos: 0, avg_nps: 0,
+    avg_nps: 0,
   });
   const [recentSubs, setRecentSubs] = useState<any[]>([]);
   const [overdueSubs, setOverdueSubs] = useState<any[]>([]);
@@ -128,7 +128,7 @@ const AdminDashboard = () => {
     else if (periodFilter === "last6") { periodStart = startOfMonth(subMonths(now, 5)); }
     else { periodStart = new Date("2020-01-01"); }
 
-    const [patientsRes, doctorsRes, activeSubsRes, expiredSubsRes, monthApptsRes, pendingRes, allSubsRes, cancelledRes, noShowRes, totalMonthRes, ratingsRes, laudosRes, npsRes] = await Promise.all([
+    const [patientsRes, doctorsRes, activeSubsRes, expiredSubsRes, monthApptsRes, pendingRes, allSubsRes, cancelledRes, noShowRes, totalMonthRes, ratingsRes, npsRes] = await Promise.all([
       db.from("user_roles").select("id", { count: "exact", head: true }).eq("role", "patient"),
       db.from("doctor_profiles").select("id", { count: "exact", head: true }),
       db.from("subscriptions").select("id", { count: "exact", head: true }).eq("status", "active"),
@@ -147,8 +147,6 @@ const AdminDashboard = () => {
       db.from("appointments").select("id", { count: "exact", head: true })
         .gte("scheduled_at", periodStart.toISOString()),
       db.from("doctor_profiles").select("rating").gt("rating", 0),
-      db.from("exam_reports").select("id", { count: "exact", head: true })
-        .gte("created_at", periodStart.toISOString()),
       db.from("satisfaction_surveys").select("nps_score")
         .gte("created_at", periodStart.toISOString()),
     ]);
@@ -174,7 +172,7 @@ const AdminDashboard = () => {
       overdue_subs: expiredSubsRes.data?.length ?? 0, total_patients: patientsRes.count ?? 0,
       total_doctors: doctorsRes.count ?? 0, monthly_appts: monthApptsRes.count ?? 0,
       live_now: 0, waiting_now: 0, cancel_rate: cancelRate, no_show_rate: noShowRate, avg_rating: avgRating,
-      total_laudos: laudosRes.count ?? 0, avg_nps: avgNps,
+      avg_nps: avgNps,
     });
 
     const allSubs = [...(allSubsRes.data ?? []), ...(expiredSubsRes.data ?? [])];
