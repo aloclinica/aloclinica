@@ -114,6 +114,14 @@ async function handlePayment(admin: any, paymentId: string) {
         link: `/dashboard/appointments?role=patient`,
         user_id: await getUserIdFromAppointment(admin, apptId),
       } as any);
+      // Dispara recibo + confirmação por e-mail/WhatsApp
+      try {
+        await admin.functions.invoke("appointment-confirmed", {
+          body: { appointment_id: apptId },
+        });
+      } catch (e) {
+        console.error("[mp-webhook] falha ao enviar recibo", e);
+      }
     } else if (internalStatus === "refused" || internalStatus === "cancelled") {
       await admin
         .from("appointments")
