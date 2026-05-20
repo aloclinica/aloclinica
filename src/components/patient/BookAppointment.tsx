@@ -401,6 +401,14 @@ const BookAppointment = () => {
     const [h, m] = selectedTime.split(":").map(Number);
     const scheduledAt = setMinutes(setHours(new Date(selectedDate), h), m);
 
+    // Valida que o horário não está no passado (link/sessão expirados)
+    if (isBefore(scheduledAt, new Date())) {
+      setBooking(false);
+      toast.error("Horário expirado", { description: "O horário selecionado já passou. Escolha outro." });
+      setSelectedTime(null);
+      return;
+    }
+
     const dependentInfo = bookingFor !== "self" ? dependents.find(d => d.id === bookingFor) : null;
     const notesText = dependentInfo ? `Consulta para dependente: ${dependentInfo.name} (${dependentInfo.relationship})` : null;
 
@@ -410,6 +418,37 @@ const BookAppointment = () => {
       const weeksGap = RECURRENCE_WEEKS[recurrence] ?? 1;
       for (let i = 1; i < recurrenceCount; i++) {
         datesToBook.push(addDays(scheduledAt, weeksGap * 7 * i));
+      }
+    }
+
+    // Revalida disponibilidade de todos os slots no momento da confirmação (anti double-booking)
+    {
+      const { data: conflicts } = await db
+        .from("appointments")
+        .select("scheduled_at")
+        .eq("doctor_id", doctor.id)
+        .neq("status", "cancelled")
+        .in("scheduled_at", datesToBook.map(d => d.toISOString()));
+
+      if (conflicts && conflicts.length > 0) {
+        setBooking(false);
+        const conflictTimes = conflicts
+          .map(c => format(new Date(c.scheduled_at), "dd/MM 'às' HH:mm", { locale: ptBR }))
+          .join(", ");
+        toast.error("Horário indisponível", {
+          description: `${conflictTimes} acabou de ser reservado por outra pessoa. Selecione outro horário.`,
+        });
+        setSelectedTime(null);
+        // Recarrega slots ocupados do dia para refletir a mudança
+        try {
+          const dayStart = new Date(selectedDate); dayStart.setHours(0, 0, 0, 0);
+          const dayEnd = new Date(selectedDate); dayEnd.setHours(23, 59, 59, 999);
+          const { data: dayAppts } = await db.from("appointments").select("scheduled_at")
+            .eq("doctor_id", doctor.id).gte("scheduled_at", dayStart.toISOString())
+            .lte("scheduled_at", dayEnd.toISOString()).neq("status", "cancelled");
+          setBookedSlots(dayAppts?.map((a: any) => format(new Date(a.scheduled_at), "HH:mm")) ?? []);
+        } catch {/* ignore */}
+        return;
       }
     }
 
@@ -438,6 +477,16 @@ const BookAppointment = () => {
       }).select("id").single();
 
       if (error || !insertedAppt) {
+        // Erro 23505 = unique violation (índice anti double-booking no banco)
+        const code = (error as any)?.code;
+        if (code === "23505") {
+          setBooking(false);
+          toast.error("Horário indisponível", {
+            description: "Este horário acabou de ser reservado por outra pessoa. Selecione outro horário.",
+          });
+          setSelectedTime(null);
+          return;
+        }
         errorOccurred = true;
         break;
       }
