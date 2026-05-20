@@ -52,6 +52,13 @@ const CancelRescheduleDialog = ({ appointmentId, doctorId, currentDate, schedule
   const [reason, setReason] = useState("");
   const [customReason, setCustomReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationData, setConfirmationData] = useState<{
+    doctorName: string;
+    dateTime: string;
+    cancelledAt: string;
+    refundTier: "full" | "partial" | "none";
+  } | null>(null);
 
   // Reschedule state
   const [newDate, setNewDate] = useState<Date | undefined>();
@@ -64,6 +71,10 @@ const CancelRescheduleDialog = ({ appointmentId, doctorId, currentDate, schedule
   const isLateCancel = hoursUntil < 2;
   const isVeryLateCancel = hoursUntil < 1;
   const isPastAppointment = scheduledAt ? isBefore(new Date(scheduledAt), new Date()) : false;
+
+  // Refund tier based on hours until appointment
+  const refundTier: "full" | "partial" | "none" =
+    hoursUntil >= 24 ? "full" : hoursUntil >= 2 ? "partial" : "none";
 
   // Check if within 15-day return window (free reschedule)
   const isWithinReturnWindow = scheduledAt ? differenceInHours(new Date(), new Date(scheduledAt)) < 15 * 24 : false;
