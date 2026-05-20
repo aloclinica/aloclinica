@@ -153,6 +153,7 @@ const CancelRescheduleDialog = ({ appointmentId, doctorId, currentDate, schedule
         cancelledAt: format(new Date(), "dd/MM/yyyy 'às' HH:mm"),
         refundTier,
       });
+      onSuccess(); // sincroniza lista imediatamente, antes de mostrar confirmação
       setShowConfirmation(true);
     }
     setSubmitting(false);
