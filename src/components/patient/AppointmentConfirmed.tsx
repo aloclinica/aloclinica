@@ -82,6 +82,15 @@ const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinut
     `Entre 5 minutos antes para testar câmera e microfone.`
   );
 
+  // X-ALT-DESC com HTML para clients que suportam (Outlook, Apple Calendar)
+  const htmlDesc = escapeIcs(
+    `<h3>Consulta online AloClínica</h3>` +
+    `<p><b>Médico:</b> ${appt.doctor_name}${appt.doctor_specialty ? ` (${appt.doctor_specialty})` : ""}${appt.doctor_crm ? ` — CRM-${appt.doctor_crm_state || "XX"} ${appt.doctor_crm}` : ""}</p>` +
+    `<p><b>Duração:</b> ${duration} minutos</p>` +
+    `<p><b>Link da sala:</b> <a href="${roomUrl}">${roomUrl}</a></p>` +
+    `<p>Entre 5 minutos antes para testar câmera e microfone.</p>`
+  );
+
   const alarm = reminderMinutes != null && reminderMinutes > 0
     ? [
         "BEGIN:VALARM",
@@ -107,8 +116,9 @@ const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinut
     `DURATION:PT${duration}M`,
     `SUMMARY:${escapeIcs(`Teleconsulta — ${appt.doctor_name}${appt.doctor_specialty ? ` (${appt.doctor_specialty})` : ""}${appt.doctor_crm ? `, CRM-${appt.doctor_crm_state || "XX"} ${appt.doctor_crm}` : ""}`)}`,
     `DESCRIPTION:${description}`,
+    `X-ALT-DESC;FMTTYPE=text/html:${htmlDesc}`,
     `URL:${roomUrl}`,
-    `LOCATION:${escapeIcs(roomUrl)}`,
+    `LOCATION:${escapeIcs(`AloClínica — Teleconsulta Online | ${roomUrl}`)}`,
     "STATUS:CONFIRMED",
     "TRANSP:OPAQUE",
     ...alarm,
