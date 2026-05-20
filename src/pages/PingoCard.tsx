@@ -65,13 +65,23 @@ const PingoCard = () => {
   const [subscribeOpen, setSubscribeOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<PingoPlan | null>(null);
 
-  const handleSubscribe = (plan: PingoPlan) => {
+  const handleSubscribe = (plan: PingoPlan, cycle: "monthly" | "yearly" = billing) => {
     if (!user) {
       navigate(`/paciente?next=/pingo-card%23planos`);
       return;
     }
+    setBilling(cycle);
     setSelectedPlan(plan);
     setSubscribeOpen(true);
+  };
+
+  const handleSubscribed = () => {
+    // Plano Família/Premium → leva o titular para cadastrar dependentes
+    if (selectedPlan && selectedPlan.max_dependents > 0) {
+      navigate("/dashboard/cartao/dependentes?role=cartao_beneficios&onboarding=1");
+      return;
+    }
+    navigate("/dashboard/cartao/carteirinha?role=cartao_beneficios");
   };
 
   useEffect(() => {
@@ -632,7 +642,7 @@ const PingoCard = () => {
         onOpenChange={setSubscribeOpen}
         plan={selectedPlan}
         billingCycle={billing}
-        onSubscribed={() => navigate("/dashboard/cartao/carteirinha?role=cartao_beneficios")}
+        onSubscribed={handleSubscribed}
       />
     </div>
   );
