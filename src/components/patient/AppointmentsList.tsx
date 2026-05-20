@@ -32,6 +32,8 @@ interface Appointment {
   doctor_name: string;
   doctor_crm: string;
   specialties: string[];
+  refund_status?: "pending" | "approved" | "refunded" | "rejected" | null;
+  refund_amount_cents?: number | null;
 }
 
 const statusConfig: Record<string, { label: string; color: string; dot: string; stripe: string }> = {
