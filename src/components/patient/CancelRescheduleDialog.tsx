@@ -284,123 +284,220 @@ const CancelRescheduleDialog = ({ appointmentId, doctorId, currentDate, schedule
         )}
       </DialogTrigger>
       <DialogContent className="max-w-sm max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{mode === "cancel" ? "Cancelar Consulta" : "Reagendar Consulta"}</DialogTitle>
-        </DialogHeader>
+        <AnimatePresence mode="wait">
+          {showConfirmation && confirmationData ? (
+            <motion.div
+              key="confirmation"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-5"
+            >
+              <DialogHeader>
+                <DialogTitle>Consulta Cancelada</DialogTitle>
+              </DialogHeader>
 
-        {/* Mode tabs */}
-        {doctorId && (
-          <div className="flex gap-2 mb-2">
-            <Button size="sm" variant={mode === "cancel" ? "destructive" : "outline"} className="flex-1 text-xs" onClick={() => setMode("cancel")}>
-              <X className="w-3 h-3 mr-1" /> Cancelar
-            </Button>
-            <Button size="sm" variant={mode === "reschedule" ? "default" : "outline"} className="flex-1 text-xs" onClick={() => setMode("reschedule")}>
-              <RefreshCw className="w-3 h-3 mr-1" /> Reagendar
-            </Button>
-          </div>
-        )}
-
-        <div className="space-y-4 pt-2 pb-24 md:pb-6">
-          <div className="p-3 rounded-lg bg-muted/50 text-sm">
-            <p className="font-medium text-foreground">{doctorName}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{currentDate}</p>
-          </div>
-
-          {isPastAppointment && (
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-              <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
-              <p className="text-xs text-destructive">
-                Esta consulta já passou. Não é possível {mode === "cancel" ? "cancelar" : "reagendar"} a partir deste link.
-              </p>
-            </div>
-          )}
-
-          {mode === "cancel" ? (
-            <>
-              {isLateCancel && (
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-warning/10 border border-warning/20">
-                  <AlertTriangle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
-                  <p className="text-xs text-warning">
-                    {isVeryLateCancel
-                      ? "Cancelamento com menos de 1h de antecedência. Este cancelamento NÃO é reembolsável."
-                      : "Cancelamento com menos de 2h de antecedência pode estar sujeito a cobrança."}
-                  </p>
-                </div>
-              )}
-
-              <div>
-                <Label className="text-sm">Motivo do cancelamento *</Label>
-                <Select value={reason} onValueChange={setReason}>
-                  <SelectTrigger className="mt-1.5"><SelectValue placeholder="Selecione o motivo" /></SelectTrigger>
-                  <SelectContent>
-                    {CANCEL_REASONS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              <div className="flex flex-col items-center text-center py-2">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                  className="relative mb-4"
+                >
+                  <div className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full" />
+                  <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                    <CheckCircle2 className="w-9 h-9 text-white" strokeWidth={2.5} />
+                  </div>
+                </motion.div>
+                <p className="text-sm text-muted-foreground">Sua consulta foi cancelada com sucesso.</p>
               </div>
 
-              {reason === "Outro motivo" && (
-                <div>
-                  <Label className="text-sm">Descreva o motivo</Label>
-                  <Textarea value={customReason} onChange={e => setCustomReason(e.target.value)} placeholder="Descreva o motivo..." rows={3} className="mt-1.5" />
+              <div className="p-4 rounded-xl bg-muted/50 border border-border/40 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <Stethoscope className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider">Médico</p>
+                    <p className="text-sm font-semibold text-foreground">{confirmationData.doctorName}</p>
+                  </div>
                 </div>
-              )}
 
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={() => setOpen(false)}>Voltar</Button>
-                <Button variant="destructive" className="flex-1" onClick={handleCancel} disabled={submitting || !reason || isPastAppointment}>
-                  {submitting ? "Cancelando..." : "Confirmar Cancelamento"}
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              {isWithinReturnWindow && (
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-secondary/10 border border-secondary/20">
-                  <Clock className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
-                  <p className="text-xs text-secondary">Reagendamento dentro do período de retorno (15 dias) — sem custo adicional.</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <CalendarDays className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider">Data e horário</p>
+                    <p className="text-sm font-semibold text-foreground capitalize">{confirmationData.dateTime}</p>
+                  </div>
                 </div>
-              )}
 
-              <div>
-                <Label className="text-sm mb-2 block">Nova data</Label>
-                <Calendar
-                  mode="single"
-                  selected={newDate}
-                  onSelect={(d) => { setNewDate(d); setNewTime(null); }}
-                  disabled={(date) => !isDayAvailable(date)}
-                  fromDate={new Date()}
-                  toDate={addDays(new Date(), 60)}
-                  locale={ptBR}
-                  className="pointer-events-auto mx-auto"
-                />
-              </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
+                    <X className="w-4 h-4 text-destructive" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider">Status na agenda</p>
+                    <p className="text-sm font-semibold text-destructive">Cancelada</p>
+                  </div>
+                </div>
 
-              {newDate && (
-                <div>
-                  <Label className="text-sm mb-2 block">Novo horário</Label>
-                  {availableTimes.length === 0 ? (
-                    <p className="text-xs text-muted-foreground text-center py-4">Sem horários disponíveis nesta data</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-warning/10 flex items-center justify-center shrink-0">
+                    <Clock className="w-4 h-4 text-warning" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider">Cancelado em</p>
+                    <p className="text-sm font-semibold text-foreground">{confirmationData.cancelledAt}</p>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-border/40">
+                  <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider mb-1">Política de reembolso</p>
+                  {confirmationData.refundTier === "full" ? (
+                    <p className="text-xs text-emerald-600 font-medium">Reembolso integral — até 24h antes, o valor será devolvido em até 5 dias úteis.</p>
+                  ) : confirmationData.refundTier === "partial" ? (
+                    <p className="text-xs text-amber-600 font-medium">Reembolso parcial (50%) — entre 2h e 24h antes. O restante é taxa de remarcação.</p>
                   ) : (
-                    <div className="grid grid-cols-3 gap-2">
-                      {availableTimes.map(t => (
-                        <Button key={t} size="sm" variant={newTime === t ? "default" : "outline"} className="text-xs" onClick={() => setNewTime(t)}>
-                          {t}
-                        </Button>
-                      ))}
-                    </div>
+                    <p className="text-xs text-destructive font-medium">Sem reembolso — cancelamento com menos de 2h de antecedência.</p>
                   )}
                 </div>
+              </div>
+
+              <Button className="w-full h-12 rounded-xl font-bold" onClick={handleCloseConfirmation}>
+                Entendi, voltar à agenda
+              </Button>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="form"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <DialogHeader>
+                <DialogTitle>{mode === "cancel" ? "Cancelar Consulta" : "Reagendar Consulta"}</DialogTitle>
+              </DialogHeader>
+
+              {/* Mode tabs */}
+              {doctorId && (
+                <div className="flex gap-2 mb-2">
+                  <Button size="sm" variant={mode === "cancel" ? "destructive" : "outline"} className="flex-1 text-xs" onClick={() => setMode("cancel")}>
+                    <X className="w-3 h-3 mr-1" /> Cancelar
+                  </Button>
+                  <Button size="sm" variant={mode === "reschedule" ? "default" : "outline"} className="flex-1 text-xs" onClick={() => setMode("reschedule")}>
+                    <RefreshCw className="w-3 h-3 mr-1" /> Reagendar
+                  </Button>
+                </div>
               )}
 
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={() => setOpen(false)}>Voltar</Button>
-                <Button className="flex-1 bg-gradient-hero text-primary-foreground" onClick={handleReschedule} disabled={submitting || !newDate || !newTime || isPastAppointment}>
-                  {submitting ? "Reagendando..." : "Confirmar Reagendamento"}
-                </Button>
+              <div className="space-y-4 pt-2 pb-24 md:pb-6">
+                <div className="p-3 rounded-lg bg-muted/50 text-sm">
+                  <p className="font-medium text-foreground">{doctorName}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{currentDate}</p>
+                </div>
+
+                {isPastAppointment && (
+                  <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                    <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                    <p className="text-xs text-destructive">
+                      Esta consulta já passou. Não é possível {mode === "cancel" ? "cancelar" : "reagendar"} a partir deste link.
+                    </p>
+                  </div>
+                )}
+
+                {mode === "cancel" ? (
+                  <>
+                    {isLateCancel && (
+                      <div className="flex items-start gap-2 p-3 rounded-lg bg-warning/10 border border-warning/20">
+                        <AlertTriangle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+                        <p className="text-xs text-warning">
+                          {isVeryLateCancel
+                            ? "Cancelamento com menos de 1h de antecedência. Este cancelamento NÃO é reembolsável."
+                            : "Cancelamento com menos de 2h de antecedência pode estar sujeito a cobrança."}
+                        </p>
+                      </div>
+                    )}
+
+                    <div>
+                      <Label className="text-sm">Motivo do cancelamento *</Label>
+                      <Select value={reason} onValueChange={setReason}>
+                        <SelectTrigger className="mt-1.5"><SelectValue placeholder="Selecione o motivo" /></SelectTrigger>
+                        <SelectContent>
+                          {CANCEL_REASONS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {reason === "Outro motivo" && (
+                      <div>
+                        <Label className="text-sm">Descreva o motivo</Label>
+                        <Textarea value={customReason} onChange={e => setCustomReason(e.target.value)} placeholder="Descreva o motivo..." rows={3} className="mt-1.5" />
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Button variant="outline" className="flex-1" onClick={() => setOpen(false)}>Voltar</Button>
+                      <Button variant="destructive" className="flex-1" onClick={handleCancel} disabled={submitting || !reason || isPastAppointment}>
+                        {submitting ? "Cancelando..." : "Confirmar Cancelamento"}
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {isWithinReturnWindow && (
+                      <div className="flex items-start gap-2 p-3 rounded-lg bg-secondary/10 border border-secondary/20">
+                        <Clock className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
+                        <p className="text-xs text-secondary">Reagendamento dentro do período de retorno (15 dias) — sem custo adicional.</p>
+                      </div>
+                    )}
+
+                    <div>
+                      <Label className="text-sm mb-2 block">Nova data</Label>
+                      <Calendar
+                        mode="single"
+                        selected={newDate}
+                        onSelect={(d) => { setNewDate(d); setNewTime(null); }}
+                        disabled={(date) => !isDayAvailable(date)}
+                        fromDate={new Date()}
+                        toDate={addDays(new Date(), 60)}
+                        locale={ptBR}
+                        className="pointer-events-auto mx-auto"
+                      />
+                    </div>
+
+                    {newDate && (
+                      <div>
+                        <Label className="text-sm mb-2 block">Novo horário</Label>
+                        {availableTimes.length === 0 ? (
+                          <p className="text-xs text-muted-foreground text-center py-4">Sem horários disponíveis nesta data</p>
+                        ) : (
+                          <div className="grid grid-cols-3 gap-2">
+                            {availableTimes.map(t => (
+                              <Button key={t} size="sm" variant={newTime === t ? "default" : "outline"} className="text-xs" onClick={() => setNewTime(t)}>
+                                {t}
+                              </Button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Button variant="outline" className="flex-1" onClick={() => setOpen(false)}>Voltar</Button>
+                      <Button className="flex-1 bg-gradient-hero text-primary-foreground" onClick={handleReschedule} disabled={submitting || !newDate || !newTime || isPastAppointment}>
+                        {submitting ? "Reagendando..." : "Confirmar Reagendamento"}
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
-            </>
+            </motion.div>
           )}
-        </div>
+        </AnimatePresence>
       </DialogContent>
     </Dialog>
   );
