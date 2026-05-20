@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Camera, Mic, MicOff, CameraOff, CheckCircle2, AlertTriangle,
   Loader2, Users, Volume2, MessageCircle, Clock, Send, RefreshCw,
-  PhoneCall, ChevronDown, Wifi, Shield
+  PhoneCall, ChevronDown, Wifi, Shield, Speaker
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import mascotImg from "@/assets/mascot-wave.png";
@@ -62,6 +62,12 @@ const PreCallCheck = ({ appointmentId, doctorName, doctorSpecialty, scheduledAt,
   const [networkQuality, setNetworkQuality] = useState<"good" | "fair" | "poor" | null>(null);
   const [networkLatency, setNetworkLatency] = useState<number | null>(null);
   const [waitingSeconds, setWaitingSeconds] = useState(0);
+  const [deviceError, setDeviceError] = useState<{
+    kind: "permission" | "in-use" | "not-found" | "insecure" | "unknown";
+    message: string;
+  } | null>(null);
+  const [speakerTesting, setSpeakerTesting] = useState(false);
+  const speakerAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // Check if symptoms already submitted
   useEffect(() => {
@@ -203,44 +209,125 @@ const PreCallCheck = ({ appointmentId, doctorName, doctorSpecialty, scheduledAt,
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
+  const classifyError = (err: unknown): { kind: "permission" | "in-use" | "not-found" | "insecure" | "unknown"; message: string } => {
+    const e = err as { name?: string; message?: string };
+    const name = e?.name || "";
+    if (!window.isSecureContext) {
+      return { kind: "insecure", message: "Esta página precisa estar em HTTPS para usar câmera/microfone." };
+    }
+    if (name === "NotAllowedError" || name === "SecurityError") {
+      return { kind: "permission", message: "Permissão negada. Clique no cadeado da barra de endereço e habilite câmera/microfone." };
+    }
+    if (name === "NotFoundError" || name === "OverconstrainedError") {
+      return { kind: "not-found", message: "Nenhum dispositivo encontrado. Conecte uma câmera/microfone e tente novamente." };
+    }
+    if (name === "NotReadableError" || name === "AbortError") {
+      return { kind: "in-use", message: "Dispositivo em uso por outro aplicativo. Feche apps de vídeo (Zoom, Meet) e tente novamente." };
+    }
+    return { kind: "unknown", message: e?.message || "Falha ao acessar dispositivos." };
+  };
+
+  const attachAudioAnalyser = (audioTrack: MediaStreamTrack) => {
+    try {
+      const audioCtx = new AudioContext();
+      const source = audioCtx.createMediaStreamSource(new MediaStream([audioTrack]));
+      const analyser = audioCtx.createAnalyser();
+      source.connect(analyser);
+      analyser.fftSize = 256;
+      const dataArr = new Uint8Array(analyser.frequencyBinCount);
+      const updateVolume = () => {
+        analyser.getByteFrequencyData(dataArr);
+        const avg = dataArr.reduce((sum, v) => sum + v, 0) / dataArr.length;
+        setVolume(Math.min(avg / 80, 1));
+        animFrameRef.current = requestAnimationFrame(updateVolume);
+      };
+      updateVolume();
+    } catch {
+      /* analyser is non-critical */
+    }
+  };
+
   const testDevices = async () => {
     setTesting(true);
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      setStream(mediaStream);
-      streamRef.current = mediaStream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
+    setDeviceError(null);
+    // stop any previous stream
+    streamRef.current?.getTracks().forEach(t => t.stop());
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
 
-      const videoTrack = mediaStream.getVideoTracks()[0];
-      setCameraOk(videoTrack?.readyState === "live");
-
-      const audioTrack = mediaStream.getAudioTracks()[0];
-      if (audioTrack) {
-        const audioCtx = new AudioContext();
-        const source = audioCtx.createMediaStreamSource(new MediaStream([audioTrack]));
-        const analyser = audioCtx.createAnalyser();
-        source.connect(analyser);
-        analyser.fftSize = 256;
-        const dataArr = new Uint8Array(analyser.frequencyBinCount);
-
-        const updateVolume = () => {
-          analyser.getByteFrequencyData(dataArr);
-          const avg = dataArr.reduce((sum, v) => sum + v, 0) / dataArr.length;
-          setVolume(Math.min(avg / 80, 1));
-          animFrameRef.current = requestAnimationFrame(updateVolume);
-        };
-        updateVolume();
-        setMicOk(true);
-      } else {
-        setMicOk(false);
-      }
-    } catch {
+    if (!navigator.mediaDevices?.getUserMedia) {
       setCameraOk(false);
       setMicOk(false);
+      setDeviceError({ kind: "insecure", message: "Seu navegador não suporta acesso a câmera/microfone." });
+      setTesting(false);
+      return;
     }
+
+    let combined: MediaStream | null = null;
+    let firstError: unknown = null;
+    try {
+      combined = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    } catch (err) {
+      firstError = err;
+    }
+
+    // Fallback: try independently if combined failed
+    if (!combined) {
+      const tracks: MediaStreamTrack[] = [];
+      let camErr: unknown = null;
+      let micErr: unknown = null;
+      try {
+        const v = await navigator.mediaDevices.getUserMedia({ video: true });
+        v.getTracks().forEach(t => tracks.push(t));
+      } catch (err) { camErr = err; }
+      try {
+        const a = await navigator.mediaDevices.getUserMedia({ audio: true });
+        a.getTracks().forEach(t => tracks.push(t));
+      } catch (err) { micErr = err; }
+
+      if (tracks.length > 0) {
+        combined = new MediaStream(tracks);
+      }
+      setCameraOk(camErr ? false : tracks.some(t => t.kind === "video"));
+      setMicOk(micErr ? false : tracks.some(t => t.kind === "audio"));
+      const errToShow = camErr ?? micErr ?? firstError;
+      if (errToShow) setDeviceError(classifyError(errToShow));
+    } else {
+      const videoTrack = combined.getVideoTracks()[0];
+      const audioTrack = combined.getAudioTracks()[0];
+      setCameraOk(!!videoTrack && videoTrack.readyState === "live");
+      setMicOk(!!audioTrack && audioTrack.readyState === "live");
+    }
+
+    if (combined) {
+      setStream(combined);
+      streamRef.current = combined;
+      if (videoRef.current) videoRef.current.srcObject = combined;
+      const audioTrack = combined.getAudioTracks()[0];
+      if (audioTrack) attachAudioAnalyser(audioTrack);
+    }
+
     setTesting(false);
+  };
+
+  const testSpeaker = () => {
+    if (speakerTesting) return;
+    setSpeakerTesting(true);
+    try {
+      const ctx = new AudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 440;
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.2);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 1.25);
+      setTimeout(() => { setSpeakerTesting(false); ctx.close().catch(() => {}); }, 1400);
+    } catch {
+      setSpeakerTesting(false);
+    }
   };
 
   const toggleCamera = useCallback(() => {
