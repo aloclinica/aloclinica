@@ -447,6 +447,7 @@ const VideoRoom = () => {
     }
 
     // Verify correct participant — show in waiting room instead of redirect
+    let blockedParticipation = false;
     if (isDoctor) {
       const { data: dp } = await db.from("doctor_profiles").select("id").eq("user_id", user!.id).maybeSingle();
       if (dp && dp.id !== data.doctor_id) {
@@ -454,12 +455,14 @@ const VideoRoom = () => {
           reason: "Esta consulta não está atribuída a você.",
           hint: "Confira se você abriu o link correto da sua agenda.",
         });
+        blockedParticipation = true;
       }
     } else if (user && data.patient_id && data.patient_id !== user.id) {
       setParticipationBlocked({
         reason: "Esta consulta pertence a outro paciente.",
         hint: "Verifique se você está logado na conta correta.",
       });
+      blockedParticipation = true;
     }
 
     // Payment check — show in waiting room instead of redirect
@@ -469,11 +472,9 @@ const VideoRoom = () => {
 
     setAppointment(data);
 
-    // If participation blocked, do not start the consultation or notify peers
-    if (
-      (isDoctor && participationBlocked) ||
-      (!isDoctor && (participationBlocked || data.payment_status === "pending"))
-    ) {
+    // If blocked, do not start the consultation or notify peers
+    const blockedPayment = !isDoctor && data.payment_status === "pending" && data.status === "scheduled";
+    if (blockedParticipation || blockedPayment) {
       setLoading(false);
       return;
     }
