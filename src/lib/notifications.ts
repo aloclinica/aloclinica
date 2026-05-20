@@ -174,6 +174,13 @@ export const notifyAppointmentCancelled = async (
       sendWhatsApp(doctor.phone,
         `❌ *Consulta Cancelada*\n\n${doctorName}, a consulta com ${patientName} em ${dateStr} às ${timeStr} foi cancelada.${reason ? `\nMotivo: ${reason}` : ""}`);
     }
+    if (doctor?.user_id) {
+      sendEmail("appointment_cancelled", "resolve-from-user", {
+        patient_name: patientName, doctor_name: doctorName,
+        date: dateStr, time: timeStr, reason: reason ?? "",
+        cancelled_by: cancelledByName, recipient_user_id: doctor.user_id,
+      });
+    }
     if (patientUserId) {
       insertNotification(patientUserId, "❌ Consulta Cancelada",
         `Sua consulta com ${doctorName} em ${dateStr} às ${timeStr} foi cancelada.${reason ? ` Motivo: ${reason}` : ""}`,
@@ -181,7 +188,7 @@ export const notifyAppointmentCancelled = async (
     }
     if (doctor) {
       insertNotification(doctor.user_id, "❌ Consulta Cancelada",
-        `Consulta com ${patientName} em ${dateStr} às ${timeStr} foi cancelada.`,
+        `Consulta com ${patientName} em ${dateStr} às ${timeStr} foi cancelada.${reason ? ` Motivo: ${reason}` : ""}`,
         "appointment", "/dashboard/doctor/consultations?role=doctor");
     }
   } catch (err) {
