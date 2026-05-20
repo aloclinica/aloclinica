@@ -157,9 +157,13 @@ const CancelRescheduleDialog = ({ appointmentId, doctorId, currentDate, schedule
       toast.error("Erro ao cancelar consulta");
     } else {
       notifyAppointmentCancelled(appointmentId, "Paciente", finalReason).catch(err => logError("notifyAppointmentCancelled failed", err));
-      toast.success("Consulta cancelada com sucesso");
-      setOpen(false);
-      onSuccess();
+      setConfirmationData({
+        doctorName,
+        dateTime: scheduledAt ? format(new Date(scheduledAt), "EEEE, dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR }) : currentDate,
+        cancelledAt: format(new Date(), "dd/MM/yyyy 'às' HH:mm"),
+        refundTier,
+      });
+      setShowConfirmation(true);
     }
     setSubmitting(false);
   };
