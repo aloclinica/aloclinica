@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { motion } from "framer-motion";
 import QRCode from "qrcode";
+import { drawSafeText, safeQrBox, clampWidth } from "@/lib/pdf-layout";
 import MemedPrescription from "./MemedPrescription";
 import CfmPrescription from "./CfmPrescription";
 import { gerarHashDocumento, gerarCodigoVerificacao } from "@/lib/signature";
@@ -109,6 +110,7 @@ const PrescriptionForm = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
+    const MARGIN = 15;
     const now = new Date();
     const prescriptionId = `RX-${format(now, "yyyyMMdd")}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
@@ -273,9 +275,16 @@ const PrescriptionForm = () => {
         doc.setFont("helvetica", "bold");
         doc.text("Orientações:", 32, detailY);
         doc.setFont("helvetica", "normal");
-        const wrappedInst = doc.splitTextToSize(med.instructions, pageWidth - 65);
-        doc.text(wrappedInst, 52, detailY);
-        detailY += (wrappedInst.length * 4);
+        const instWidth = clampWidth(doc, 52, pageWidth - 67, MARGIN);
+        const endY = drawSafeText(doc, med.instructions, {
+          x: 52,
+          y: detailY,
+          maxWidth: instWidth,
+          fontSize: 8,
+          minFontSize: 6.5,
+          lineHeight: 4,
+        });
+        detailY = endY;
       }
 
       // Ajuste dinâmico de altura do card
@@ -292,7 +301,9 @@ const PrescriptionForm = () => {
       y += 4;
       doc.setFillColor(254, 254, 250);
       doc.setDrawColor(245, 240, 230);
-      const obsLines = doc.splitTextToSize(observations, pageWidth - 40);
+      const obsTextWidth = clampWidth(doc, 19, pageWidth - 38, MARGIN);
+      doc.setFontSize(9);
+      const obsLines = doc.splitTextToSize(observations, obsTextWidth);
       const obsHeight = Math.max(18, obsLines.length * 5 + 12);
       doc.roundedRect(15, y, pageWidth - 30, obsHeight, 2, 2, "FD");
       doc.setFontSize(8);
@@ -322,10 +333,11 @@ const PrescriptionForm = () => {
     doc.setFont("helvetica", "bold");
     doc.text("DOCUMENTO ASSINADO DIGITALMENTE - ICP-BRASIL (PAdES)", pageWidth / 2, sigBoxY + 5, { align: "center" });
     
-    // QR Code — escaneável para verificação pública
-    const qrSize = 28;
-    const qrX = 20;
-    const qrY = sigBoxY + 10;
+    // QR Code — escaneável para verificação pública (com clamp de bordas)
+    const qrPlaced = safeQrBox(doc, { x: 20, y: sigBoxY + 10, size: 28 }, MARGIN - 5);
+    const qrSize = qrPlaced.size;
+    const qrX = qrPlaced.x;
+    const qrY = qrPlaced.y;
     try {
       const verificationUrl = `${window.location.origin}/validar-receita/${prescriptionId}`;
       const qrDataUrl = await QRCode.toDataURL(verificationUrl, {
@@ -338,35 +350,38 @@ const PrescriptionForm = () => {
     } catch (error) {
       logError("QR Code generation failed:", error);
     }
-    
-    // Dados do assinante (lado direito do QR)
+
+    // Dados do assinante (lado direito do QR) — todos com quebra/encolhimento automáticos
     const infoX = qrX + qrSize + 6;
+    const infoWidth = clampWidth(doc, infoX, pageWidth - infoX - MARGIN, MARGIN);
     let sigY = qrY + 4;
-    
+
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
     doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-    doc.text(`Dr(a). ${doctorInfo?.first_name ?? ""} ${doctorInfo?.last_name ?? ""}`.trim(), infoX, sigY);
-    sigY += 4.5;
-    
+    sigY = drawSafeText(doc, `Dr(a). ${doctorInfo?.first_name ?? ""} ${doctorInfo?.last_name ?? ""}`.trim(), {
+      x: infoX, y: sigY, maxWidth: infoWidth, fontSize: 10, minFontSize: 8, maxLines: 1, lineHeight: 4.5,
+    });
+
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
     doc.setTextColor(60, 60, 60);
-    doc.text(`CRM: ${doctorInfo?.crm ?? "—"}/${doctorInfo?.crm_state ?? "—"}`, infoX, sigY);
-    sigY += 4;
-    
-    doc.text(`Tipo de certificado: e-CPF A1 (ICP-Brasil)`, infoX, sigY);
-    sigY += 4;
-    
-    doc.text(`Carimbo de tempo: ${format(now, "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}`, infoX, sigY);
-    sigY += 4;
-    
-    doc.text(`Código de verificação: ${prescriptionId}`, infoX, sigY);
-    sigY += 4;
-    
+    sigY = drawSafeText(doc, `CRM: ${doctorInfo?.crm ?? "—"}/${doctorInfo?.crm_state ?? "—"}`, {
+      x: infoX, y: sigY, maxWidth: infoWidth, fontSize: 8, minFontSize: 7, maxLines: 1, lineHeight: 4,
+    });
+    sigY = drawSafeText(doc, "Tipo de certificado: e-CPF A1 (ICP-Brasil)", {
+      x: infoX, y: sigY, maxWidth: infoWidth, fontSize: 8, minFontSize: 7, maxLines: 1, lineHeight: 4,
+    });
+    sigY = drawSafeText(doc, `Carimbo de tempo: ${format(now, "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}`, {
+      x: infoX, y: sigY, maxWidth: infoWidth, fontSize: 8, minFontSize: 7, maxLines: 1, lineHeight: 4,
+    });
+    sigY = drawSafeText(doc, `Código de verificação: ${prescriptionId}`, {
+      x: infoX, y: sigY, maxWidth: infoWidth, fontSize: 8, minFontSize: 7, maxLines: 1, lineHeight: 4,
+    });
+
     doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
     doc.setFont("helvetica", "bold");
-    doc.text(`Validar em: ${window.location.host}/validar-receita/${prescriptionId}`, infoX, sigY);
+    drawSafeText(doc, `Validar em: ${window.location.host}/validar-receita/${prescriptionId}`, {
+      x: infoX, y: sigY, maxWidth: infoWidth, fontSize: 8, minFontSize: 6.5, maxLines: 2, lineHeight: 4,
+    });
 
     // Bottom bar — Conformidade legal
     doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
@@ -374,10 +389,9 @@ const PrescriptionForm = () => {
     doc.setFontSize(7);
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "normal");
-    doc.text(
-      "Conforme Resolução CFM nº 2.299/2021 e MP 2.200-2/2001 (ICP-Brasil) | Escaneie o QR Code para validar a autenticidade",
-      pageWidth / 2, pageHeight - 5, { align: "center" }
-    );
+    drawSafeText(doc, "Conforme Resolução CFM nº 2.299/2021 e MP 2.200-2/2001 (ICP-Brasil) | Escaneie o QR Code para validar a autenticidade", {
+      x: pageWidth / 2, y: pageHeight - 5, maxWidth: pageWidth - 2 * MARGIN, fontSize: 7, minFontSize: 5.5, align: "center", maxLines: 1, lineHeight: 3,
+    });
 
       return { doc, prescriptionId };
   };
