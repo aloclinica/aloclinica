@@ -106,8 +106,13 @@ const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinut
   const crmSuffix = crmLabel ? ` — ${crmLabel}` : "";
   const specSuffix = appt.doctor_specialty ? ` (${appt.doctor_specialty})` : "";
 
+  const patientInfo = appt.patient_name
+    ? `Paciente: ${appt.patient_name}${appt.patient_email ? ` (${appt.patient_email})` : ""}\n`
+    : "";
+
   const description = escapeIcs(
     `Consulta online AloClínica\n` +
+    `${patientInfo}` +
     `Médico: ${appt.doctor_name}${specSuffix}${crmSuffix}.\n` +
     `Duração: ${duration} minutos.\n` +
     `Link da sala: ${roomUrl}\n` +
@@ -117,6 +122,7 @@ const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinut
   // X-ALT-DESC com HTML para clients que suportam (Outlook, Apple Calendar)
   const htmlDesc = escapeIcs(
     `<h3>Consulta online AloClínica</h3>` +
+    `${appt.patient_name ? `<p><b>Paciente:</b> ${appt.patient_name}${appt.patient_email ? ` (${appt.patient_email})` : ""}</p>` : ""}` +
     `<p><b>Médico:</b> ${appt.doctor_name}${specSuffix}${crmSuffix}</p>` +
     `<p><b>Duração:</b> ${duration} minutos</p>` +
     `<p><b>Link da sala:</b> <a href="${roomUrl}">${roomUrl}</a></p>` +
@@ -137,6 +143,10 @@ const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinut
     ? `${appt.clinic_name} — Teleconsulta Online | ${roomUrl}`
     : `AloClínica — Teleconsulta Online | ${roomUrl}`;
 
+  const attendeeBlock = appt.patient_email
+    ? [`ATTENDEE;ROLE=REQ-PARTICIPANT;CN=${escapeIcs(appt.patient_name || "Paciente")}:mailto:${appt.patient_email}`]
+    : [];
+
   const ics = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
@@ -155,6 +165,7 @@ const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinut
     `X-ALT-DESC;FMTTYPE=text/html:${htmlDesc}`,
     `URL:${roomUrl}`,
     `LOCATION:${escapeIcs(locationLabel)}`,
+    ...attendeeBlock,
     "STATUS:CONFIRMED",
     "TRANSP:OPAQUE",
     ...alarm,
