@@ -292,9 +292,9 @@ const PingoCard = () => {
 
                 transition={{ delay: i * 0.1 }}
               >
-                <Card className="h-full border-2 hover:border-primary/50 transition-all hover:shadow-xl">
+                <Card className="h-full border-2 hover:border-primary/50 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
                   <CardContent className="p-8">
-                    <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4 transition-colors group-hover:bg-primary/15">
                       {step.icon}
                     </div>
                     <div className="text-sm font-bold text-primary mb-2">PASSO {step.n}</div>
@@ -342,7 +342,7 @@ const PingoCard = () => {
                   transition={{ delay: i * 0.1 }}
                   className={plan.is_highlighted ? "lg:-mt-4" : ""}
                 >
-                  <Card className={`h-full relative ${plan.is_highlighted ? "border-2 border-primary shadow-2xl" : "border-2"}`}>
+                  <Card className={`h-full relative transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${plan.is_highlighted ? "border-2 border-primary shadow-2xl hover:shadow-2xl" : "border-2 hover:border-primary/50"}`}>
                     {plan.is_highlighted && (
                       <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground">
                         MAIS POPULAR
@@ -403,9 +403,9 @@ const PingoCard = () => {
             transition={{ delay: 0.3 }}
             className="max-w-3xl mx-auto mt-10"
           >
-            <Card className="border-2 border-dashed bg-card/60">
+            <Card className="border-2 border-dashed border-primary/30 bg-card/60 hover:border-primary/60 hover:shadow-lg transition-all duration-300">
               <CardContent className="p-6 md:p-7 flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6">
-                <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                   <Clock size={24} weight="fill" />
                 </div>
                 <div className="flex-1">
@@ -471,13 +471,13 @@ const PingoCard = () => {
 
                 transition={{ delay: i * 0.05 }}
               >
-                <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1">
+                <Card className="h-full border-2 hover:border-primary/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-3">
                       <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                         {categoryIcons[p.category] ?? <Storefront size={20} weight="fill" />}
                       </div>
-                      <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 border-0">
+                      <Badge variant="secondary" className="bg-secondary/15 text-secondary border-0 font-bold">
                         -{p.discount_percent}%
                       </Badge>
                     </div>
@@ -507,7 +507,7 @@ const PingoCard = () => {
 
             className="text-center mb-12"
           >
-            <Badge className="mb-3 bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-0">
+            <Badge className="mb-3 bg-secondary/15 text-secondary hover:bg-secondary/15 border-0">
               <Lightning size={14} weight="fill" className="mr-1" /> COMPARATIVO
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-3">Pingo Card vs. plano de saúde tradicional</h2>
@@ -572,7 +572,7 @@ const PingoCard = () => {
 
                 transition={{ delay: i * 0.1 }}
               >
-                <Card className="h-full border-2 hover:border-primary/40 hover:shadow-xl transition-all">
+                <Card className="h-full border-2 hover:border-primary/50 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
                   <CardContent className="p-6 md:p-7">
                     <Quotes size={32} weight="fill" className="text-primary/30 mb-3" />
                     <p className="text-sm md:text-base text-foreground/85 leading-relaxed mb-5">
@@ -609,7 +609,7 @@ const PingoCard = () => {
 
             className="text-center mb-10"
           >
-            <Badge className="mb-3 bg-violet-100 text-violet-700 hover:bg-violet-100 border-0">
+            <Badge className="mb-3 bg-primary/10 text-primary hover:bg-primary/10 border-0">
               <Question size={14} weight="fill" className="mr-1" /> DÚVIDAS FREQUENTES
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-3">Perguntas frequentes</h2>
