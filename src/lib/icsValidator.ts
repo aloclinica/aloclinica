@@ -26,6 +26,8 @@ export interface IcsValidationResult {
     dtend?: string;
     duration?: string;
     summary?: string;
+    url?: string;
+    location?: string;
   };
 }
 
@@ -107,6 +109,15 @@ export function validateIcs(ics: string): IcsValidationResult {
         if (!currentEvent.DTEND && !currentEvent.DURATION) {
           errors.push("VEVENT sem DTEND e sem DURATION.");
         }
+        // URL e LOCATION não são obrigatórios por RFC, mas são essenciais para teleconsulta
+        if (!currentEvent.URL) {
+          warnings.push("VEVENT sem URL — link da sala não estará disponível no calendário.");
+        } else if (!/^https?:\/\//i.test(currentEvent.URL)) {
+          warnings.push(`URL "${currentEvent.URL}" não parece ser um endereço web válido.`);
+        }
+        if (!currentEvent.LOCATION) {
+          warnings.push("VEVENT sem LOCATION — campo de localização ficará vazio no calendário.");
+        }
         if (!firstEvent) firstEvent = currentEvent;
         currentEvent = null;
       }
@@ -168,6 +179,8 @@ export function validateIcs(ics: string): IcsValidationResult {
     dtend: firstEvent?.DTEND,
     duration: firstEvent?.DURATION,
     summary: firstEvent?.SUMMARY,
+    url: firstEvent?.URL,
+    location: firstEvent?.LOCATION,
   };
 
   return { ok: errors.length === 0, errors, warnings, info };
