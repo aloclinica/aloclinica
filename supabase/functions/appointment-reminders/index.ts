@@ -19,8 +19,9 @@ serve(async (req) => {
 
     const now = new Date();
 
-    // Short-term windows: 1h, 30min, 15min before appointment
+    // Short-term windows: 2h, 1h, 30min, 15min before appointment
     const shortWindows = [
+      { min: 118, max: 123, label: "2 horas" },
       { min: 55, max: 65, label: "1 hora" },
       { min: 28, max: 33, label: "30 minutos" },
       { min: 13, max: 18, label: "15 minutos" },
@@ -107,9 +108,18 @@ serve(async (req) => {
       });
       const diffMin = Math.round((scheduledAt.getTime() - now.getTime()) / 60000);
       const diffHours = diffMin / 60;
-      const timeUntil = diffHours >= 47 ? "48 horas" : diffHours >= 23 ? "24 horas" : diffMin <= 18 ? "15 minutos" : diffMin <= 33 ? "30 minutos" : "1 hora";
+      const timeUntil =
+        diffHours >= 47 ? "48 horas"
+        : diffHours >= 23 ? "24 horas"
+        : diffMin >= 115 ? "2 horas"
+        : diffMin <= 18 ? "15 minutos"
+        : diffMin <= 33 ? "30 minutos"
+        : "1 hora";
       const isLongTerm = diffHours >= 23;
-      const jitsiLink = appt.jitsi_link || `https://meet.jit.si/allo-medico-${appt.id}`;
+      // Link interno da sala (autenticado, com fallback automático WebRTC→Jitsi).
+      const appBaseUrl = Deno.env.get("APP_BASE_URL") ?? "https://aloclinica.com.br";
+      const roomLink = `${appBaseUrl}/dashboard/consultation/${appt.id}`;
+      const jitsiLink = roomLink;
       const patientName = patient ? `${patient.first_name} ${patient.last_name}` : "Paciente";
       const doctorName = docNameMap.get(appt.doctor_id) ?? "Médico";
 
