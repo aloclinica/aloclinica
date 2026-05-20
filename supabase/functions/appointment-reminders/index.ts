@@ -96,6 +96,27 @@ serve(async (req) => {
     for (const appt of appointments) {
       if (!appt.patient_id) continue;
 
+      // Determine window label early to lock against duplicates per (appt, window)
+      const _scheduledAt = new Date(appt.scheduled_at);
+      const _diffMin = Math.round((_scheduledAt.getTime() - now.getTime()) / 60000);
+      const _diffHours = _diffMin / 60;
+      const windowLabel =
+        _diffHours >= 47 ? "48h"
+        : _diffHours >= 23 ? "24h"
+        : _diffMin >= 115 ? "2h"
+        : _diffMin <= 18 ? "15min"
+        : _diffMin <= 33 ? "30min"
+        : "1h";
+
+      // Atomic lock: insert into log; if duplicate, skip entirely
+      const { error: lockErr } = await supabase
+        .from("appointment_reminder_log")
+        .insert({ appointment_id: appt.id, window_label: windowLabel, channel: "all" });
+      if (lockErr) {
+        console.info(`Skip duplicate reminder ${appt.id} window=${windowLabel}: ${lockErr.message}`);
+        continue;
+      }
+
       const { data: authUser } = await supabase.auth.admin.getUserById(appt.patient_id);
       if (!authUser?.user?.email) continue;
 
@@ -201,17 +222,7 @@ serve(async (req) => {
         }
       }
 
-      // 6. In-app notification (deduped: skip if same appt reminded in last 10 min)
-      const dedupeKey = `reminder_${appt.id}_${timeUntil}`;
-      const { data: existing } = await supabase.from("notifications")
-        .select("id").eq("user_id", appt.patient_id)
-        .like("message", `%${appt.id.slice(0,8)}%`)
-        .gte("created_at", new Date(Date.now() - 10 * 60000).toISOString())
-        .limit(1);
-      if (existing && existing.length > 0) {
-        console.info(`Skipping duplicate notification for ${appt.id}`);
-        continue;
-      }
+      // 6. In-app notification (já protegido pelo lock acima por (appt, window))
       try {
         await supabase.from("notifications").insert([
           {
