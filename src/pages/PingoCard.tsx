@@ -236,8 +236,8 @@ const PingoCard = () => {
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                animate={{ opacity: 1, y: 0 }}
+
                 transition={{ delay: i * 0.06 }}
                 className="flex items-center gap-3"
               >
@@ -259,8 +259,8 @@ const PingoCard = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
+
             className="text-center mb-12"
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Como funciona o Pingo Card</h2>
@@ -278,8 +278,8 @@ const PingoCard = () => {
               <motion.div
                 key={step.n}
                 initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                animate={{ opacity: 1, y: 0 }}
+
                 transition={{ delay: i * 0.1 }}
               >
                 <Card className="h-full border-2 hover:border-primary/50 transition-all hover:shadow-xl">
@@ -303,8 +303,8 @@ const PingoCard = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
+
             className="text-center mb-10"
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Escolha o plano ideal</h2>
@@ -327,8 +327,8 @@ const PingoCard = () => {
                 <motion.div
                   key={plan.id}
                   initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
+                  animate={{ opacity: 1, y: 0 }}
+
                   transition={{ delay: i * 0.1 }}
                   className={plan.is_highlighted ? "lg:-mt-4" : ""}
                 >
@@ -383,8 +383,8 @@ const PingoCard = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
+
             className="text-center mb-12"
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Rede de parceiros</h2>
@@ -417,8 +417,8 @@ const PingoCard = () => {
               <motion.div
                 key={p.id}
                 initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                animate={{ opacity: 1, y: 0 }}
+
                 transition={{ delay: i * 0.05 }}
               >
                 <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1">
@@ -453,8 +453,8 @@ const PingoCard = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
+
             className="text-center mb-12"
           >
             <Badge className="mb-3 bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-0">
@@ -505,8 +505,8 @@ const PingoCard = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
+
             className="text-center mb-12"
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-3">Quem usa, ama 💛</h2>
@@ -518,8 +518,8 @@ const PingoCard = () => {
               <motion.div
                 key={t.name}
                 initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                animate={{ opacity: 1, y: 0 }}
+
                 transition={{ delay: i * 0.1 }}
               >
                 <Card className="h-full border-2 hover:border-primary/40 hover:shadow-xl transition-all">
@@ -555,8 +555,8 @@ const PingoCard = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
+
             className="text-center mb-10"
           >
             <Badge className="mb-3 bg-violet-100 text-violet-700 hover:bg-violet-100 border-0">
@@ -571,8 +571,8 @@ const PingoCard = () => {
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                animate={{ opacity: 1, y: 0 }}
+
                 transition={{ delay: i * 0.05 }}
               >
                 <AccordionItem
@@ -595,7 +595,7 @@ const PingoCard = () => {
       {/* CTA FINAL */}
       <section className="py-16 md:py-24 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl text-center">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
               Pronto para economizar com sua saúde?
             </h2>
