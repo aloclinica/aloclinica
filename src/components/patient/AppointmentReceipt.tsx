@@ -48,10 +48,11 @@ const AppointmentReceipt = () => {
   const navigate = useNavigate();
   const [data, setData] = useState<ReceiptData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [unauthorized, setUnauthorized] = useState(false);
 
   useEffect(() => {
     const fetchAll = async () => {
-      if (!appointmentId || !user) return;
+      if (!appointmentId || !user) { setLoading(false); return; }
 
       const { data: appt } = await db
         .from("appointments")
@@ -60,6 +61,12 @@ const AppointmentReceipt = () => {
         .maybeSingle();
 
       if (!appt) { setLoading(false); return; }
+
+      if (appt.patient_id !== user.id) {
+        setUnauthorized(true);
+        setLoading(false);
+        return;
+      }
 
       const [docRes, patRes] = await Promise.all([
         db.from("doctor_profiles_public" as any)
