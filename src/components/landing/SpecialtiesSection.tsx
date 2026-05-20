@@ -129,7 +129,12 @@ const SpecialtyCard = ({ name, desc, index }: { name: string; desc?: string; ind
     >
       {/* Mascot inside orb */}
       <div className="relative mb-4 md:mb-5 w-20 h-20 md:w-24 md:h-24">
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/15 via-primary/8 to-secondary/10 ring-1 ring-primary/10 shadow-[inset_0_2px_8px_hsl(var(--primary)/0.08)] group-hover:from-primary/25 group-hover:via-primary/15 transition-all duration-500" />
+        {/* Outer glow */}
+        <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-primary/40 via-secondary/30 to-primary/20 opacity-60 blur-md group-hover:opacity-100 group-hover:blur-lg transition-all duration-500" />
+        {/* Gradient border ring */}
+        <div className="absolute inset-0 rounded-full p-[1.5px] bg-gradient-to-br from-primary/70 via-secondary/50 to-primary/30">
+          <div className="w-full h-full rounded-full bg-gradient-to-br from-primary/15 via-primary/5 to-secondary/10 shadow-[inset_0_2px_10px_hsl(var(--primary)/0.12)] group-hover:from-primary/25 group-hover:via-primary/10 transition-all duration-500" />
+        </div>
         <div className="absolute inset-0 rounded-full overflow-hidden flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
           {imageSrc ? (
             <img
