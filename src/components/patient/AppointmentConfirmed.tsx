@@ -446,13 +446,8 @@ const AppointmentConfirmed = () => {
                     );
                   })}
                 </div>
-                <Button asChild className="w-full h-10 mt-3 rounded-lg">
-                  <a
-                    href={buildIcsDataUri(appt, roomUrl, reminderMinutes)}
-                    download={`consulta-${appt.id}.ics`}
-                  >
-                    <Download className="w-4 h-4 mr-2" /> Baixar .ics
-                  </a>
+                <Button onClick={handleDownloadIcs} className="w-full h-10 mt-3 rounded-lg">
+                  <Download className="w-4 h-4 mr-2" /> Baixar .ics
                 </Button>
               </PopoverContent>
             </Popover>
