@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
-import { CheckCircle2, Calendar, Clock, Video, ArrowRight, Stethoscope, Download, Home, ListChecks, Loader2, Copy, Wifi, Mic, Camera, FileText, Receipt, RefreshCw } from "lucide-react";
+import { CheckCircle2, Calendar, Clock, Video, ArrowRight, Stethoscope, Download, Home, ListChecks, Loader2, Copy, Wifi, Mic, Camera, FileText, Receipt, RefreshCw, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -360,26 +360,45 @@ const AppointmentConfirmed = () => {
           )}
 
           {canReschedule ? (
-            <CancelRescheduleDialog
-              appointmentId={appt.id}
-              doctorId={appt.doctor_id}
-              currentDate={format(date, "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
-              scheduledAt={appt.scheduled_at}
-              doctorName={appt.doctor_name}
-              defaultMode="reschedule"
-              onSuccess={() => navigate("/dashboard/appointments")}
-              trigger={
-                <Button
-                  variant="outline"
-                  className="w-full h-11 rounded-xl border-secondary/40 text-secondary hover:bg-secondary/5"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" /> Remarcar consulta
-                </Button>
-              }
-            />
+            <div className="grid grid-cols-2 gap-2.5">
+              <CancelRescheduleDialog
+                appointmentId={appt.id}
+                doctorId={appt.doctor_id}
+                currentDate={format(date, "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                scheduledAt={appt.scheduled_at}
+                doctorName={appt.doctor_name}
+                defaultMode="reschedule"
+                onSuccess={() => navigate("/dashboard/appointments")}
+                trigger={
+                  <Button
+                    variant="outline"
+                    className="h-11 rounded-xl border-secondary/40 text-secondary hover:bg-secondary/5"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" /> Remarcar
+                  </Button>
+                }
+              />
+              <CancelRescheduleDialog
+                appointmentId={appt.id}
+                doctorId={appt.doctor_id}
+                currentDate={format(date, "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                scheduledAt={appt.scheduled_at}
+                doctorName={appt.doctor_name}
+                defaultMode="cancel"
+                onSuccess={() => navigate("/dashboard/appointments")}
+                trigger={
+                  <Button
+                    variant="outline"
+                    className="h-11 rounded-xl border-destructive/40 text-destructive hover:bg-destructive/5"
+                  >
+                    <X className="w-4 h-4 mr-2" /> Cancelar
+                  </Button>
+                }
+              />
+            </div>
           ) : (
             <p className="text-center text-[11px] text-muted-foreground">
-              Remarcação disponível somente até 2h antes do horário.
+              Cancelamento e remarcação disponíveis somente até 2h antes do horário.
             </p>
           )}
         </motion.div>
