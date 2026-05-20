@@ -88,56 +88,55 @@ const HowItWorksSection = forwardRef<HTMLElement>((_, ref) => {
           </p>
         </motion.div>
 
-        {/* Desktop: horizontal cards */}
+        {/* Desktop: premium mascot-forward cards */}
         <div className="hidden lg:block relative">
-          {/* Connector line */}
-          <div className="absolute top-[4.5rem] left-[12%] right-[12%] h-px bg-border/60 z-0" />
-          
-          <div ref={stepsRef} className="grid lg:grid-cols-4 gap-6 relative z-10">
-            {effectiveSteps.map((step, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                className="step-card group"
-              >
-                <div className="relative bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-xl hover:-translate-y-1.5 hover:border-primary/20 transition-all duration-300 h-full">
-                  {/* Gradient accent top */}
-                  <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${step.accent}`} />
-                  
-                  {/* Image with parallax-like hover */}
-                  <div className="relative w-full h-40 overflow-hidden bg-gradient-to-br from-muted/40 to-muted/20">
-                    <img
-                      src={step.image}
-                      alt={step.title}
-                      className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-1"
-                      loading="lazy" decoding="async" />
-                    {/* Shimmer overlay on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
-                    {/* Step number badge */}
-                    <div className="absolute top-3 left-3 w-8 h-8 rounded-xl bg-primary/90 flex items-center justify-center shadow-lg">
-                      <span className="text-xs font-extrabold text-primary-foreground">{String(i + 1).padStart(2, '0')}</span>
+          <div ref={stepsRef} className="grid lg:grid-cols-4 gap-8 relative pt-6">
+            {effectiveSteps.map((step, i) => {
+              const isEven = i % 2 === 0;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  className="step-card group relative"
+                >
+                  <div className="relative flex flex-col bg-card rounded-[2rem] p-6 shadow-xl shadow-primary/5 border border-border/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl h-full">
+                    {/* Floating step number badge */}
+                    <div className="absolute -top-4 -left-4 w-12 h-12 flex items-center justify-center bg-primary text-primary-foreground rounded-2xl font-extrabold text-base shadow-lg shadow-primary/20 z-20">
+                      {String(i + 1).padStart(2, "0")}
                     </div>
-                    {/* Time badge */}
-                    <span className="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-medium text-foreground bg-card/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-sm">
-                      <Clock className="w-2.5 h-2.5" weight="fill" />
-                      {step.time}
-                    </span>
-                  </div>
 
-                  <div className="p-5">
-                    {/* Icon */}
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/20">
-                      <step.icon className="w-[18px] h-[18px] text-primary group-hover:text-primary-foreground transition-colors" weight="fill" />
+                    {/* Mascot image area */}
+                    <div className="relative aspect-square mb-6">
+                      <div className={`absolute inset-0 rounded-2xl scale-95 opacity-60 group-hover:scale-100 transition-transform duration-500 ${isEven ? "bg-primary/5" : "bg-secondary/10"}`} />
+                      <img
+                        src={step.image}
+                        alt={step.title}
+                        loading="lazy"
+                        decoding="async"
+                        className="relative z-10 w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500"
+                      />
+                      {/* Time badge */}
+                      <span className="absolute top-2 right-2 flex items-center gap-1 px-3 py-1 bg-card/80 backdrop-blur-md rounded-lg text-[10px] font-bold text-muted-foreground shadow-sm border border-border/40 z-20">
+                        <Clock className="w-2.5 h-2.5" weight="fill" />
+                        {step.time}
+                      </span>
                     </div>
-                    <h3 className="text-base font-bold text-foreground mb-1.5">{step.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
+
+                    {/* Content */}
+                    <div className="flex flex-col gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
+                        <step.icon className="w-5 h-5" weight="fill" />
+                      </div>
+                      <h3 className="text-xl font-bold text-primary tracking-tight">{step.title}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         </div>
 
