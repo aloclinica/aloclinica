@@ -55,7 +55,14 @@ const AppointmentConfirmed = () => {
   const navigate = useNavigate();
   const [appt, setAppt] = useState<ConfirmedAppointment | null>(null);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(() => Date.now());
   const nav = getPatientNav("appointments");
+
+  // Tick a cada 30s para reavaliar a janela de entrada na sala
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const fetchAppt = async () => {
@@ -118,8 +125,17 @@ const AppointmentConfirmed = () => {
 
   const date = new Date(appt.scheduled_at);
   const isPaid = ["approved", "confirmed", "received", "paid"].includes(String(appt.payment_status));
-  const minutesUntil = Math.round((date.getTime() - Date.now()) / 60000);
+  const minutesUntil = Math.round((date.getTime() - now) / 60000);
   const canJoinSoon = minutesUntil <= 15 && minutesUntil >= -120;
+  const joinLabel = canJoinSoon
+    ? "Entrar na sala da consulta"
+    : minutesUntil > 15
+      ? `Sala abre em ${
+          minutesUntil >= 60
+            ? `${Math.floor(minutesUntil / 60)}h ${minutesUntil % 60}min`
+            : `${minutesUntil} min`
+        }`
+      : "Consulta encerrada";
   const roomUrl = `${window.location.origin}/dashboard/consultation/${appt.id}`;
 
   const copyRoomLink = async () => {
@@ -245,7 +261,7 @@ const AppointmentConfirmed = () => {
               disabled={!canJoinSoon}
             >
               <Video className="w-4 h-4 mr-2" />
-              {canJoinSoon ? "Entrar na sala da consulta" : "Sala abre 15 min antes"}
+              {joinLabel}
               <ArrowRight className="w-4 h-4 ml-auto" />
             </Button>
           )}
