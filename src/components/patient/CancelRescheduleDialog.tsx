@@ -272,6 +272,15 @@ const CancelRescheduleDialog = ({ appointmentId, doctorId, currentDate, schedule
             <p className="text-xs text-muted-foreground mt-0.5">{currentDate}</p>
           </div>
 
+          {isPastAppointment && (
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+              <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+              <p className="text-xs text-destructive">
+                Esta consulta já passou. Não é possível {mode === "cancel" ? "cancelar" : "reagendar"} a partir deste link.
+              </p>
+            </div>
+          )}
+
           {mode === "cancel" ? (
             <>
               {isLateCancel && (
