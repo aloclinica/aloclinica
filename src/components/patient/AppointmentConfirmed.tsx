@@ -31,6 +31,8 @@ interface ConfirmedAppointment {
   duration_minutes: number;
   clinic_id: string | null;
   clinic_name: string | null;
+  patient_name: string | null;
+  patient_email: string | null;
 }
 
 const formatBRL = (v: number | null | undefined) =>
