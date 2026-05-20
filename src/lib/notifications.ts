@@ -361,7 +361,7 @@ export const notifyAppointmentRescheduled = async (
   try {
     const { data: appt } = await db
       .from("appointments")
-      .select("patient_id, doctor_id, guest_patient_id")
+      .select("patient_id, doctor_id, guest_patient_id, scheduled_at")
       .eq("id", appointmentId)
       .single();
     if (!appt) return;
@@ -399,6 +399,20 @@ export const notifyAppointmentRescheduled = async (
       insertNotification(patientUserId, "🔄 Consulta Reagendada",
         `Sua consulta com ${doctorName} foi reagendada para ${newDate} às ${newTime}.`,
         "appointment", "/dashboard/appointments?role=patient");
+    }
+    // Notify doctor as well (WhatsApp + In-App + Email)
+    if (doctor?.phone) {
+      sendWhatsApp(doctor.phone,
+        `🔄 *Consulta Reagendada*\n\n${doctorName}, a consulta com ${patientName} foi reagendada.\n\n📅 Nova data: *${newDate}*\n⏰ Novo horário: *${newTime}*\n\nAcesse sua agenda para conferir os detalhes.`);
+    }
+    if (doctor?.user_id) {
+      insertNotification(doctor.user_id, "🔄 Consulta Reagendada",
+        `A consulta com ${patientName} foi reagendada para ${newDate} às ${newTime}.`,
+        "appointment", "/dashboard/doctor/consultations?role=doctor");
+      sendEmail("appointment_rescheduled", "resolve-from-user", {
+        patient_name: patientName, doctor_name: doctorName,
+        new_date: newDate, new_time: newTime, recipient_user_id: doctor.user_id,
+      });
     }
   } catch (err) {
     logError("notifyAppointmentRescheduled failed", err, { appointmentId });
