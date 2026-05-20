@@ -701,6 +701,13 @@ const Agendar = () => {
                                     {/* CTA */}
                                     <div className="pt-1.5">
                                       <Button
+                                        variant="outline"
+                                        className="rounded-xl px-5 font-semibold h-10 mr-2"
+                                        onClick={(e) => { e.stopPropagation(); navigate(`/medicos/${doc.id}`); }}
+                                      >
+                                        Ver perfil
+                                      </Button>
+                                      <Button
                                         className="rounded-xl px-6 font-bold shadow-sm h-10"
                                         onClick={(e) => { e.stopPropagation(); handleSelectDoctor(doc.id); }}
                                       >
