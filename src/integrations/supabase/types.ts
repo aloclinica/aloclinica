@@ -5164,6 +5164,7 @@ export type Database = {
         | "receptionist"
         | "affiliate"
         | "optician"
+        | "cartao_beneficios"
       appointment_status:
         | "scheduled"
         | "waiting"
@@ -5317,6 +5318,7 @@ export const Constants = {
         "receptionist",
         "affiliate",
         "optician",
+        "cartao_beneficios",
       ],
       appointment_status: [
         "scheduled",
