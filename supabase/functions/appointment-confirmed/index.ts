@@ -66,6 +66,7 @@ serve(async (req) => {
     const drName = doctorName ? `Dr(a). ${doctorName.first_name} ${doctorName.last_name}` : "Médico";
     const appBaseUrl = Deno.env.get("APP_BASE_URL") ?? "https://aloclinica.com.br";
     const receiptUrl = `${appBaseUrl}/dashboard/appointments/${appt.id}/recibo`;
+    const roomLink = `${appBaseUrl}/dashboard/consultation/${appt.id}`;
     const amountBRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" })
       .format(Number(appt.price_at_booking ?? 0));
     const issuedAt = new Date(appt.payment_confirmed_at ?? Date.now()).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
@@ -85,7 +86,7 @@ serve(async (req) => {
           body: JSON.stringify({
             type: "appointment_confirmation",
             to: patientEmail,
-            data: { patient_name: patientName, doctor_name: drName, date: dateStr, time: timeStr },
+            data: { patient_name: patientName, doctor_name: drName, date: dateStr, time: timeStr, room_link: roomLink },
           }),
         });
         const emailBody = await emailRes.text();
@@ -133,7 +134,7 @@ serve(async (req) => {
     // 2. Send WhatsApp via Evolution API
     if (patient?.phone) {
       try {
-        const msg = `✅ *Consulta Confirmada!*\n\nOlá ${patientName},\nSua consulta com ${drName} foi confirmada.\n\n📅 Data: ${dateStr}\n⏰ Horário: ${timeStr}\n\nAcesse a plataforma 5 min antes. 🏥`;
+        const msg = `✅ *Consulta Confirmada!*\n\nOlá ${patientName},\nSua consulta com ${drName} foi confirmada.\n\n📅 Data: ${dateStr}\n⏰ Horário: ${timeStr}\n\n📹 *Entrar na sala:* ${roomLink}\n\n_Você precisa estar logado(a) na AloClínica. Acesse 5 min antes._ 🏥`;
         const waRes = await fetch(`${supabaseUrl}/functions/v1/send-whatsapp`, {
           method: "POST",
           headers: {
