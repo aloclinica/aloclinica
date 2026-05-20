@@ -357,13 +357,30 @@ const AppointmentConfirmed = () => {
           </div>
 
           {isPaid && (
-            <Button
-              variant="outline"
-              className="w-full h-11 rounded-xl border-primary/30 text-primary hover:bg-primary/5"
-              onClick={() => navigate(`/dashboard/appointments/${appt.id}/recibo`)}
-            >
-              <Receipt className="w-4 h-4 mr-2" /> Baixar recibo da consulta
-            </Button>
+            <div className="grid grid-cols-2 gap-2.5">
+              <Button
+                variant="outline"
+                className="h-11 rounded-xl border-primary/30 text-primary hover:bg-primary/5"
+                onClick={() => navigate(`/dashboard/appointments/${appt.id}/recibo`)}
+              >
+                <Receipt className="w-4 h-4 mr-2" /> Baixar recibo
+              </Button>
+              <Button
+                variant="outline"
+                className="h-11 rounded-xl"
+                onClick={async () => {
+                  const t = toast.loading("Enviando recibo por e-mail...");
+                  const { error } = await db.functions.invoke("appointment-confirmed", {
+                    body: { appointment_id: appt.id },
+                  });
+                  toast.dismiss(t);
+                  if (error) toast.error("Não foi possível enviar o recibo");
+                  else toast.success("Recibo enviado para o seu e-mail!");
+                }}
+              >
+                <Receipt className="w-4 h-4 mr-2" /> Enviar por e-mail
+              </Button>
+            </div>
           )}
 
           {canReschedule ? (

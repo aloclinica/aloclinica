@@ -105,6 +105,7 @@ const TEMPLATE_BANNER: Record<string, string> = {
   appointment_reminder: "appointment",
   appointment_cancelled: "alert",
   appointment_rescheduled: "alert",
+  payment_receipt: "payment",
   prescription_sent: "prescription",
   certificate_sent: "certificate",
   welcome: "welcome",
@@ -218,6 +219,38 @@ const templates: Record<string, (d: Record<string, string>) => { subject: string
       <p>Acesse a plataforma <strong>5 minutos antes</strong> para entrar na sala de espera virtual.</p>
       ${btn(URLS.patientAppointments, "Ver Minha Consulta")}
     `, "appointment_confirmation"),
+  }),
+
+  payment_receipt: (d) => ({
+    subject: `🧾 Recibo de pagamento ${d.receipt_number ? "#" + d.receipt_number : ""} — AloClínica`,
+    html: wrap(`
+      <h2 style="color:${BRAND.green};margin:0 0 16px;">Pagamento recebido</h2>
+      <p>Olá <strong>${d.patient_name}</strong>,</p>
+      <p>Recebemos o pagamento da sua teleconsulta. Este e-mail serve como comprovante.</p>
+      ${card(`
+        <p><strong>🧾 Recibo nº:</strong> ${d.receipt_number || d.appointment_id?.slice(0, 8).toUpperCase() || "—"}</p>
+        <p><strong>📅 Emitido em:</strong> ${d.issued_at}</p>
+        <p><strong>💳 Forma de pagamento:</strong> ${d.payment_method || "—"}</p>
+        ${d.payment_id ? `<p><strong>🔖 ID da transação:</strong> ${d.payment_id}</p>` : ""}
+      `, BRAND.green)}
+      ${card(`
+        <p style="margin:0 0 6px;font-size:12px;color:${BRAND.muted};text-transform:uppercase;letter-spacing:.5px;">Pagador</p>
+        <p style="margin:0 0 4px;"><strong>${d.patient_name}</strong></p>
+        ${d.patient_cpf ? `<p style="margin:0;color:${BRAND.muted};font-size:13px;">CPF: ${d.patient_cpf}</p>` : ""}
+      `)}
+      ${card(`
+        <p style="margin:0 0 6px;font-size:12px;color:${BRAND.muted};text-transform:uppercase;letter-spacing:.5px;">Serviço prestado</p>
+        <p style="margin:0 0 4px;"><strong>Teleconsulta médica</strong> com ${d.doctor_name}</p>
+        ${d.doctor_crm ? `<p style="margin:0;color:${BRAND.muted};font-size:13px;">CRM ${d.doctor_crm}</p>` : ""}
+        <p style="margin:8px 0 0;"><strong>📅 Data da consulta:</strong> ${d.date} às ${d.time}</p>
+      `)}
+      <div style="background:${BRAND.bg};border:1px solid ${BRAND.border};border-radius:12px;padding:18px;margin:20px 0;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:13px;color:${BRAND.muted};text-transform:uppercase;letter-spacing:.5px;">Valor total pago</span>
+        <span style="font-size:24px;font-weight:800;color:${BRAND.greenDark};">${d.amount}</span>
+      </div>
+      ${btn(d.receipt_url || URLS.patientAppointments, "Baixar recibo em PDF")}
+      <p style="font-size:12px;color:${BRAND.muted};margin-top:20px;">Guarde este recibo para fins de reembolso junto ao seu plano de saúde ou imposto de renda. Em caso de dúvidas, fale com o suporte AloClínica.</p>
+    `, "payment_receipt"),
   }),
 
   appointment_reminder: (d) => ({
