@@ -446,24 +446,10 @@ const VideoRoom = () => {
       return;
     }
 
-    // Verify correct participant
+    // Verify correct participant — show in waiting room instead of redirect
     if (isDoctor) {
       const { data: dp } = await db.from("doctor_profiles").select("id").eq("user_id", user!.id).maybeSingle();
       if (dp && dp.id !== data.doctor_id) {
-        toast.error("Acesso negado", { description: "Esta consulta não está atribuída a você." });
-        navigate("/dashboard");
-        return;
-      }
-    } else if (user && data.patient_id && data.patient_id !== user.id) {
-      toast.error("Acesso negado", { description: "Esta consulta pertence a outro paciente." });
-      navigate("/dashboard");
-      return;
-    }
-
-    // Verify correct participant — show in waiting room instead of redirect
-    if (isDoctor) {
-      const { data: dp2 } = await db.from("doctor_profiles").select("id").eq("user_id", user!.id).maybeSingle();
-      if (dp2 && dp2.id !== data.doctor_id) {
         setParticipationBlocked({
           reason: "Esta consulta não está atribuída a você.",
           hint: "Confira se você abriu o link correto da sua agenda.",
