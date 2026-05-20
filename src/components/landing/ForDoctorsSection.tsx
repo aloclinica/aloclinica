@@ -11,6 +11,11 @@ import {
   ChartLineUp,
 } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
+import doctorPingoImg from "@/assets/doctor-phone-teleconsulta.png";
+import doctorAvatar1 from "@/assets/doctor-premium-1.png";
+import doctorAvatar2 from "@/assets/doctor-premium-2.png";
+import doctorAvatar3 from "@/assets/doctor-signup-1.png";
+import doctorAvatar4 from "@/assets/doctor-signup-2.png";
 
 const perks = [
   {
@@ -96,6 +101,27 @@ const ForDoctorsSection = forwardRef<HTMLElement>((_, ref) => {
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="lg:sticky lg:top-24"
           >
+            {/* Social proof: avatar stack */}
+            <div className="flex items-center gap-3 mb-5">
+              <div className="flex -space-x-2">
+                {[doctorAvatar1, doctorAvatar2, doctorAvatar3, doctorAvatar4].map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    width={36}
+                    height={36}
+                    className="w-9 h-9 rounded-full border-2 border-background object-cover bg-muted shadow-sm"
+                  />
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                <span className="font-bold text-foreground">+500 médicos</span> já confiam
+              </p>
+            </div>
+
             <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-primary bg-primary/10 px-3 py-1.5 rounded-full mb-5 ring-1 ring-primary/15">
               <Stethoscope className="w-3.5 h-3.5" weight="fill" />
               Para Médicos
@@ -172,6 +198,43 @@ const ForDoctorsSection = forwardRef<HTMLElement>((_, ref) => {
             viewport={{ once: true, amount: 0.1 }}
             className="grid grid-cols-1 sm:grid-cols-2 gap-3.5"
           >
+            {/* Featured image card spanning full width */}
+            <motion.div
+              variants={itemVariants}
+              className="sm:col-span-2 relative rounded-2xl overflow-hidden border border-border/70 bg-gradient-to-br from-primary/10 via-secondary/5 to-background shadow-lg shadow-primary/5 group"
+            >
+              <div
+                aria-hidden
+                className="absolute -top-20 -right-20 w-56 h-56 rounded-full bg-secondary/15 blur-3xl pointer-events-none"
+              />
+              <div
+                aria-hidden
+                className="absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-primary/15 blur-3xl pointer-events-none"
+              />
+              <div className="relative flex items-center gap-3 p-5 sm:p-6">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-secondary mb-1.5">
+                    Telemedicina premium
+                  </p>
+                  <h3 className="text-base sm:text-lg font-extrabold text-foreground leading-tight mb-1.5">
+                    Atenda do seu consultório, de casa ou na estrada.
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Vídeo HD, prontuário e prescrição em uma única tela.
+                  </p>
+                </div>
+                <img
+                  src={doctorPingoImg}
+                  alt="Médica em teleconsulta com o Pingo"
+                  loading="lazy"
+                  decoding="async"
+                  width={180}
+                  height={150}
+                  className="w-28 sm:w-36 md:w-44 h-auto object-contain shrink-0 drop-shadow-[0_8px_20px_hsl(var(--primary)/0.18)] group-hover:scale-[1.03] transition-transform duration-500"
+                />
+              </div>
+            </motion.div>
+
             {perks.map((p) => (
               <motion.div
                 key={p.title}
