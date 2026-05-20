@@ -19,6 +19,7 @@ import { FileBadge, Download, History } from "lucide-react";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { drawSafeText, safeQrBox } from "@/lib/pdf-layout";
 
 const MedicalCertificate = () => {
   const { profile, user } = useAuth();
@@ -81,6 +82,9 @@ const MedicalCertificate = () => {
     setGenerating(true);
 
     const doc = new jsPDF();
+    const PAGE_W = doc.internal.pageSize.getWidth();
+    const PAGE_H = doc.internal.pageSize.getHeight();
+    const MARGIN = 15;
     const today = format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
     const now = format(new Date(), "HH:mm");
     const doctorName = `Dr(a). ${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`;
@@ -102,20 +106,30 @@ const MedicalCertificate = () => {
     doc.setTextColor(120, 120, 120);
     doc.text("Plataforma de Telemedicina", 20, 28);
 
-    // QR code top-right
-    drawQRCode(doc, 165, 12, 25);
-    doc.setFontSize(6);
+    // QR code top-right (clampado às margens)
+    const qr = safeQrBox(doc, { x: 165, y: 12, size: 25 }, MARGIN);
+    drawQRCode(doc, qr.x, qr.y, qr.size);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Verificação: ${verificationCode}`, 177, 40, { align: "center" });
+    drawSafeText(doc, `Verificação: ${verificationCode}`, {
+      x: qr.x + qr.size / 2,
+      y: qr.y + qr.size + 4,
+      maxWidth: qr.size + 10,
+      fontSize: 6,
+      minFontSize: 5,
+      align: "center",
+      maxLines: 2,
+      lineHeight: 2.5,
+    });
 
     // Separator
     doc.setDrawColor(200, 200, 200);
     doc.line(20, 45, 190, 45);
 
-    // Title
-    doc.setFontSize(18);
+    // Title (com encolhimento se o título for muito longo)
     doc.setTextColor(30, 30, 30);
-    doc.text(certConfig.title, 105, 58, { align: "center" });
+    drawSafeText(doc, certConfig.title, {
+      x: PAGE_W / 2, y: 58, maxWidth: PAGE_W - 2 * MARGIN, fontSize: 18, minFontSize: 13, align: "center", maxLines: 1, lineHeight: 8,
+    });
 
     // Content based on type
     doc.setFontSize(12);
@@ -130,18 +144,23 @@ const MedicalCertificate = () => {
       bodyText = `Atesto para os devidos fins que o(a) Sr(a). ${patientName}${patientCpf ? `, portador(a) do CPF nº ${patientCpf}` : ""}, após avaliação médica realizada por telemedicina, encontra-se APTO(A) para exercer suas atividades${reason ? `, com as seguintes observações: ${reason}` : ""}${cid ? `.\n\nCID-10: ${cid}` : ""}.`;
     }
 
-    const lines = doc.splitTextToSize(bodyText, 155);
-    doc.text(lines, 27, 75);
+    // Corpo do atestado — largura derivada das margens reais
+    const bodyMaxWidth = PAGE_W - 2 * 27;
+    doc.setFontSize(12);
+    const bodyEndY = drawSafeText(doc, bodyText, {
+      x: 27, y: 75, maxWidth: bodyMaxWidth, fontSize: 12, minFontSize: 9.5, lineHeight: 7,
+    });
 
     // Legal note
-    const noteY = 75 + lines.length * 7 + 15;
+    const noteY = Math.min(bodyEndY + 15, PAGE_H - 50);
     doc.setFontSize(8);
     doc.setTextColor(130, 130, 130);
-    doc.text("Este documento foi emitido via plataforma AloClínica de telemedicina, em conformidade com", 105, noteY, { align: "center" });
-    doc.text("a Resolução CFM nº 2.314/2022 que regulamenta a telemedicina no Brasil.", 105, noteY + 5, { align: "center" });
+    drawSafeText(doc, "Este documento foi emitido via plataforma AloClínica de telemedicina, em conformidade com a Resolução CFM nº 2.314/2022 que regulamenta a telemedicina no Brasil.", {
+      x: PAGE_W / 2, y: noteY, maxWidth: PAGE_W - 2 * MARGIN, fontSize: 8, minFontSize: 6.5, align: "center", maxLines: 2, lineHeight: 4,
+    });
 
-    // Signature area
-    const signY = Math.max(noteY + 25, 180);
+    // Signature area — sempre acima do rodapé (max 270)
+    const signY = Math.min(Math.max(noteY + 25, 180), 250);
     doc.setTextColor(50, 50, 50);
     doc.setFontSize(11);
     doc.text(today, 105, signY, { align: "center" });
@@ -149,18 +168,22 @@ const MedicalCertificate = () => {
     doc.setDrawColor(80, 80, 80);
     doc.line(55, signY + 25, 155, signY + 25);
 
-    doc.setFontSize(12);
-    doc.text(doctorName, 105, signY + 32, { align: "center" });
-    doc.setFontSize(10);
+    doc.setTextColor(50, 50, 50);
+    drawSafeText(doc, doctorName, {
+      x: 105, y: signY + 32, maxWidth: PAGE_W - 2 * 30, fontSize: 12, minFontSize: 9, align: "center", maxLines: 1, lineHeight: 5,
+    });
     doc.setTextColor(80, 80, 80);
-    doc.text(crmText, 105, signY + 38, { align: "center" });
+    drawSafeText(doc, crmText, {
+      x: 105, y: signY + 38, maxWidth: PAGE_W - 2 * 30, fontSize: 10, minFontSize: 8, align: "center", maxLines: 1, lineHeight: 4,
+    });
 
     // Footer bar
     doc.setFillColor(0, 105, 146);
     doc.rect(0, 290, 210, 7, "F");
-    doc.setFontSize(7);
     doc.setTextColor(255, 255, 255);
-    doc.text("AloClínica — Telemedicina Digital · contato@aloclinica.com.br · www.aloclinica.com.br", 105, 294, { align: "center" });
+    drawSafeText(doc, "AloClínica — Telemedicina Digital · contato@aloclinica.com.br · www.aloclinica.com.br", {
+      x: PAGE_W / 2, y: 294, maxWidth: PAGE_W - 2 * 5, fontSize: 7, minFontSize: 5.5, align: "center", maxLines: 1, lineHeight: 3,
+    });
 
     // Download local pro médico imediato
     doc.save(`${certType}-${patientName.replace(/\s/g, "-").toLowerCase()}.pdf`);
