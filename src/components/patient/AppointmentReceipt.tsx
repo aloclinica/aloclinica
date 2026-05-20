@@ -12,6 +12,7 @@ import { getPatientNav } from "./patientNav";
 import { jsPDF } from "jspdf";
 import QRCode from "qrcode";
 import { QRCodeSVG } from "qrcode.react";
+import { drawSafeText, safeQrBox, clampWidth } from "@/lib/pdf-layout";
 
 const nav = getPatientNav("appointments");
 
@@ -150,6 +151,7 @@ const AppointmentReceipt = () => {
     if (!data) return;
     const doc = new jsPDF({ unit: "pt", format: "a4" });
     const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
     const M = 48; // margem
     let y = M;
 
@@ -168,20 +170,19 @@ const AppointmentReceipt = () => {
     };
     const value = (t: string) => {
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(11);
       doc.setTextColor(20);
-      doc.text(t, M, y);
-      line(16);
+      y = drawSafeText(doc, t, { x: M, y, maxWidth: W - 2 * M, fontSize: 11, minFontSize: 9, maxLines: 2, lineHeight: 14 });
+      line(2);
     };
     const pair = (l: string, v: string, x: number) => {
+      const colWidth = clampWidth(doc, x, (W - 2 * M) / 2 - 10, M);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8);
       doc.setTextColor(120);
       doc.text(l.toUpperCase(), x, y);
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(11);
       doc.setTextColor(20);
-      doc.text(v, x, y + 13);
+      drawSafeText(doc, v, { x, y: y + 13, maxWidth: colWidth, fontSize: 11, minFontSize: 8.5, maxLines: 1, lineHeight: 13 });
     };
 
     // Cabeçalho
@@ -283,18 +284,21 @@ const AppointmentReceipt = () => {
     );
     doc.text(footer, M, y + 18);
 
-    // QR code (verificação)
+    // QR code (verificação) — posicionado e dimensionado dentro das margens
     try {
       const qrDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 0, width: 240 });
-      const qrSize = 72;
-      const qrX = W - M - qrSize;
-      const qrY = y + 6;
+      const placed = safeQrBox(doc, { x: W - M - 72, y: y + 6, size: 72 }, M);
+      const qrSize = placed.size;
+      const qrX = placed.x;
+      const qrY = placed.y;
       doc.addImage(qrDataUrl, "PNG", qrX, qrY, qrSize, qrSize);
       doc.setFontSize(7);
       doc.setTextColor(130);
-      doc.text("Verificar recibo", qrX + qrSize / 2, qrY + qrSize + 10, { align: "center" });
+      const labelY = Math.min(qrY + qrSize + 10, H - M);
+      doc.text("Verificar recibo", qrX + qrSize / 2, labelY, { align: "center" });
       doc.setFont("courier", "bold");
-      doc.text(receiptCode, qrX + qrSize / 2, qrY + qrSize + 20, { align: "center" });
+      const codeY = Math.min(qrY + qrSize + 20, H - M + 10);
+      doc.text(receiptCode, qrX + qrSize / 2, codeY, { align: "center" });
     } catch {
       /* QR opcional */
     }
