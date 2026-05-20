@@ -1262,6 +1262,7 @@ const BookAppointment = () => {
           )}
         </AnimatePresence>
       </div>
+      {quickDialog}
     </DashboardLayout>
   );
 };
