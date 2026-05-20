@@ -31,6 +31,8 @@ interface ConfirmedAppointment {
   duration_minutes: number;
   clinic_id: string | null;
   clinic_name: string | null;
+  patient_name: string | null;
+  patient_email: string | null;
 }
 
 const formatBRL = (v: number | null | undefined) =>
@@ -104,8 +106,13 @@ const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinut
   const crmSuffix = crmLabel ? ` — ${crmLabel}` : "";
   const specSuffix = appt.doctor_specialty ? ` (${appt.doctor_specialty})` : "";
 
+  const patientInfo = appt.patient_name
+    ? `Paciente: ${appt.patient_name}${appt.patient_email ? ` (${appt.patient_email})` : ""}\n`
+    : "";
+
   const description = escapeIcs(
     `Consulta online AloClínica\n` +
+    `${patientInfo}` +
     `Médico: ${appt.doctor_name}${specSuffix}${crmSuffix}.\n` +
     `Duração: ${duration} minutos.\n` +
     `Link da sala: ${roomUrl}\n` +
@@ -115,6 +122,7 @@ const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinut
   // X-ALT-DESC com HTML para clients que suportam (Outlook, Apple Calendar)
   const htmlDesc = escapeIcs(
     `<h3>Consulta online AloClínica</h3>` +
+    `${appt.patient_name ? `<p><b>Paciente:</b> ${appt.patient_name}${appt.patient_email ? ` (${appt.patient_email})` : ""}</p>` : ""}` +
     `<p><b>Médico:</b> ${appt.doctor_name}${specSuffix}${crmSuffix}</p>` +
     `<p><b>Duração:</b> ${duration} minutos</p>` +
     `<p><b>Link da sala:</b> <a href="${roomUrl}">${roomUrl}</a></p>` +
@@ -135,6 +143,10 @@ const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinut
     ? `${appt.clinic_name} — Teleconsulta Online | ${roomUrl}`
     : `AloClínica — Teleconsulta Online | ${roomUrl}`;
 
+  const attendeeBlock = appt.patient_email
+    ? [`ATTENDEE;ROLE=REQ-PARTICIPANT;CN=${escapeIcs(appt.patient_name || "Paciente")}:mailto:${appt.patient_email}`]
+    : [];
+
   const ics = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
@@ -153,6 +165,7 @@ const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinut
     `X-ALT-DESC;FMTTYPE=text/html:${htmlDesc}`,
     `URL:${roomUrl}`,
     `LOCATION:${escapeIcs(locationLabel)}`,
+    ...attendeeBlock,
     "STATUS:CONFIRMED",
     "TRANSP:OPAQUE",
     ...alarm,
@@ -209,7 +222,7 @@ const AppointmentConfirmed = () => {
       if (!appointmentId) return;
       const { data } = await db
         .from("appointments")
-        .select("id, scheduled_at, appointment_type, price_at_booking, payment_status, status, doctor_id, clinic_id")
+        .select("id, scheduled_at, appointment_type, price_at_booking, payment_status, status, doctor_id, clinic_id, patient_id")
         .eq("id", appointmentId)
         .maybeSingle();
 
@@ -236,6 +249,24 @@ const AppointmentConfirmed = () => {
         clinicName = (clinic as any)?.name ?? null;
       }
 
+      // Buscar dados do paciente (nome e e-mail)
+      let patientName: string | null = null;
+      let patientEmail: string | null = null;
+      if (data.patient_id) {
+        const { data: patientProfile } = await db
+          .from("profiles")
+          .select("first_name, last_name, user_id")
+          .eq("user_id", data.patient_id)
+          .maybeSingle();
+        if (patientProfile) {
+          const p = patientProfile as any;
+          patientName = [p.first_name, p.last_name].filter(Boolean).join(" ") || null;
+        }
+        // Buscar e-mail do auth
+        const { data: authData } = await db.auth.admin.getUser(data.patient_id);
+        patientEmail = authData?.user?.email ?? null;
+      }
+
       const docAny = doc as any;
       setAppt({
         ...data,
@@ -246,6 +277,8 @@ const AppointmentConfirmed = () => {
         duration_minutes: Number(docAny?.consultation_duration) || 30,
         clinic_id: data.clinic_id ?? null,
         clinic_name: clinicName,
+        patient_name: patientName,
+        patient_email: patientEmail,
       });
       setLoading(false);
     };
