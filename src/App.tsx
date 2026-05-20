@@ -64,7 +64,6 @@ const AwaitingApproval = lazy(() => import("./pages/AwaitingApproval"));
 
 // Landing pages
 const ForDoctors = lazy(() => import("./pages/ForDoctors"));
-const ForClinics = lazy(() => import("./pages/ForClinics"));
 const Sobre = lazy(() => import("./pages/Sobre"));
 const SobreQuemSomos = lazy(() => import("./pages/sobre/QuemSomos"));
 const SobrePorqueNos = lazy(() => import("./pages/sobre/PorqueNos"));
@@ -185,7 +184,6 @@ const AnimatedRoutes = () => {
       <Route path="/para-profissionais" element={<ParaProfissionais />} />
       <Route path="/para-medicos" element={<ForDoctors />} />
       <Route path="/profissionais" element={<ForDoctors />} />
-      <Route path="/para-clinicas" element={<ForClinics />} />
       <Route path="/sobre" element={<Sobre />} />
       <Route path="/sobre/quem-somos" element={<SobreQuemSomos />} />
       <Route path="/sobre/porque-nos" element={<SobrePorqueNos />} />
