@@ -138,7 +138,7 @@ const AppointmentConfirmed = () => {
       // Buscar médico via view pública
       const { data: doc } = await db
         .from("doctor_profiles_public" as any)
-        .select("display_name, full_name, crm, crm_state, specialty_names")
+        .select("display_name, full_name, crm, crm_state, specialty_names, consultation_duration")
         .eq("id", data.doctor_id)
         .maybeSingle();
 
@@ -149,6 +149,7 @@ const AppointmentConfirmed = () => {
         doctor_specialty: docAny?.specialty_names?.[0] ?? null,
         doctor_crm: docAny?.crm ?? null,
         doctor_crm_state: docAny?.crm_state ?? null,
+        duration_minutes: Number(docAny?.consultation_duration) || 30,
       });
       setLoading(false);
     };
@@ -334,7 +335,7 @@ const AppointmentConfirmed = () => {
 
           <div className="grid grid-cols-3 gap-2.5">
             <Button asChild variant="outline" className="h-11 rounded-xl">
-              <a href={buildIcsDataUri(appt)} download={`consulta-${appt.id}.ics`}>
+              <a href={buildIcsDataUri(appt, roomUrl)} download={`consulta-${appt.id}.ics`}>
                 <Download className="w-4 h-4 mr-1.5" /> Agenda
               </a>
             </Button>
