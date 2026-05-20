@@ -10,6 +10,8 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getPatientNav } from "./patientNav";
 import { jsPDF } from "jspdf";
+import QRCode from "qrcode";
+import { QRCodeSVG } from "qrcode.react";
 
 const nav = getPatientNav("appointments");
 
