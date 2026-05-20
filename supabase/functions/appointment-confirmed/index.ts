@@ -134,7 +134,10 @@ serve(async (req) => {
     // 2. Send WhatsApp via Evolution API
     if (patient?.phone) {
       try {
-        const msg = `✅ *Consulta Confirmada!*\n\nOlá ${patientName},\nSua consulta com ${drName} foi confirmada.\n\n📅 Data: ${dateStr}\n⏰ Horário: ${timeStr}\n\n📹 *Entrar na sala:* ${roomLink}\n\n_Você precisa estar logado(a) na AloClínica. Acesse 5 min antes._ 🏥`;
+        const receiptBlock = isPaid && Number(appt.price_at_booking ?? 0) > 0
+          ? `\n\n🧾 *Recibo de pagamento:* ${receiptUrl}\nValor: ${amountBRL} · Nº ${String(appt.id).slice(0, 8).toUpperCase()}`
+          : "";
+        const msg = `✅ *Consulta Confirmada!*\n\nOlá ${patientName},\nSua consulta com ${drName} foi confirmada.\n\n📅 Data: ${dateStr}\n⏰ Horário: ${timeStr}\n\n📹 *Entrar na sala:* ${roomLink}${receiptBlock}\n\n_Você precisa estar logado(a) na AloClínica. Acesse 5 min antes._ 🏥`;
         const waRes = await fetch(`${supabaseUrl}/functions/v1/send-whatsapp`, {
           method: "POST",
           headers: {
@@ -146,6 +149,24 @@ serve(async (req) => {
         results.push(`whatsapp: ${waRes.ok ? "sent" : "failed"}`);
       } catch (error: any) {
         results.push(`whatsapp: error - ${(error instanceof Error ? error.message : String(error))}`);
+      }
+    }
+
+    // 2b. Mensagem dedicada com link do recibo (somente se pago) — facilita encaminhamento ao plano de saúde
+    if (patient?.phone && isPaid && Number(appt.price_at_booking ?? 0) > 0) {
+      try {
+        const receiptMsg = `🧾 *Recibo AloClínica*\n\nOlá ${patientName}, seu pagamento foi confirmado.\n\nValor: *${amountBRL}*\nNº do recibo: *${String(appt.id).slice(0, 8).toUpperCase()}*\nEmitido em: ${issuedAt}\n\n📄 Acessar e baixar:\n${receiptUrl}\n\n_Login obrigatório. Use este recibo para reembolso junto ao seu plano de saúde._`;
+        const waReceiptRes = await fetch(`${supabaseUrl}/functions/v1/send-whatsapp`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+          },
+          body: JSON.stringify({ phone: patient.phone, message: receiptMsg }),
+        });
+        results.push(`whatsapp_receipt: ${waReceiptRes.ok ? "sent" : "failed"}`);
+      } catch (error: any) {
+        results.push(`whatsapp_receipt: error - ${(error instanceof Error ? error.message : String(error))}`);
       }
     }
 
