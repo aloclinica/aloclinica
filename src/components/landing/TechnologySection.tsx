@@ -63,11 +63,7 @@ const TechnologySection = ({ config }: { config?: any }) => {
               </div>
 
               {/* Floating glass widget — bottom left */}
-              <motion.div
-                className="absolute bottom-4 left-0 sm:left-2 z-20 w-48 bg-white/70 backdrop-blur-md rounded-2xl border border-white shadow-xl px-5 py-4"
-                animate={{ y: [0, 10, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-              >
+              <div className="absolute bottom-4 left-0 sm:left-2 z-20 w-48 bg-white/70 backdrop-blur-md rounded-2xl border border-white shadow-xl px-5 py-4 animate-float-down">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="relative flex h-3 w-3">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -79,7 +75,7 @@ const TechnologySection = ({ config }: { config?: any }) => {
                   <div className="w-32 h-1 bg-slate-200 rounded-full" />
                   <div className="w-24 h-1 bg-slate-200 rounded-full" />
                 </div>
-              </motion.div>
+              </div>
 
               {/* Mascot */}
               <div className="relative z-10 w-full max-w-[460px] drop-shadow-[0_20px_60px_rgba(20,66,114,0.2)]">
