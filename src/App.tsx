@@ -88,6 +88,7 @@ const Sweepstakes = lazy(() => import("./pages/Sweepstakes"));
 const CompanyCheckout = lazy(() => import("./pages/CompanyCheckout"));
 const EmployeeActivate = lazy(() => import("./pages/EmployeeActivate"));
 const TermoTelemedicina = lazy(() => import("./pages/TermoTelemedicina"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
 
 if (typeof window !== "undefined") {
   const prefetch = () => {
@@ -208,6 +209,7 @@ const AnimatedRoutes = () => {
       <Route path="/empresas/checkout" element={<CompanyCheckout />} />
       <Route path="/funcionario/ativar/:token" element={<EmployeeActivate />} />
       <Route path="/termo-telemedicina" element={<TermoTelemedicina />} />
+      <Route path="/onboarding" element={<Onboarding />} />
 
       <Route
         path="/dashboard/*"
