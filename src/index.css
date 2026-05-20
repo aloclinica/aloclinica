@@ -319,9 +319,21 @@
   /* Premium floating animation */
   .animate-float {
     animation: gentle-float 5s ease-in-out infinite;
+    will-change: transform;
   }
   .animate-float-delayed {
     animation: gentle-float 6s ease-in-out infinite 1.5s;
+    will-change: transform;
+  }
+
+  /* Subtle float for tech widgets */
+  .animate-float-up {
+    animation: float-subtle-up 5s ease-in-out infinite;
+    will-change: transform;
+  }
+  .animate-float-down {
+    animation: float-subtle-down 6s ease-in-out infinite 1.5s;
+    will-change: transform;
   }
 
   /* Subtle breathing glow for active elements */
@@ -427,6 +439,25 @@
   0%, 100% { transform: translateY(0) rotate(0deg); }
   33% { transform: translateY(-8px) rotate(0.5deg); }
   66% { transform: translateY(-4px) rotate(-0.3deg); }
+}
+
+@keyframes float-subtle-up {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(0.3deg); }
+}
+
+@keyframes float-subtle-down {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(5px) rotate(-0.3deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-float-delayed,
+  .animate-float-up,
+  .animate-float-down {
+    animation: none;
+  }
 }
 
 @keyframes breathe {
