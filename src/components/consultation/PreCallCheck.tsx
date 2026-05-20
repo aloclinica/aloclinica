@@ -595,6 +595,32 @@ const PreCallCheck = ({ appointmentId, doctorName, doctorSpecialty, scheduledAt,
             <StatusPill ok={micOk} label="Microfone" />
           </div>
 
+          {/* Speaker test + error banner (mobile) */}
+          <div className="flex items-center justify-center gap-2 pb-2">
+            <button
+              onClick={testSpeaker}
+              disabled={speakerTesting}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[hsl(220,20%,15%)] text-[hsl(220,15%,70%)] border border-[hsl(220,15%,22%)] active:scale-95 transition disabled:opacity-60"
+            >
+              <Speaker className={`w-3.5 h-3.5 ${speakerTesting ? "animate-pulse text-primary" : ""}`} />
+              {speakerTesting ? "Tocando..." : "Testar som"}
+            </button>
+          </div>
+          {deviceError && !testing && (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 mb-2 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-medium text-destructive">{deviceError.message}</p>
+                <button
+                  onClick={testDevices}
+                  className="text-[11px] text-primary underline mt-1"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Doctor presence status */}
           {!isDoctor && appointmentId && (
             <div className={`rounded-xl border p-3 flex items-center gap-3 mb-2 ${
