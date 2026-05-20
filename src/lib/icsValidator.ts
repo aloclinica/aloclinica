@@ -26,6 +26,8 @@ export interface IcsValidationResult {
     dtend?: string;
     duration?: string;
     summary?: string;
+    url?: string;
+    location?: string;
   };
 }
 
