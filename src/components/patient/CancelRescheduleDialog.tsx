@@ -168,6 +168,13 @@ const CancelRescheduleDialog = ({ appointmentId, doctorId, currentDate, schedule
     setSubmitting(false);
   };
 
+  const handleCloseConfirmation = () => {
+    setShowConfirmation(false);
+    setConfirmationData(null);
+    setOpen(false);
+    onSuccess();
+  };
+
   const handleReschedule = async () => {
     if (!newDate || !newTime || !doctorId || !user) return;
 
