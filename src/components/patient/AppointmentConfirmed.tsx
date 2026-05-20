@@ -287,11 +287,11 @@ const AppointmentConfirmed = () => {
 
     if (result.warnings.length) {
       toast.success("Agenda baixada", {
-        description: `Compatível com Google Calendar e iCal. ${result.warnings.length} aviso(s) no console.`,
+        description: `Com link da sala e lembrete. ${result.warnings.length} aviso(s) no console.`,
       });
     } else {
       toast.success("Agenda baixada", {
-        description: "Compatível com Google Calendar e Apple iCal.",
+        description: "Link da sala incluso — abra direto do Google Calendar ou iCal.",
       });
     }
   };
