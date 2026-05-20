@@ -319,9 +319,21 @@
   /* Premium floating animation */
   .animate-float {
     animation: gentle-float 5s ease-in-out infinite;
+    will-change: transform;
   }
   .animate-float-delayed {
     animation: gentle-float 6s ease-in-out infinite 1.5s;
+    will-change: transform;
+  }
+
+  /* Subtle float for tech widgets */
+  .animate-float-up {
+    animation: float-subtle-up 5s ease-in-out infinite;
+    will-change: transform;
+  }
+  .animate-float-down {
+    animation: float-subtle-down 6s ease-in-out infinite 1.5s;
+    will-change: transform;
   }
 
   /* Subtle breathing glow for active elements */
