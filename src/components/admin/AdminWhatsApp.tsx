@@ -97,16 +97,6 @@ const DEFAULT_AUTOMATIONS: AutomationConfig[] = [
     enabled: false,
   },
   {
-    key: "wpp_exam_report_ready",
-    label: "Laudo de Exame Pronto",
-    description: "Notifica quando o laudo do exame está assinado.",
-    icon: <Stethoscope className="w-4 h-4 text-primary" />,
-    category: "notification",
-    defaultTemplate:
-      "🔬 *Laudo Pronto* — Allo Médico\n\nOlá, {{patient_name}}!\nO laudo do seu exame de {{exam_type}} está disponível.\n\nAcesse: https://aloclinica.com.br/dashboard/paciente/health\n\n💚",
-    enabled: false,
-  },
-  {
     key: "wpp_doctor_approved",
     label: "Médico Aprovado",
     description: "Notifica o médico quando seu cadastro é aprovado.",
