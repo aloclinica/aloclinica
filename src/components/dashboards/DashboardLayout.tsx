@@ -46,8 +46,7 @@ const SERVICE_MAP: Record<string, { name: string; emoji: string; color: string; 
   patient: { name: "Telemedicina", emoji: "🩺", color: "hsl(210,90%,45%)", description: "Consultoria médica online" },
   doctor: { name: "Telemedicina", emoji: "🩺", color: "hsl(160,55%,42%)", description: "Atendimento a pacientes" },
   ophthalmologist: { name: "Oftalmologia", emoji: "👁️", color: "hsl(270,65%,50%)", description: "Exames e prescrições" },
-  laudista: { name: "Telelaudo", emoji: "📋", color: "hsl(175,60%,40%)", description: "Laudos e assinaturas" },
-  clinic: { name: "Telelaudo", emoji: "📋", color: "hsl(175,60%,40%)", description: "Gestão de exames" },
+  clinic: { name: "Clínica", emoji: "🏥", color: "hsl(175,60%,40%)", description: "Gestão da clínica" },
   receptionist: { name: "Recepção", emoji: "🏥", color: "hsl(30,88%,48%)", description: "Agendas e check-in" },
   support: { name: "Suporte", emoji: "🎧", color: "hsl(42,90%,48%)", description: "Atendimento ao cliente" },
   admin: { name: "Administração", emoji: "⚙️", color: "hsl(265,60%,52%)", description: "Controle do sistema" },
@@ -226,7 +225,7 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
   const role = propsRole || (isAdmin ? "admin" : forceRole || "patient");
   const grad = ROLE_GRADIENT[role] ?? ROLE_GRADIENT.patient;
   const ROLE_RING: Record<string, string> = {
-    patient: "ring-blue-400", doctor: "ring-emerald-400", laudista: "ring-blue-600",
+    patient: "ring-blue-400", doctor: "ring-emerald-400",
     admin: "ring-purple-400", clinic: "ring-orange-400", receptionist: "ring-amber-400",
     support: "ring-yellow-400", partner: "ring-green-400", ai: "ring-blue-400",
   };

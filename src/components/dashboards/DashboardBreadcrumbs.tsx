@@ -43,8 +43,6 @@ const ROUTE_LABELS: Record<string, string> = {
   certificates: "Atestados",
   "on-duty": "Plantão 24h",
   "renewal-queue": "Renovações",
-  "report-queue": "Fila de Laudos",
-  "report-editor": "Editor de Laudo",
   wallet: "Carteira",
   chat: "Chat",
   "ai-assistant": "IA Assistente",
@@ -52,9 +50,7 @@ const ROUTE_LABELS: Record<string, string> = {
   financial: "Financeiro",
   coupons: "Cupons",
   live: "Ao Vivo",
-  laudista: "Laudista",
   queue: "Fila",
-  "my-reports": "Meus Laudos",
   financeiro: "Financeiro",
   "exam-request": "Solicitar Exame",
   "my-exams": "Meus Exames",
@@ -87,7 +83,6 @@ const ROLE_LABELS: Record<string, string> = {
   receptionist: "Recepção",
   support: "Suporte",
   partner: "Parceiro",
-  laudista: "Laudista",
 };
 
 const DashboardBreadcrumbs = () => {
