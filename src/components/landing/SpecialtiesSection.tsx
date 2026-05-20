@@ -116,37 +116,43 @@ const SpecialtyCard = ({ name, desc, index }: { name: string; desc?: string; ind
   const navigate = useNavigate();
   const Icon = specialtyIcons[name] || Stethoscope;
   const imageSrc = getSpecialtyImage(name);
-  
+
   return (
     <motion.button
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.04, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="group flex flex-col items-center gap-3 p-4 rounded-2xl bg-card/80 border border-border/40 hover:shadow-lg hover:border-primary/25 hover:-translate-y-1 transition-all duration-300 cursor-pointer h-full w-full"
       onClick={() => navigate("/dashboard/doctors")}
+      title={desc}
+      className="group relative flex flex-col items-center p-5 md:p-6 rounded-[2rem] bg-card border border-border/50 shadow-[0_8px_30px_hsl(var(--primary)/0.04)] hover:shadow-[0_20px_50px_hsl(var(--primary)/0.12)] hover:-translate-y-2 hover:border-primary/20 transition-all duration-500 cursor-pointer h-full w-full"
     >
-      <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-primary/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors duration-300 overflow-hidden">
-        {imageSrc ? (
-          <img 
-            src={imageSrc}
-            alt={`Pingo ${name}`}
-            className="w-full h-full object-contain pingo-float"
-            loading="lazy"
-          />
-        ) : (
-          <Icon className="w-6 h-6 md:w-7 md:h-7 text-primary group-hover:text-primary transition-colors" weight="duotone" />
-        )}
+      {/* Mascot + halo */}
+      <div className="relative mb-4 md:mb-5">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent rounded-full scale-125 group-hover:scale-150 transition-transform duration-500" />
+        <div className="relative z-10 w-16 h-16 md:w-20 md:h-20 flex items-center justify-center drop-shadow-md group-hover:scale-110 transition-transform duration-500">
+          {imageSrc ? (
+            <img
+              src={imageSrc}
+              alt={`Pingo ${name}`}
+              className="w-full h-full object-contain pingo-float"
+              loading="lazy"
+            />
+          ) : (
+            <Icon className="w-7 h-7 md:w-8 md:h-8 text-primary" weight="duotone" />
+          )}
+        </div>
       </div>
-      <div className="flex flex-col items-center gap-1.5">
-        <span className="text-xs md:text-sm font-bold text-foreground text-center leading-tight group-hover:text-primary transition-colors">
-          {name}
-        </span>
-        {desc && (
-          <p className="text-[10px] md:text-[11px] text-muted-foreground text-center leading-tight opacity-0 group-hover:opacity-100 transition-opacity duration-300 line-clamp-2">
-            {desc}
-          </p>
-        )}
+
+      <span className="text-xs md:text-sm font-bold text-foreground text-center leading-tight group-hover:text-primary transition-colors">
+        {name}
+      </span>
+
+      <div className="mt-3 flex items-center gap-1 text-[10px] font-extrabold text-secondary uppercase tracking-wider opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+        Ver médicos
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+        </svg>
       </div>
     </motion.button>
   );
@@ -185,10 +191,14 @@ function SpecialtiesSection({ config }: { config?: any }) {
           )}
         </AnimatePresence>
 
-        <div className="flex justify-center">
-          <Button size="lg" variant="ghost" className="rounded-2xl h-[46px] px-6 font-bold text-primary group" onClick={() => setShowAll(!showAll)}>
-            {showAll ? "Ver menos" : "Ver mais"}
-            <CaretDown className={`w-4 h-4 ml-1.5 transition-transform ${showAll ? "rotate-180" : ""}`} weight="bold" />
+        <div className="flex justify-center mt-4">
+          <Button
+            size="lg"
+            className="rounded-full h-12 px-8 font-extrabold bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.03] active:scale-95 transition-all"
+            onClick={() => setShowAll(!showAll)}
+          >
+            {showAll ? "Ver menos especialidades" : "Ver mais especialidades"}
+            <CaretDown className={`w-4 h-4 ml-2 transition-transform ${showAll ? "rotate-180" : ""}`} weight="bold" />
           </Button>
         </div>
       </div>
