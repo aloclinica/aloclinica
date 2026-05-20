@@ -51,6 +51,7 @@ const CancelRescheduleDialog = ({ appointmentId, doctorId, currentDate, schedule
   const hoursUntil = scheduledAt ? differenceInHours(new Date(scheduledAt), new Date()) : 999;
   const isLateCancel = hoursUntil < 2;
   const isVeryLateCancel = hoursUntil < 1;
+  const isPastAppointment = scheduledAt ? isBefore(new Date(scheduledAt), new Date()) : false;
 
   // Check if within 15-day return window (free reschedule)
   const isWithinReturnWindow = scheduledAt ? differenceInHours(new Date(), new Date(scheduledAt)) < 15 * 24 : false;
@@ -98,6 +99,25 @@ const CancelRescheduleDialog = ({ appointmentId, doctorId, currentDate, schedule
     const finalReason = reason === "Outro motivo" ? customReason.trim() : reason;
     if (!finalReason) { toast.error("Informe o motivo do cancelamento"); return; }
 
+    // Revalida status atual da consulta — evita cancelar algo já cancelado/concluído/passado
+    const { data: current } = await db.from("appointments")
+      .select("status, scheduled_at").eq("id", appointmentId).maybeSingle();
+    if (!current) {
+      toast.error("Consulta não encontrada", { description: "O link pode ter expirado." });
+      setOpen(false); return;
+    }
+    if (current.status === "cancelled") {
+      toast.error("Consulta já cancelada"); setOpen(false); onSuccess(); return;
+    }
+    if (["completed", "no_show"].includes(current.status)) {
+      toast.error("Não é possível cancelar", { description: "Esta consulta já foi realizada." });
+      setOpen(false); return;
+    }
+    if (isBefore(new Date(current.scheduled_at), new Date())) {
+      toast.error("Horário expirado", { description: "Esta consulta já passou e não pode ser cancelada." });
+      setOpen(false); return;
+    }
+
     if (isVeryLateCancel) {
       const confirmed = window.confirm("Cancelamentos com menos de 1h não são reembolsáveis. Deseja continuar?");
       if (!confirmed) return;
@@ -123,10 +143,48 @@ const CancelRescheduleDialog = ({ appointmentId, doctorId, currentDate, schedule
 
   const handleReschedule = async () => {
     if (!newDate || !newTime || !doctorId || !user) return;
-    setSubmitting(true);
 
     const [h, m] = newTime.split(":").map(Number);
     const newScheduledAt = setMinutes(setHours(new Date(newDate), h), m);
+
+    // Valida horário futuro
+    if (isBefore(newScheduledAt, new Date())) {
+      toast.error("Horário expirado", { description: "Selecione um horário no futuro." });
+      setNewTime(null);
+      return;
+    }
+
+    setSubmitting(true);
+
+    // Revalida consulta original
+    const { data: current } = await db.from("appointments")
+      .select("status, scheduled_at").eq("id", appointmentId).maybeSingle();
+    if (!current) {
+      toast.error("Consulta não encontrada", { description: "O link pode ter expirado." });
+      setSubmitting(false); setOpen(false); return;
+    }
+    if (current.status === "cancelled") {
+      toast.error("Consulta já cancelada", { description: "Não é possível reagendar uma consulta cancelada." });
+      setSubmitting(false); setOpen(false); return;
+    }
+    if (["completed", "no_show"].includes(current.status) || isBefore(new Date(current.scheduled_at), new Date())) {
+      toast.error("Reagendamento indisponível", { description: "A consulta original já passou." });
+      setSubmitting(false); setOpen(false); return;
+    }
+
+    // Revalida disponibilidade do novo horário (anti double-booking)
+    const { data: conflict } = await db.from("appointments")
+      .select("id").eq("doctor_id", doctorId)
+      .eq("scheduled_at", newScheduledAt.toISOString())
+      .neq("status", "cancelled").maybeSingle();
+    if (conflict) {
+      toast.error("Horário indisponível", { description: "Este horário acabou de ser reservado. Escolha outro." });
+      setNewTime(null);
+      // Recarrega lista de horários
+      setNewDate(new Date(newDate));
+      setSubmitting(false);
+      return;
+    }
 
     // Cancel current appointment
     await db.from("appointments").update({
@@ -147,7 +205,17 @@ const CancelRescheduleDialog = ({ appointmentId, doctorId, currentDate, schedule
     });
 
     if (error) {
-      toast.error("Erro ao reagendar consulta");
+      const code = (error as any)?.code;
+      if (code === "23505") {
+        toast.error("Horário indisponível", { description: "Este horário acabou de ser reservado. Escolha outro." });
+        // Reverte cancelamento da consulta original
+        await db.from("appointments").update({ status: "scheduled", cancelled_by: null, cancel_reason: null }).eq("id", appointmentId);
+        setNewTime(null);
+      } else {
+        toast.error("Erro ao reagendar consulta");
+      }
+      setSubmitting(false);
+      return;
     } else {
       const newDateStr = format(newScheduledAt, "dd/MM/yyyy", { locale: ptBR });
       const newTimeStr = format(newScheduledAt, "HH:mm");
