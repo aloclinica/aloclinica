@@ -84,9 +84,6 @@ const MedicalRecords = lazy(() => import("@/components/medical/MedicalRecords"))
 const AIAssistantPanel = lazy(() => import("@/components/ai/AIAssistantPanel"));
 // Clinic components (kept minimal for admin view-as)
 const ClinicDoctorsManagement = lazy(() => import("@/components/clinic/ClinicDoctorsManagement"));
-const ClinicMyExams = lazy(() => import("@/components/clinic/ClinicMyExams"));
-const ClinicExamUpload = lazy(() => import("@/components/clinic/ClinicExamUpload"));
-const ClinicExamList = lazy(() => import("@/components/clinic/ClinicExamList"));
 const ClinicSchedules = lazy(() => import("@/components/clinic/ClinicSchedules"));
 const ClinicPatients = lazy(() => import("@/components/clinic/ClinicPatients"));
 const ClinicWaitingRoom = lazy(() => import("@/components/clinic/ClinicWaitingRoom"));
@@ -107,7 +104,6 @@ const AdminNotificationTemplates = lazy(() => import("@/components/admin/AdminNo
 const AdminSecurity = lazy(() => import("@/components/admin/AdminSecurity"));
 const AdminLgpdExports = lazy(() => import("@/components/admin/AdminLgpdExports"));
 const AdminThemeEditor = lazy(() => import("@/components/admin/AdminThemeEditor"));
-const AdminSlaMedicos = lazy(() => import("@/components/admin/AdminSlaMedicos"));
 const BillingPortal = lazy(() => import("@/components/billing/BillingPortal"));
 const AdminSwitchPanel = lazy(() => import("@/components/admin/AdminSwitchPanel"));
 const AdminNPS = lazy(() => import("@/components/admin/AdminNPS"));
@@ -223,7 +219,6 @@ const Dashboard = () => {
     if (isAdmin) return "admin";
     // Laudista takes priority over doctor if user has laudista role
     // (laudistas also have doctor role but their primary context is laudista)
-    if (roles.includes("laudista")) return "laudista";
     if (roles.includes("ophthalmologist")) return "ophthalmologist";
     if (roles.includes("doctor")) return "doctor";
     if (roles.includes("receptionist")) return "receptionist";
@@ -239,7 +234,6 @@ const Dashboard = () => {
     switch (primaryRole) {
       case "admin": return <AdminDashboard />;
       case "doctor": return <DoctorDashboard />;
-      case "laudista": return <LaudistaDashboard />;
       case "ophthalmologist": return <DoctorDashboard />;
       case "receptionist": return <ReceptionDashboard />;
       case "support": return <SupportDashboard />;
