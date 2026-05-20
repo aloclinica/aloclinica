@@ -55,6 +55,30 @@ const fmtUtc = (d: Date) =>
 const escapeIcs = (s: string) =>
   String(s).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
 
+// UFs válidas (CFM emite registros vinculados a um conselho estadual).
+const UF_LIST = new Set([
+  "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA",
+  "PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO",
+]);
+
+/**
+ * Valida e formata o CRM no padrão CFM: "CRM/UF NNNNNN".
+ * - Aceita variações sujas vindas do cadastro (com pontos, traços, "CRM" no meio, etc.).
+ * - Exige 4–7 dígitos e UF válida; caso contrário retorna `null` para o caller omitir do .ics.
+ */
+export const formatCrm = (
+  raw: string | null | undefined,
+  state: string | null | undefined
+): string | null => {
+  const uf = String(state ?? "").trim().toUpperCase();
+  if (!UF_LIST.has(uf)) return null;
+  const digits = String(raw ?? "").replace(/\D+/g, "");
+  if (digits.length < 4 || digits.length > 7) return null;
+  // Remove zeros à esquerda preservando ao menos um dígito.
+  const num = digits.replace(/^0+(?=\d)/, "");
+  return `CRM/${uf} ${num}`;
+};
+
 const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinutes: number | null) => {
   const start = new Date(appt.scheduled_at);
   const duration = Math.max(5, Number(appt.duration_minutes) || 30);
@@ -74,9 +98,13 @@ const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinut
     "END:VTIMEZONE",
   ];
 
+  const crmLabel = formatCrm(appt.doctor_crm, appt.doctor_crm_state);
+  const crmSuffix = crmLabel ? ` — ${crmLabel}` : "";
+  const specSuffix = appt.doctor_specialty ? ` (${appt.doctor_specialty})` : "";
+
   const description = escapeIcs(
     `Consulta online AloClínica\n` +
-    `Médico: ${appt.doctor_name}${appt.doctor_specialty ? ` (${appt.doctor_specialty})` : ""}${appt.doctor_crm ? ` — CRM-${appt.doctor_crm_state || "XX"} ${appt.doctor_crm}` : ""}.\n` +
+    `Médico: ${appt.doctor_name}${specSuffix}${crmSuffix}.\n` +
     `Duração: ${duration} minutos.\n` +
     `Link da sala: ${roomUrl}\n` +
     `Entre 5 minutos antes para testar câmera e microfone.`
@@ -85,7 +113,7 @@ const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinut
   // X-ALT-DESC com HTML para clients que suportam (Outlook, Apple Calendar)
   const htmlDesc = escapeIcs(
     `<h3>Consulta online AloClínica</h3>` +
-    `<p><b>Médico:</b> ${appt.doctor_name}${appt.doctor_specialty ? ` (${appt.doctor_specialty})` : ""}${appt.doctor_crm ? ` — CRM-${appt.doctor_crm_state || "XX"} ${appt.doctor_crm}` : ""}</p>` +
+    `<p><b>Médico:</b> ${appt.doctor_name}${specSuffix}${crmSuffix}</p>` +
     `<p><b>Duração:</b> ${duration} minutos</p>` +
     `<p><b>Link da sala:</b> <a href="${roomUrl}">${roomUrl}</a></p>` +
     `<p>Entre 5 minutos antes para testar câmera e microfone.</p>`
@@ -114,7 +142,7 @@ const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinut
     `DTSTART;TZID=America/Sao_Paulo:${fmtLocalSP(start)}`,
     `DTEND;TZID=America/Sao_Paulo:${fmtLocalSP(end)}`,
     `DURATION:PT${duration}M`,
-    `SUMMARY:${escapeIcs(`Teleconsulta — ${appt.doctor_name}${appt.doctor_specialty ? ` (${appt.doctor_specialty})` : ""}${appt.doctor_crm ? `, CRM-${appt.doctor_crm_state || "XX"} ${appt.doctor_crm}` : ""}`)}`,
+    `SUMMARY:${escapeIcs(`Teleconsulta — ${appt.doctor_name}${specSuffix}${crmLabel ? `, ${crmLabel}` : ""}`)}`,
     `DESCRIPTION:${description}`,
     `X-ALT-DESC;FMTTYPE=text/html:${htmlDesc}`,
     `URL:${roomUrl}`,
