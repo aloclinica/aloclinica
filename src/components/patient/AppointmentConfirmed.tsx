@@ -14,6 +14,7 @@ import { ptBR } from "date-fns/locale";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getPatientNav } from "./patientNav";
 import CancelRescheduleDialog from "./CancelRescheduleDialog";
+import { validateIcs, logIcsValidation } from "@/lib/icsValidator";
 
 interface ConfirmedAppointment {
   id: string;
@@ -54,7 +55,7 @@ const fmtUtc = (d: Date) =>
 const escapeIcs = (s: string) =>
   String(s).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
 
-const buildIcsDataUri = (appt: ConfirmedAppointment, roomUrl: string, reminderMinutes: number | null) => {
+const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinutes: number | null) => {
   const start = new Date(appt.scheduled_at);
   const duration = Math.max(5, Number(appt.duration_minutes) || 30);
   const end = new Date(start.getTime() + duration * 60 * 1000);
@@ -114,8 +115,9 @@ const buildIcsDataUri = (appt: ConfirmedAppointment, roomUrl: string, reminderMi
     "END:VEVENT",
     "END:VCALENDAR",
   ].join("\r\n");
-  return "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);
+  return ics;
 };
+
 
 const REMINDER_OPTIONS: { value: number | null; label: string }[] = [
   { value: null, label: "Sem lembrete" },
@@ -247,6 +249,40 @@ const AppointmentConfirmed = () => {
       toast.success("Link da consulta copiado!");
     } catch {
       toast.error("Não foi possível copiar o link");
+    }
+  };
+
+  const handleDownloadIcs = () => {
+    const ics = buildIcsText(appt, roomUrl, reminderMinutes);
+    const result = validateIcs(ics);
+    logIcsValidation(`consulta-${appt.id}.ics`, ics, result);
+
+    if (!result.ok) {
+      toast.error("Arquivo .ics inválido", {
+        description: result.errors.slice(0, 2).join(" • "),
+      });
+      return;
+    }
+
+    // Usa Blob + objectURL — mais confiável que data: URI no Safari/iOS para .ics
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `consulta-${appt.id}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+
+    if (result.warnings.length) {
+      toast.success("Agenda baixada", {
+        description: `Compatível com Google Calendar e iCal. ${result.warnings.length} aviso(s) no console.`,
+      });
+    } else {
+      toast.success("Agenda baixada", {
+        description: "Compatível com Google Calendar e Apple iCal.",
+      });
     }
   };
 
@@ -408,13 +444,8 @@ const AppointmentConfirmed = () => {
                     );
                   })}
                 </div>
-                <Button asChild className="w-full h-10 mt-3 rounded-lg">
-                  <a
-                    href={buildIcsDataUri(appt, roomUrl, reminderMinutes)}
-                    download={`consulta-${appt.id}.ics`}
-                  >
-                    <Download className="w-4 h-4 mr-2" /> Baixar .ics
-                  </a>
+                <Button onClick={handleDownloadIcs} className="w-full h-10 mt-3 rounded-lg">
+                  <Download className="w-4 h-4 mr-2" /> Baixar .ics
                 </Button>
               </PopoverContent>
             </Popover>
