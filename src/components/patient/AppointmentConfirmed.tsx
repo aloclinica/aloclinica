@@ -29,6 +29,8 @@ interface ConfirmedAppointment {
   doctor_crm: string | null;
   doctor_crm_state: string | null;
   duration_minutes: number;
+  clinic_id: string | null;
+  clinic_name: string | null;
 }
 
 const formatBRL = (v: number | null | undefined) =>
@@ -129,6 +131,10 @@ const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinut
       ]
     : [];
 
+  const locationLabel = appt.clinic_name
+    ? `${appt.clinic_name} — Teleconsulta Online | ${roomUrl}`
+    : `AloClínica — Teleconsulta Online | ${roomUrl}`;
+
   const ics = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
@@ -146,7 +152,7 @@ const buildIcsText = (appt: ConfirmedAppointment, roomUrl: string, reminderMinut
     `DESCRIPTION:${description}`,
     `X-ALT-DESC;FMTTYPE=text/html:${htmlDesc}`,
     `URL:${roomUrl}`,
-    `LOCATION:${escapeIcs(`AloClínica — Teleconsulta Online | ${roomUrl}`)}`,
+    `LOCATION:${escapeIcs(locationLabel)}`,
     "STATUS:CONFIRMED",
     "TRANSP:OPAQUE",
     ...alarm,
@@ -203,7 +209,7 @@ const AppointmentConfirmed = () => {
       if (!appointmentId) return;
       const { data } = await db
         .from("appointments")
-        .select("id, scheduled_at, appointment_type, price_at_booking, payment_status, status, doctor_id")
+        .select("id, scheduled_at, appointment_type, price_at_booking, payment_status, status, doctor_id, clinic_id")
         .eq("id", appointmentId)
         .maybeSingle();
 
@@ -219,6 +225,17 @@ const AppointmentConfirmed = () => {
         .eq("id", data.doctor_id)
         .maybeSingle();
 
+      // Buscar nome da clínica/centro de atendimento
+      let clinicName: string | null = null;
+      if (data.clinic_id) {
+        const { data: clinic } = await db
+          .from("clinic_profiles")
+          .select("name")
+          .eq("id", data.clinic_id)
+          .maybeSingle();
+        clinicName = (clinic as any)?.name ?? null;
+      }
+
       const docAny = doc as any;
       setAppt({
         ...data,
@@ -227,6 +244,8 @@ const AppointmentConfirmed = () => {
         doctor_crm: docAny?.crm ?? null,
         doctor_crm_state: docAny?.crm_state ?? null,
         duration_minutes: Number(docAny?.consultation_duration) || 30,
+        clinic_id: data.clinic_id ?? null,
+        clinic_name: clinicName,
       });
       setLoading(false);
     };
