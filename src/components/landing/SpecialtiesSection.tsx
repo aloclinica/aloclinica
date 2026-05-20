@@ -127,19 +127,19 @@ const SpecialtyCard = ({ name, desc, index }: { name: string; desc?: string; ind
       title={desc}
       className="group relative flex flex-col items-center p-5 md:p-6 rounded-[2rem] bg-card border border-border/50 shadow-[0_8px_30px_hsl(var(--primary)/0.04)] hover:shadow-[0_20px_50px_hsl(var(--primary)/0.12)] hover:-translate-y-2 hover:border-primary/20 transition-all duration-500 cursor-pointer h-full w-full"
     >
-      {/* Mascot + halo */}
-      <div className="relative mb-4 md:mb-5">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent rounded-full scale-125 group-hover:scale-150 transition-transform duration-500" />
-        <div className="relative z-10 w-16 h-16 md:w-20 md:h-20 flex items-center justify-center drop-shadow-md group-hover:scale-110 transition-transform duration-500">
+      {/* Mascot inside orb */}
+      <div className="relative mb-4 md:mb-5 w-20 h-20 md:w-24 md:h-24">
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/15 via-primary/8 to-secondary/10 ring-1 ring-primary/10 shadow-[inset_0_2px_8px_hsl(var(--primary)/0.08)] group-hover:from-primary/25 group-hover:via-primary/15 transition-all duration-500" />
+        <div className="absolute inset-0 rounded-full overflow-hidden flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
           {imageSrc ? (
             <img
               src={imageSrc}
               alt={`Pingo ${name}`}
-              className="w-full h-full object-contain pingo-float"
+              className="w-[125%] h-[125%] object-cover object-center pingo-float"
               loading="lazy"
             />
           ) : (
-            <Icon className="w-7 h-7 md:w-8 md:h-8 text-primary" weight="duotone" />
+            <Icon className="w-8 h-8 md:w-10 md:h-10 text-primary relative z-10" weight="duotone" />
           )}
         </div>
       </div>
