@@ -3,6 +3,9 @@ project_id = "pwxvvimdtmvziynbspgx"
 [functions.create-admin-account]
 verify_jwt = false
 
+[functions.seed-test-doctors]
+verify_jwt = false
+
 [functions.process-refund]
 verify_jwt = false
 
