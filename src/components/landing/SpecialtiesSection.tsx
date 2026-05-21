@@ -124,7 +124,7 @@ const SpecialtyCard = ({ name, desc, index }: { name: string; desc?: string; ind
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.04, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      onClick={() => navigate("/dashboard/doctors")}
+      onClick={() => navigate(`/agendar?especialidade=${encodeURIComponent(name)}`)}
       title={desc}
       className="group relative flex flex-col items-center p-5 md:p-6 rounded-[2rem] bg-card border border-border/50 shadow-[0_8px_30px_hsl(var(--primary)/0.04)] hover:shadow-[0_20px_50px_hsl(var(--primary)/0.12)] hover:-translate-y-2 hover:border-primary/20 transition-all duration-500 cursor-pointer h-full w-full"
     >
