@@ -233,8 +233,20 @@ const Agendar = () => {
     let list = [...doctors];
     // Filtra por especialidade selecionada
     if (selectedSpecialty) {
-      const target = selectedSpecialty.toLowerCase();
-      list = list.filter((d) => (d.specialty_names ?? []).some((n) => n.toLowerCase() === target));
+      const norm = (s: string) =>
+        s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+      const target = norm(selectedSpecialty);
+      // Aceita variações: "Clínico Geral" ≈ "Clínica Geral", "Ginecologia" ≈ "Ginecologia Obstétrica" etc.
+      const targetRoot = target.replace(/\b(geral|obstetrica|obstetra)\b/g, "").trim();
+      list = list.filter((d) =>
+        (d.specialty_names ?? []).some((n) => {
+          const ns = norm(n);
+          if (ns === target) return true;
+          if (ns.includes(target) || target.includes(ns)) return true;
+          if (targetRoot && (ns.includes(targetRoot) || targetRoot.includes(ns.split(" ")[0]))) return true;
+          return false;
+        })
+      );
     }
     // Apenas médicos com horários cadastrados
     if (onlyAvailable) {
