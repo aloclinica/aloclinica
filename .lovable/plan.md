@@ -1,63 +1,54 @@
-## Plano: Estrutura completa do Cartão Benefícios
+# Melhoria do cadastro de médico
 
-Boa parte da fundação já existe (tabelas `pingo_card_plans`, `pingo_card_subscriptions`, `pingo_card_partners`, `pingo_card_transactions`, `pingo_ticket_accounts`, `pingo_ticket_transactions`, `dependents`, `AdminPingoCard.tsx`, `PingoCard.tsx`, edge functions MercadoPago). O plano abaixo conecta tudo, fecha o ciclo de venda recorrente e padroniza UX.
+Transformar `/medico/cadastro` num wizard de 3 etapas com convite obrigatório, validação automática de CRM (CFM) e upload de documentos já na inscrição.
 
-### 1. Banco de dados (migration única)
-- Garantir colunas em `pingo_card_subscriptions`: `plan_id`, `status` (active/past_due/cancelled/trial), `billing_cycle` (monthly/yearly), `mp_subscription_id`, `mp_preapproval_id`, `next_charge_at`, `trial_ends_at`, `cancelled_at`, `card_holder_user_id`, `dependents_included int`.
-- Garantir colunas em `pingo_card_plans`: `pingo_ticket_monthly_credit numeric default 0`, `trial_days int default 0`, `display_order int`, `features_included jsonb`, `is_active`, `is_highlighted`, `cta_label`.
-- Nova tabela `pingo_card_invoices` (subscription_id, mp_payment_id, amount, status, due_date, paid_at, pdf_url).
-- Nova tabela `pingo_card_benefit_usage` (subscription_id, type [consultation/exam/partner/ticket], reference_id, discount_applied, used_at) — auditoria para o titular ver economia acumulada.
-- Triggers: `fn_credit_pingo_ticket_on_invoice_paid` (credita `pingo_ticket_accounts.balance` quando fatura paga e plano tem `pingo_ticket_monthly_credit > 0`); `fn_block_dependents_over_limit` (não permite cadastrar dependente além de `plan.max_dependents`).
-- RPC `fn_get_cartao_summary(user_id)` retornando plano, status, próximo vencimento, saldo Pingo Ticket, dependentes ativos, economia do mês.
-- RLS para tudo (titular vê seus dados; admin vê tudo via `has_role('admin')`).
+## Fluxo final
 
-### 2. Admin — editor de planos
-- Estender `AdminPingoCard.tsx` (ou criar `AdminPingoCardPlans.tsx`) com CRUD completo de `pingo_card_plans`: nome, slug, preço mensal/anual, descontos (consulta/exame/parceiro), crédito mensal Pingo Ticket, max dependentes, lista de benefícios (jsonb editável), cor, ordem, destaque, dias de trial, CTA.
-- Tab adicional "Assinaturas" com lista, filtros por status, ações (cancelar, marcar past_due, abrir fatura).
-- Tab "Parceiros" já existe — só padronizar com `AdminPageHeader`.
-- Adicionar item no `AdminSiteConfig`/Editor para alterar copy do hero do Pingo Card (título, subtítulo, badges).
+```
+[1] Convite + Email   →   [2] Dados + CRM (auto-valida)   →   [3] Documentos + Senha   →   Aguardando aprovação
+```
 
-### 3. Frontend público de vendas (`/pingo-card`)
-- Refatorar `PingoCard.tsx` carregando planos ativos do banco (já parcial), mostrando: Hero, Como funciona, Cards de planos (mensal/anual toggle), Benefícios detalhados, Rede credenciada destaque (`pingo_card_partners` featured), FAQ específico, CTA "Assinar agora".
-- Botão "Assinar" → se não logado, leva ao /auth com `?redirect=/checkout/pingo-card?plan=slug`; se logado, vai direto pro checkout.
-- Nova página `CheckoutPingoCard.tsx`: resumo do plano, escolha mensal/anual, formulário de cartão (já temos `AddCardForm`), confirma assinatura.
+- **Passo 1** — código de convite + e-mail. Valida em RPC `validate_doctor_invite` (existe, não usado, não expirado, e-mail bate).
+- **Passo 2** — nome, CPF, telefone, CRM + UF, especialidade. Botão "Validar CRM" chama edge function `validate-crm` que consulta o portal do CFM e retorna nome + situação ("Ativo"). Se confere, marca verde e libera passo 3.
+- **Passo 3** — upload de: foto do CRM, RG/CNH (frente), selfie segurando documento. Senha forte. No submit: signUp → signIn → insert `doctor_profiles` → upload no bucket privado `doctor-documents` → consome convite → redireciona para `/aguardando-aprovacao?role=doctor`.
 
-### 4. Edge function — assinatura recorrente
-- Reaproveitar `mercadopago-create-subscription` ajustando payload para passar `plan_id` do cartão benefícios e gravar `pingo_card_subscriptions` com `mp_preapproval_id`.
-- Estender `mercadopago-webhook` para tratar evento `preapproval` + `authorized_payment`: atualiza status da assinatura, cria registro em `pingo_card_invoices`, dispara trigger de crédito Pingo Ticket.
-- Nova edge function `pingo-card-cancel` (chama `mercadopago-cancel-subscription` e marca `cancelled_at`).
+## Mudanças no banco
 
-### 5. Painel do titular (`/dashboard/cartao/*`)
-- `MeuPlano.tsx`: mostrar plano atual via RPC `fn_get_cartao_summary`, próxima cobrança, botão upgrade/downgrade/cancelar, histórico de economia.
-- `CarteirinhaDigital.tsx`: já existe — padronizar branding com mascote Pingo + QR code com URL pública de validação.
-- `FaturasCartao.tsx`: listar `pingo_card_invoices`, status, link PDF, botão "pagar agora" se past_due.
-- `RedeCredenciada.tsx`: busca por categoria/cidade com `pingo_card_partners`, mapa opcional fase 2.
-- `PingoTicket.tsx`: saldo, extrato de `pingo_ticket_transactions`, lista de estabelecimentos (categoria = restaurante/mercado dos parceiros), botão "como usar".
-- `DependentesCartao.tsx`: validar contra `plan.max_dependents` antes de inserir.
-- `LgpdCartao.tsx`: já ok.
+Migration nova:
 
-### 6. Gating de acesso
-- Hook `useCartaoSubscription()` retornando assinatura ativa do usuário.
-- `KycRequiredGate`-style `ActiveCartaoGate` para `/dashboard/cartao/*` exceto carteirinha (sempre acessível em modo "sem plano" mostrando CTA de assinar).
-- Ao agendar consulta, aplicar desconto automático se o paciente tem assinatura ativa e gravar `pingo_card_benefit_usage`.
+- `doctor_invites` (code unique, email, expires_at, used_at, used_by, created_by, notes).
+- RPCs `SECURITY DEFINER`:
+  - `validate_doctor_invite(p_code text, p_email text) → boolean` — valida sem consumir.
+  - `consume_doctor_invite(p_code text, p_user_id uuid)` — marca como usado.
+  - `admin_create_doctor_invite(p_email text, p_expires_days int default 30)` — gera código aleatório (admin only).
+- Bucket `doctor-documents` (privado) + policies em `storage.objects` (médico só insere/lê pasta `{auth.uid()}/...`; admin lê tudo).
+- Coluna nova em `doctor_profiles`: `documents jsonb` (URLs dos arquivos enviados).
 
-### Stack técnico
-- Cliente untyped `db` para todas as queries (regra do projeto).
-- MercadoPago Preapproval API para recorrência.
-- Sem PagBank/Asaas.
-- Tailwind tokens semânticos; sem cores hardcoded.
+## Edge function
 
-### Ordem de entrega
-1. Migration (schema + RPC + triggers + RLS).
-2. Admin editor de planos + tab de assinaturas.
-3. Página pública `/pingo-card` dinâmica + checkout.
-4. Edge functions (criar/cancelar/webhook).
-5. Painel do titular conectado.
-6. Gating + desconto automático no agendamento.
+`validate-crm`:
+- Input: `{ crm, uf }`
+- Tenta `https://portal.cfm.org.br/api_rest_php/api/v1/medico/buscar_medicos` (POST form-encoded). Retorna `{ ok, name, situation, source }`.
+- Se CFM indisponível retorna `{ ok: false, fallback: true }` e o front permite continuar com `crm_verified=false`.
 
-### Riscos / decisões em aberto
-- Aprovação da migration: vou disparar primeiro, aguardar OK do usuário, depois codar.
-- Política de reembolso/proração no upgrade/downgrade — proposta: prorata simples no MP; confirmar com você.
-- Pingo Ticket — saldo mensal expira? Proposta: acumula até 90 dias, depois zera. Confirmar.
+## Frontend
 
-Posso seguir nessa ordem?
+Reescrever `src/pages/SignupDoctor.tsx`:
+- Componente `DoctorSignupWizard` com `step` 1/2/3, barra de progresso, validação por etapa, animação `motion`.
+- Novo componente `DoctorDocumentsUpload` reutilizável (3 dropzones).
+- Mantém painel lateral atual com benefícios.
+- Mantém uso do cliente `db` (untyped) conforme regra do projeto.
+
+## Detalhes técnicos
+
+- Geração de código de convite: `encode(gen_random_bytes(6), 'hex')` em uppercase (12 chars).
+- Validações zod no client + checagem server-side via RPC.
+- Upload usa `db.storage.from('doctor-documents').upload(\`${userId}/crm.jpg\`, file, { upsert: true })`.
+- Convite é marcado como `used_at = now()` somente após sucesso completo.
+- `signup_doctor_requires_invite` em `site_config` passa a ser respeitado (já era `true`).
+- Admin pode gerar códigos via SQL: `select admin_create_doctor_invite('medico@x.com', 30);` (UI admin fica para próxima iteração).
+
+## Fora de escopo
+
+- UI admin para gerenciar convites (deferida).
+- Verificação biométrica/CompreFace continua acontecendo depois, no `/kyc`.

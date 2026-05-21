@@ -1190,6 +1190,7 @@ export type Database = {
           crm_verified_by: string | null
           display_name: string | null
           doctor_type: string
+          documents: Json
           id: string
           is_active: boolean | null
           is_approved: boolean | null
@@ -1225,6 +1226,7 @@ export type Database = {
           crm_verified_by?: string | null
           display_name?: string | null
           doctor_type?: string
+          documents?: Json
           id?: string
           is_active?: boolean | null
           is_approved?: boolean | null
@@ -1260,6 +1262,7 @@ export type Database = {
           crm_verified_by?: string | null
           display_name?: string | null
           doctor_type?: string
+          documents?: Json
           id?: string
           is_active?: boolean | null
           is_approved?: boolean | null
@@ -1280,6 +1283,42 @@ export type Database = {
           social_name?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      doctor_signup_invites: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          email: string | null
+          expires_at: string
+          id: string
+          notes: string | null
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          expires_at?: string
+          id?: string
+          notes?: string | null
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          expires_at?: string
+          id?: string
+          notes?: string | null
+          used_at?: string | null
+          used_by?: string | null
         }
         Relationships: []
       }
@@ -5319,6 +5358,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_create_doctor_signup_invite: {
+        Args: { p_email?: string; p_expires_days?: number; p_notes?: string }
+        Returns: Json
+      }
       archive_old_activity_logs: {
         Args: never
         Returns: {
@@ -5327,6 +5370,7 @@ export type Database = {
         }[]
       }
       cleanup_rate_limits: { Args: never; Returns: undefined }
+      consume_doctor_signup_invite: { Args: { p_code: string }; Returns: Json }
       cpf_in_use: { Args: { _cpf: string }; Returns: boolean }
       expire_subscriptions_and_cards: { Args: never; Returns: undefined }
       fn_admin_doctor_kyc_list: { Args: never; Returns: Json[] }
@@ -5396,6 +5440,10 @@ export type Database = {
       mark_no_shows: { Args: never; Returns: undefined }
       resolve_doctor_slug: { Args: { p_slug: string }; Returns: string }
       search_doctor_by_name: { Args: { p_query: string }; Returns: Json[] }
+      validate_doctor_signup_invite: {
+        Args: { p_code: string; p_email: string }
+        Returns: Json
+      }
       verify_document_by_code: {
         Args: { _code: string }
         Returns: {

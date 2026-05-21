@@ -1,6 +1,5 @@
 /**
- * SignupDoctor - Formulário de cadastro para médico
- * Campos: Nome, Email, Telefone, CPF, CRM, Especialidade, Senha
+ * SignupDoctor — Wizard de 3 etapas com convite, validação de CRM e upload de documentos.
  */
 
 import { useState } from "react";
@@ -10,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { CPFInput, CRMInput, PhoneInput } from "@/components/ui/masked-inputs";
 import {
   validarNome,
@@ -23,15 +22,17 @@ import {
   validarCRM,
 } from "@/lib/form-validators";
 import {
-  ArrowLeft, Eye, EyeSlash, Stethoscope, IdentificationCard,
-  Lock, ShieldCheck, CheckCircle, Clock, CurrencyDollar, Sparkle,
+  ArrowLeft, ArrowRight, Eye, EyeSlash, Stethoscope, IdentificationCard,
+  Lock, ShieldCheck, CheckCircle, Clock, CurrencyDollar, Sparkle, Ticket,
+  UploadSimple, FileImage, XCircle, CircleNotch,
 } from "@phosphor-icons/react";
 import { toastError } from "@/lib/errorMessages";
 import doctorSignup from "@/assets/doctor-signup-1.png";
 
 interface FormData {
-  full_name: string;
+  invite_code: string;
   email: string;
+  full_name: string;
   phone: string;
   cpf: string;
   crm: string;
@@ -41,34 +42,97 @@ interface FormData {
   password_confirm: string;
 }
 
-interface FormErrors {
-  [key: string]: string;
+type DocKey = "crm_doc" | "id_doc" | "selfie_doc";
+
+interface DocsState {
+  crm_doc: File | null;
+  id_doc: File | null;
+  selfie_doc: File | null;
+}
+
+const DOC_LABELS: Record<DocKey, { label: string; hint: string }> = {
+  crm_doc:    { label: "Foto da carteira do CRM",      hint: "JPG ou PNG, máx. 5MB" },
+  id_doc:     { label: "RG ou CNH (frente)",           hint: "Documento legível com foto" },
+  selfie_doc: { label: "Selfie segurando o documento", hint: "Rosto e documento visíveis" },
+};
+
+const MAX_FILE_MB = 5;
+
+const STEPS = [
+  { id: 1, label: "Convite",    icon: Ticket },
+  { id: 2, label: "Dados",      icon: IdentificationCard },
+  { id: 3, label: "Documentos", icon: ShieldCheck },
+] as const;
+
+function Stepper({ step }: { step: number }) {
+  return (
+    <ol className="flex items-center gap-2 mb-8" aria-label="Progresso do cadastro">
+      {STEPS.map((s, i) => {
+        const active = step === s.id;
+        const done = step > s.id;
+        return (
+          <li key={s.id} className="flex items-center gap-2 flex-1 min-w-0">
+            <span
+              className={[
+                "flex items-center gap-2 px-3 py-2 rounded-full border text-xs font-bold transition",
+                done   ? "bg-primary text-primary-foreground border-primary"
+                : active ? "bg-primary/10 text-primary border-primary/40"
+                       : "bg-muted text-muted-foreground border-transparent",
+              ].join(" ")}
+            >
+              {done ? <CheckCircle weight="fill" className="w-4 h-4" />
+                    : <s.icon weight={active ? "fill" : "regular"} className="w-4 h-4" />}
+              <span className="hidden sm:inline">{s.label}</span>
+              <span className="sm:hidden">{s.id}</span>
+            </span>
+            {i < STEPS.length - 1 && (
+              <span className={`h-px flex-1 ${done ? "bg-primary" : "bg-border"}`} />
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
 }
 
 export default function SignupDoctor() {
   const navigate = useNavigate();
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
-    full_name: "",
-    email: "",
-    phone: "",
-    cpf: "",
-    crm: "",
-    crm_state: "",
-    specialty: "",
-    password: "",
-    password_confirm: "",
+    invite_code: "", email: "",
+    full_name: "", phone: "", cpf: "",
+    crm: "", crm_state: "", specialty: "",
+    password: "", password_confirm: "",
   });
 
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [docs, setDocs] = useState<DocsState>({ crm_doc: null, id_doc: null, selfie_doc: null });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Password strength (0-4)
-  const passwordStrength = (() => {
-    const p = formData.password;
-    let s = 0;
+  const [inviteOk, setInviteOk] = useState(false);
+  const [validatingInvite, setValidatingInvite] = useState(false);
+
+  type CrmStatus = "idle" | "checking" | "ok" | "warn" | "fail";
+  const [crmStatus, setCrmStatus] = useState<CrmStatus>("idle");
+  const [crmInfo, setCrmInfo] = useState<{ nome?: string | null; situacao?: string | null } | null>(null);
+
+  const updateField = (name: keyof FormData, value: string) => {
+    setFormData((p) => ({ ...p, [name]: value }));
+    if (errors[name]) setErrors((p) => ({ ...p, [name]: "" }));
+    if (name === "crm" || name === "crm_state") {
+      setCrmStatus("idle");
+      setCrmInfo(null);
+    }
+  };
+
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    updateField(e.target.name as keyof FormData, e.target.value);
+
+  const strength = (() => {
+    const p = formData.password; let s = 0;
     if (p.length >= 8) s++;
     if (/[A-Z]/.test(p)) s++;
     if (/[0-9]/.test(p)) s++;
@@ -78,70 +142,124 @@ export default function SignupDoctor() {
   const strengthLabels = ["Muito fraca", "Fraca", "Média", "Forte", "Excelente"];
   const strengthColors = ["bg-destructive", "bg-destructive", "bg-amber-500", "bg-primary", "bg-emerald-500"];
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
+  const validateStep1 = async (): Promise<boolean> => {
+    const e: Record<string, string> = {};
+    if (!formData.invite_code.trim()) e.invite_code = "Informe o código de convite";
+    if (!validarEmail(formData.email)) e.email = "Email inválido";
+    setErrors(e);
+    if (Object.keys(e).length > 0) return false;
 
-    if (!validarNome(formData.full_name)) {
-      newErrors.full_name = "Nome deve ter pelo menos 2 nomes completos";
+    setValidatingInvite(true);
+    try {
+      const { data, error } = await (db as any).rpc("validate_doctor_signup_invite", {
+        p_code: formData.invite_code.trim(),
+        p_email: formData.email.trim(),
+      });
+      if (error) throw error;
+      if (!data?.ok) {
+        const reason: Record<string, string> = {
+          invalid: "Código de convite inválido",
+          already_used: "Este convite já foi utilizado",
+          expired: "Convite expirado — solicite um novo",
+          email_mismatch: "O e-mail não corresponde ao convite",
+          missing_code: "Informe o código de convite",
+        };
+        setErrors({ invite_code: reason[data?.reason] ?? "Convite inválido" });
+        setInviteOk(false);
+        return false;
+      }
+      setInviteOk(true);
+      return true;
+    } catch (err: any) {
+      toast.error(err?.message ?? "Falha ao validar convite");
+      return false;
+    } finally {
+      setValidatingInvite(false);
     }
-
-    if (!validarEmail(formData.email)) {
-      newErrors.email = "Email inválido";
-    }
-
-    if (!validarTelefone(formData.phone)) {
-      newErrors.phone = "Telefone inválido (formato: (11) 9XXXX-XXXX)";
-    }
-
-    if (!validarCPF(formData.cpf)) {
-      newErrors.cpf = "CPF inválido";
-    }
-
-    if (!formData.crm_state) {
-      newErrors.crm_state = "Estado do CRM é obrigatório";
-    }
-
-    if (!formData.crm) {
-      newErrors.crm = "CRM é obrigatório";
-    } else if (!validarCRM(formData.crm, formData.crm_state || undefined)) {
-      newErrors.crm = formData.crm_state
-        ? "CRM inválido (4 a 6 dígitos) ou UF inválida"
-        : "CRM inválido (4 a 6 dígitos)";
-    }
-
-    if (!formData.specialty) {
-      newErrors.specialty = "Especialidade é obrigatória";
-    } else if (!validarEspecialidade(formData.specialty)) {
-      newErrors.specialty = "Especialidade inválida";
-    }
-
-    const passwordValidation = validarSenha(formData.password);
-    if (!passwordValidation.isValid) {
-      newErrors.password = passwordValidation.feedback.join(", ");
-    }
-
-    if (formData.password !== formData.password_confirm) {
-      newErrors.password_confirm = "Senhas não conferem";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const validateStep2 = (): boolean => {
+    const e: Record<string, string> = {};
+    if (!validarNome(formData.full_name)) e.full_name = "Informe nome e sobrenome";
+    if (!validarTelefone(formData.phone)) e.phone = "Telefone inválido (11) 9XXXX-XXXX";
+    if (!validarCPF(formData.cpf)) e.cpf = "CPF inválido";
+    if (!formData.crm_state) e.crm_state = "Selecione o estado do CRM";
+    if (!formData.crm) e.crm = "CRM é obrigatório";
+    else if (!validarCRM(formData.crm, formData.crm_state || undefined))
+      e.crm = "CRM inválido (4 a 6 dígitos)";
+    if (!formData.specialty) e.specialty = "Selecione uma especialidade";
+    else if (!validarEspecialidade(formData.specialty)) e.specialty = "Especialidade inválida";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
-    if (!validateForm()) {
-      toast.error("Preencha todos os campos corretamente");
+  const verifyCrm = async () => {
+    if (!formData.crm || !formData.crm_state) {
+      toast.error("Preencha CRM e UF antes de verificar");
       return;
     }
+    setCrmStatus("checking");
+    setCrmInfo(null);
+    try {
+      const { data, error } = await (db as any).functions.invoke("verify-crm", {
+        body: { crm: formData.crm.replace(/\D/g, ""), uf: formData.crm_state },
+      });
+      if (error) throw error;
+      if (data?.valid) {
+        setCrmStatus("ok");
+        setCrmInfo({ nome: data?.doctor?.nome, situacao: data?.doctor?.situacao });
+        toast.success("CRM verificado com sucesso");
+      } else if (data?.found) {
+        setCrmStatus("warn");
+        setCrmInfo({ nome: data?.doctor?.nome, situacao: data?.doctor?.situacao });
+        toast.warning("CRM encontrado, mas situação não está regular");
+      } else {
+        setCrmStatus("fail");
+        toast.error("CRM não encontrado. Você pode prosseguir; será revisado manualmente.");
+      }
+    } catch (err: any) {
+      setCrmStatus("fail");
+      toast.warning("Não foi possível consultar o CRM agora — análise manual.");
+    }
+  };
 
+  const handleFile = (key: DocKey, file: File | null) => {
+    if (!file) { setDocs((p) => ({ ...p, [key]: null })); return; }
+    if (!/^image\/(jpe?g|png|webp)$/i.test(file.type)) {
+      toast.error("Use JPG, PNG ou WEBP");
+      return;
+    }
+    if (file.size > MAX_FILE_MB * 1024 * 1024) {
+      toast.error(`Arquivo maior que ${MAX_FILE_MB}MB`);
+      return;
+    }
+    setDocs((p) => ({ ...p, [key]: file }));
+    if (errors[key]) setErrors((p) => ({ ...p, [key]: "" }));
+  };
+
+  const validateStep3 = (): boolean => {
+    const e: Record<string, string> = {};
+    (Object.keys(DOC_LABELS) as DocKey[]).forEach((k) => {
+      if (!docs[k]) e[k] = "Documento obrigatório";
+    });
+    const pw = validarSenha(formData.password);
+    if (!pw.isValid) e.password = pw.feedback.join(", ");
+    if (formData.password !== formData.password_confirm) e.password_confirm = "As senhas não conferem";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleFinalSubmit = async () => {
+    if (!validateStep3()) {
+      toast.error("Revise os campos do passo 3");
+      return;
+    }
     setLoading(true);
     try {
       const parts = formData.full_name.trim().split(/\s+/);
-      // 1. Cria usuário com role=doctor; trigger handle_new_user cria profile + user_role
+
       const { data: authData, error: authError } = await db.auth.signUp({
-        email: formData.email,
+        email: formData.email.trim(),
         password: formData.password,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
@@ -155,53 +273,79 @@ export default function SignupDoctor() {
         },
       });
       if (authError) throw authError;
-      if (!authData.user) throw new Error("Falha ao criar usuário");
+      const user = authData.user;
+      if (!user) throw new Error("Falha ao criar usuário");
 
-      // 2. Auto-login antes de inserir doctor_profiles (RLS exige auth.uid())
       if (!authData.session) {
-        await db.auth.signInWithPassword({ email: formData.email, password: formData.password });
+        await db.auth.signInWithPassword({ email: formData.email.trim(), password: formData.password });
       }
-
-      // 3. Confirma que auth.uid() bate com o usuário criado antes de inserir
       const { data: sessionData } = await db.auth.getSession();
-      const authedUserId = sessionData?.session?.user?.id;
-      if (!authedUserId || authedUserId !== authData.user.id) {
-        throw new Error("Sessão não confirmada. Faça login para finalizar o cadastro.");
+      const uid = sessionData?.session?.user?.id;
+      if (!uid || uid !== user.id) {
+        throw new Error("Sessão não confirmada. Confirme seu email e faça login para completar o cadastro.");
       }
 
-      // 4. Cria doctor_profiles com CRM e especialidade (user_id = auth.uid())
-      const { error: dpErr } = await (db as any).from("doctor_profiles").insert({
-        user_id: authedUserId,
-        crm: formData.crm.replace(/\D/g, ""),
-        crm_state: formData.crm_state,
-        doctor_type: formData.specialty,
-        is_approved: false,
-        crm_verified: false,
-      });
+      const { error: dpErr } = await (db as any)
+        .from("doctor_profiles")
+        .insert({
+          user_id: uid,
+          crm: formData.crm.replace(/\D/g, ""),
+          crm_state: formData.crm_state,
+          doctor_type: formData.specialty,
+          is_approved: false,
+          crm_verified: crmStatus === "ok",
+        });
       if (dpErr && !String(dpErr.message || "").includes("duplicate")) throw dpErr;
 
-      toast.success("Cadastro realizado! Sua conta está em análise.");
+      const uploaded: Record<string, string> = {};
+      for (const key of Object.keys(DOC_LABELS) as DocKey[]) {
+        const file = docs[key];
+        if (!file) continue;
+        const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+        const path = `${uid}/${key}.${ext}`;
+        const { error: upErr } = await (db as any).storage
+          .from("doctor-documents")
+          .upload(path, file, { upsert: true, contentType: file.type });
+        if (upErr) throw new Error(`Falha ao enviar ${DOC_LABELS[key].label}: ${upErr.message}`);
+        uploaded[key] = path;
+      }
+
+      await (db as any).from("doctor_profiles")
+        .update({ documents: uploaded })
+        .eq("user_id", uid);
+
+      const { data: cons } = await (db as any).rpc("consume_doctor_signup_invite", {
+        p_code: formData.invite_code.trim(),
+      });
+      if (cons && !cons.ok) console.warn("invite not consumed:", cons);
+
+      toast.success("Cadastro enviado! Sua conta está em análise.");
       navigate("/aguardando-aprovacao?role=doctor");
-    } catch (error) {
-      toastError(toast, error, "signup");
-      console.error(error);
+    } catch (err) {
+      toastError(toast, err, "signup");
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
+  const handleNext = async () => {
+    if (step === 1) {
+      const ok = await validateStep1();
+      if (ok) setStep(2);
+    } else if (step === 2) {
+      if (validateStep2()) setStep(3);
     }
+  };
+
+  const handleBack = () => {
+    if (step === 1) { navigate(-1); return; }
+    setStep((s) => (s - 1) as 1 | 2 | 3);
   };
 
   return (
     <div className="min-h-screen bg-background">
       <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] min-h-screen">
-        {/* ─────── Brand panel ─────── */}
         <aside className="relative hidden lg:flex flex-col justify-between bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground p-12 overflow-hidden">
           <div aria-hidden className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top_right,hsl(var(--primary-foreground)/0.25),transparent_50%),radial-gradient(circle_at_bottom_left,hsl(var(--primary-foreground)/0.18),transparent_45%)]" />
 
@@ -211,30 +355,28 @@ export default function SignupDoctor() {
             onClick={() => navigate(-1)}
             className="relative z-10 inline-flex items-center gap-2 text-sm font-semibold text-primary-foreground/85 hover:text-primary-foreground transition w-fit"
           >
-            <ArrowLeft className="h-4 w-4" weight="bold" />
-            Voltar
+            <ArrowLeft className="h-4 w-4" weight="bold" /> Voltar
           </motion.button>
 
           <div className="relative z-10">
             <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest bg-primary-foreground/15 backdrop-blur px-3 py-1.5 rounded-full mb-6">
-              <Sparkle className="w-3.5 h-3.5" weight="fill" />
-              Cadastro de Médico
+              <Sparkle className="w-3.5 h-3.5" weight="fill" /> Cadastro por convite
             </span>
             <h1 className="text-4xl xl:text-5xl font-extrabold leading-[1.05] mb-5">
               Atenda mais,<br />
               <span className="text-primary-foreground/85">trabalhe de onde quiser.</span>
             </h1>
             <p className="text-primary-foreground/80 text-base leading-relaxed max-w-md mb-10">
-              Junte-se a 500+ médicos parceiros. Cadastro gratuito, aprovação em até 24h
-              e renda extra sem sair de casa.
+              Plataforma exclusiva para médicos convidados. Validação automática de CRM,
+              upload de documentos e análise em até 24h.
             </p>
 
             <ul className="space-y-3.5 max-w-md">
               {[
-                { icon: CurrencyDollar, label: "R$ 30-80 por consulta — pagamento via PIX em 48h" },
-                { icon: Clock, label: "Agenda 100% sua: defina dias e horários livremente" },
-                { icon: ShieldCheck, label: "Plataforma 100% CFM, CRM e LGPD compliant" },
-                { icon: CheckCircle, label: "Prontuário, receita digital e atestados inclusos" },
+                { icon: CurrencyDollar, label: "Repasse de R$ 30–80 por consulta, PIX em 48h" },
+                { icon: Clock,          label: "Agenda 100% sua: dias e horários livres" },
+                { icon: ShieldCheck,    label: "100% CFM, LGPD e KYC compliant" },
+                { icon: CheckCircle,    label: "Prontuário, receita digital e atestado inclusos" },
               ].map((b) => (
                 <li key={b.label} className="flex items-start gap-3">
                   <span className="w-9 h-9 rounded-xl bg-primary-foreground/15 flex items-center justify-center shrink-0">
@@ -255,241 +397,395 @@ export default function SignupDoctor() {
           </div>
         </aside>
 
-        {/* ─────── Form panel ─────── */}
         <main className="flex flex-col justify-center px-4 py-10 sm:px-8 lg:px-14 lg:py-14">
           <div className="w-full max-w-xl mx-auto">
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleBack}
               className="lg:hidden inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground mb-6"
             >
               <ArrowLeft className="h-4 w-4" />
-              Voltar
+              {step === 1 ? "Voltar" : "Etapa anterior"}
             </button>
 
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-8"
+              className="mb-6"
             >
               <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
                 Crie sua conta de médico
               </h2>
               <p className="text-sm text-muted-foreground mt-1.5">
-                Leva menos de 5 minutos. Análise da sua documentação em até 24h.
+                Etapa {step} de 3 — análise da documentação em até 24h após o envio.
               </p>
             </motion.div>
 
-            <motion.form
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-              onSubmit={handleSubmit}
-              className="space-y-7"
-            >
-              {/* ── Section: Dados pessoais ── */}
-              <section className="space-y-4 p-5 sm:p-6 rounded-2xl border border-border bg-card">
-                <header className="flex items-center gap-2.5 pb-1">
-                  <span className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <IdentificationCard className="w-4 h-4 text-primary" weight="fill" />
-                  </span>
-                  <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Dados pessoais</h3>
-                </header>
+            <Stepper step={step} />
 
-                <div className="space-y-2">
-                  <Label htmlFor="full_name">Nome completo <span className="text-destructive">*</span></Label>
-                  <Input
-                    id="full_name"
-                    name="full_name"
-                    placeholder="Dr. João Silva"
-                    value={formData.full_name}
-                    onChange={handleChange}
-                    className={errors.full_name ? "border-destructive" : ""}
-                  />
-                  {errors.full_name && <p className="text-xs text-destructive">{errors.full_name}</p>}
-                </div>
+            <AnimatePresence mode="wait">
+              {step === 1 && (
+                <motion.section
+                  key="s1"
+                  initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
+                  className="space-y-4 p-5 sm:p-6 rounded-2xl border border-border bg-card"
+                >
+                  <header className="flex items-center gap-2.5 pb-1">
+                    <span className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Ticket className="w-4 h-4 text-primary" weight="fill" />
+                    </span>
+                    <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Convite</h3>
+                  </header>
 
-                <div className="grid sm:grid-cols-2 gap-4">
+                  <p className="text-xs text-muted-foreground">
+                    O cadastro de médicos é por convite. Insira o código que recebeu da equipe AloClínica.
+                  </p>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="invite_code">Código do convite <span className="text-destructive">*</span></Label>
+                    <Input
+                      id="invite_code" name="invite_code"
+                      placeholder="Ex.: A1B2C3D4E5F6"
+                      value={formData.invite_code}
+                      onChange={(e) => updateField("invite_code", e.target.value.toUpperCase())}
+                      className={`uppercase tracking-widest font-mono ${errors.invite_code ? "border-destructive" : ""}`}
+                      maxLength={32}
+                    />
+                    {errors.invite_code && <p className="text-xs text-destructive">{errors.invite_code}</p>}
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
                     <Input
-                      id="email"
-                      name="email"
-                      type="email"
+                      id="email" name="email" type="email"
                       placeholder="seu@email.com"
-                      value={formData.email}
-                      onChange={handleChange}
+                      value={formData.email} onChange={handleInput}
                       className={errors.email ? "border-destructive" : ""}
+                      autoComplete="email"
                     />
                     {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
                   </div>
-                  <PhoneInput
-                    value={formData.phone}
-                    onChange={(phone) => setFormData((prev) => ({ ...prev, phone }))}
-                    required
-                    error={errors.phone}
-                  />
-                </div>
+                </motion.section>
+              )}
 
-                <CPFInput
-                  value={formData.cpf}
-                  onChange={(cpf) => setFormData((prev) => ({ ...prev, cpf }))}
-                  required
-                  error={errors.cpf}
-                />
-              </section>
-
-              {/* ── Section: Dados profissionais ── */}
-              <section className="space-y-4 p-5 sm:p-6 rounded-2xl border border-border bg-card">
-                <header className="flex items-center gap-2.5 pb-1">
-                  <span className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Stethoscope className="w-4 h-4 text-primary" weight="fill" />
-                  </span>
-                  <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Dados profissionais</h3>
-                </header>
-
-                <CRMInput
-                  value={formData.crm}
-                  onCRMChange={(crm) => setFormData((prev) => ({ ...prev, crm }))}
-                  state={formData.crm_state}
-                  onStateChange={(state) => setFormData((prev) => ({ ...prev, crm_state: state }))}
-                  required
-                  error={errors.crm || errors.crm_state}
-                />
-
-                <div className="space-y-2">
-                  <Label htmlFor="specialty">Especialidade <span className="text-destructive">*</span></Label>
-                  <select
-                    id="specialty"
-                    name="specialty"
-                    value={formData.specialty}
-                    onChange={handleChange}
-                    className={`w-full h-10 px-3 rounded-md bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
-                      errors.specialty ? "border-destructive" : "border-input"
-                    }`}
-                  >
-                    <option value="">Selecione uma especialidade</option>
-                    {VALID_SPECIALTIES.map((spec) => (
-                      <option key={spec} value={spec}>
-                        {spec.charAt(0).toUpperCase() + spec.slice(1).replace("-", " ")}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.specialty && <p className="text-xs text-destructive">{errors.specialty}</p>}
-                </div>
-              </section>
-
-              {/* ── Section: Acesso ── */}
-              <section className="space-y-4 p-5 sm:p-6 rounded-2xl border border-border bg-card">
-                <header className="flex items-center gap-2.5 pb-1">
-                  <span className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Lock className="w-4 h-4 text-primary" weight="fill" />
-                  </span>
-                  <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Acesso</h3>
-                </header>
-
-                <div className="space-y-2">
-                  <Label htmlFor="password">Senha <span className="text-destructive">*</span></Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Mínimo 8 caracteres, com maiúscula e número"
-                      value={formData.password}
-                      onChange={handleChange}
-                      className={`pr-10 ${errors.password ? "border-destructive" : ""}`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      aria-label="Alternar visibilidade"
-                    >
-                      {showPassword ? <EyeSlash className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-
-                  {/* Strength meter */}
-                  {formData.password && (
-                    <div className="space-y-1.5 pt-1">
-                      <div className="flex gap-1">
-                        {[0, 1, 2, 3].map((i) => (
-                          <div
-                            key={i}
-                            className={`h-1 flex-1 rounded-full transition-all ${
-                              i < passwordStrength ? strengthColors[passwordStrength] : "bg-muted"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <p className="text-[11px] text-muted-foreground">
-                        Força da senha: <span className="font-semibold text-foreground">{strengthLabels[passwordStrength]}</span>
-                      </p>
-                    </div>
-                  )}
-                  {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="password_confirm">Confirmar senha <span className="text-destructive">*</span></Label>
-                  <div className="relative">
-                    <Input
-                      id="password_confirm"
-                      name="password_confirm"
-                      type={showPasswordConfirm ? "text" : "password"}
-                      placeholder="Repita a senha"
-                      value={formData.password_confirm}
-                      onChange={handleChange}
-                      className={`pr-10 ${errors.password_confirm ? "border-destructive" : ""}`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      aria-label="Alternar visibilidade"
-                    >
-                      {showPasswordConfirm ? <EyeSlash className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                  {errors.password_confirm && (
-                    <p className="text-xs text-destructive">{errors.password_confirm}</p>
-                  )}
-                </div>
-              </section>
-
-              {/* Submit + LGPD note */}
-              <div className="space-y-4">
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  size="lg"
-                  className="w-full h-12 rounded-xl text-sm font-bold shadow-lg shadow-primary/20"
+              {step === 2 && (
+                <motion.div
+                  key="s2"
+                  initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
+                  className="space-y-5"
                 >
-                  {loading ? "Cadastrando..." : "Criar minha conta"}
-                </Button>
+                  <section className="space-y-4 p-5 sm:p-6 rounded-2xl border border-border bg-card">
+                    <header className="flex items-center gap-2.5 pb-1">
+                      <span className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <IdentificationCard className="w-4 h-4 text-primary" weight="fill" />
+                      </span>
+                      <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Dados pessoais</h3>
+                    </header>
 
-                <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-                  Ao se cadastrar, você concorda com nossos{" "}
-                  <button type="button" onClick={() => navigate("/termos")} className="underline hover:text-foreground">Termos</button>{" "}
-                  e{" "}
-                  <button type="button" onClick={() => navigate("/privacidade")} className="underline hover:text-foreground">Política de Privacidade</button>.
-                </p>
+                    <div className="space-y-2">
+                      <Label htmlFor="full_name">Nome completo <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="full_name" name="full_name" placeholder="Dr. João Silva"
+                        value={formData.full_name} onChange={handleInput}
+                        className={errors.full_name ? "border-destructive" : ""}
+                      />
+                      {errors.full_name && <p className="text-xs text-destructive">{errors.full_name}</p>}
+                    </div>
 
-                <p className="text-center text-sm text-muted-foreground">
-                  Já tem conta?{" "}
-                  <button
-                    type="button"
-                    onClick={() => navigate("/medico")}
-                    className="text-primary hover:underline font-semibold"
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <PhoneInput
+                        value={formData.phone}
+                        onChange={(phone) => setFormData((p) => ({ ...p, phone }))}
+                        required error={errors.phone}
+                      />
+                      <CPFInput
+                        value={formData.cpf}
+                        onChange={(cpf) => setFormData((p) => ({ ...p, cpf }))}
+                        required error={errors.cpf}
+                      />
+                    </div>
+                  </section>
+
+                  <section className="space-y-4 p-5 sm:p-6 rounded-2xl border border-border bg-card">
+                    <header className="flex items-center gap-2.5 pb-1">
+                      <span className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Stethoscope className="w-4 h-4 text-primary" weight="fill" />
+                      </span>
+                      <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Dados profissionais</h3>
+                    </header>
+
+                    <CRMInput
+                      value={formData.crm}
+                      onCRMChange={(crm) => updateField("crm", crm)}
+                      state={formData.crm_state}
+                      onStateChange={(state) => updateField("crm_state", state)}
+                      required error={errors.crm || errors.crm_state}
+                    />
+
+                    <div className="flex items-center justify-between flex-wrap gap-3 -mt-1">
+                      <Button
+                        type="button" variant="outline" size="sm"
+                        onClick={verifyCrm}
+                        disabled={crmStatus === "checking" || !formData.crm || !formData.crm_state}
+                        className="gap-2"
+                      >
+                        {crmStatus === "checking"
+                          ? <CircleNotch className="w-4 h-4 animate-spin" />
+                          : <ShieldCheck className="w-4 h-4" />}
+                        Verificar CRM no portal
+                      </Button>
+
+                      {crmStatus === "ok" && (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
+                          <CheckCircle weight="fill" className="w-4 h-4" />
+                          {crmInfo?.nome ? `Verificado — ${crmInfo.nome}` : "CRM regular"}
+                        </span>
+                      )}
+                      {crmStatus === "warn" && (
+                        <span className="text-xs font-semibold text-amber-600">
+                          Situação: {crmInfo?.situacao ?? "irregular"}
+                        </span>
+                      )}
+                      {crmStatus === "fail" && (
+                        <span className="text-xs font-semibold text-muted-foreground">
+                          Verificação manual será feita pela equipe
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="specialty">Especialidade <span className="text-destructive">*</span></Label>
+                      <select
+                        id="specialty" name="specialty"
+                        value={formData.specialty} onChange={handleInput}
+                        className={`w-full h-10 px-3 rounded-md bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
+                          errors.specialty ? "border-destructive" : "border-input"
+                        }`}
+                      >
+                        <option value="">Selecione uma especialidade</option>
+                        {VALID_SPECIALTIES.map((s) => (
+                          <option key={s} value={s}>
+                            {s.charAt(0).toUpperCase() + s.slice(1).replace("-", " ")}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.specialty && <p className="text-xs text-destructive">{errors.specialty}</p>}
+                    </div>
+                  </section>
+                </motion.div>
+              )}
+
+              {step === 3 && (
+                <motion.div
+                  key="s3"
+                  initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
+                  className="space-y-5"
+                >
+                  <section className="space-y-4 p-5 sm:p-6 rounded-2xl border border-border bg-card">
+                    <header className="flex items-center gap-2.5 pb-1">
+                      <span className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <ShieldCheck className="w-4 h-4 text-primary" weight="fill" />
+                      </span>
+                      <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Documentos</h3>
+                    </header>
+
+                    <p className="text-xs text-muted-foreground">
+                      Anexe fotos legíveis. Tudo é armazenado de forma privada e usado apenas para análise.
+                    </p>
+
+                    <div className="grid gap-3">
+                      {(Object.keys(DOC_LABELS) as DocKey[]).map((key) => (
+                        <DocDropzone
+                          key={key}
+                          label={DOC_LABELS[key].label}
+                          hint={DOC_LABELS[key].hint}
+                          file={docs[key]}
+                          error={errors[key]}
+                          onChange={(f) => handleFile(key, f)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+
+                  <section className="space-y-4 p-5 sm:p-6 rounded-2xl border border-border bg-card">
+                    <header className="flex items-center gap-2.5 pb-1">
+                      <span className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Lock className="w-4 h-4 text-primary" weight="fill" />
+                      </span>
+                      <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Senha de acesso</h3>
+                    </header>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Senha <span className="text-destructive">*</span></Label>
+                      <div className="relative">
+                        <Input
+                          id="password" name="password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Mínimo 8 caracteres, com maiúscula e número"
+                          value={formData.password} onChange={handleInput}
+                          className={`pr-10 ${errors.password ? "border-destructive" : ""}`}
+                          autoComplete="new-password"
+                        />
+                        <button
+                          type="button" onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          aria-label="Alternar visibilidade"
+                        >
+                          {showPassword ? <EyeSlash className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      {formData.password && (
+                        <div className="space-y-1.5 pt-1">
+                          <div className="flex gap-1">
+                            {[0, 1, 2, 3].map((i) => (
+                              <div key={i}
+                                className={`h-1 flex-1 rounded-full transition-all ${
+                                  i < strength ? strengthColors[strength] : "bg-muted"
+                                }`} />
+                            ))}
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            Força: <span className="font-semibold text-foreground">{strengthLabels[strength]}</span>
+                          </p>
+                        </div>
+                      )}
+                      {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="password_confirm">Confirmar senha <span className="text-destructive">*</span></Label>
+                      <div className="relative">
+                        <Input
+                          id="password_confirm" name="password_confirm"
+                          type={showPasswordConfirm ? "text" : "password"}
+                          placeholder="Repita a senha"
+                          value={formData.password_confirm} onChange={handleInput}
+                          className={`pr-10 ${errors.password_confirm ? "border-destructive" : ""}`}
+                          autoComplete="new-password"
+                        />
+                        <button
+                          type="button" onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          aria-label="Alternar visibilidade"
+                        >
+                          {showPasswordConfirm ? <EyeSlash className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      {errors.password_confirm && <p className="text-xs text-destructive">{errors.password_confirm}</p>}
+                    </div>
+                  </section>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="mt-6 flex flex-col gap-3">
+              <div className="flex gap-3">
+                {step > 1 && (
+                  <Button
+                    type="button" variant="outline" size="lg"
+                    onClick={handleBack} disabled={loading}
+                    className="flex-1 h-12 rounded-xl gap-2"
                   >
-                    Fazer login
-                  </button>
-                </p>
+                    <ArrowLeft className="w-4 h-4" /> Voltar
+                  </Button>
+                )}
+
+                {step < 3 ? (
+                  <Button
+                    type="button" size="lg"
+                    onClick={handleNext}
+                    disabled={validatingInvite || loading}
+                    className="flex-1 h-12 rounded-xl gap-2 text-sm font-bold shadow-lg shadow-primary/20"
+                  >
+                    {validatingInvite ? (
+                      <><CircleNotch className="w-4 h-4 animate-spin" /> Validando…</>
+                    ) : (
+                      <>Continuar <ArrowRight className="w-4 h-4" /></>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    type="button" size="lg"
+                    onClick={handleFinalSubmit} disabled={loading}
+                    className="flex-1 h-12 rounded-xl text-sm font-bold shadow-lg shadow-primary/20"
+                  >
+                    {loading ? "Enviando cadastro…" : "Finalizar e enviar para análise"}
+                  </Button>
+                )}
               </div>
-            </motion.form>
+
+              {inviteOk && step === 1 && (
+                <p className="text-xs text-emerald-600 inline-flex items-center gap-1.5">
+                  <CheckCircle weight="fill" className="w-3.5 h-3.5" /> Convite válido
+                </p>
+              )}
+
+              <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
+                Ao se cadastrar, você concorda com nossos{" "}
+                <button type="button" onClick={() => navigate("/termos")} className="underline hover:text-foreground">Termos</button>{" "}
+                e{" "}
+                <button type="button" onClick={() => navigate("/privacidade")} className="underline hover:text-foreground">Política de Privacidade</button>.
+              </p>
+
+              <p className="text-center text-sm text-muted-foreground">
+                Já tem conta?{" "}
+                <button type="button" onClick={() => navigate("/medico")} className="text-primary hover:underline font-semibold">
+                  Fazer login
+                </button>
+              </p>
+            </div>
           </div>
         </main>
       </div>
+    </div>
+  );
+}
+
+function DocDropzone({
+  label, hint, file, error, onChange,
+}: {
+  label: string; hint: string; file: File | null; error?: string;
+  onChange: (f: File | null) => void;
+}) {
+  const inputId = `file-${label.replace(/\s+/g, "-").toLowerCase()}`;
+  return (
+    <div className="space-y-1.5">
+      <label
+        htmlFor={inputId}
+        className={[
+          "flex items-center gap-3 p-3 rounded-xl border border-dashed cursor-pointer transition",
+          file ? "border-primary/40 bg-primary/5" :
+          error ? "border-destructive bg-destructive/5" :
+          "border-border bg-muted/30 hover:border-primary/40 hover:bg-primary/5",
+        ].join(" ")}
+      >
+        <span className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+          file ? "bg-primary/15 text-primary" : "bg-background text-muted-foreground"
+        }`}>
+          {file ? <FileImage weight="fill" className="w-5 h-5" /> : <UploadSimple className="w-5 h-5" />}
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block text-sm font-semibold text-foreground truncate">{label}</span>
+          <span className="block text-[11px] text-muted-foreground truncate">
+            {file ? `${file.name} — ${(file.size / 1024).toFixed(0)} KB` : hint}
+          </span>
+        </span>
+        {file && (
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); onChange(null); }}
+            className="text-muted-foreground hover:text-destructive p-1"
+            aria-label="Remover arquivo"
+          >
+            <XCircle weight="fill" className="w-5 h-5" />
+          </button>
+        )}
+        <input
+          id={inputId} type="file" className="hidden"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={(e) => onChange(e.target.files?.[0] ?? null)}
+        />
+      </label>
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
 }
