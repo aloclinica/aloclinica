@@ -236,106 +236,123 @@ const PingoCard = () => {
       />
       <Header />
 
-      {/* ============ HERO BENTO ============ */}
-      <section className="pt-24 md:pt-28 pb-10 md:pb-14">
+      {/* ============ HERO ============ */}
+      <section className="relative pt-24 md:pt-28 pb-16 md:pb-24 overflow-hidden">
+        <div aria-hidden className="absolute inset-x-0 top-0 h-[520px] -z-10"
+          style={{ background: "radial-gradient(80% 60% at 80% 0%, rgba(200,155,70,.10), transparent 60%), linear-gradient(180deg, var(--pc-cream) 0%, transparent 100%)" }} />
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <div className="grid grid-cols-12 gap-4 md:gap-5">
-            {/* Headline tile */}
+          <div className="grid grid-cols-12 gap-10 lg:gap-14 items-center">
             <motion.div
-              initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .6 }}
-              className="col-span-12 lg:col-span-8 pc-tile-dark pc-grain relative overflow-hidden p-8 md:p-12"
+              initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7 }}
+              className="col-span-12 lg:col-span-7"
             >
-              <span className="pc-chip pc-chip-dark"><Sparkle size={12} weight="fill" /> Cartão de benefícios</span>
-              <h1 className="mt-5 text-5xl md:text-6xl lg:text-7xl leading-[1] tracking-tight">
-                Cuide de quem você ama,
-                <span className="block" style={{ color: "var(--pc-gold-soft)" }}>pagando menos.</span>
+              <span className="pc-eyebrow">Cartão de benefícios · AloClínica</span>
+              <h1 className="mt-6 text-5xl md:text-6xl lg:text-7xl leading-[1.02]">
+                Cuidar de quem você ama,
+                <br />
+                <em className="not-italic" style={{ color: "var(--pc-blue-500)" }}>com calma</em> e sem pesar no bolso.
               </h1>
-              <p className="mt-6 max-w-xl text-base md:text-lg leading-relaxed" style={{ color: "rgba(245,240,224,.85)" }}>
-                O <strong className="pc-gold">Pingo Card</strong> dá descontos reais em consultas, exames e parceiros — sem carência, sem fidelidade. A partir de <strong>R$ 19,90/mês</strong>.
+              <p className="mt-7 max-w-xl text-lg leading-relaxed" style={{ color: "rgba(10,19,46,.7)" }}>
+                O <strong className="pc-navy">Pingo Card</strong> é o cartão de saúde da família brasileira: descontos reais em consultas, exames e parceiros, sem carência e sem fidelidade. A partir de <strong>R$ 19,90/mês</strong>.
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Button size="lg" className="pc-gold-bg hover:opacity-90 font-semibold border-0" style={{ color: "var(--pc-emerald-900)" }}
+              <div className="mt-9 flex flex-wrap gap-3">
+                <Button size="lg" className="font-semibold border-0 rounded-full px-7"
+                  style={{ background: "var(--pc-navy-800)", color: "var(--pc-cream)" }}
                   onClick={() => document.getElementById("planos")?.scrollIntoView({ behavior: "smooth" })}>
                   Ver planos <ArrowRight size={18} className="ml-2" weight="bold" />
                 </Button>
-                <Button size="lg" variant="outline" className="bg-transparent border-white/30 text-white hover:bg-white/10"
+                <Button size="lg" variant="ghost" className="rounded-full px-6 hover:bg-transparent group" style={{ color: "var(--pc-navy-800)" }}
                   onClick={() => document.getElementById("parceiros")?.scrollIntoView({ behavior: "smooth" })}>
-                  Rede credenciada
+                  Conhecer a rede credenciada
+                  <CaretRight size={16} className="ml-1 transition-transform group-hover:translate-x-1" weight="bold" />
                 </Button>
               </div>
-              <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm" style={{ color: "rgba(245,240,224,.8)" }}>
-                <span className="flex items-center gap-1.5"><Check size={16} weight="bold" className="pc-gold" /> Sem carência</span>
-                <span className="flex items-center gap-1.5"><Check size={16} weight="bold" className="pc-gold" /> Sem fidelidade</span>
-                <span className="flex items-center gap-1.5"><Check size={16} weight="bold" className="pc-gold" /> Cancela quando quiser</span>
+              <div className="mt-10 grid grid-cols-3 max-w-lg gap-6">
+                {stats.slice(0,3).map((s, i) => (
+                  <div key={i} className="flex flex-col">
+                    <span className="pc-display text-3xl md:text-4xl pc-navy">{s.value}</span>
+                    <span className="text-xs mt-1 uppercase tracking-wider" style={{ color: "rgba(10,19,46,.55)" }}>{s.label}</span>
+                  </div>
+                ))}
               </div>
-              {/* decorative orbs */}
-              <div className="pointer-events-none absolute -right-16 -bottom-20 w-72 h-72 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(201,168,76,.35), transparent)" }} />
-              <div className="pointer-events-none absolute right-10 top-10 w-24 h-24 rounded-full border" style={{ borderColor: "rgba(201,168,76,.3)" }} />
             </motion.div>
 
-            {/* Card mock tile */}
+            {/* Membership card visual */}
             <motion.div
-              initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .6, delay: .1 }}
-              className="col-span-12 lg:col-span-4 pc-tile-gold relative overflow-hidden p-7 flex flex-col justify-between min-h-[260px]"
+              initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .8, delay: .15 }}
+              className="col-span-12 lg:col-span-5 relative"
             >
-              <div>
-                <p className="text-[11px] font-semibold tracking-[0.18em] uppercase opacity-70">Pingo · Saúde</p>
-                <p className="pc-display text-3xl mt-1">Pingo Card</p>
+              <div className="relative max-w-md mx-auto">
+                <img src={pingoFamily} alt="Família Pingo" className="absolute -top-12 -right-6 w-36 md:w-44 z-20 select-none drop-shadow-2xl pointer-events-none" draggable={false}/>
+                <div className="pc-member-card relative z-10">
+                  <div className="relative z-10 flex items-start justify-between">
+                    <div>
+                      <p className="text-[10px] font-semibold tracking-[0.24em] uppercase" style={{ color: "var(--pc-gold-soft)" }}>Membro · Família</p>
+                      <p className="pc-display text-3xl mt-2" style={{ color: "var(--pc-cream)" }}>Pingo Card</p>
+                    </div>
+                    <QrCode size={36} weight="duotone" className="pc-gold" />
+                  </div>
+                  <div className="relative z-10 mt-auto pt-10">
+                    <p className="text-[10px] uppercase tracking-[0.22em] opacity-60">Titular</p>
+                    <p className="font-medium text-lg mt-1" style={{ color: "var(--pc-cream)" }}>Mariana Costa</p>
+                    <div className="flex items-end justify-between mt-3">
+                      <p className="text-xs opacity-60">Válido enquanto ativo</p>
+                      <p className="pc-display text-xl pc-gold">até 60% off</p>
+                    </div>
+                  </div>
+                </div>
+                {/* paper card behind */}
+                <div aria-hidden className="absolute -bottom-4 -right-4 w-full h-full rounded-[14px] -z-0"
+                  style={{ background: "linear-gradient(135deg, #e8c882, #c89b46)", opacity: .35 }} />
               </div>
-              <img src={pingoCardHero} alt="" aria-hidden="true"
-                className="absolute -right-6 -bottom-4 w-48 h-48 object-contain opacity-90 select-none" />
-              <div className="relative z-10">
-                <p className="text-[11px] uppercase tracking-widest opacity-60">Benefício membro</p>
-                <p className="pc-display text-3xl leading-none mt-1">Até 60% off</p>
-                <p className="text-xs mt-1 opacity-70">em mais de 800 parceiros</p>
+              <div className="mt-8 flex items-center gap-3 max-w-md mx-auto">
+                <div className="flex -space-x-2">
+                  {["M","R","J","A"].map((l,i) => (
+                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-[11px] font-semibold"
+                      style={{ background: i%2?"var(--pc-blue-500)":"var(--pc-navy-700)", color: "var(--pc-cream)" }}>{l}</div>
+                  ))}
+                </div>
+                <p className="text-xs leading-snug" style={{ color: "rgba(10,19,46,.65)" }}>
+                  <strong className="pc-navy">+15 mil famílias</strong> já cuidam da saúde com o Pingo Card.
+                </p>
               </div>
             </motion.div>
-
-            {/* Stat tiles */}
-            {stats.map((s, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .2 + i * .06 }}
-                className="col-span-6 md:col-span-3 pc-tile p-5 md:p-6 flex items-center gap-3"
-              >
-                <div className="w-11 h-11 rounded-2xl pc-emerald-bg flex items-center justify-center shrink-0" style={{ color: "var(--pc-gold-soft)" }}>
-                  {s.icon}
-                </div>
-                <div>
-                  <div className="pc-display text-2xl leading-none pc-emerald">{s.value}</div>
-                  <div className="text-xs mt-1" style={{ color: "rgba(11,31,23,.6)" }}>{s.label}</div>
-                </div>
-              </motion.div>
-            ))}
           </div>
         </div>
       </section>
 
-      {/* ============ BENEFITS BENTO ============ */}
-      <section className="py-12 md:py-16">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl"><div className="pc-rule" /></div>
+
+      {/* ============ BENEFÍCIOS ============ */}
+      <section className="py-20 md:py-28">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <div className="grid grid-cols-12 gap-4 md:gap-5">
-            <div className="col-span-12 lg:col-span-4 flex flex-col justify-center">
-              <span className="pc-chip self-start"><Heart size={12} weight="fill" /> Por que escolher</span>
-              <h2 className="pc-display text-4xl md:text-5xl mt-4 leading-[1.05]">
-                Saúde sem <em className="not-italic pc-emerald-600">surpresas</em> no boleto.
+          <div className="grid grid-cols-12 gap-10 lg:gap-14">
+            <div className="col-span-12 lg:col-span-4">
+              <span className="pc-eyebrow">Por que escolher</span>
+              <h2 className="pc-display text-4xl md:text-5xl mt-5 leading-[1.05]">
+                Saúde sem <em>surpresas</em> no boleto.
               </h2>
-              <p className="mt-4 text-base leading-relaxed" style={{ color: "rgba(11,31,23,.7)" }}>
-                Quatro pilares que tornam o Pingo Card a forma mais simples de ter um cuidado contínuo — sem contratos longos, sem letras miúdas.
+              <p className="mt-5 text-base leading-relaxed" style={{ color: "rgba(10,19,46,.7)" }}>
+                Quatro pilares simples que fazem do Pingo Card a forma mais acolhedora de cuidar da família — sem contratos longos, sem letras miúdas, com transparência do começo ao fim.
               </p>
+              <img src={pingoConfianca} alt="" aria-hidden="true" className="w-40 mt-8 select-none" draggable={false}/>
             </div>
-            <div className="col-span-12 lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
+            <div className="col-span-12 lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-5">
               {benefits.map((b, i) => (
                 <motion.div
                   key={i}
-                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * .08 }}
-                  className="pc-tile p-7"
+                  initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * .08 }}
+                  className="pc-card p-8"
                 >
-                  <div className="w-12 h-12 rounded-2xl pc-cream-bg pc-emerald flex items-center justify-center mb-4 border" style={{ borderColor: "rgba(201,168,76,.35)" }}>
-                    {b.icon}
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center pc-navy"
+                      style={{ background: "var(--pc-cream)", border: "1px solid rgba(200,155,70,.4)" }}>
+                      {b.icon}
+                    </div>
+                    <span className="pc-serif-num text-3xl pc-gold">0{i+1}</span>
                   </div>
                   <h3 className="pc-display text-2xl">{b.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed" style={{ color: "rgba(11,31,23,.65)" }}>{b.desc}</p>
+                  <p className="mt-3 text-sm leading-relaxed" style={{ color: "rgba(10,19,46,.65)" }}>{b.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -344,31 +361,30 @@ const PingoCard = () => {
       </section>
 
       {/* ============ COMO FUNCIONA ============ */}
-      <section className="py-12 md:py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <div className="text-center mb-10">
-            <span className="pc-chip"><QrCode size={12} weight="fill" /> Em 3 passos</span>
-            <h2 className="pc-display text-4xl md:text-5xl mt-4">Comece a economizar hoje</h2>
+      <section className="py-20 md:py-24" style={{ background: "linear-gradient(180deg, transparent, var(--pc-cream))" }}>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+          <div className="max-w-2xl mb-12">
+            <span className="pc-eyebrow">Em três passos</span>
+            <h2 className="pc-display text-4xl md:text-5xl mt-4">Comece a economizar hoje mesmo.</h2>
           </div>
-          <div className="grid grid-cols-12 gap-4 md:gap-5">
+          <div className="grid md:grid-cols-3 gap-x-12 gap-y-10 relative">
+            <div aria-hidden className="hidden md:block absolute top-8 left-[16%] right-[16%] h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(200,155,70,.5), transparent)" }} />
             {[
-              { n: 1, title: "Escolha seu plano", desc: "Essencial, Família ou Premium — você decide.", icon: <Heart size={28} weight="fill" /> },
-              { n: 2, title: "Receba o cartão digital", desc: "QR Code direto no celular, sem espera.", icon: <QrCode size={28} weight="fill" /> },
-              { n: 3, title: "Use e economize", desc: "Apresente em consultas, exames e parceiros.", icon: <Sparkle size={28} weight="fill" /> },
+              { n: 1, title: "Escolha seu plano", desc: "Essencial, Família ou Premium — você decide o que cabe no orçamento.", icon: <Heart size={22} weight="fill" /> },
+              { n: 2, title: "Receba o cartão digital", desc: "QR Code no celular em segundos, pronto para apresentar.", icon: <QrCode size={22} weight="fill" /> },
+              { n: 3, title: "Use e economize", desc: "Mostre em consultas, exames e parceiros — desconto na hora.", icon: <Sparkle size={22} weight="fill" /> },
             ].map((step, i) => (
               <motion.div
                 key={step.n}
-                initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * .1 }}
-                className={`col-span-12 md:col-span-4 pc-tile p-8 ${i === 1 ? "md:translate-y-4" : ""}`}
+                initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * .1 }}
+                className="relative text-center"
               >
-                <div className="flex items-center gap-3 mb-5">
-                  <span className="pc-display text-5xl pc-gold">0{step.n}</span>
-                  <div className="w-11 h-11 rounded-2xl pc-emerald-bg flex items-center justify-center" style={{ color: "var(--pc-gold-soft)" }}>
-                    {step.icon}
-                  </div>
+                <div className="relative mx-auto w-16 h-16 rounded-full flex items-center justify-center pc-navy-bg" style={{ color: "var(--pc-gold-soft)" }}>
+                  {step.icon}
+                  <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center pc-gold-bg" style={{ color: "var(--pc-navy-900)" }}>{step.n}</span>
                 </div>
-                <h3 className="pc-display text-2xl">{step.title}</h3>
-                <p className="mt-2 text-sm" style={{ color: "rgba(11,31,23,.65)" }}>{step.desc}</p>
+                <h3 className="pc-display text-2xl mt-6">{step.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed max-w-xs mx-auto" style={{ color: "rgba(10,19,46,.65)" }}>{step.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -376,61 +392,61 @@ const PingoCard = () => {
       </section>
 
       {/* ============ PLANOS ============ */}
-      <section id="planos" className="py-16 md:py-20">
+      <section id="planos" className="py-20 md:py-28" style={{ background: "var(--pc-cream)" }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <div className="text-center mb-10">
-            <span className="pc-chip"><CurrencyCircleDollar size={12} weight="fill" /> Planos</span>
-            <h2 className="pc-display text-4xl md:text-5xl mt-4">Escolha o que combina com você</h2>
-            <p className="mt-3 text-base" style={{ color: "rgba(11,31,23,.65)" }}>Cancele quando quiser. Sem fidelidade.</p>
-            <div className="mt-6 inline-block">
+          <div className="text-center mb-12 max-w-2xl mx-auto">
+            <span className="pc-eyebrow justify-center"><span className="hidden">·</span></span>
+            <h2 className="pc-display text-4xl md:text-5xl mt-3">Escolha o plano que combina com a sua família.</h2>
+            <p className="mt-4 text-base" style={{ color: "rgba(10,19,46,.65)" }}>Cancele quando quiser. Sem fidelidade, sem multa, sem letras miúdas.</p>
+            <div className="mt-7 inline-block">
               <Tabs value={billing} onValueChange={(v) => setBilling(v as "monthly" | "yearly")}>
-                <TabsList className="bg-white border" style={{ borderColor: "rgba(11,31,23,.1)" }}>
-                  <TabsTrigger value="monthly" className="data-[state=active]:bg-[var(--pc-emerald-800)] data-[state=active]:text-white">Mensal</TabsTrigger>
-                  <TabsTrigger value="yearly" className="data-[state=active]:bg-[var(--pc-emerald-800)] data-[state=active]:text-white">
-                    Anual <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold" style={{ background: "var(--pc-gold)", color: "var(--pc-emerald-900)" }}>-15%</span>
+                <TabsList className="bg-white border rounded-full p-1" style={{ borderColor: "rgba(10,19,46,.1)" }}>
+                  <TabsTrigger value="monthly" className="rounded-full px-5 data-[state=active]:bg-[var(--pc-navy-800)] data-[state=active]:text-white">Mensal</TabsTrigger>
+                  <TabsTrigger value="yearly" className="rounded-full px-5 data-[state=active]:bg-[var(--pc-navy-800)] data-[state=active]:text-white">
+                    Anual <span className="ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "var(--pc-gold)", color: "var(--pc-navy-900)" }}>-15%</span>
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
             {plans.map((plan, i) => {
               const price = billing === "monthly" ? plan.price_monthly : plan.price_yearly / 12;
               const highlight = plan.is_highlighted;
               return (
                 <motion.div
                   key={plan.id}
-                  initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * .1 }}
-                  className={highlight ? "lg:-mt-4" : ""}
+                  initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * .1 }}
+                  className={highlight ? "lg:-mt-6" : ""}
                 >
-                  <div className={`relative h-full p-8 ${highlight ? "pc-tile-dark" : "pc-tile"}`}>
+                  <div className={`relative h-full p-8 flex flex-col ${highlight ? "pc-card-dark pc-grain" : "pc-card"}`}>
                     {highlight && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest pc-gold-bg" style={{ color: "var(--pc-emerald-900)" }}>
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest pc-gold-bg" style={{ color: "var(--pc-navy-900)" }}>
                         MAIS POPULAR
                       </span>
                     )}
-                    <h3 className="pc-display text-3xl">{plan.name}</h3>
-                    <p className={`text-sm mt-1 ${highlight ? "opacity-70" : ""}`} style={!highlight ? { color: "rgba(11,31,23,.6)" } : {}}>
+                    <h3 className="pc-display text-3xl" style={highlight ? { color: "var(--pc-cream)" } : {}}>{plan.name}</h3>
+                    <p className={`text-sm mt-1 ${highlight ? "opacity-75" : ""}`} style={!highlight ? { color: "rgba(10,19,46,.6)" } : {}}>
                       {plan.tagline}
                     </p>
 
-                    <div className="my-6">
+                    <div className="my-7">
                       <div className="flex items-baseline gap-1">
-                        <span className="pc-display text-5xl">{formatBRL(price)}</span>
-                        <span className={`text-sm ${highlight ? "opacity-70" : ""}`} style={!highlight ? { color: "rgba(11,31,23,.6)" } : {}}>/mês</span>
+                        <span className="pc-display text-5xl" style={highlight ? { color: "var(--pc-cream)" } : {}}>{formatBRL(price)}</span>
+                        <span className={`text-sm ${highlight ? "opacity-70" : ""}`} style={!highlight ? { color: "rgba(10,19,46,.6)" } : {}}>/mês</span>
                       </div>
                       {billing === "yearly" && (
-                        <p className={`text-xs mt-1 ${highlight ? "pc-gold" : "pc-emerald-600"}`}>
+                        <p className={`text-xs mt-1 ${highlight ? "pc-gold" : "pc-blue"}`}>
                           {formatBRL(plan.price_yearly)} cobrados anualmente
                         </p>
                       )}
                     </div>
 
-                    <ul className="space-y-3 mb-7">
+                    <ul className="space-y-3 mb-7 flex-1">
                       {plan.benefits.map((b, idx) => (
                         <li key={idx} className="flex items-start gap-2 text-sm">
-                          <Check size={18} weight="bold" className={highlight ? "pc-gold shrink-0 mt-0.5" : "pc-emerald-600 shrink-0 mt-0.5"} />
+                          <Check size={18} weight="bold" className={highlight ? "pc-gold shrink-0 mt-0.5" : "pc-blue shrink-0 mt-0.5"} />
                           <span className={highlight ? "opacity-90" : ""}>{b}</span>
                         </li>
                       ))}
@@ -438,10 +454,10 @@ const PingoCard = () => {
 
                     <Button
                       size="lg"
-                      className={`w-full font-semibold border-0 ${highlight ? "pc-gold-bg hover:opacity-90" : ""}`}
+                      className={`w-full font-semibold border-0 rounded-full ${highlight ? "pc-gold-bg hover:opacity-90" : ""}`}
                       style={highlight
-                        ? { color: "var(--pc-emerald-900)" }
-                        : { background: "var(--pc-emerald-800)", color: "#fff" }}
+                        ? { color: "var(--pc-navy-900)" }
+                        : { background: "var(--pc-navy-800)", color: "#fff" }}
                       onClick={() => handleSubscribe(plan)}
                     >
                       Assinar agora <ArrowRight size={16} className="ml-2" weight="bold" />
@@ -454,19 +470,19 @@ const PingoCard = () => {
 
           {/* Consulta avulsa */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .3 }}
-            className="max-w-3xl mx-auto mt-10 pc-tile p-6 md:p-7 flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6"
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: .3 }}
+            className="max-w-3xl mx-auto mt-12 pc-card p-6 md:p-7 flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6"
           >
-            <div className="w-12 h-12 rounded-2xl pc-cream-bg pc-emerald flex items-center justify-center shrink-0 border" style={{ borderColor: "rgba(201,168,76,.35)" }}>
+            <div className="w-12 h-12 rounded-full pc-cream-bg pc-navy flex items-center justify-center shrink-0 border" style={{ borderColor: "rgba(200,155,70,.4)" }}>
               <Clock size={22} weight="fill" />
             </div>
             <div className="flex-1">
               <h3 className="pc-display text-xl">Só preciso de uma consulta agora</h3>
-              <p className="text-sm mt-1" style={{ color: "rgba(11,31,23,.65)" }}>
-                Sem assinatura. Pague apenas pela consulta avulsa e seja atendido em minutos.
+              <p className="text-sm mt-1" style={{ color: "rgba(10,19,46,.65)" }}>
+                Sem assinatura. Pague apenas pela consulta avulsa e seja atendido em poucos minutos.
               </p>
             </div>
-            <Button size="lg" variant="outline" className="w-full md:w-auto" style={{ borderColor: "var(--pc-emerald-800)", color: "var(--pc-emerald-800)" }}
+            <Button size="lg" variant="outline" className="w-full md:w-auto rounded-full" style={{ borderColor: "var(--pc-navy-800)", color: "var(--pc-navy-800)" }}
               onClick={() => navigate("/agendar")}>
               Agendar consulta avulsa <ArrowRight size={16} className="ml-2" weight="bold" />
             </Button>
@@ -474,13 +490,13 @@ const PingoCard = () => {
         </div>
       </section>
 
-      {/* ============ PARCEIROS BENTO ============ */}
-      <section id="parceiros" className="py-16 md:py-20">
+      {/* ============ PARCEIROS ============ */}
+      <section id="parceiros" className="py-20 md:py-28">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
             <div>
-              <span className="pc-chip"><Storefront size={12} weight="fill" /> Rede credenciada</span>
-              <h2 className="pc-display text-4xl md:text-5xl mt-3">Descontos onde você precisa</h2>
+              <span className="pc-eyebrow">Rede credenciada</span>
+              <h2 className="pc-display text-4xl md:text-5xl mt-4 max-w-xl">Descontos onde você <em>já costuma ir</em>.</h2>
             </div>
             {partnerCategories.length > 1 && (
               <div className="flex flex-wrap gap-2">
@@ -492,8 +508,8 @@ const PingoCard = () => {
                       onClick={() => setPartnerCategory(cat)}
                       className="px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider transition-all border"
                       style={active
-                        ? { background: "var(--pc-emerald-800)", color: "#fff", borderColor: "var(--pc-emerald-800)" }
-                        : { background: "#fff", color: "var(--pc-emerald-800)", borderColor: "rgba(11,31,23,.15)" }}
+                        ? { background: "var(--pc-navy-800)", color: "#fff", borderColor: "var(--pc-navy-800)" }
+                        : { background: "#fff", color: "var(--pc-navy-800)", borderColor: "rgba(10,19,46,.15)" }}
                     >
                       {categoryLabels[cat] ?? cat}
                     </button>
@@ -503,27 +519,27 @@ const PingoCard = () => {
             )}
           </div>
 
-          <div className="grid grid-cols-12 gap-4 md:gap-5">
+          <div className="grid grid-cols-12 gap-5">
             {filteredPartners.map((p, i) => {
               const featured = p.is_featured || i === 0;
               return (
                 <motion.div
                   key={p.id}
-                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * .05 }}
-                  className={`pc-tile p-6 ${featured ? "col-span-12 md:col-span-6" : "col-span-12 sm:col-span-6 md:col-span-3"}`}
+                  initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * .05 }}
+                  className={`pc-card p-6 ${featured ? "col-span-12 md:col-span-6" : "col-span-12 sm:col-span-6 md:col-span-3"}`}
                 >
                   <div className="flex items-start justify-between mb-4">
-                    <div className="w-11 h-11 rounded-2xl pc-cream-bg pc-emerald flex items-center justify-center border" style={{ borderColor: "rgba(201,168,76,.35)" }}>
+                    <div className="w-11 h-11 rounded-full pc-cream-bg pc-navy flex items-center justify-center border" style={{ borderColor: "rgba(200,155,70,.4)" }}>
                       {categoryIcons[p.category] ?? <Storefront size={20} weight="fill" />}
                     </div>
-                    <span className="pc-display text-2xl pc-gold">-{p.discount_percent}%</span>
+                    <span className="pc-display text-3xl pc-gold">-{p.discount_percent}%</span>
                   </div>
                   <h3 className="pc-display text-xl">{p.name}</h3>
-                  <p className="text-sm mt-1 line-clamp-2" style={{ color: "rgba(11,31,23,.65)" }}>
+                  <p className="text-sm mt-1 line-clamp-2" style={{ color: "rgba(10,19,46,.65)" }}>
                     {p.discount_description ?? p.description}
                   </p>
                   {p.city && (
-                    <p className="text-xs mt-3 flex items-center gap-1" style={{ color: "rgba(11,31,23,.5)" }}>
+                    <p className="text-xs mt-3 flex items-center gap-1" style={{ color: "rgba(10,19,46,.5)" }}>
                       <MapPin size={12} weight="fill" /> {p.city}, {p.state}
                     </p>
                   )}
@@ -535,28 +551,29 @@ const PingoCard = () => {
       </section>
 
       {/* ============ COMPARATIVO ============ */}
-      <section id="comparativo" className="py-16 md:py-20">
+      <section id="comparativo" className="py-20 md:py-28" style={{ background: "var(--pc-cream)" }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl">
-          <div className="text-center mb-10">
-            <span className="pc-chip"><Lightning size={12} weight="fill" /> Comparativo</span>
-            <h2 className="pc-display text-4xl md:text-5xl mt-4">Por que o Pingo Card faz sentido</h2>
+          <div className="text-center mb-12">
+            <span className="pc-eyebrow justify-center"></span>
+            <h2 className="pc-display text-4xl md:text-5xl mt-3">Por que o Pingo Card faz sentido.</h2>
+            <p className="mt-3 text-base max-w-xl mx-auto" style={{ color: "rgba(10,19,46,.65)" }}>Uma comparação honesta com planos tradicionais — sem promessas exageradas.</p>
           </div>
 
-          <div className="pc-tile overflow-hidden">
-            <div className="grid grid-cols-3 border-b" style={{ borderColor: "rgba(11,31,23,.08)" }}>
-              <div className="p-5 text-sm font-semibold uppercase tracking-wider" style={{ color: "rgba(11,31,23,.55)" }}>Característica</div>
-              <div className="p-5 text-center pc-display text-lg pc-emerald-bg" style={{ color: "var(--pc-gold-soft)" }}>Pingo Card</div>
-              <div className="p-5 text-center text-sm font-semibold uppercase tracking-wider" style={{ color: "rgba(11,31,23,.55)" }}>Plano tradicional</div>
+          <div className="pc-card overflow-hidden">
+            <div className="grid grid-cols-3 border-b" style={{ borderColor: "rgba(10,19,46,.08)" }}>
+              <div className="p-5 text-sm font-semibold uppercase tracking-wider" style={{ color: "rgba(10,19,46,.55)" }}>Característica</div>
+              <div className="p-5 text-center pc-display text-lg pc-navy-bg" style={{ color: "var(--pc-gold-soft)" }}>Pingo Card</div>
+              <div className="p-5 text-center text-sm font-semibold uppercase tracking-wider" style={{ color: "rgba(10,19,46,.55)" }}>Plano tradicional</div>
             </div>
             {comparison.map((row, i) => (
-              <div key={i} className="grid grid-cols-3 border-b last:border-b-0" style={{ borderColor: "rgba(11,31,23,.06)" }}>
+              <div key={i} className="grid grid-cols-3 border-b last:border-b-0" style={{ borderColor: "rgba(10,19,46,.06)" }}>
                 <div className="p-5 text-sm md:text-base">{row.feature}</div>
-                <div className="p-5 text-center font-semibold flex items-center justify-center" style={{ background: "rgba(13,122,95,.06)", color: "var(--pc-emerald-800)" }}>
+                <div className="p-5 text-center font-semibold flex items-center justify-center" style={{ background: "rgba(59,111,160,.06)", color: "var(--pc-navy-800)" }}>
                   {typeof row.pingo === "boolean"
                     ? (row.pingo ? <Check size={22} weight="bold" /> : <X size={22} weight="bold" />)
                     : row.pingo}
                 </div>
-                <div className="p-5 text-center flex items-center justify-center" style={{ color: "rgba(11,31,23,.55)" }}>
+                <div className="p-5 text-center flex items-center justify-center" style={{ color: "rgba(10,19,46,.55)" }}>
                   {typeof row.plano === "boolean"
                     ? (row.plano ? <Check size={22} weight="bold" /> : <X size={22} weight="bold" />)
                     : row.plano}
@@ -567,40 +584,44 @@ const PingoCard = () => {
         </div>
       </section>
 
-      {/* ============ DEPOIMENTOS BENTO ============ */}
-      <section className="py-16 md:py-20">
+      {/* ============ DEPOIMENTOS ============ */}
+      <section className="py-20 md:py-28">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <div className="text-center mb-10">
-            <span className="pc-chip"><Star size={12} weight="fill" /> Histórias reais</span>
-            <h2 className="pc-display text-4xl md:text-5xl mt-4">Quem usa, recomenda</h2>
+          <div className="grid grid-cols-12 gap-10 items-end mb-12">
+            <div className="col-span-12 md:col-span-7">
+              <span className="pc-eyebrow">Histórias reais</span>
+              <h2 className="pc-display text-4xl md:text-5xl mt-4">Famílias que <em>cuidam melhor</em> com o Pingo Card.</h2>
+            </div>
+            <div className="col-span-12 md:col-span-5 flex md:justify-end items-center gap-3">
+              <img src={pingoDepoimentos} alt="" aria-hidden="true" className="w-24 select-none" draggable={false}/>
+              <div className="flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (<Star key={i} size={18} weight="fill" className="pc-gold" />))}
+                <p className="ml-2 text-sm self-center" style={{ color: "rgba(10,19,46,.65)" }}>4.9 · +2 mil avaliações</p>
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-12 gap-4 md:gap-5">
+          <div className="grid grid-cols-12 gap-5">
             {testimonials.map((t, i) => (
               <motion.div
                 key={t.name}
-                initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * .1 }}
-                className={`p-7 md:p-8 ${i === 1 ? "col-span-12 md:col-span-6 pc-tile-dark" : "col-span-12 md:col-span-3 pc-tile"}`}
+                initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * .1 }}
+                className={`p-8 md:p-9 ${i === 1 ? "col-span-12 md:col-span-6 pc-card-dark pc-grain" : "col-span-12 md:col-span-3 pc-card"}`}
               >
-                <Quotes size={28} weight="fill" className={i === 1 ? "pc-gold" : "pc-emerald-600"} />
-                <p className={`mt-4 leading-relaxed ${i === 1 ? "text-lg md:text-xl" : "text-sm"}`} style={i !== 1 ? { color: "rgba(11,31,23,.8)" } : {}}>
+                <Quotes size={32} weight="fill" className={i === 1 ? "pc-gold" : "pc-blue"} />
+                <p className={`mt-5 leading-relaxed ${i === 1 ? "pc-display text-2xl md:text-3xl" : "text-base"}`} style={i !== 1 ? { color: "rgba(10,19,46,.8)" } : { color: "var(--pc-cream)" }}>
                   "{t.text}"
                 </p>
-                <div className="flex items-center gap-3 mt-6 pt-5 border-t" style={{ borderColor: i === 1 ? "rgba(201,168,76,.25)" : "rgba(11,31,23,.08)" }}>
+                <div className="flex items-center gap-3 mt-7 pt-5 border-t" style={{ borderColor: i === 1 ? "rgba(200,155,70,.25)" : "rgba(10,19,46,.08)" }}>
                   <div className="w-11 h-11 rounded-full flex items-center justify-center pc-display text-xl"
                     style={i === 1
-                      ? { background: "var(--pc-gold)", color: "var(--pc-emerald-900)" }
-                      : { background: "var(--pc-emerald-800)", color: "var(--pc-cream)" }}>
+                      ? { background: "var(--pc-gold)", color: "var(--pc-navy-900)" }
+                      : { background: "var(--pc-navy-800)", color: "var(--pc-cream)" }}>
                     {t.name.charAt(0)}
                   </div>
                   <div className="flex-1">
                     <p className="font-semibold text-sm">{t.name}</p>
                     <p className="text-xs opacity-70">{t.role}</p>
-                  </div>
-                  <div className="flex gap-0.5">
-                    {Array.from({ length: t.rating }).map((_, idx) => (
-                      <Star key={idx} size={13} weight="fill" className="pc-gold" />
-                    ))}
                   </div>
                 </div>
               </motion.div>
@@ -610,54 +631,71 @@ const PingoCard = () => {
       </section>
 
       {/* ============ FAQ ============ */}
-      <section className="py-16 md:py-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl">
-          <div className="text-center mb-10">
-            <span className="pc-chip"><Shield size={12} weight="fill" /> Dúvidas frequentes</span>
-            <h2 className="pc-display text-4xl md:text-5xl mt-4">Tudo o que você precisa saber</h2>
+      <section className="py-20 md:py-28" style={{ background: "var(--pc-cream)" }}>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+          <div className="grid grid-cols-12 gap-10">
+            <div className="col-span-12 md:col-span-4">
+              <span className="pc-eyebrow">Dúvidas frequentes</span>
+              <h2 className="pc-display text-4xl md:text-5xl mt-4 leading-[1.05]">Tudo o que você precisa <em>saber</em>.</h2>
+              <p className="mt-5 text-sm leading-relaxed" style={{ color: "rgba(10,19,46,.65)" }}>
+                Não encontrou sua resposta? Fale com a gente pelo chat ou WhatsApp — atendimento humano de segunda a sábado.
+              </p>
+            </div>
+            <div className="col-span-12 md:col-span-8">
+              <Accordion type="single" collapsible className="space-y-2">
+                {faqs.map((faq, i) => (
+                  <AccordionItem
+                    key={i}
+                    value={`item-${i}`}
+                    className="bg-white px-6 border rounded-md data-[state=open]:shadow-md"
+                    style={{ borderColor: "rgba(10,19,46,.08)" }}
+                  >
+                    <AccordionTrigger className="text-left pc-display text-lg md:text-xl hover:no-underline py-5">
+                      {faq.q}
+                    </AccordionTrigger>
+                    <AccordionContent className="leading-relaxed pb-5 text-base" style={{ color: "rgba(10,19,46,.7)" }}>
+                      {faq.a}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
           </div>
-
-          <Accordion type="single" collapsible className="space-y-3">
-            {faqs.map((faq, i) => (
-              <AccordionItem
-                key={i}
-                value={`item-${i}`}
-                className="pc-tile px-5 border-0 data-[state=open]:shadow-lg"
-              >
-                <AccordionTrigger className="text-left pc-display text-lg hover:no-underline py-5">
-                  {faq.q}
-                </AccordionTrigger>
-                <AccordionContent className="leading-relaxed pb-5" style={{ color: "rgba(11,31,23,.7)" }}>
-                  {faq.a}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
         </div>
       </section>
 
       {/* ============ CTA FINAL ============ */}
-      <section className="py-16 md:py-20">
+      <section className="py-20 md:py-28">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
-          <div className="pc-tile-dark pc-grain relative overflow-hidden p-10 md:p-16 text-center">
-            <div className="pointer-events-none absolute -left-20 -top-20 w-72 h-72 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(201,168,76,.3), transparent)" }} />
-            <div className="pointer-events-none absolute -right-20 -bottom-20 w-72 h-72 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(17,146,111,.4), transparent)" }} />
-            <span className="pc-chip pc-chip-dark mx-auto"><Heart size={12} weight="fill" /> Sua saúde merece</span>
-            <h2 className="pc-display text-4xl md:text-6xl mt-5 leading-[1.05] relative">
-              Pronto para cuidar de você
-              <span className="block" style={{ color: "var(--pc-gold-soft)" }}>pagando menos?</span>
-            </h2>
-            <p className="mt-5 text-lg max-w-2xl mx-auto relative" style={{ color: "rgba(245,240,224,.8)" }}>
-              Junte-se a milhares de famílias que já economizam com o Pingo Card.
-            </p>
-            <Button size="lg" className="mt-8 pc-gold-bg hover:opacity-90 font-semibold border-0 relative" style={{ color: "var(--pc-emerald-900)" }}
-              onClick={() => {
-                const target = plans.find(p => p.is_highlighted) ?? plans[0];
-                if (target) handleSubscribe(target);
-                else document.getElementById("planos")?.scrollIntoView({ behavior: "smooth" });
-              }}>
-              Começar agora <ArrowRight size={18} className="ml-2" weight="bold" />
-            </Button>
+          <div className="pc-card-dark pc-grain relative overflow-hidden p-10 md:p-16 grid grid-cols-12 gap-8 items-center">
+            <div aria-hidden className="pointer-events-none absolute -right-32 -top-32 w-96 h-96 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(200,155,70,.35), transparent)" }} />
+            <div aria-hidden className="pointer-events-none absolute -left-24 -bottom-24 w-80 h-80 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(59,111,160,.45), transparent)" }} />
+            <div className="col-span-12 md:col-span-8 relative">
+              <span className="pc-eyebrow" style={{ color: "var(--pc-gold-soft)" }}>Sua saúde merece</span>
+              <h2 className="pc-display text-4xl md:text-6xl mt-5 leading-[1.02]" style={{ color: "var(--pc-cream)" }}>
+                Pronto para cuidar de você <em style={{ color: "var(--pc-gold-soft)" }}>pagando menos</em>?
+              </h2>
+              <p className="mt-5 text-lg max-w-xl" style={{ color: "rgba(247,241,230,.8)" }}>
+                Junte-se a milhares de famílias que já economizam com o Pingo Card. Sem carência, sem fidelidade.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Button size="lg" className="pc-gold-bg hover:opacity-90 font-semibold border-0 rounded-full px-7" style={{ color: "var(--pc-navy-900)" }}
+                  onClick={() => {
+                    const target = plans.find(p => p.is_highlighted) ?? plans[0];
+                    if (target) handleSubscribe(target);
+                    else document.getElementById("planos")?.scrollIntoView({ behavior: "smooth" });
+                  }}>
+                  Começar agora <ArrowRight size={18} className="ml-2" weight="bold" />
+                </Button>
+                <Button size="lg" variant="ghost" className="rounded-full px-6 hover:bg-white/10" style={{ color: "var(--pc-cream)" }}
+                  onClick={() => navigate("/agendar")}>
+                  Falar com a gente
+                </Button>
+              </div>
+            </div>
+            <div className="col-span-12 md:col-span-4 relative flex justify-center">
+              <img src={pingoCardHero} alt="Pingo segurando o cartão" className="w-56 md:w-full max-w-[260px] select-none drop-shadow-2xl" draggable={false}/>
+            </div>
           </div>
         </div>
       </section>
