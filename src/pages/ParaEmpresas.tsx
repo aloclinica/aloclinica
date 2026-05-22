@@ -425,65 +425,6 @@ const ParaEmpresas = () => {
         </div>
       </section>
 
-      {/* CALCULADORA DE ROI */}
-      <section className="py-12 md:py-20 px-4 bg-gradient-to-br from-emerald-50 via-background to-primary/5">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-4 py-1.5 rounded-full mb-4">
-              <Calculator className="w-3.5 h-3.5" weight="fill" /> SIMULADOR DE ROI
-            </span>
-            <h2 className="text-2xl md:text-4xl font-extrabold text-foreground mb-3 tracking-tight">
-              Quanto sua empresa pode economizar?
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Compare o custo de um plano tradicional com a AloClínica e veja seu retorno em tempo real.
-            </p>
-          </div>
-
-          <Card className="border-2 shadow-2xl overflow-hidden">
-            <CardContent className="p-6 md:p-10">
-              <div className="mb-8">
-                <div className="flex items-center justify-between mb-3">
-                  <Label className="text-sm font-bold flex items-center gap-2">
-                    <Users className="w-4 h-4 text-primary" weight="fill" />
-                    Número de colaboradores
-                  </Label>
-                  <span className="text-3xl font-extrabold text-primary tabular-nums">{employees}</span>
-                </div>
-                <Slider value={[employees]} onValueChange={([v]) => setEmployees(v)} min={10} max={1000} step={10} />
-                <div className="flex justify-between text-[10px] text-muted-foreground mt-2 font-medium">
-                  <span>10</span>
-                  <span>500</span>
-                  <span>1000+</span>
-                </div>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4 mb-6">
-                <div className="rounded-2xl bg-muted/40 p-5 border-2 border-border">
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1">Plano tradicional</p>
-                  <p className="text-2xl font-extrabold text-foreground/70 line-through decoration-rose-500/60">{formatBRL(roi.traditional)}/mês</p>
-                </div>
-                <div className="rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-5 text-primary-foreground">
-                  <p className="text-[10px] uppercase tracking-widest opacity-80 font-bold mb-1">Com AloClínica</p>
-                  <p className="text-2xl font-extrabold">{formatBRL(roi.alo)}/mês</p>
-                </div>
-              </div>
-
-              <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-6 md:p-8 text-white text-center">
-                <p className="text-xs uppercase tracking-widest opacity-80 font-bold mb-2">Economia estimada em 12 meses</p>
-                <p className="text-4xl md:text-6xl font-extrabold mb-2 tabular-nums">{formatBRL(roi.yearlySaving)}</p>
-                <p className="text-xs opacity-90">+ ganho de produtividade estimado em {formatBRL(roi.productivityGain * 12)}/ano</p>
-                <Button size="lg" className="mt-5 bg-white text-emerald-700 hover:bg-white/90 font-bold" asChild>
-                  <a href="#solicitar-proposta">
-                    Solicitar proposta com esses números <ArrowRight className="ml-2 w-4 h-4" weight="bold" />
-                  </a>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
       {/* PLANOS CORPORATIVOS */}
       <section className="py-12 md:py-20 px-4">
         <div className="max-w-7xl mx-auto">
