@@ -478,14 +478,21 @@ export default function SignupDoctor() {
                       <select
                         id="specialty" name="specialty"
                         value={
-                          formData.specialty === "" ||
-                          VALID_SPECIALTIES.includes(formData.specialty.toLowerCase())
+                          specialtyOther
+                            ? "outras"
+                            : VALID_SPECIALTIES.includes(formData.specialty.toLowerCase())
                             ? formData.specialty
-                            : "outras"
+                            : ""
                         }
                         onChange={(e) => {
                           const v = e.target.value;
-                          setFormData((p) => ({ ...p, specialty: v === "outras" ? "" : v }));
+                          if (v === "outras") {
+                            setSpecialtyOther(true);
+                            setFormData((p) => ({ ...p, specialty: "" }));
+                          } else {
+                            setSpecialtyOther(false);
+                            setFormData((p) => ({ ...p, specialty: v }));
+                          }
                         }}
                         className={`w-full h-10 px-3 rounded-md bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
                           errors.specialty ? "border-destructive" : "border-input"
@@ -499,9 +506,7 @@ export default function SignupDoctor() {
                         ))}
                         <option value="outras">Outras (digitar)</option>
                       </select>
-                      {(formData.specialty !== "" &&
-                        !VALID_SPECIALTIES.includes(formData.specialty.toLowerCase())) ||
-                      (formData.specialty === "" && errors.specialty === undefined && false) ? (
+                      {specialtyOther && (
                         <Input
                           name="specialty"
                           placeholder="Digite sua especialidade"
@@ -509,7 +514,7 @@ export default function SignupDoctor() {
                           onChange={handleInput}
                           className="mt-2"
                         />
-                      ) : null}
+                      )}
                       {errors.specialty && <p className="text-xs text-destructive">{errors.specialty}</p>}
                     </div>
                   </section>
