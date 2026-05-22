@@ -348,7 +348,11 @@ export const VALID_SPECIALTIES = [
 ];
 
 export function validarEspecialidade(specialty: string): boolean {
-  return VALID_SPECIALTIES.includes(specialty.toLowerCase());
+  const s = specialty.trim().toLowerCase();
+  if (!s) return false;
+  if (VALID_SPECIALTIES.includes(s)) return true;
+  // Aceita "outras" com texto livre (mín. 3 caracteres, apenas letras/espaços/hífen)
+  return /^[a-záàâãéêíóôõúç\s-]{3,60}$/i.test(s);
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -109,6 +109,7 @@ export default function SignupDoctor() {
 
   const [docs, setDocs] = useState<DocsState>({ crm_doc: null, id_doc: null, selfie_doc: null });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [specialtyOther, setSpecialtyOther] = useState(false);
 
   type CrmStatus = "idle" | "checking" | "ok" | "warn" | "fail";
   const [crmStatus, setCrmStatus] = useState<CrmStatus>("idle");
@@ -476,7 +477,23 @@ export default function SignupDoctor() {
                       <Label htmlFor="specialty">Especialidade <span className="text-destructive">*</span></Label>
                       <select
                         id="specialty" name="specialty"
-                        value={formData.specialty} onChange={handleInput}
+                        value={
+                          specialtyOther
+                            ? "outras"
+                            : VALID_SPECIALTIES.includes(formData.specialty.toLowerCase())
+                            ? formData.specialty
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (v === "outras") {
+                            setSpecialtyOther(true);
+                            setFormData((p) => ({ ...p, specialty: "" }));
+                          } else {
+                            setSpecialtyOther(false);
+                            setFormData((p) => ({ ...p, specialty: v }));
+                          }
+                        }}
                         className={`w-full h-10 px-3 rounded-md bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
                           errors.specialty ? "border-destructive" : "border-input"
                         }`}
@@ -487,7 +504,17 @@ export default function SignupDoctor() {
                             {s.charAt(0).toUpperCase() + s.slice(1).replace("-", " ")}
                           </option>
                         ))}
+                        <option value="outras">Outras (digitar)</option>
                       </select>
+                      {specialtyOther && (
+                        <Input
+                          name="specialty"
+                          placeholder="Digite sua especialidade"
+                          value={formData.specialty}
+                          onChange={handleInput}
+                          className="mt-2"
+                        />
+                      )}
                       {errors.specialty && <p className="text-xs text-destructive">{errors.specialty}</p>}
                     </div>
                   </section>
