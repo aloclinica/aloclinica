@@ -55,14 +55,36 @@ serve(async (req) => {
     const apiUrl = `https://www.consultacrm.com.br/api/index.php?tipo=crm&uf=${encodeURIComponent(uf)}&q=${encodeURIComponent(crm)}&chave=${encodeURIComponent(apiKey)}&destino=json`;
 
     const apiResponse = await fetch(apiUrl);
-    if (!apiResponse.ok) {
+    const rawText = await apiResponse.text();
+    let apiData: any = null;
+    try {
+      apiData = JSON.parse(rawText);
+    } catch {
+      // API externa retornou texto (ex.: "Chave API inválida") — degrada para análise manual
+      console.warn("verify-crm: resposta não-JSON da API externa:", rawText.slice(0, 200));
       return new Response(
-        JSON.stringify({ error: `Erro ao consultar API do CRM: ${apiResponse.status}` }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          found: false,
+          valid: false,
+          doctor: null,
+          message: "Não foi possível verificar agora — análise manual será feita pela equipe.",
+          upstream_error: true,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    const apiData = await apiResponse.json();
+    if (!apiResponse.ok) {
+      return new Response(
+        JSON.stringify({
+          found: false,
+          valid: false,
+          doctor: null,
+          message: "Não foi possível verificar agora — análise manual.",
+          upstream_error: true,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // The API returns an object with "item" array
     const items = apiData?.item ?? apiData?.items ?? [];
