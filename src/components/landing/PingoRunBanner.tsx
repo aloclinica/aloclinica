@@ -26,7 +26,6 @@ const PingoRunBanner = () => {
       className="relative w-full px-4 sm:px-6 lg:px-8 py-6 md:py-8"
     >
       <div
-      <div
         className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] md:rounded-[2.5rem] shadow-2xl flex flex-col justify-between min-h-[260px]"
         style={{
           background:
