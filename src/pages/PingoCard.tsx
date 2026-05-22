@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Heart, Star, Shield, Check, X, ArrowRight, QrCode, Sparkle, MapPin, Storefront, Flask, Eyeglasses, Quotes, Lightning, Users, Clock, Buildings, ShieldCheck, CurrencyCircleDollar } from "@phosphor-icons/react";
+import { Heart, Star, Shield, Check, X, ArrowRight, QrCode, Sparkle, MapPin, Storefront, Flask, Eyeglasses, Quotes, Lightning, Users, Clock, Buildings, ShieldCheck, CurrencyCircleDollar, CaretRight } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -11,6 +11,9 @@ import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { PingoSubscribeDialog } from "@/components/patient/PingoSubscribeDialog";
 import pingoCardHero from "@/assets/pingo-card-hero.png";
+import pingoFamily from "@/assets/hero-pingo-family.png";
+import pingoConfianca from "@/assets/pingo-confianca.png";
+import pingoDepoimentos from "@/assets/pingo-depoimentos.png";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
