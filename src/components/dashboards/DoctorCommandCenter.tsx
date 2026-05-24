@@ -39,34 +39,48 @@ const DoctorCommandCenter = memo(({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="relative overflow-hidden rounded-3xl border border-border/30 bg-card shadow-[0_4px_24px_-8px_rgba(0,0,0,0.08)]"
+      className="relative overflow-hidden rounded-3xl border border-border/40 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 shadow-[0_12px_36px_-12px_rgba(15,23,42,0.5)] text-white"
     >
-      {/* Animated background accent */}
-      <div className={cn(
-        "absolute inset-0 opacity-[0.04] pointer-events-none",
-        isOnline ? "bg-emerald-500" : "bg-muted-foreground"
-      )} />
-      <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+      {/* Animated mesh background */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className={cn(
+          "absolute -top-24 -right-16 h-72 w-72 rounded-full blur-3xl transition-colors duration-700",
+          isOnline ? "bg-emerald-500/25" : "bg-slate-700/30"
+        )} />
+        <div className="absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-40 w-[60%] rounded-full bg-cyan-400/10 blur-3xl" />
+      </div>
+      {/* grid overlay */}
+      <div className="pointer-events-none absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "24px 24px" }} />
+      {/* top live bar */}
+      <div className="relative flex items-center gap-2 px-5 py-2 border-b border-white/10 bg-white/[0.02]">
+        <span className="relative flex h-2 w-2">
+          <span className={cn("absolute inline-flex h-full w-full animate-ping rounded-full opacity-75", isOnline ? "bg-emerald-400" : "bg-slate-500")} />
+          <span className={cn("relative inline-flex h-2 w-2 rounded-full", isOnline ? "bg-emerald-400" : "bg-slate-400")} />
+        </span>
+        <span className="text-[10px] font-black uppercase tracking-[0.22em] text-white/80">Command Center</span>
+        <span className="ml-auto text-[10px] font-bold text-white/60 tabular-nums">{format(new Date(), "HH:mm")}</span>
+      </div>
 
-      <div className="relative grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/20">
+      <div className="relative grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/10">
 
         {/* Plantão Status */}
         <div className="p-4 md:p-5 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className={cn(
-              "relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-colors",
+              "relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all backdrop-blur-md ring-1",
               isOnline
-                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                : "bg-muted text-muted-foreground"
+                ? "bg-emerald-500/20 text-emerald-300 ring-emerald-400/30 shadow-[0_0_24px_-4px_rgba(16,185,129,0.6)]"
+                : "bg-white/5 text-white/60 ring-white/10"
             )}>
-              <Power className="h-4 w-4" />
+              <Power className="h-5 w-5" />
               {isOnline && (
-                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-emerald-500 animate-pulse ring-2 ring-card" />
+                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-emerald-400 animate-pulse ring-2 ring-slate-900" />
               )}
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Plantão</p>
-              <p className="font-bold text-sm text-foreground truncate">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/50">Plantão</p>
+              <p className="font-extrabold text-sm text-white truncate">
                 {isOnline ? "Online — recebendo" : "Offline"}
               </p>
             </div>
@@ -77,8 +91,10 @@ const DoctorCommandCenter = memo(({
             disabled={onlineLoading}
             variant={isOnline ? "default" : "outline"}
             className={cn(
-              "h-8 rounded-full px-3 text-[11px] font-bold shrink-0",
-              isOnline && "bg-emerald-600 hover:bg-emerald-700 text-white"
+              "h-8 rounded-full px-3.5 text-[11px] font-bold shrink-0 transition-all",
+              isOnline
+                ? "bg-emerald-500 hover:bg-emerald-400 text-slate-900 shadow-[0_0_18px_-2px_rgba(16,185,129,0.7)]"
+                : "bg-white/5 hover:bg-white/15 text-white border-white/15"
             )}
           >
             {onlineLoading ? "..." : isOnline ? "Ativo" : "Ativar"}
@@ -89,24 +105,24 @@ const DoctorCommandCenter = memo(({
         <div className="p-4 md:p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className={cn(
-              "h-7 w-7 rounded-lg flex items-center justify-center",
-              imminent ? "bg-amber-500/15 text-amber-600" : "bg-primary/10 text-primary"
+              "h-7 w-7 rounded-lg flex items-center justify-center ring-1",
+              imminent ? "bg-amber-400/20 text-amber-300 ring-amber-400/30" : "bg-cyan-400/15 text-cyan-300 ring-cyan-400/20"
             )}>
               <Clock className="h-3.5 w-3.5" />
             </div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/50">
               {imminent ? "Em breve" : "Próxima"}
             </p>
           </div>
           {nextAppt ? (
             <>
-              <p className="font-bold text-sm text-foreground truncate">{nextAppt.patient_name}</p>
+              <p className="font-extrabold text-sm text-white truncate">{nextAppt.patient_name}</p>
               <div className="flex items-baseline gap-1.5 mt-0.5">
                 <span className={cn(
-                  "text-lg font-extrabold tabular-nums leading-none",
-                  imminent ? "text-amber-600 dark:text-amber-400" : "text-primary"
+                  "text-2xl font-black tabular-nums leading-none tracking-tight",
+                  imminent ? "text-amber-300" : "text-cyan-300"
                 )}>{countdown}</span>
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-[11px] text-white/60 font-medium">
                   · {format(new Date(nextAppt.scheduled_at), "HH:mm", { locale: ptBR })}
                 </span>
               </div>
@@ -114,19 +130,19 @@ const DoctorCommandCenter = memo(({
                 size="sm"
                 onClick={() => onEnterRoom(nextAppt.id)}
                 className={cn(
-                  "mt-2.5 h-8 rounded-xl px-3 text-[11px] font-bold w-full md:w-auto",
+                  "mt-3 h-9 rounded-xl px-3.5 text-[11.5px] font-bold w-full md:w-auto transition-all shadow-lg",
                   imminent
-                    ? "bg-amber-500 hover:bg-amber-600 text-white"
-                    : "bg-primary hover:bg-primary/90 text-primary-foreground"
+                    ? "bg-amber-400 hover:bg-amber-300 text-slate-900 shadow-amber-400/40"
+                    : "bg-cyan-400 hover:bg-cyan-300 text-slate-900 shadow-cyan-400/40"
                 )}
               >
-                <Video className="h-3.5 w-3.5 mr-1.5" /> Sala
+                <Video className="h-3.5 w-3.5 mr-1.5" /> Entrar na sala
               </Button>
             </>
           ) : (
             <>
-              <p className="text-sm font-semibold text-foreground">Sem próximas</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Agenda livre por enquanto</p>
+              <p className="text-sm font-bold text-white">Sem próximas</p>
+              <p className="text-[11px] text-white/60 mt-0.5">Agenda livre por enquanto</p>
             </>
           )}
         </div>
@@ -136,34 +152,34 @@ const DoctorCommandCenter = memo(({
           onClick={onSeeQueue}
           className={cn(
             "p-4 md:p-5 text-left transition-colors group",
-            waitingCount > 0 ? "hover:bg-emerald-500/5" : "hover:bg-muted/30"
+            waitingCount > 0 ? "hover:bg-emerald-500/10" : "hover:bg-white/[0.03]"
           )}
         >
           <div className="flex items-center gap-2 mb-2">
             <div className={cn(
-              "h-7 w-7 rounded-lg flex items-center justify-center",
+              "h-7 w-7 rounded-lg flex items-center justify-center ring-1",
               waitingCount > 0
-                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                : "bg-muted text-muted-foreground"
+                ? "bg-emerald-400/20 text-emerald-300 ring-emerald-400/30"
+                : "bg-white/5 text-white/60 ring-white/10"
             )}>
               <Radio className={cn("h-3.5 w-3.5", waitingCount > 0 && "animate-pulse")} />
             </div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Fila ao vivo</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/50">Fila ao vivo</p>
           </div>
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-baseline gap-1">
                 <span className={cn(
-                  "text-2xl font-extrabold tabular-nums leading-none",
-                  waitingCount > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
+                  "text-3xl font-black tabular-nums leading-none tracking-tight",
+                  waitingCount > 0 ? "text-emerald-300" : "text-white/40"
                 )}>{waitingCount}</span>
-                <span className="text-[11px] text-muted-foreground">aguardando</span>
+                <span className="text-[11px] text-white/60 font-medium">aguardando</span>
               </div>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
+              <p className="text-[11px] text-white/60 mt-1">
                 {waitingCount > 0 ? "Toque para chamar" : "Tudo em dia"}
               </p>
             </div>
-            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+            <ChevronRight className="h-5 w-5 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" />
           </div>
         </button>
       </div>
