@@ -502,7 +502,7 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
 
       {/* ═══ Mobile Header — app-like blue gradient ═══ */}
       <header ref={headerRef}
-        className="sticky top-0 z-50 md:h-14 md:bg-background/90 md:backdrop-blur-md md:border-b md:border-border/40 supports-[backdrop-filter]:md:bg-background/80 flex items-center gap-3"
+        className="sticky top-0 z-50 md:h-16 md:bg-background/70 md:backdrop-blur-2xl md:border-b md:border-border/30 supports-[backdrop-filter]:md:bg-background/60 flex items-center gap-3 md:shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_8px_24px_-16px_rgba(0,0,0,0.18)]"
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
        {/* Mobile: iOS-style glass header */}
@@ -544,11 +544,16 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
        </div>
 
         {/* Desktop: standard header */}
-        <div className="hidden md:flex w-full items-center px-4 h-14 gap-3">
+        <div className="relative hidden md:flex w-full items-center px-4 h-16 gap-3">
+          {/* ambient mesh */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className={`absolute -top-24 left-1/4 h-40 w-[40rem] rounded-full opacity-[0.08] blur-3xl bg-gradient-to-r ${grad}`} />
+            <div className="absolute -bottom-24 right-1/4 h-32 w-[28rem] rounded-full opacity-[0.06] blur-3xl bg-primary" />
+          </div>
           {nav && nav.length > 0 && (
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden h-9 w-9 rounded-xl" aria-label="Abrir menu">
+                <Button variant="ghost" size="icon" className="relative lg:hidden h-9 w-9 rounded-xl" aria-label="Abrir menu">
                   <List className="w-4.5 h-4.5" aria-hidden="true" />
                 </Button>
               </SheetTrigger>
@@ -558,32 +563,38 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
             </Sheet>
           )}
 
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <img src={mascotImg} alt="AloClínica" className="w-8 h-8 object-contain select-none shrink-0"
-              style={{ filter: "drop-shadow(0 2px 6px rgba(0,0,0,.15))" }} />
-            <span className="font-bold text-foreground text-sm tracking-tight">AloClínica</span>
+          <Link to="/" className="relative flex items-center gap-2.5 shrink-0 group">
+            <div className="relative">
+              <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${grad} blur-md opacity-50 group-hover:opacity-80 transition-opacity`} />
+              <img src={mascotImg} alt="AloClínica" className="relative w-9 h-9 object-contain select-none shrink-0 transition-transform group-hover:scale-110"
+                style={{ filter: "drop-shadow(0 2px 8px rgba(0,0,0,.2))" }} />
+            </div>
+            <div className="flex flex-col leading-none">
+              <span className="font-extrabold text-foreground text-[15px] tracking-tight">AloClínica</span>
+              <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground/70 mt-0.5">Telemedicina</span>
+            </div>
           </Link>
 
-          <button
-            onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }))}
-            className="flex flex-1 max-w-xs items-center gap-2 px-3 py-1.5 rounded-xl bg-muted/50 hover:bg-muted/80 text-xs text-muted-foreground transition-all group"
-            aria-label="Buscar">
-            <MagnifyingGlass className="w-3.5 h-3.5 group-hover:text-foreground transition-colors shrink-0" aria-hidden="true" />
-            <span className="flex-1 text-left">Buscar...</span>
-            <kbd className="font-mono text-[10px] bg-background border border-border/40 rounded px-1.5 py-0.5 leading-none">⌘K</kbd>
-          </button>
-
-          <div className="flex-1" />
+          <div className="relative flex flex-1 max-w-md mx-auto lg:mx-4">
+            <button
+              onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }))}
+              className="relative flex w-full items-center gap-2.5 h-10 px-3.5 rounded-2xl bg-background/60 hover:bg-background/90 border border-border/40 hover:border-primary/30 backdrop-blur-xl text-[12.5px] text-muted-foreground transition-all group shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:shadow-[0_4px_18px_-8px_hsl(var(--primary)/0.25)]"
+              aria-label="Buscar">
+              <MagnifyingGlass className="w-4 h-4 group-hover:text-primary transition-colors shrink-0" aria-hidden="true" />
+              <span className="flex-1 text-left font-medium">Buscar pacientes, consultas, receitas...</span>
+              <kbd className="font-mono text-[10px] bg-muted/60 border border-border/40 rounded-md px-1.5 py-0.5 leading-none font-bold">⌘K</kbd>
+            </button>
+          </div>
 
           {isAdminViewingOtherPanel && (
             <Button variant="outline" size="sm"
-              className="h-7 text-xs gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/8 rounded-xl"
+              className="relative h-8 text-xs gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/8 rounded-xl"
               onClick={() => navigate("/dashboard")}>
               <ShieldCheckIcon className="w-3.5 h-3.5" aria-hidden="true" /> Admin
             </Button>
           )}
 
-          <div className="flex items-center gap-2">
+          <div className="relative flex items-center gap-2">
             {/* Cluster de utilidades — agrupadas em uma cápsula coesa */}
             <div className="hidden sm:flex items-center h-9 px-1 rounded-full bg-muted/40 border border-border/40 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
               <LanguageSwitcher />
