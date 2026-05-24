@@ -196,7 +196,7 @@ const DoctorDashboard = () => {
       {/* Full-width hero */}
       <div className="-mx-4 -mt-5 md:-mx-6 md:-mt-5 lg:-mx-8 lg:-mt-6">
         <HeroBanner
-          gradient="from-[#042A1C] via-[#065f46] to-[#059669]"
+          gradient="from-[hsl(215,75%,28%)] via-[hsl(195,70%,32%)] to-[hsl(168,55%,38%)]"
           pingoSrc={mascotWave}
           pingoAlt="Pingo"
           liveDot={waitingCount > 0}
