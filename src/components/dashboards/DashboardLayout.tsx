@@ -668,11 +668,16 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
       </header>
 
       {/* Body */}
-      <div className="flex flex-1 min-h-0 relative h-[calc(100vh-3.5rem)]">
+      <div className="flex flex-1 min-h-0 relative h-[calc(100vh-4rem)]">
         {nav && nav.length > 0 && (
-          <aside className={`hidden md:flex shrink-0 flex-col bg-background border-r border-sidebar-border shadow-[2px_0_12px_rgba(0,0,0,.06)] h-full overflow-hidden transition-all duration-200 ${
+          <aside className={`relative hidden md:flex shrink-0 flex-col bg-gradient-to-b from-background via-background to-muted/20 border-r border-border/30 shadow-[2px_0_18px_rgba(0,0,0,.05)] h-full overflow-hidden transition-all duration-300 ${
             sidebarCollapsed ? "w-[52px]" : "w-56 lg:w-64 xl:w-72"
           }`}>
+            {/* role accent rail */}
+            <div className={`absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b ${grad} opacity-80`} />
+            {/* ambient mesh */}
+            <div className={`pointer-events-none absolute -top-32 -left-16 h-72 w-72 rounded-full opacity-[0.06] blur-3xl bg-gradient-to-br ${grad}`} />
+            <div className="pointer-events-none absolute bottom-0 right-0 h-48 w-48 rounded-full opacity-[0.04] blur-3xl bg-primary" />
             <SidebarContent collapsed={sidebarCollapsed} />
             {/* Collapse toggle */}
             <div className={`shrink-0 border-t border-border/10 ${sidebarCollapsed ? "p-1.5" : "px-2.5 py-1.5"}`}>
