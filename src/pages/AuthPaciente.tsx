@@ -394,6 +394,7 @@ const AuthPaciente = () => {
         if (signUpData.session) {
           // Show celebration screen briefly, then redirect
           setSignupSuccess(true);
+          setSignupHasSession(true);
           setTimeout(() => {
             try {
               navigate("/dashboard?role=patient&onboarding=true", { replace: true });
@@ -409,6 +410,7 @@ const AuthPaciente = () => {
           }, 5000);
         } else {
           setSignupSuccess(true);
+          setSignupHasSession(false);
           // Sem sessão: confirmação de e-mail necessária. Não tente redirecionar para dashboard.
         }
       }
@@ -665,7 +667,7 @@ const AuthPaciente = () => {
                 transition={{ delay: 0.32 }}
                 className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto leading-relaxed"
               >
-                {session
+                {signupHasSession
                   ? "Sua conta foi criada com sucesso. Vamos preparar tudo para sua primeira consulta."
                   : "Sua conta foi criada! Enviamos um e-mail de confirmação. Verifique sua caixa de entrada para entrar."}
               </motion.p>
@@ -676,7 +678,7 @@ const AuthPaciente = () => {
                 transition={{ delay: 0.45 }}
                 className="mt-6 flex flex-col items-center justify-center gap-3 text-xs text-muted-foreground"
               >
-                {session ? (
+                {signupHasSession ? (
                   <>
                     <div className="flex items-center gap-2">
                       <SpinnerGap className="w-4 h-4 animate-spin text-primary" />
