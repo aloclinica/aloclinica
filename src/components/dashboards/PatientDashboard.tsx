@@ -209,19 +209,57 @@ const PatientDashboard = () => {
             <DoctorSearchHero navigate={navigate} hasNextAppt={!!nextAppt} />
             <UrgentAlerts nextAppt={nextAppt} minutesUntilNext={minutesUntilNext} waitingAppt={waitingAppt} sections={sections} navigate={navigate} />
             <section>
-              <h3 className="text-sm font-bold text-foreground mb-4 px-1">Ações rápidas</h3>
+              <div className="flex items-center justify-between mb-4 px-1">
+                <div className="flex items-center gap-2">
+                  <div className="h-5 w-1 rounded-full bg-gradient-to-b from-primary to-primary/40" />
+                  <h3 className="text-[11px] font-black uppercase tracking-[0.18em] text-foreground/70">Ações rápidas</h3>
+                </div>
+                <span className="text-[10px] font-semibold text-muted-foreground">Toque para abrir</span>
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                 {getQuickActions(serviceType as any).map((action, i) => (
-                  <motion.button key={action.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.04 }} onClick={() => navigate(action.path)} className="group flex flex-col items-center gap-2 p-4 rounded-2xl border border-border/40 bg-card hover:border-primary/20 transition-all duration-300">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl mb-1 shadow-sm transition-transform duration-300 group-hover:scale-110" style={{ backgroundColor: action.bg, color: action.color }}><action.icon size={24} weight="fill" /></div>
-                    <span className="text-[13px] font-bold text-foreground">{action.label}</span>
+                  <motion.button
+                    key={action.label}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 + i * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                    whileHover={{ y: -4 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => navigate(action.path)}
+                    className="group relative flex flex-col items-center gap-2.5 p-5 rounded-3xl border border-border/40 bg-gradient-to-br from-card via-card to-card/70 backdrop-blur-xl shadow-[0_4px_20px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.18)] hover:border-primary/30 transition-all duration-300 overflow-hidden"
+                  >
+                    {/* ambient color halo */}
+                    <div
+                      className="pointer-events-none absolute -top-12 -right-10 h-28 w-28 rounded-full opacity-0 group-hover:opacity-100 blur-3xl transition-opacity duration-500"
+                      style={{ backgroundColor: action.color }}
+                    />
+                    <div className="relative">
+                      <div
+                        className="flex h-14 w-14 items-center justify-center rounded-2xl shadow-md transition-all duration-300 group-hover:scale-110 group-hover:-rotate-3 ring-1 ring-white/40"
+                        style={{
+                          background: `linear-gradient(135deg, ${action.bg}, ${action.bg}cc)`,
+                          color: action.color
+                        }}
+                      >
+                        <action.icon size={26} weight="fill" />
+                      </div>
+                      {/* glow under icon */}
+                      <div
+                        className="absolute inset-0 rounded-2xl blur-xl opacity-30 group-hover:opacity-60 transition-opacity -z-10"
+                        style={{ backgroundColor: action.color }}
+                      />
+                    </div>
+                    <span className="relative text-[13px] font-extrabold text-foreground tracking-tight">{action.label}</span>
                   </motion.button>
                 ))}
               </div>
             </section>
             {sections.kpis && (
               <section>
-                <h3 className="text-sm font-bold text-foreground mb-4 px-1">Resumo geral</h3>
+                <div className="flex items-center gap-2 mb-4 px-1">
+                  <div className="h-5 w-1 rounded-full bg-gradient-to-b from-emerald-500 to-emerald-500/40" />
+                  <h3 className="text-[11px] font-black uppercase tracking-[0.18em] text-foreground/70">Resumo geral</h3>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[
                     { label: "Consultas", value: stats?.total ?? 0, icon: CalendarCheck, color: "#3b82f6", bg: "bg-blue-500/8" },
@@ -229,10 +267,32 @@ const PatientDashboard = () => {
                     { label: "Documentos", value: stats?.documents ?? 0, icon: UploadSimple, color: "#f59e0b", bg: "bg-amber-500/8" },
                     { label: "Próx. retorno", value: returnAppts.length > 0 ? "Ativo" : "—", icon: Clock, color: "#8b5cf6", bg: "bg-purple-500/8" },
                   ].map((stat, i) => (
-                    <motion.div key={stat.label} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + i * 0.05 }} className="flex flex-col p-4 rounded-2xl border border-border/40 bg-card">
-                      <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg mb-3", stat.bg)} style={{ color: stat.color }}><stat.icon size={18} weight="fill" /></div>
-                      <p className="text-xl font-extrabold text-foreground leading-none">{stat.value}</p>
-                      <p className="text-[11px] font-medium text-muted-foreground mt-1">{stat.label}</p>
+                    <motion.div
+                      key={stat.label}
+                      initial={{ opacity: 0, y: 14 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.15 + i * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                      whileHover={{ y: -3 }}
+                      className="group relative flex flex-col p-5 rounded-3xl border border-border/40 bg-gradient-to-br from-card via-card to-card/60 backdrop-blur-xl shadow-[0_4px_18px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_28px_-12px_rgba(0,0,0,0.15)] transition-all duration-300 overflow-hidden"
+                    >
+                      <div
+                        className="pointer-events-none absolute -top-10 -right-10 h-24 w-24 rounded-full blur-3xl opacity-30 group-hover:opacity-60 transition-opacity"
+                        style={{ backgroundColor: stat.color }}
+                      />
+                      <div className="relative flex items-start justify-between mb-3">
+                        <div
+                          className={cn("flex h-10 w-10 items-center justify-center rounded-2xl shadow-sm ring-1 ring-white/40", stat.bg)}
+                          style={{ color: stat.color }}
+                        >
+                          <stat.icon size={20} weight="fill" />
+                        </div>
+                        <span
+                          className="h-1.5 w-1.5 rounded-full opacity-60"
+                          style={{ backgroundColor: stat.color }}
+                        />
+                      </div>
+                      <p className="relative text-2xl font-black text-foreground leading-none tracking-tight">{stat.value}</p>
+                      <p className="relative text-[10.5px] font-bold text-muted-foreground uppercase tracking-wider mt-1.5">{stat.label}</p>
                     </motion.div>
                   ))}
                 </div>
