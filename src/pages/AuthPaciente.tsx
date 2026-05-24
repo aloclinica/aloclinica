@@ -393,10 +393,22 @@ const AuthPaciente = () => {
         if (signUpData.session) {
           // Show celebration screen briefly, then redirect
           setSignupSuccess(true);
-          setTimeout(() => navigate("/dashboard?role=patient&onboarding=true"), 2400);
+          setTimeout(() => {
+            try {
+              navigate("/dashboard?role=patient&onboarding=true", { replace: true });
+            } catch {
+              window.location.href = "/dashboard?role=patient&onboarding=true";
+            }
+          }, 2400);
+          // Hard fallback: if navigation doesn't take effect (e.g. blocked by guard), force reload
+          setTimeout(() => {
+            if (window.location.pathname.includes("/auth")) {
+              window.location.href = "/dashboard?role=patient&onboarding=true";
+            }
+          }, 5000);
         } else {
           setSignupSuccess(true);
-          // Without immediate session, user must confirm email — keep success screen and offer login
+          // Sem sessão: confirmação de e-mail necessária. Não tente redirecionar para dashboard.
         }
       }
     } catch (err) {
