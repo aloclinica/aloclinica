@@ -243,13 +243,6 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
   return (
     <div className={`space-y-4 ${className}`}>
       <canvas ref={canvasRef} className="hidden" />
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleFileUpload}
-      />
 
       <AnimatePresence mode="wait">
         {step === "intro" && (
@@ -394,14 +387,9 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
             ) : (
               <div className="space-y-3">
                 {step === "document" && !documentImage && (
-                  <div className="flex flex-col gap-2">
-                    <Button onClick={() => startCamera("document")} className="w-full h-12 rounded-xl gap-2 bg-primary text-primary-foreground font-bold">
-                      <Camera className="w-5 h-5" /> Usar Câmera
-                    </Button>
-                    <Button variant="outline" onClick={() => { setCaptureTarget("document"); fileInputRef.current?.click(); }} className="w-full h-12 rounded-xl gap-2">
-                      <Upload className="w-5 h-5" /> Enviar Arquivo
-                    </Button>
-                  </div>
+                  <Button onClick={() => startCamera("document")} className="w-full h-12 rounded-xl gap-2 bg-primary text-primary-foreground font-bold">
+                    <Camera className="w-5 h-5" /> Abrir câmera
+                  </Button>
                 )}
                 {step === "document" && documentImage && (
                   <div className="rounded-2xl overflow-hidden border border-border/50">
@@ -411,10 +399,7 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
                 {step === "document_back" && !documentBackImage && (
                   <div className="flex flex-col gap-2">
                     <Button onClick={() => startCamera("document_back")} className="w-full h-12 rounded-xl gap-2 bg-primary text-primary-foreground font-bold">
-                      <Camera className="w-5 h-5" /> Usar Câmera
-                    </Button>
-                    <Button variant="outline" onClick={() => { setCaptureTarget("document_back"); fileInputRef.current?.click(); }} className="w-full h-12 rounded-xl gap-2">
-                      <Upload className="w-5 h-5" /> Enviar Arquivo
+                      <Camera className="w-5 h-5" /> Abrir câmera
                     </Button>
                     <Button variant="ghost" onClick={() => { setDocumentImage(null); setStep("document"); }} className="w-full rounded-xl text-xs text-muted-foreground gap-1">
                       <ArrowLeft className="w-3.5 h-3.5" /> Refazer frente
@@ -427,14 +412,9 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
                   </div>
                 )}
                 {step === "selfie" && !selfieImage && (
-                  <div className="flex flex-col gap-2">
-                    <Button onClick={() => startCamera("selfie")} className="w-full h-12 rounded-xl gap-2 bg-primary text-primary-foreground font-bold">
-                      <Camera className="w-5 h-5" /> Abrir Câmera para Selfie
-                    </Button>
-                    <Button variant="outline" onClick={() => { setCaptureTarget("selfie"); fileInputRef.current?.click(); }} className="w-full h-12 rounded-xl gap-2">
-                      <Upload className="w-5 h-5" /> Enviar Arquivo
-                    </Button>
-                  </div>
+                  <Button onClick={() => startCamera("selfie")} className="w-full h-12 rounded-xl gap-2 bg-primary text-primary-foreground font-bold">
+                    <Camera className="w-5 h-5" /> Abrir câmera frontal
+                  </Button>
                 )}
                 {step === "selfie" && selfieImage && (
                   <>
