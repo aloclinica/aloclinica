@@ -85,6 +85,7 @@ interface PublicDoctor {
   care_areas?: string[];
   specialty_names?: string[] | null;
   has_availability?: boolean | null;
+  council_type?: string | null;
 }
 
 type SortMode = "rating" | "price" | "available" | "nextSlot";
@@ -173,6 +174,7 @@ const Agendar = () => {
   const [onlyAvailable, setOnlyAvailable] = useState(true);
   const [priceMin, setPriceMin] = useState<number | "">("");
   const [priceMax, setPriceMax] = useState<number | "">("");
+  const [councilFilter, setCouncilFilter] = useState<string>("all");
   const [doctorSlots, setDoctorSlots] = useState<Record<string, {day_of_week: number; start_time: string}[]>>({});
 
   // Load doctors when a specialty is selected
@@ -187,7 +189,7 @@ const Agendar = () => {
       setLoading(true);
       const { data } = await db
         .from("doctor_profiles_public" as any)
-        .select("id, full_name, display_name, avatar_url, crm, crm_state, crm_verified, bio, short_description, consultation_price, consultation_duration_min, rating, total_reviews, experience_years, available_now, available_for_telemedicine, sub_specialties, education, specialty_names, has_availability")
+        .select("id, full_name, display_name, avatar_url, crm, crm_state, crm_verified, bio, short_description, consultation_price, consultation_duration_min, rating, total_reviews, experience_years, available_now, available_for_telemedicine, sub_specialties, education, specialty_names, has_availability, council_type")
         .eq("available_for_telemedicine", true);
 
       let doctorList = (data as unknown as PublicDoctor[]) ?? [];
@@ -252,6 +254,10 @@ const Agendar = () => {
     if (onlyAvailable) {
       list = list.filter((d) => d.has_availability === true);
     }
+    // Filtra por tipo de profissional (conselho)
+    if (councilFilter !== "all") {
+      list = list.filter((d) => (d.council_type ?? "CRM") === councilFilter);
+    }
     // Faixa de preço
     if (priceMin !== "") {
       list = list.filter((d) => (d.consultation_price ?? 89) >= Number(priceMin));
@@ -284,7 +290,7 @@ const Agendar = () => {
       list.sort((a, b) => (b.available_now ? 1 : 0) - (a.available_now ? 1 : 0));
     }
     return list;
-  }, [doctors, debouncedSearch, sort, selectedSpecialty, onlyAvailable, priceMin, priceMax, doctorNextSlots]);
+  }, [doctors, debouncedSearch, sort, selectedSpecialty, onlyAvailable, priceMin, priceMax, doctorNextSlots, councilFilter]);
 
   const handleSelectDoctor = (doctorId: string) => {
     // Permite navegação pública: visitante explora o perfil do médico
@@ -527,6 +533,42 @@ const Agendar = () => {
 
                   {/* Specialty quick-switch + availability filter */}
                   <div className="mb-6 space-y-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shrink-0">
+                        <Filter className="w-3 h-3" /> Tipo de profissional
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          { value: "all",     label: "Todos" },
+                          { value: "CRM",     label: "Médicos" },
+                          { value: "CRP",     label: "Psicólogos" },
+                          { value: "CRN",     label: "Nutricionistas" },
+                          { value: "CRFa",    label: "Fonoaudiólogos" },
+                          { value: "CREFITO", label: "Fisio / TO" },
+                          { value: "COREN",   label: "Enfermagem" },
+                          { value: "CRO",     label: "Odontologia" },
+                          { value: "CRF",     label: "Farmacêuticos" },
+                          { value: "CREF",    label: "Educação Física" },
+                        ].map((c) => {
+                          const active = councilFilter === c.value;
+                          return (
+                            <button
+                              key={c.value}
+                              onClick={() => setCouncilFilter(c.value)}
+                              className={cn(
+                                "text-[11px] font-medium px-2.5 py-1 rounded-full border transition-all",
+                                active
+                                  ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                                  : "bg-card border-border/60 text-muted-foreground hover:border-primary/40 hover:text-primary",
+                              )}
+                            >
+                              {c.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shrink-0">
                         <Filter className="w-3 h-3" /> Especialidade
