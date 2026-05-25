@@ -254,11 +254,11 @@ const DoctorDashboard = () => {
         {/* Action pills */}
         <div className="bg-card/50 backdrop-blur-sm rounded-3xl p-1.5 border border-border/10 shadow-sm">
           <ActionPills actions={[
-            { label: "Sala",     icon: "🎥", iconBg: "bg-emerald-50 dark:bg-emerald-950/30", path: "/dashboard/doctor/waiting-room", badge: waitingCount },
-            { label: "Receitas", icon: "📋", iconBg: "bg-blue-50 dark:bg-blue-950/30",       path: "/dashboard/prescriptions" },
-            { label: "Agenda",   icon: "📅", iconBg: "bg-violet-50 dark:bg-violet-950/30",   path: "/dashboard/doctor/calendar" },
-            { label: "Ganhos",   icon: "💰", iconBg: "bg-amber-50 dark:bg-amber-950/30",     path: "/dashboard/earnings" },
-            { label: "Analytics",icon: "📊", iconBg: "bg-blue-50 dark:bg-blue-950/30",       path: "/dashboard/doctor/analytics" },
+            { label: "Sala",     icon: "🎥", iconBg: "bg-[hsl(168,55%,35%,0.10)] dark:bg-[hsl(168,55%,35%,0.18)]", path: "/dashboard/doctor/waiting-room", badge: waitingCount },
+            { label: "Receitas", icon: "📋", iconBg: "bg-[hsl(215,75%,32%,0.08)] dark:bg-[hsl(215,75%,32%,0.18)]", path: "/dashboard/prescriptions" },
+            { label: "Agenda",   icon: "📅", iconBg: "bg-[hsl(225,55%,40%,0.08)] dark:bg-[hsl(225,55%,40%,0.18)]", path: "/dashboard/doctor/calendar" },
+            { label: "Ganhos",   icon: "💰", iconBg: "bg-[hsl(168,55%,35%,0.08)] dark:bg-[hsl(168,55%,35%,0.16)]", path: "/dashboard/earnings" },
+            { label: "Analytics",icon: "📊", iconBg: "bg-[hsl(195,70%,38%,0.10)] dark:bg-[hsl(195,70%,38%,0.18)]", path: "/dashboard/doctor/analytics" },
           ]} />
         </div>
 
@@ -294,10 +294,10 @@ const DoctorDashboard = () => {
 
             {/* Stats bento */}
             <StatBento loading={loading} stats={[
-              { label: "Consultas hoje",  value: stats.today,          icon: "🩺", iconBg: "bg-emerald-50 dark:bg-emerald-950/30", valueClass: "text-emerald-700 dark:text-emerald-400",  accentClass: "bg-emerald-500", trend: 8 },
-              { label: "Em espera",       value: waitingCount,          icon: "⏳", iconBg: "bg-amber-50 dark:bg-amber-950/30",    valueClass: "text-amber-600 dark:text-amber-400",     accentClass: "bg-amber-500" },
-              { label: "Total pacientes", value: stats.total_patients,  icon: "👥", iconBg: "bg-blue-50 dark:bg-blue-950/30",     valueClass: "text-blue-700 dark:text-blue-400",       accentClass: "bg-blue-500",   trend: 15 },
-              { label: "Receitas",        value: stats.prescriptions,   icon: "💊", iconBg: "bg-violet-50 dark:bg-violet-950/30", valueClass: "text-violet-600 dark:text-violet-400",   accentClass: "bg-violet-500" },
+              { label: "Consultas hoje",  value: stats.today,          icon: "🩺", iconBg: "bg-[hsl(168,55%,35%,0.10)] dark:bg-[hsl(168,55%,35%,0.20)]", valueClass: "text-[hsl(168,60%,28%)] dark:text-[hsl(168,55%,55%)]", accentClass: "bg-[hsl(168,55%,40%)]", trend: 8 },
+              { label: "Em espera",       value: waitingCount,          icon: "⏳", iconBg: "bg-amber-50 dark:bg-amber-950/30",                            valueClass: "text-amber-600 dark:text-amber-400",                     accentClass: "bg-amber-500" },
+              { label: "Total pacientes", value: stats.total_patients,  icon: "👥", iconBg: "bg-[hsl(215,75%,32%,0.08)] dark:bg-[hsl(215,75%,32%,0.20)]", valueClass: "text-[hsl(215,75%,28%)] dark:text-[hsl(215,75%,65%)]", accentClass: "bg-[hsl(215,75%,40%)]", trend: 15 },
+              { label: "Receitas",        value: stats.prescriptions,   icon: "💊", iconBg: "bg-[hsl(195,70%,38%,0.10)] dark:bg-[hsl(195,70%,38%,0.20)]", valueClass: "text-[hsl(195,70%,30%)] dark:text-[hsl(195,70%,60%)]", accentClass: "bg-[hsl(195,70%,42%)]" },
             ]} />
 
             {/* Live queue */}
@@ -366,9 +366,9 @@ const DoctorDashboard = () => {
                   </div>
                 )}
                 <DashboardShortcuts title="Ferramentas" shortcuts={[
-                  { label: "Meus Pacientes",  description: "Histórico e prontuários",  icon: <Users className="w-[17px] h-[17px]" />,       path: "/dashboard/patients",         iconBg: "bg-blue-50 dark:bg-blue-950/30",    iconColor: "text-blue-600 dark:text-blue-400" },
-                  { label: "Calendário",       description: "Agenda e disponibilidade", icon: <Calendar className="w-[17px] h-[17px]" />,    path: "/dashboard/doctor/calendar",  iconBg: "bg-violet-50 dark:bg-violet-950/30", iconColor: "text-violet-600 dark:text-violet-400" },
-                  { label: "Meus Ganhos",      description: "Faturamento e extrato",    icon: <DollarSign className="w-[17px] h-[17px]" />,  path: "/dashboard/earnings",         iconBg: "bg-emerald-50 dark:bg-emerald-950/30",iconColor: "text-emerald-600 dark:text-emerald-400" },
+                  { label: "Meus Pacientes",  description: "Histórico e prontuários",  icon: <Users className="w-[17px] h-[17px]" />,       path: "/dashboard/patients",         iconBg: "bg-[hsl(215,75%,32%,0.08)] dark:bg-[hsl(215,75%,32%,0.20)]",  iconColor: "text-[hsl(215,75%,32%)] dark:text-[hsl(215,75%,65%)]" },
+                  { label: "Calendário",       description: "Agenda e disponibilidade", icon: <Calendar className="w-[17px] h-[17px]" />,    path: "/dashboard/doctor/calendar",  iconBg: "bg-[hsl(225,55%,40%,0.08)] dark:bg-[hsl(225,55%,40%,0.20)]",  iconColor: "text-[hsl(225,55%,40%)] dark:text-[hsl(225,55%,68%)]" },
+                  { label: "Meus Ganhos",      description: "Faturamento e extrato",    icon: <DollarSign className="w-[17px] h-[17px]" />,  path: "/dashboard/earnings",         iconBg: "bg-[hsl(168,55%,35%,0.10)] dark:bg-[hsl(168,55%,35%,0.20)]",  iconColor: "text-[hsl(168,60%,30%)] dark:text-[hsl(168,55%,60%)]" },
                 ]} />
               </TabsContent>
 
