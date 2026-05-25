@@ -3,7 +3,7 @@ import { logError, warn } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
-import { Camera, RotateCcw, CheckCircle2, XCircle, Loader2, FileImage, User, ShieldCheck, Sparkles, Lock, IdCard, CreditCard, BookOpen, ArrowLeft } from "lucide-react";
+import { Camera, RotateCcw, CheckCircle2, XCircle, Loader2, FileImage, User, ShieldCheck, Sparkles, Lock, IdCard, CreditCard, BookOpen, ArrowLeft, Sun, Eye, Focus, Move } from "lucide-react";
 import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -38,12 +38,23 @@ interface BiometricKYCProps {
  * Calls the didit-kyc edge function which uses DeepSeek Vision API
  * for real biometric face matching and document data extraction.
  */
+interface VerifyResponse {
+  match: boolean;
+  score: number;
+  nome: string | null;
+  cpf: string | null;
+  status: string;
+  error?: string | null;
+  mismatch_reasons?: string[];
+  data_mismatch?: boolean;
+}
+
 async function verifyViaDeepSeek(
   documentDataUrl: string,
   selfieDataUrl: string,
   documentBackDataUrl: string | null,
   documentType: DocType,
-): Promise<{ match: boolean; score: number; nome: string | null; cpf: string | null; status: string }> {
+): Promise<VerifyResponse> {
   const { data: sessionData } = await db.auth.getSession();
   const token = sessionData?.session?.access_token;
 
@@ -69,7 +80,33 @@ async function verifyViaDeepSeek(
     nome: data.nome ?? null,
     cpf: data.cpf ?? null,
     status: data.status || (data.match ? "approved" : "rejected"),
+    error: data.error ?? null,
+    mismatch_reasons: Array.isArray(data.mismatch_reasons) ? data.mismatch_reasons : [],
+    data_mismatch: data.data_mismatch === true,
   };
+}
+
+// =========== Quality detection ===========
+type QualityStatus = "good" | "dark" | "bright" | "blurry" | "still" | "init";
+interface QualitySample {
+  brightness: number; // 0..255
+  sharpness: number;  // arbitrary
+  motion: number;     // 0..255 avg diff
+  status: QualityStatus;
+  message: string;
+}
+
+function gradeQuality(
+  brightness: number,
+  sharpness: number,
+  motion: number,
+  requireMotion: boolean,
+): { status: QualityStatus; message: string } {
+  if (brightness < 55) return { status: "dark", message: "Procure um local com mais luz" };
+  if (brightness > 220) return { status: "bright", message: "Reduza o brilho/contraluz" };
+  if (sharpness < 8) return { status: "blurry", message: "Mantenha a câmera firme para focar" };
+  if (requireMotion && motion < 4) return { status: "still", message: "Mova levemente a cabeça (prova de vida)" };
+  return { status: "good", message: "Boa! Mantenha assim..." };
 }
 
 const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "paciente" }: BiometricKYCProps) => {
@@ -80,12 +117,19 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
   const [documentBackImage, setDocumentBackImage] = useState<string | null>(null);
   const [selfieImage, setSelfieImage] = useState<string | null>(null);
   const [result, setResult] = useState<KYCResult | null>(null);
+  const [rejection, setRejection] = useState<{ reasons: string[]; error?: string | null } | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [captureTarget, setCaptureTarget] = useState<"document" | "document_back" | "selfie">("document");
   const [lgpdConsent, setLgpdConsent] = useState(false);
+  const [quality, setQuality] = useState<QualitySample>({ brightness: 0, sharpness: 0, motion: 0, status: "init", message: "Iniciando câmera..." });
+  const [autoCountdown, setAutoCountdown] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const qualityRafRef = useRef<number | null>(null);
+  const goodSinceRef = useRef<number | null>(null);
+  const prevFrameRef = useRef<Uint8ClampedArray | null>(null);
+  const capturedRef = useRef(false);
 
   const startCamera = useCallback(async (target: "document" | "document_back" | "selfie") => {
     setCaptureTarget(target);
@@ -110,10 +154,18 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     setCameraActive(false);
+    if (qualityRafRef.current) cancelAnimationFrame(qualityRafRef.current);
+    qualityRafRef.current = null;
+    goodSinceRef.current = null;
+    prevFrameRef.current = null;
+    setAutoCountdown(null);
+    setQuality({ brightness: 0, sharpness: 0, motion: 0, status: "init", message: "Câmera parada" });
   }, []);
 
   const capturePhoto = useCallback(() => {
     if (!videoRef.current || !canvasRef.current) return;
+    if (capturedRef.current) return;
+    capturedRef.current = true;
     const video = videoRef.current;
     const canvas = canvasRef.current;
     canvas.width = video.videoWidth;
@@ -123,6 +175,7 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
     const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
     handleCapturedImage(dataUrl);
     stopCamera();
+    setTimeout(() => { capturedRef.current = false; }, 400);
   }, [captureTarget, stopCamera]);
 
   const handleCapturedImage = (dataUrl: string) => {
@@ -151,9 +204,97 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
+  // ======= Real-time quality + auto-capture loop =======
+  useEffect(() => {
+    if (!cameraActive) return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    const off = document.createElement("canvas");
+    const W = 96, H = 72;
+    off.width = W; off.height = H;
+    const ctx = off.getContext("2d", { willReadFrequently: true })!;
+    let lastSample = performance.now();
+
+    const requireMotion = captureTarget === "selfie";
+
+    const loop = (now: number) => {
+      qualityRafRef.current = requestAnimationFrame(loop);
+      if (now - lastSample < 220) return;
+      lastSample = now;
+      if (video.readyState < 2 || video.videoWidth === 0) return;
+
+      try {
+        ctx.drawImage(video, 0, 0, W, H);
+        const data = ctx.getImageData(0, 0, W, H).data;
+
+        // brightness
+        let sum = 0;
+        const grayBuf = new Float32Array(W * H);
+        for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+          const g = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+          grayBuf[p] = g;
+          sum += g;
+        }
+        const brightness = sum / (W * H);
+
+        // sharpness (Laplacian variance approx)
+        let lapSum = 0, lapSqSum = 0, n = 0;
+        for (let y = 1; y < H - 1; y++) {
+          for (let x = 1; x < W - 1; x++) {
+            const i = y * W + x;
+            const lap =
+              -grayBuf[i - W] - grayBuf[i - 1] + 4 * grayBuf[i] - grayBuf[i + 1] - grayBuf[i + W];
+            lapSum += lap;
+            lapSqSum += lap * lap;
+            n++;
+          }
+        }
+        const mean = lapSum / n;
+        const sharpness = Math.sqrt(Math.max(0, lapSqSum / n - mean * mean));
+
+        // motion (frame diff)
+        let motion = 0;
+        if (prevFrameRef.current && prevFrameRef.current.length === data.length) {
+          let diff = 0;
+          for (let i = 0; i < data.length; i += 4) {
+            diff += Math.abs(data[i] - prevFrameRef.current[i]);
+          }
+          motion = diff / (W * H);
+        }
+        prevFrameRef.current = new Uint8ClampedArray(data);
+
+        const graded = gradeQuality(brightness, sharpness, motion, requireMotion);
+        setQuality({ brightness, sharpness, motion, ...graded });
+
+        // auto-capture when sustained 'good'
+        if (graded.status === "good") {
+          if (goodSinceRef.current == null) goodSinceRef.current = now;
+          const held = (now - goodSinceRef.current) / 1000;
+          const remaining = Math.max(0, 1.4 - held);
+          setAutoCountdown(remaining);
+          if (remaining === 0 && !capturedRef.current) {
+            capturePhoto();
+          }
+        } else {
+          goodSinceRef.current = null;
+          setAutoCountdown(null);
+        }
+      } catch (e) {
+        // ignore single-frame errors
+      }
+    };
+    qualityRafRef.current = requestAnimationFrame(loop);
+    return () => {
+      if (qualityRafRef.current) cancelAnimationFrame(qualityRafRef.current);
+      qualityRafRef.current = null;
+    };
+  }, [cameraActive, captureTarget, capturePhoto]);
+
   const analyzeImages = async () => {
     if (!documentImage || !selfieImage || !user || !docType) return;
     setStep("analyzing");
+    setRejection(null);
 
     try {
       const verification = await verifyViaDeepSeek(documentImage, selfieImage, documentBackImage, docType);
@@ -192,6 +333,12 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
         cpf: verification.cpf,
       };
       setResult(kycResult);
+      if (!isApproved) {
+        setRejection({
+          reasons: verification.mismatch_reasons || [],
+          error: verification.error || null,
+        });
+      }
       setStep("result");
       onComplete?.(kycResult);
 
@@ -227,6 +374,7 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
     setDocumentBackImage(null);
     setSelfieImage(null);
     setResult(null);
+    setRejection(null);
     setLgpdConsent(false);
     stopCamera();
   };
