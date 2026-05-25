@@ -40,19 +40,21 @@ export function HeroBanner({
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-b-[36px] md:rounded-[40px] bg-gradient-to-br",
+        "relative overflow-hidden rounded-b-[36px] md:rounded-[40px] bg-gradient-to-br ring-1 ring-white/10",
         gradient, className
       )}
-      style={{ boxShadow: "0 24px 60px -16px rgba(15, 42, 90, 0.35), inset 0 1px 0 rgba(255,255,255,.18)" }}
+      style={{ boxShadow: "0 30px 80px -24px rgba(15, 42, 90, 0.45), inset 0 1px 0 rgba(255,255,255,.22)" }}
     >
       {/* Mesh light orbs */}
-      <div className="pointer-events-none absolute -right-24 -top-24 h-[420px] w-[420px] rounded-full bg-[hsl(168,80%,60%)]/25 blur-[120px]" />
-      <div className="pointer-events-none absolute -left-16 -bottom-24 h-[320px] w-[320px] rounded-full bg-white/10 blur-[100px]" />
-      <div className="pointer-events-none absolute right-1/3 top-1/4 h-40 w-40 rounded-full bg-white/[0.06] blur-[40px]" />
+      <div className="pointer-events-none absolute -right-24 -top-24 h-[460px] w-[460px] rounded-full bg-[hsl(168,70%,55%)]/30 blur-[130px]" />
+      <div className="pointer-events-none absolute -left-20 -bottom-28 h-[360px] w-[360px] rounded-full bg-white/12 blur-[110px]" />
+      <div className="pointer-events-none absolute right-1/3 top-1/4 h-44 w-44 rounded-full bg-white/[0.07] blur-[44px]" />
       {/* Top shine */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+      {/* Soft bottom fade for legibility */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/15 to-transparent" />
       {/* Subtle dot grid */}
-      <div className="pointer-events-none absolute inset-0 opacity-[0.05]"
+      <div className="pointer-events-none absolute inset-0 opacity-[0.06]"
         style={{
           backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
           backgroundSize: "28px 28px"
@@ -87,17 +89,17 @@ export function HeroBanner({
                 style={{ maxWidth: "min(280px, 72vw)" }}
               >
                 {bubble.greeting && (
-                  <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[hsl(215,75%,32%)] leading-none">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[hsl(215,75%,32%)] leading-none">
                     {bubble.greeting}
                   </p>
                 )}
                 {bubble.name && (
-                  <p className="mt-1.5 text-[17px] font-black tracking-tight text-[hsl(215,80%,18%)] leading-tight md:text-[20px]">
+                  <p className="mt-1.5 text-[18px] font-black tracking-[-0.01em] text-[hsl(215,80%,16%)] leading-[1.15] md:text-[21px]">
                     {bubble.name}
                   </p>
                 )}
                 {bubble.sub && (
-                  <p className="mt-2 flex items-center gap-1.5 text-[11.5px] text-slate-500 font-semibold">
+                  <p className="mt-2 flex items-center gap-1.5 text-[11.5px] text-slate-600/90 font-semibold">
                     {liveDot && <LiveDotEl />}
                     {bubble.sub}
                   </p>
@@ -142,10 +144,10 @@ export function HeroBanner({
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-3 -mx-1 flex overflow-x-auto rounded-3xl border border-white/25 bg-white/15 backdrop-blur-2xl scrollbar-none md:grid md:overflow-visible"
+            className="mt-3 -mx-1 flex overflow-x-auto rounded-3xl border border-white/30 bg-white/[0.18] backdrop-blur-2xl scrollbar-none md:grid md:overflow-visible"
             style={{
               gridTemplateColumns: kpis.length > 3 ? `repeat(${kpis.length}, 1fr)` : undefined,
-              boxShadow: "0 12px 32px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.35)"
+              boxShadow: "0 16px 36px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.42), inset 0 -1px 0 rgba(0,0,0,.06)"
             }}
           >
             {loading
@@ -163,13 +165,13 @@ export function HeroBanner({
                     transition={{ delay: 0.3 + i * 0.08, duration: 0.4 }}
                     className={cn(
                       "flex flex-1 flex-col items-center px-4 py-4 flex-shrink-0 min-w-[78px] md:min-w-0 transition-colors hover:bg-white/10",
-                      i < kpis.length - 1 && "border-r border-white/15"
+                      i < kpis.length - 1 && "border-r border-white/20"
                     )}
                   >
-                    <p className="text-[22px] font-black leading-none tabular-nums text-white tracking-tight md:text-[26px] drop-shadow-sm">
+                    <p className="text-[22px] font-black leading-none tabular-nums text-white tracking-[-0.02em] md:text-[26px] drop-shadow-[0_2px_8px_rgba(0,0,0,0.25)]">
                       {k.value}
                     </p>
-                    <p className="mt-2 text-[9px] font-extrabold uppercase tracking-[0.18em] text-white/70 md:text-[9.5px]">
+                    <p className="mt-2 text-[9px] font-extrabold uppercase tracking-[0.22em] text-white/75 md:text-[9.5px]">
                       {k.label}
                     </p>
                   </motion.div>
