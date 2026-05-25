@@ -21,6 +21,8 @@ import {
 } from "@/lib/form-validators";
 import { toastError } from "@/lib/errorMessages";
 import mascotWelcome from "@/assets/mascot-welcome.png";
+import { Checkbox } from "@/components/ui/checkbox";
+import { logConsents } from "@/lib/consent";
 
 interface FormData {
   full_name: string;
@@ -68,6 +70,10 @@ export default function SignupPatient() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<FormData>(initial);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptLgpd, setAcceptLgpd] = useState(false);
+  const [acceptTcle, setAcceptTcle] = useState(false);
+  const allConsents = acceptTerms && acceptLgpd && acceptTcle;
 
   const set = <K extends keyof FormData>(k: K, v: FormData[K]) => {
     setData((p) => ({ ...p, [k]: v }));
@@ -85,6 +91,7 @@ export default function SignupPatient() {
     const pv = validarSenha(data.password);
     if (!pv.isValid) e.password = pv.feedback.join(", ");
     if (data.password !== data.password_confirm) e.password_confirm = "Senhas não conferem";
+    if (!allConsents) e.consents = "Você precisa aceitar os termos, a política LGPD e o TCLE para continuar";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -119,6 +126,14 @@ export default function SignupPatient() {
       if (!auth.session) {
         await db.auth.signInWithPassword({ email: data.email, password: data.password });
       }
+      // LGPD audit trail (best-effort, never blocks the flow).
+      await logConsents([
+        { type: "terms_of_use", userId: auth.user.id, documentUrl: "/terms" },
+        { type: "privacy_policy", userId: auth.user.id, documentUrl: "/privacy" },
+        { type: "lgpd_data_processing", userId: auth.user.id, documentUrl: "/lgpd" },
+        { type: "tcle_telemedicine", userId: auth.user.id, documentUrl: "/terms#5",
+          metadata: { resolution: "CFM 2.314/2022", scope: "signup_once" } },
+      ]);
       toast.success("Cadastro realizado com sucesso!");
       navigate("/dashboard");
     } catch (err) {
@@ -216,8 +231,39 @@ export default function SignupPatient() {
           strength={errors.password_confirm && <p className="text-[12px] text-destructive mt-1.5">{errors.password_confirm}</p>}
         />
 
+        <div className="space-y-2.5 rounded-xl border border-border bg-muted/30 p-3.5">
+          <label className="flex items-start gap-2.5 text-[12px] text-muted-foreground cursor-pointer">
+            <Checkbox checked={acceptTerms} onCheckedChange={(v) => setAcceptTerms(v === true)} className="mt-0.5" />
+            <span>
+              Li e aceito os{" "}
+              <Link to="/terms" target="_blank" className="text-primary underline">Termos de Uso</Link>{" "}
+              e a <Link to="/privacy" target="_blank" className="text-primary underline">Política de Privacidade</Link>.
+            </span>
+          </label>
+          <label className="flex items-start gap-2.5 text-[12px] text-muted-foreground cursor-pointer">
+            <Checkbox checked={acceptLgpd} onCheckedChange={(v) => setAcceptLgpd(v === true)} className="mt-0.5" />
+            <span>
+              Autorizo o tratamento dos meus dados pessoais e de saúde conforme a{" "}
+              <Link to="/lgpd" target="_blank" className="text-primary underline">Lei nº 13.709/2018 (LGPD)</Link>,
+              para fins de cadastro, agendamento e prontuário eletrônico.
+            </span>
+          </label>
+          <label className="flex items-start gap-2.5 text-[12px] text-muted-foreground cursor-pointer">
+            <Checkbox checked={acceptTcle} onCheckedChange={(v) => setAcceptTcle(v === true)} className="mt-0.5" />
+            <span>
+              Declaro estar ciente e concordar com o{" "}
+              <strong className="text-foreground">Termo de Consentimento Livre e Esclarecido (TCLE)</strong>{" "}
+              para atendimento por telemedicina, conforme a Resolução CFM nº 2.314/2022.
+            </span>
+          </label>
+          {errors.consents && (
+            <p className="text-[11px] text-destructive pt-1">{errors.consents}</p>
+          )}
+        </div>
+
         <AuthSubmitButton
           loading={loading}
+          disabled={!allConsents}
           loadingLabel="Criando conta..."
           icon={<ArrowRight className="w-4 h-4" />}
           variantClassName="bg-gradient-to-r from-primary via-primary/90 to-secondary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:brightness-110"
