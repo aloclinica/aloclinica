@@ -465,39 +465,103 @@ export default function SignupDoctor() {
                       <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Dados profissionais</h3>
                     </header>
 
-                    <CRMInput
-                      value={formData.crm}
-                      onCRMChange={(crm) => updateField("crm", crm)}
-                      state={formData.crm_state}
-                      onStateChange={(state) => updateField("crm_state", state)}
-                      required error={errors.crm || errors.crm_state}
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="council_type">Tipo de profissional <span className="text-destructive">*</span></Label>
+                      <select
+                        id="council_type" name="council_type"
+                        value={formData.council_type}
+                        onChange={(e) => {
+                          updateField("council_type", e.target.value);
+                          setFormData((p) => ({ ...p, specialty: "" }));
+                          setSpecialtyOther(false);
+                        }}
+                        className={`w-full h-10 px-3 rounded-md bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
+                          errors.council_type ? "border-destructive" : "border-input"
+                        }`}
+                      >
+                        {COUNCILS.map((c) => (
+                          <option key={c.value} value={c.value}>{c.label}</option>
+                        ))}
+                      </select>
+                      <p className="text-[11px] text-muted-foreground">
+                        {COUNCILS.find((c) => c.value === formData.council_type)?.description}
+                      </p>
+                    </div>
+
+                    {formData.council_type === "CRM" ? (
+                      <CRMInput
+                        value={formData.crm}
+                        onCRMChange={(crm) => updateField("crm", crm)}
+                        state={formData.crm_state}
+                        onStateChange={(state) => updateField("crm_state", state)}
+                        required error={errors.crm || errors.crm_state}
+                      />
+                    ) : (
+                      <div className="grid sm:grid-cols-[1fr_120px] gap-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="council_number">
+                            Número do {formData.council_type} <span className="text-destructive">*</span>
+                          </Label>
+                          <Input
+                            id="council_number" name="crm"
+                            placeholder="Apenas números"
+                            inputMode="numeric"
+                            value={formData.crm}
+                            onChange={(e) => updateField("crm", e.target.value.replace(/\D/g, ""))}
+                            className={errors.crm ? "border-destructive" : ""}
+                          />
+                          {errors.crm && <p className="text-xs text-destructive">{errors.crm}</p>}
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="crm_state">UF <span className="text-destructive">*</span></Label>
+                          <select
+                            id="crm_state" name="crm_state"
+                            value={formData.crm_state} onChange={handleInput}
+                            className={`w-full h-10 px-3 rounded-md bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
+                              errors.crm_state ? "border-destructive" : "border-input"
+                            }`}
+                          >
+                            <option value="">UF</option>
+                            {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map((uf) => (
+                              <option key={uf} value={uf}>{uf}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="flex items-center justify-between flex-wrap gap-3 -mt-1">
-                      <Button
-                        type="button" variant="outline" size="sm"
-                        onClick={verifyCrm}
-                        disabled={crmStatus === "checking" || !formData.crm || !formData.crm_state}
-                        className="gap-2"
-                      >
-                        {crmStatus === "checking"
-                          ? <CircleNotch className="w-4 h-4 animate-spin" />
-                          : <ShieldCheck className="w-4 h-4" />}
-                        Verificar CRM no portal
-                      </Button>
+                      {formData.council_type === "CRM" ? (
+                        <Button
+                          type="button" variant="outline" size="sm"
+                          onClick={verifyCrm}
+                          disabled={crmStatus === "checking" || !formData.crm || !formData.crm_state}
+                          className="gap-2"
+                        >
+                          {crmStatus === "checking"
+                            ? <CircleNotch className="w-4 h-4 animate-spin" />
+                            : <ShieldCheck className="w-4 h-4" />}
+                          Verificar CRM no portal
+                        </Button>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                          <ShieldCheck className="w-4 h-4" />
+                          Validação manual pela equipe AloClínica em até 24h
+                        </span>
+                      )}
 
-                      {crmStatus === "ok" && (
+                      {formData.council_type === "CRM" && crmStatus === "ok" && (
                         <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
                           <CheckCircle weight="fill" className="w-4 h-4" />
                           {crmInfo?.nome ? `Verificado — ${crmInfo.nome}` : "CRM regular"}
                         </span>
                       )}
-                      {crmStatus === "warn" && (
+                      {formData.council_type === "CRM" && crmStatus === "warn" && (
                         <span className="text-xs font-semibold text-amber-600">
                           Situação: {crmInfo?.situacao ?? "irregular"}
                         </span>
                       )}
-                      {crmStatus === "fail" && (
+                      {formData.council_type === "CRM" && crmStatus === "fail" && (
                         <span className="text-xs font-semibold text-muted-foreground">
                           Verificação manual será feita pela equipe
                         </span>
@@ -506,37 +570,44 @@ export default function SignupDoctor() {
 
                     <div className="space-y-2">
                       <Label htmlFor="specialty">Especialidade <span className="text-destructive">*</span></Label>
-                      <select
-                        id="specialty" name="specialty"
-                        value={
-                          specialtyOther
-                            ? "outras"
-                            : VALID_SPECIALTIES.includes(formData.specialty.toLowerCase())
-                            ? formData.specialty
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          if (v === "outras") {
-                            setSpecialtyOther(true);
-                            setFormData((p) => ({ ...p, specialty: "" }));
-                          } else {
-                            setSpecialtyOther(false);
-                            setFormData((p) => ({ ...p, specialty: v }));
-                          }
-                        }}
-                        className={`w-full h-10 px-3 rounded-md bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
-                          errors.specialty ? "border-destructive" : "border-input"
-                        }`}
-                      >
-                        <option value="">Selecione uma especialidade</option>
-                        {VALID_SPECIALTIES.map((s) => (
-                          <option key={s} value={s}>
-                            {s.charAt(0).toUpperCase() + s.slice(1).replace("-", " ")}
-                          </option>
-                        ))}
-                        <option value="outras">Outras (digitar)</option>
-                      </select>
+                      {(() => {
+                        const list = formData.council_type === "CRM"
+                          ? VALID_SPECIALTIES
+                          : (COUNCILS.find((c) => c.value === formData.council_type)?.specialties ?? []);
+                        return (
+                          <select
+                            id="specialty" name="specialty"
+                            value={
+                              specialtyOther
+                                ? "outras"
+                                : list.includes(formData.specialty.toLowerCase())
+                                ? formData.specialty
+                                : ""
+                            }
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              if (v === "outras") {
+                                setSpecialtyOther(true);
+                                setFormData((p) => ({ ...p, specialty: "" }));
+                              } else {
+                                setSpecialtyOther(false);
+                                setFormData((p) => ({ ...p, specialty: v }));
+                              }
+                            }}
+                            className={`w-full h-10 px-3 rounded-md bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
+                              errors.specialty ? "border-destructive" : "border-input"
+                            }`}
+                          >
+                            <option value="">Selecione uma especialidade</option>
+                            {list.map((s) => (
+                              <option key={s} value={s}>
+                                {s.charAt(0).toUpperCase() + s.slice(1).replaceAll("-", " ")}
+                              </option>
+                            ))}
+                            <option value="outras">Outras (digitar)</option>
+                          </select>
+                        );
+                      })()}
                       {specialtyOther && (
                         <Input
                           name="specialty"
