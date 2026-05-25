@@ -1221,6 +1221,9 @@ export type Database = {
           auto_paused_at: string | null
           bio: string | null
           consultation_duration: number | null
+          council_number: string | null
+          council_state: string | null
+          council_type: Database["public"]["Enums"]["council_type"] | null
           created_at: string
           crm: string | null
           crm_state: string | null
@@ -1257,6 +1260,9 @@ export type Database = {
           auto_paused_at?: string | null
           bio?: string | null
           consultation_duration?: number | null
+          council_number?: string | null
+          council_state?: string | null
+          council_type?: Database["public"]["Enums"]["council_type"] | null
           created_at?: string
           crm?: string | null
           crm_state?: string | null
@@ -1293,6 +1299,9 @@ export type Database = {
           auto_paused_at?: string | null
           bio?: string | null
           consultation_duration?: number | null
+          council_number?: string | null
+          council_state?: string | null
+          council_type?: Database["public"]["Enums"]["council_type"] | null
           created_at?: string
           crm?: string | null
           crm_state?: string | null
@@ -5538,6 +5547,20 @@ export type Database = {
         | "confirmed"
       appointment_type: "first_visit" | "return" | "urgency"
       approval_status: "pending" | "approved" | "rejected"
+      council_type:
+        | "CRM"
+        | "CRP"
+        | "CRN"
+        | "CRFa"
+        | "CREFITO"
+        | "COREN"
+        | "CRO"
+        | "CRBM"
+        | "CRF"
+        | "CREF"
+        | "CRESS"
+        | "CRTR"
+        | "OUTRO"
       refund_status: "pending" | "approved" | "refunded" | "rejected"
       refund_tier: "full" | "partial" | "none"
       ticket_priority: "low" | "medium" | "high" | "critical"
@@ -5696,6 +5719,21 @@ export const Constants = {
       ],
       appointment_type: ["first_visit", "return", "urgency"],
       approval_status: ["pending", "approved", "rejected"],
+      council_type: [
+        "CRM",
+        "CRP",
+        "CRN",
+        "CRFa",
+        "CREFITO",
+        "COREN",
+        "CRO",
+        "CRBM",
+        "CRF",
+        "CREF",
+        "CRESS",
+        "CRTR",
+        "OUTRO",
+      ],
       refund_status: ["pending", "approved", "refunded", "rejected"],
       refund_tier: ["full", "partial", "none"],
       ticket_priority: ["low", "medium", "high", "critical"],
