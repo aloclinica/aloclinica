@@ -8,12 +8,13 @@
  * (usado por KycRequiredGate em BookAppointment, VideoRoom etc).
  */
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import BiometricKYC from "@/components/kyc/BiometricKYC";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle2, ShieldCheck, Lock, Sparkles, Zap, Eye, FileCheck2, ArrowRight, Home } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2, CheckCircle2, ShieldCheck, Lock, Sparkles, Zap, Eye, FileCheck2, ArrowRight, Home, ScrollText, UserCheck, Fingerprint } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import pingoSeguranca from "@/assets/pingo-seguranca.png";
 import { db } from "@/integrations/supabase/untyped";
