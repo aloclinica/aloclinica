@@ -216,40 +216,25 @@ const PatientDashboard = () => {
                 </div>
                 <span className="text-[10px] font-semibold text-muted-foreground">Toque para abrir</span>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                 {getQuickActions(serviceType as any).map((action, i) => (
                   <motion.button
                     key={action.label}
-                    initial={{ opacity: 0, y: 16 }}
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 + i * 0.05, ease: [0.22, 1, 0.36, 1] }}
-                    whileHover={{ y: -4 }}
+                    transition={{ delay: 0.08 + i * 0.04, ease: [0.22, 1, 0.36, 1] }}
+                    whileHover={{ y: -3 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={() => navigate(action.path)}
-                    className="group relative flex flex-col items-center gap-2.5 p-5 rounded-3xl border border-border/40 bg-gradient-to-br from-card via-card to-card/70 backdrop-blur-xl shadow-[0_4px_20px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.18)] hover:border-primary/30 transition-all duration-300 overflow-hidden"
+                    className="group flex flex-col items-center justify-center gap-3 p-4 rounded-3xl border border-border/50 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-md hover:border-primary/30 transition-all duration-300"
                   >
-                    {/* ambient color halo */}
                     <div
-                      className="pointer-events-none absolute -top-12 -right-10 h-28 w-28 rounded-full opacity-0 group-hover:opacity-100 blur-3xl transition-opacity duration-500"
-                      style={{ backgroundColor: action.color }}
-                    />
-                    <div className="relative">
-                      <div
-                        className="flex h-14 w-14 items-center justify-center rounded-2xl shadow-md transition-all duration-300 group-hover:scale-110 group-hover:-rotate-3 ring-1 ring-white/40"
-                        style={{
-                          background: `linear-gradient(135deg, ${action.bg}, ${action.bg}cc)`,
-                          color: action.color
-                        }}
-                      >
-                        <action.icon size={26} weight="fill" />
-                      </div>
-                      {/* glow under icon */}
-                      <div
-                        className="absolute inset-0 rounded-2xl blur-xl opacity-30 group-hover:opacity-60 transition-opacity -z-10"
-                        style={{ backgroundColor: action.color }}
-                      />
+                      className="flex h-12 w-12 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110"
+                      style={{ backgroundColor: action.bg, color: action.color }}
+                    >
+                      <action.icon size={24} weight="fill" />
                     </div>
-                    <span className="relative text-[13px] font-extrabold text-foreground tracking-tight">{action.label}</span>
+                    <span className="text-[12px] font-bold text-foreground tracking-tight">{action.label}</span>
                   </motion.button>
                 ))}
               </div>
