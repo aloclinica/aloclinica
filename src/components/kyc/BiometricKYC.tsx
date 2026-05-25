@@ -369,11 +369,31 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
               <div className="space-y-3">
                 <div className="relative rounded-2xl overflow-hidden bg-black aspect-video">
                   <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
-                  {step === "selfie" && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-48 h-48 rounded-full border-2 border-white/40 border-dashed" />
+                  {/* Overlay de enquadramento */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    {step === "selfie" ? (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-44 h-56 rounded-[50%] border-2 border-primary/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.55)]" />
+                      </div>
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center px-6">
+                        <div className="w-full max-w-md aspect-[1.586/1] rounded-xl border-2 border-primary/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.55)] relative">
+                          {/* cantos */}
+                          <span className="absolute -top-1 -left-1 w-5 h-5 border-t-2 border-l-2 border-white rounded-tl-md" />
+                          <span className="absolute -top-1 -right-1 w-5 h-5 border-t-2 border-r-2 border-white rounded-tr-md" />
+                          <span className="absolute -bottom-1 -left-1 w-5 h-5 border-b-2 border-l-2 border-white rounded-bl-md" />
+                          <span className="absolute -bottom-1 -right-1 w-5 h-5 border-b-2 border-r-2 border-white rounded-br-md" />
+                        </div>
+                      </div>
+                    )}
+                    <div className="absolute bottom-2 left-0 right-0 text-center">
+                      <span className="inline-block px-3 py-1 rounded-full bg-black/60 text-white text-[11px] font-medium">
+                        {step === "selfie"
+                          ? "Centralize seu rosto no oval"
+                          : "Enquadre o documento dentro da moldura"}
+                      </span>
                     </div>
-                  )}
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => { stopCamera(); setStep("intro"); }} className="flex-1 rounded-xl">
