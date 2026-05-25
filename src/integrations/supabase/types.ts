@@ -2080,26 +2080,38 @@ export type Database = {
       kyc_verificacoes: {
         Row: {
           created_at: string
+          document_type: string | null
+          error_message: string | null
           id: string
+          mismatch_reasons: Json | null
           similarity: number | null
           status: string
           tipo: string
+          updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          document_type?: string | null
+          error_message?: string | null
           id?: string
+          mismatch_reasons?: Json | null
           similarity?: number | null
           status?: string
           tipo?: string
+          updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          document_type?: string | null
+          error_message?: string | null
           id?: string
+          mismatch_reasons?: Json | null
           similarity?: number | null
           status?: string
           tipo?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
