@@ -129,7 +129,7 @@ export default function SignupDoctor() {
   const [formData, setFormData] = useState<FormData>({
     email: "",
     full_name: "", phone: "", cpf: "",
-    crm: "", crm_state: "", specialty: "",
+    council_type: "CRM", crm: "", crm_state: "", specialty: "",
     password: "", password_confirm: "",
   });
 
