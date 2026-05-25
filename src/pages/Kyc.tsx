@@ -25,6 +25,12 @@ export default function Kyc() {
   const [params] = useSearchParams();
   const returnTo = params.get("return") || "/dashboard";
   const [done, setDone] = useState(false);
+  const [consentGiven, setConsentGiven] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [biometricAccepted, setBiometricAccepted] = useState(false);
+
+  const allConsents = termsAccepted && privacyAccepted && biometricAccepted;
 
   // Decide tipo (paciente vs medico) com base nos roles
   const isDoctor = roles.includes("doctor") || roles.includes("ophthalmologist");
