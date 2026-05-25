@@ -44,11 +44,11 @@ const HEALTH_TIPS = [
 ];
 
 const getQuickActions = (serviceType: ServiceType) => [
-  { label: "Agendar", icon: CalendarCheck, path: "/dashboard/schedule?role=patient", color: "#3b82f6", bg: "#f0f7ff" },
-  { label: "Urgência", icon: Lightning, path: "/dashboard/urgent-care?role=patient", color: "#ef4444", bg: "#fef2f2" },
-  { label: "Pingo IA", icon: Robot, path: "/dashboard/ai-assistant?role=patient&tab=triagem", color: "#0ea5e9", bg: "#f0f9ff" },
-  { label: "Chat", icon: ChatCircleDots, path: "/dashboard/chat?role=patient", color: "#10b981", bg: "#ecfdf5" },
-  { label: "Exames", icon: ClipboardText, path: "/dashboard/patient/exam-results?role=patient", color: "#8b5cf6", bg: "#f5f3ff" },
+  { label: "Agendar",  icon: CalendarCheck,   path: "/dashboard/schedule?role=patient",                      color: "hsl(215,75%,32%)", bg: "hsl(215,75%,32%,0.08)" },
+  { label: "Urgência", icon: Lightning,       path: "/dashboard/urgent-care?role=patient",                   color: "hsl(0,72%,48%)",   bg: "hsl(0,72%,48%,0.08)"   },
+  { label: "Pingo IA", icon: Robot,           path: "/dashboard/ai-assistant?role=patient&tab=triagem",      color: "hsl(195,70%,38%)", bg: "hsl(195,70%,38%,0.10)" },
+  { label: "Chat",     icon: ChatCircleDots,  path: "/dashboard/chat?role=patient",                          color: "hsl(168,55%,35%)", bg: "hsl(168,55%,35%,0.10)" },
+  { label: "Exames",   icon: ClipboardText,   path: "/dashboard/patient/exam-results?role=patient",          color: "hsl(225,55%,40%)", bg: "hsl(225,55%,40%,0.08)" },
 ];
 
 const getGreeting = () => {
