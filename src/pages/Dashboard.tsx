@@ -400,6 +400,7 @@ const Dashboard = () => {
       />
     </Routes>
     </Suspense>
+    </FirstLoginKycGate>
     </ReVerificationGate>
   );
 };
