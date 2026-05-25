@@ -3,13 +3,21 @@ import { logError, warn } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
-import { Camera, RotateCcw, CheckCircle2, XCircle, Loader2, FileImage, User, ShieldCheck, Upload, Sparkles, Lock } from "lucide-react";
+import { Camera, RotateCcw, CheckCircle2, XCircle, Loader2, FileImage, User, ShieldCheck, Upload, Sparkles, Lock, IdCard, CreditCard, BookOpen, ArrowLeft } from "lucide-react";
 import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
-type Step = "intro" | "document" | "selfie" | "analyzing" | "result";
+type Step = "intro" | "doc_type" | "document" | "document_back" | "selfie" | "analyzing" | "result";
+
+type DocType = "rg" | "cnh" | "passaporte";
+
+const DOC_TYPES: { id: DocType; label: string; desc: string; needsBack: boolean; icon: any }[] = [
+  { id: "rg", label: "RG", desc: "Registro Geral (frente e verso)", needsBack: true, icon: IdCard },
+  { id: "cnh", label: "CNH", desc: "Carteira de Habilitação (frente e verso)", needsBack: true, icon: CreditCard },
+  { id: "passaporte", label: "Passaporte", desc: "Página com foto", needsBack: false, icon: BookOpen },
+];
 
 interface KYCResult {
   match: boolean;
@@ -32,7 +40,9 @@ interface BiometricKYCProps {
  */
 async function verifyViaDeepSeek(
   documentDataUrl: string,
-  selfieDataUrl: string
+  selfieDataUrl: string,
+  documentBackDataUrl: string | null,
+  documentType: DocType,
 ): Promise<{ match: boolean; score: number; nome: string | null; cpf: string | null; status: string }> {
   const { data: sessionData } = await db.auth.getSession();
   const token = sessionData?.session?.access_token;
@@ -43,6 +53,8 @@ async function verifyViaDeepSeek(
     body: {
       document_image: documentDataUrl,
       selfie_image: selfieDataUrl,
+      document_back: documentBackDataUrl,
+      document_type: documentType,
     },
   });
 
@@ -63,18 +75,20 @@ async function verifyViaDeepSeek(
 const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "paciente" }: BiometricKYCProps) => {
   const { user } = useAuth();
   const [step, setStep] = useState<Step>("intro");
+  const [docType, setDocType] = useState<DocType | null>(null);
   const [documentImage, setDocumentImage] = useState<string | null>(null);
+  const [documentBackImage, setDocumentBackImage] = useState<string | null>(null);
   const [selfieImage, setSelfieImage] = useState<string | null>(null);
   const [result, setResult] = useState<KYCResult | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
-  const [captureTarget, setCaptureTarget] = useState<"document" | "selfie">("document");
+  const [captureTarget, setCaptureTarget] = useState<"document" | "document_back" | "selfie">("document");
   const [lgpdConsent, setLgpdConsent] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const startCamera = useCallback(async (target: "document" | "selfie") => {
+  const startCamera = useCallback(async (target: "document" | "document_back" | "selfie") => {
     setCaptureTarget(target);
     setCameraActive(true);
     try {
@@ -108,14 +122,23 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
     const ctx = canvas.getContext("2d")!;
     ctx.drawImage(video, 0, 0);
     const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+    handleCapturedImage(dataUrl);
+    stopCamera();
+  }, [captureTarget, stopCamera]);
+
+  const handleCapturedImage = (dataUrl: string) => {
     if (captureTarget === "document") {
       setDocumentImage(dataUrl);
+      // Se tipo precisa de verso → vai pra verso, senão → selfie
+      const needsBack = docType ? DOC_TYPES.find((d) => d.id === docType)?.needsBack : false;
+      setStep(needsBack ? "document_back" : "selfie");
+    } else if (captureTarget === "document_back") {
+      setDocumentBackImage(dataUrl);
       setStep("selfie");
     } else {
       setSelfieImage(dataUrl);
     }
-    stopCamera();
-  }, [captureTarget, stopCamera]);
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -123,24 +146,18 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result as string;
-      if (captureTarget === "document") {
-        setDocumentImage(dataUrl);
-        setStep("selfie");
-      } else {
-        setSelfieImage(dataUrl);
-      }
+      handleCapturedImage(dataUrl);
     };
     reader.readAsDataURL(file);
     e.target.value = "";
   };
 
   const analyzeImages = async () => {
-    if (!documentImage || !selfieImage || !user) return;
+    if (!documentImage || !selfieImage || !user || !docType) return;
     setStep("analyzing");
 
     try {
-      // Call DeepSeek Vision API via edge function for real biometric verification
-      const verification = await verifyViaDeepSeek(documentImage, selfieImage);
+      const verification = await verifyViaDeepSeek(documentImage, selfieImage, documentBackImage, docType);
 
       // Threshold elevado para 80 — similaridade <80% tem alto risco de falso positivo
       // (CompreFace usa 90% no didit-kyc; mantemos 80 aqui por usar DeepSeek Vision)
@@ -206,7 +223,9 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
 
   const reset = () => {
     setStep("intro");
+    setDocType(null);
     setDocumentImage(null);
+    setDocumentBackImage(null);
     setSelfieImage(null);
     setResult(null);
     setLgpdConsent(false);
@@ -286,7 +305,7 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
             </div>
 
             <Button
-              onClick={() => { setStep("document"); startCamera("document"); }}
+              onClick={() => setStep("doc_type")}
               disabled={!lgpdConsent}
               className="w-full h-12 rounded-2xl bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/25 gap-2 hover:shadow-xl hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
