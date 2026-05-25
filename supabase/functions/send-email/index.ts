@@ -864,6 +864,25 @@ const templates: Record<string, (d: Record<string, string>) => { subject: string
       </p>
     `, "newsletter_welcome"),
   }),
+
+  kyc_approved: (d) => ({
+    subject: "✅ Identidade verificada com sucesso — AloClínica",
+    html: wrap(`
+      <h2 style="color:${BRAND.green};margin:0 0 16px;">Tudo certo, ${d.name || "tudo certo"}!</h2>
+      <p>Sua identidade foi <strong>verificada com sucesso</strong> pela nossa IA biométrica. 🎉</p>
+      <p>Agora você pode aproveitar todas as funcionalidades da AloClínica com segurança total.</p>
+      ${card(`
+        <p><strong>🛡️ Verificação:</strong> Biometria facial + documento</p>
+        <p><strong>📅 Data:</strong> ${d.verified_at || "agora"}</p>
+        ${d.score ? `<p><strong>🎯 Confiabilidade:</strong> ${d.score}%</p>` : ""}
+      `, BRAND.green)}
+      <p>Você pode continuar de onde parou:</p>
+      ${btn(d.return_url || URLS.patientSchedule, d.return_label || "Continuar agendamento", BRAND.green)}
+      <p style="font-size:12px;color:${BRAND.muted};margin-top:20px;">
+        Seus dados ficam criptografados (AES-256) e nunca são compartilhados com terceiros. Conforme LGPD (Lei 13.709/2018).
+      </p>
+    `, "kyc_approved"),
+  }),
 };
 
 // ─── Server ────────────────────────────────────────────────────────────────────
