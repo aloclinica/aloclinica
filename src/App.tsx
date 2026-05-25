@@ -187,6 +187,7 @@ const AnimatedRoutes = () => {
       <Route path="/validar-receita/:prescriptionId" element={<PrescriptionVerification />} />
       <Route path="/kyc-mobile" element={<KycMobile />} />
       <Route path="/kyc" element={<Kyc />} />
+      <Route path="/kyc/historico" element={<KycHistory />} />
 
       <Route path="/servicos" element={<Servicos />} />
       <Route path="/teleconsulta" element={<Teleconsulta />} />
