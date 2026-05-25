@@ -123,6 +123,7 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
   const [lgpdConsent, setLgpdConsent] = useState(false);
   const [quality, setQuality] = useState<QualitySample>({ brightness: 0, sharpness: 0, motion: 0, status: "init", message: "Iniciando câmera..." });
   const [autoCountdown, setAutoCountdown] = useState<number | null>(null);
+  const verificationIdRef = useRef<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -296,6 +297,23 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
     setStep("analyzing");
     setRejection(null);
 
+    // Registra "em andamento" no histórico antes de chamar a IA
+    try {
+      const { data: inProg } = await db
+        .from("kyc_verificacoes" as any)
+        .insert({
+          user_id: user.id,
+          status: "in_progress",
+          tipo,
+          document_type: docType,
+        })
+        .select("id")
+        .single();
+      verificationIdRef.current = (inProg as any)?.id ?? null;
+    } catch (e) {
+      warn("[BiometricKYC] não foi possível registrar in_progress", e);
+    }
+
     try {
       const verification = await verifyViaDeepSeek(documentImage, selfieImage, documentBackImage, docType);
 
@@ -305,13 +323,23 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
       const status = isApproved ? "aprovado" : "reprovado";
       const score = verification.score;
 
-      // Save to kyc_verificacoes
-      await db.from("kyc_verificacoes" as any).insert({
-        user_id: user.id,
+      // Atualiza (ou insere) o registro final no histórico
+      const finalPayload = {
         status: isApproved ? "approved" : "rejected",
         similarity: score / 100,
         tipo,
-      });
+        document_type: docType,
+        mismatch_reasons: verification.mismatch_reasons?.length ? verification.mismatch_reasons : null,
+        error_message: verification.error ?? null,
+      };
+      if (verificationIdRef.current) {
+        await db
+          .from("kyc_verificacoes" as any)
+          .update(finalPayload)
+          .eq("id", verificationIdRef.current);
+      } else {
+        await db.from("kyc_verificacoes" as any).insert({ user_id: user.id, ...finalPayload });
+      }
 
       // Update doctor_profiles kyc_status if doctor
       if (tipo === "medico" && isApproved) {
@@ -363,6 +391,18 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
     } catch (err: any) {
       logError("[BiometricKYC] Verification error", err);
       toast.error("Erro na verificação", { description: err.message || "Tente novamente." });
+      // Marca o registro em andamento como falha (erro técnico)
+      if (verificationIdRef.current) {
+        try {
+          await db
+            .from("kyc_verificacoes" as any)
+            .update({
+              status: "rejected",
+              error_message: err?.message || "Erro técnico durante a verificação",
+            })
+            .eq("id", verificationIdRef.current);
+        } catch {}
+      }
       setStep("selfie");
     }
   };
