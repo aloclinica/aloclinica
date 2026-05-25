@@ -247,10 +247,10 @@ const PatientDashboard = () => {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[
-                    { label: "Consultas", value: stats?.total ?? 0, icon: CalendarCheck, color: "#3b82f6", bg: "bg-blue-500/8" },
-                    { label: "Receitas", value: stats?.prescriptions ?? 0, icon: FileText, color: "#10b981", bg: "bg-emerald-500/8" },
-                    { label: "Documentos", value: stats?.documents ?? 0, icon: UploadSimple, color: "#f59e0b", bg: "bg-amber-500/8" },
-                    { label: "Próx. retorno", value: returnAppts.length > 0 ? "Ativo" : "—", icon: Clock, color: "#8b5cf6", bg: "bg-purple-500/8" },
+                    { label: "Consultas",    value: stats?.total ?? 0,                                  icon: CalendarCheck, color: "hsl(215,75%,32%)", bg: "bg-[hsl(215,75%,32%,0.08)]" },
+                    { label: "Receitas",     value: stats?.prescriptions ?? 0,                          icon: FileText,      color: "hsl(168,55%,35%)", bg: "bg-[hsl(168,55%,35%,0.08)]" },
+                    { label: "Documentos",   value: stats?.documents ?? 0,                              icon: UploadSimple,  color: "hsl(195,70%,38%)", bg: "bg-[hsl(195,70%,38%,0.10)]" },
+                    { label: "Próx. retorno",value: returnAppts.length > 0 ? "Ativo" : "—",             icon: Clock,         color: "hsl(225,55%,40%)", bg: "bg-[hsl(225,55%,40%,0.08)]" },
                   ].map((stat, i) => (
                     <motion.div
                       key={stat.label}
