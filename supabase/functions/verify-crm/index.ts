@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCaller } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -108,8 +109,17 @@ serve(async (req) => {
       isValid = situacao.includes("regular") || situacao.includes("ativ");
     }
 
-    // If doctor_profile_id is provided and CRM is valid, auto-update the DB
+    // If doctor_profile_id is provided and CRM is valid, auto-update the DB.
+    // This write marks a doctor as CRM-verified, so it requires an admin caller.
+    // (The pre-signup lookup path omits doctor_profile_id and stays public.)
     if (doctor_profile_id && isValid) {
+      const caller = await getCaller(req);
+      if (!caller.isAdmin) {
+        return new Response(
+          JSON.stringify({ error: "Apenas administradores podem marcar CRM como verificado." }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const supabase = createClient(supabaseUrl, serviceKey);

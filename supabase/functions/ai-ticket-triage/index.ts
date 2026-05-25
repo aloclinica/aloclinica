@@ -5,16 +5,26 @@
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { callClaude, FAST_CLAUDE_MODEL } from "../_shared/anthropic.ts";
+import { safeEqual } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-internal-secret",
 };
+
+/** Only the DB trigger (via invoke_edge_function) may call this. */
+function internalAuthorized(req: Request): boolean {
+  const secret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
+  return !!secret && safeEqual(req.headers.get("x-internal-secret"), secret);
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    if (!internalAuthorized(req)) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+    }
     const { ticket_id } = await req.json();
     if (!ticket_id) return new Response(JSON.stringify({ error: "ticket_id obrigatório" }), { status: 400, headers: corsHeaders });
 

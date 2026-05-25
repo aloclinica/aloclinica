@@ -72,15 +72,16 @@ verify_jwt = false
 verify_jwt = false
 
 # ── Trigger/cron-driven internal helpers ──────────────────────
-# NOTE: these are invoked by DB triggers/cron without a user JWT. They cause
-# cost/data-pollution abuse if hit anonymously (see security review, MEDIUM).
-# Track adding an internal-secret guard like process-refund.
+# Invoked by DB triggers via invoke_edge_function without a user JWT.
+# They self-authorize with the x-internal-secret header (INTERNAL_FUNCTION_SECRET).
 [functions.ai-ticket-triage]
 verify_jwt = false
 [functions.auto-clinical-summary]
 verify_jwt = false
 [functions.suggest-reschedule]
 verify_jwt = false
+# verify-crm: public CRM lookup (rate-limited); the crm_verified DB write
+# requires an admin JWT, checked inside the function.
 [functions.verify-crm]
 verify_jwt = false
 [functions.rate-limiter]

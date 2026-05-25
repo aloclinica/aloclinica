@@ -1,9 +1,19 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
+import { safeEqual } from '../_shared/auth.ts'
+
+/** Only the DB trigger (via invoke_edge_function) may call this. */
+function internalAuthorized(req: Request): boolean {
+  const secret = Deno.env.get('INTERNAL_FUNCTION_SECRET')
+  return !!secret && safeEqual(req.headers.get('x-internal-secret'), secret)
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   try {
+    if (!internalAuthorized(req)) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders })
+    }
     const { appointment_id } = await req.json()
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
