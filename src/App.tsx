@@ -54,6 +54,7 @@ const BookingReview = lazy(() => import("./pages/BookingReview"));
 const PrescriptionVerification = lazy(() => import("./pages/PrescriptionVerification"));
 const KycMobile = lazy(() => import("./pages/KycMobile"));
 const Kyc = lazy(() => import("./pages/Kyc"));
+const KycHistory = lazy(() => import("./pages/KycHistory"));
 
 const Teleconsulta = lazy(() => import("./pages/Teleconsulta"));
 const AuthClinica = lazy(() => import("./pages/AuthClinica"));
