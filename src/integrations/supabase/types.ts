@@ -4202,6 +4202,9 @@ export type Database = {
           first_name: string | null
           gender: string | null
           id: string
+          kyc_face_match_score: number | null
+          kyc_status: string | null
+          kyc_verified_at: string | null
           last_consultation_at: string | null
           last_name: string | null
           mp_customer_id: string | null
@@ -4230,6 +4233,9 @@ export type Database = {
           first_name?: string | null
           gender?: string | null
           id?: string
+          kyc_face_match_score?: number | null
+          kyc_status?: string | null
+          kyc_verified_at?: string | null
           last_consultation_at?: string | null
           last_name?: string | null
           mp_customer_id?: string | null
@@ -4258,6 +4264,9 @@ export type Database = {
           first_name?: string | null
           gender?: string | null
           id?: string
+          kyc_face_match_score?: number | null
+          kyc_status?: string | null
+          kyc_verified_at?: string | null
           last_consultation_at?: string | null
           last_name?: string | null
           mp_customer_id?: string | null

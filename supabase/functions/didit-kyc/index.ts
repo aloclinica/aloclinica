@@ -66,6 +66,41 @@ async function extractDocumentData(documentImageDataUrl: string): Promise<{ nome
   }
 }
 
+// Normaliza string para comparação: remove acentos, pontuação, espaços extras, lowercase
+function normalizeName(s: string | null | undefined): string {
+  if (!s) return "";
+  return s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function onlyDigits(s: string | null | undefined): string {
+  return (s ?? "").replace(/\D/g, "");
+}
+
+/**
+ * Verifica se o nome extraído do documento bate com o nome de cadastro.
+ * Critério: todos os "tokens" significativos (>=3 chars) do nome de cadastro
+ * devem aparecer no nome do documento (e vice-versa para o primeiro nome).
+ */
+function nameMatches(profileFullName: string, docName: string): boolean {
+  const a = normalizeName(profileFullName);
+  const b = normalizeName(docName);
+  if (!a || !b) return false;
+  const aTokens = a.split(" ").filter((t) => t.length >= 3);
+  const bTokens = b.split(" ").filter((t) => t.length >= 3);
+  if (aTokens.length === 0 || bTokens.length === 0) return false;
+  const bSet = new Set(bTokens);
+  // pelo menos 2 tokens em comum (primeiro nome + 1 sobrenome) ou todos se tiver < 2
+  const common = aTokens.filter((t) => bSet.has(t));
+  const required = Math.min(2, aTokens.length);
+  return common.length >= required;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") {
@@ -167,13 +202,53 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    // LAYER 3.5: Comparar com dados do cadastro (CPF + nome devem bater)
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("first_name,last_name,cpf")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    let dataMismatch = false;
+    const mismatchReasons: string[] = [];
+    if (match && profile) {
+      const profileFullName = `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim();
+      const profileCpf = onlyDigits(profile.cpf);
+      const docCpf = onlyDigits(cpf);
+
+      if (profileCpf && docCpf) {
+        if (profileCpf !== docCpf) {
+          dataMismatch = true;
+          mismatchReasons.push("O CPF do documento não corresponde ao CPF do cadastro");
+        }
+      } else if (profileCpf && !docCpf) {
+        dataMismatch = true;
+        mismatchReasons.push("Não foi possível ler o CPF no documento — envie uma foto mais nítida");
+      }
+
+      if (profileFullName && nome) {
+        if (!nameMatches(profileFullName, nome)) {
+          dataMismatch = true;
+          mismatchReasons.push("O nome do documento não corresponde ao nome do cadastro");
+        }
+      } else if (profileFullName && !nome) {
+        dataMismatch = true;
+        mismatchReasons.push("Não foi possível ler o nome no documento — envie uma foto mais nítida");
+      }
+    }
+
+    const finalMatch = match && !dataMismatch;
+
     // Audit log
     await supabaseAdmin.from("activity_logs").insert({
-      action: match ? "kyc_approved" : "kyc_rejected",
+      action: finalMatch ? "kyc_approved" : "kyc_rejected",
       entity_type: "kyc", entity_id: userId, user_id: userId,
       details: {
         provider: "compreface+claude_ocr",
-        similarity, score, match, nome, cpf,
+        similarity, score, match: finalMatch, biometric_match: match,
+        data_mismatch: dataMismatch, mismatch_reasons: mismatchReasons,
+        nome, cpf, profile_name: profile ? `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() : null,
+        profile_cpf: profile?.cpf ?? null,
         doc_face_prob: docProb, selfie_face_prob: selfieProb,
         thresholds: { min_similarity: MIN_SIMILARITY, min_face_prob: MIN_FACE_DETECT_PROB },
       },
@@ -182,7 +257,7 @@ Deno.serve(async (req) => {
     const { data: doctorProfile } = await supabaseAdmin
       .from("doctor_profiles").select("id").eq("user_id", userId).maybeSingle();
 
-    if (match) {
+    if (finalMatch) {
       if (doctorProfile) {
         await supabaseAdmin.from("doctor_profiles").update({
           kyc_status: "approved",
@@ -190,6 +265,12 @@ Deno.serve(async (req) => {
           kyc_face_match_score: score,
         }).eq("user_id", userId);
       }
+      // Patient: gravar status no profile também
+      await supabaseAdmin.from("profiles").update({
+        kyc_status: "approved",
+        kyc_verified_at: new Date().toISOString(),
+        kyc_face_match_score: score,
+      }).eq("user_id", userId);
       await supabaseAdmin.from("kyc_verificacoes").insert({
         user_id: userId, status: "approved", similarity,
         tipo: doctorProfile ? "medico" : "paciente",
@@ -204,22 +285,32 @@ Deno.serve(async (req) => {
       if (doctorProfile) {
         await supabaseAdmin.from("doctor_profiles").update({ kyc_status: "rejected" }).eq("user_id", userId);
       }
+      await supabaseAdmin.from("profiles").update({ kyc_status: "rejected" }).eq("user_id", userId);
       await supabaseAdmin.from("kyc_verificacoes").insert({
         user_id: userId, status: "rejected", similarity,
         tipo: doctorProfile ? "medico" : "paciente",
       });
+      const rejectionMessage = dataMismatch
+        ? mismatchReasons.join(". ")
+        : `A selfie não corresponde ao documento (similaridade ${score}%). Tente de novo com fotos nítidas.`;
       await supabaseAdmin.from("notifications").insert({
         user_id: userId,
         title: "❌ Verificação não aprovada",
-        message: `A selfie não corresponde ao documento (similaridade ${score}%). Tente de novo com fotos nítidas.`,
+        message: rejectionMessage,
         type: "warning", link: "/dashboard/profile?kyc=open",
       });
     }
 
     return new Response(JSON.stringify({
-      match, score, similarity, nome, cpf,
-      status: match ? "approved" : "rejected",
-      error: match ? null : `Rostos não correspondem (similaridade ${score}%, mínimo ${MIN_SIMILARITY * 100}%)`,
+      match: finalMatch, score, similarity, nome, cpf,
+      status: finalMatch ? "approved" : "rejected",
+      data_mismatch: dataMismatch,
+      mismatch_reasons: mismatchReasons,
+      error: finalMatch
+        ? null
+        : dataMismatch
+          ? mismatchReasons.join(". ")
+          : `Rostos não correspondem (similaridade ${score}%, mínimo ${MIN_SIMILARITY * 100}%)`,
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err: any) {
     console.error("[didit-kyc] Error:", err);

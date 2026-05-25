@@ -10,6 +10,7 @@ import { warn } from "@/lib/logger";
 import PingoLoader from "@/components/PingoLoader";
 import ReVerificationGate from "@/components/auth/ReVerificationGate";
 import { KycRequiredGate } from "@/components/auth/KycRequiredGate";
+import { FirstLoginKycGate } from "@/components/auth/FirstLoginKycGate";
 
 // ── LAZY imports: dashboard shells ──
 const PatientDashboard = lazy(() => import("@/components/dashboards/PatientDashboard"));
@@ -244,6 +245,7 @@ const Dashboard = () => {
 
   return (
     <ReVerificationGate>
+    <FirstLoginKycGate>
     <Suspense fallback={<PingoLoader />}>
     <Routes>
       <Route index element={<IndexDashboard />} />
@@ -398,6 +400,7 @@ const Dashboard = () => {
       />
     </Routes>
     </Suspense>
+    </FirstLoginKycGate>
     </ReVerificationGate>
   );
 };
