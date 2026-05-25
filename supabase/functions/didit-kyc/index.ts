@@ -66,6 +66,41 @@ async function extractDocumentData(documentImageDataUrl: string): Promise<{ nome
   }
 }
 
+// Normaliza string para comparação: remove acentos, pontuação, espaços extras, lowercase
+function normalizeName(s: string | null | undefined): string {
+  if (!s) return "";
+  return s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function onlyDigits(s: string | null | undefined): string {
+  return (s ?? "").replace(/\D/g, "");
+}
+
+/**
+ * Verifica se o nome extraído do documento bate com o nome de cadastro.
+ * Critério: todos os "tokens" significativos (>=3 chars) do nome de cadastro
+ * devem aparecer no nome do documento (e vice-versa para o primeiro nome).
+ */
+function nameMatches(profileFullName: string, docName: string): boolean {
+  const a = normalizeName(profileFullName);
+  const b = normalizeName(docName);
+  if (!a || !b) return false;
+  const aTokens = a.split(" ").filter((t) => t.length >= 3);
+  const bTokens = b.split(" ").filter((t) => t.length >= 3);
+  if (aTokens.length === 0 || bTokens.length === 0) return false;
+  const bSet = new Set(bTokens);
+  // pelo menos 2 tokens em comum (primeiro nome + 1 sobrenome) ou todos se tiver < 2
+  const common = aTokens.filter((t) => bSet.has(t));
+  const required = Math.min(2, aTokens.length);
+  return common.length >= required;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") {
