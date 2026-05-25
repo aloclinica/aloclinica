@@ -1,9 +1,9 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { logError, warn } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
-import { Camera, RotateCcw, CheckCircle2, XCircle, Loader2, FileImage, User, ShieldCheck, Upload, Sparkles, Lock, IdCard, CreditCard, BookOpen, ArrowLeft } from "lucide-react";
+import { Camera, RotateCcw, CheckCircle2, XCircle, Loader2, FileImage, User, ShieldCheck, Sparkles, Lock, IdCard, CreditCard, BookOpen, ArrowLeft } from "lucide-react";
 import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -86,7 +86,6 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const startCamera = useCallback(async (target: "document" | "document_back" | "selfie") => {
     setCaptureTarget(target);
@@ -140,17 +139,17 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      handleCapturedImage(dataUrl);
-    };
-    reader.readAsDataURL(file);
-    e.target.value = "";
-  };
+  // Auto-abre câmera ao entrar nas etapas de captura (sem opção de upload — somente câmera)
+  useEffect(() => {
+    if (step === "document" && !documentImage && !cameraActive) {
+      void startCamera("document");
+    } else if (step === "document_back" && !documentBackImage && !cameraActive) {
+      void startCamera("document_back");
+    } else if (step === "selfie" && !selfieImage && !cameraActive) {
+      void startCamera("selfie");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   const analyzeImages = async () => {
     if (!documentImage || !selfieImage || !user || !docType) return;
