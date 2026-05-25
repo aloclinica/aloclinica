@@ -38,7 +38,27 @@ Migration `supabase/migrations/20260526000000_security_hardening_prod.sql` (idem
 - [ ] Validar a lista de funções públicas do `config.toml` em **staging** antes de produção.
 - [ ] Configurar a URL do webhook Mercado Pago e o secret do DocuSeal (header `x-docuseal-secret`).
 
-## 📋 Residual (MEDIUM, não bloqueante)
-`verify-crm`, `ai-ticket-triage`, `auto-clinical-summary`, `suggest-reschedule` seguem `verify_jwt=false` (risco de abuso de custo/dados, não comprometimento) — falta guard de internal-secret. Recomendado em PR de follow-up.
+## 🔁 Residuais MEDIUM + project ref dos triggers (corrigidos)
+- `ai-ticket-triage`, `auto-clinical-summary`, `suggest-reschedule`: agora exigem header `x-internal-secret`.
+- `verify-crm`: write de `crm_verified` exige JWT de admin; lookup segue público.
+- `invoke_edge_function`: passa a enviar `Authorization: Bearer <anon>` (ref **correto** `pwxvvimdtmvziynbspgx`) + `x-internal-secret` → conserta todos os triggers/cron que apontavam para o ref **errado** (`oaixgmuocuwhsabidpei`).
+- `fn_trigger_edge_email` e `auto_trigger_post_consultation_survey`: reapontadas para `invoke_edge_function` (estavam com URL/ref errado hardcoded + anon JWT antigo).
+- Migration `20260526000100`: além do acima, desagenda defensivamente qualquer cron com o ref errado.
+
+**Config adicional necessária:**
+```sql
+ALTER DATABASE postgres SET app.settings.internal_function_secret = '<segredo>';
+```
+```bash
+supabase secrets set INTERNAL_FUNCTION_SECRET=<mesmo-segredo>
+```
+
+### Anti-spam em send-email / send-whatsapp / send-push-notification
+Essas funções eram chamáveis por qualquer usuário autenticado com destinatário arbitrário (spam/phishing com a marca). Agora:
+- chamadas internas (trigger via `x-internal-secret`) e cross-function (service-role bearer) passam sem limite;
+- usuários comuns precisam estar **autenticados** e são **rate-limited por usuário** (send-email 40 / send-whatsapp 30 / send-push 60 por 10 min); admins isentos;
+- callers internos que usavam anon key (`appointment-confirmed`, `cart-abandonment`, `post-consultation-survey`, `whatsapp-notify`) passaram a enviar `x-internal-secret`.
+
+Mitigação completa de longo prazo (não neste PR): mover todo o dispatch de notificação para o servidor, validando destinatário por relacionamento.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

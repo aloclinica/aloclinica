@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import webpush from "https://esm.sh/web-push@3.6.7";
+import { getCaller, isInternalOrService, checkRateLimit } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,6 +18,25 @@ serve(async (req) => {
   }
 
   try {
+    // Internal/service calls bypass limits; otherwise require an authenticated
+    // user and rate-limit to curb push spam to arbitrary user_ids.
+    if (!isInternalOrService(req)) {
+      const caller = await getCaller(req);
+      if (!caller.user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (!caller.isAdmin) {
+        const allowed = await checkRateLimit(`user:${caller.user.id}`, "send-push-notification", 60, 10);
+        if (!allowed) {
+          return new Response(JSON.stringify({ error: "Muitas notificações. Aguarde." }), {
+            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json", "Retry-After": "60" },
+          });
+        }
+      }
+    }
+
     const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY");
     if (!VAPID_PRIVATE_KEY) {
       return new Response(
