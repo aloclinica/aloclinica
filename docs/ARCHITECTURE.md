@@ -23,7 +23,7 @@ sempre que adicionar uma nova integração externa, edge function ou tabela.
 │  - Edge Functions (Deno) — 30+          │         │  - compreface (KYC face)    │
 │  - Storage                               │         │  - coturn (TURN próprio)    │
 │  - Realtime                              │         │  - waha (WhatsApp)          │
-│  - pg_cron                               │         │  - orthanc (PACS DICOM)     │
+│  - pg_cron                               │         │                             │
 └──────────────────────────────────────────┘         └────────────────────────────┘
                     ▲                                              ▲
                     │                                              │
@@ -113,7 +113,7 @@ Veja `supabase/functions/`. Categorias:
 | `coturn` | 3478 (host net) | direto (`stun:72.62.138.208:3478`) | TURN/STUN próprio |
 | `compreface-fe` | 80 | face.aloclinica.com.br | KYC face matching |
 | `waha` | 3000 | whatsapp.telemedicinaaloclinica.sbs | WhatsApp gateway |
-| `orthanc`, `compreface-postgres-db`, `evolution-api*` | (internos) | — | PACS, DBs auxiliares |
+
 
 **Traefik routing:** `/etc/easypanel/traefik/config/aloclinica-stack.yaml` — todas as rotas HTTPS via Let's Encrypt automático.
 
@@ -135,7 +135,7 @@ Veja `supabase/functions/`. Categorias:
 - **Sentry** — erros JS no browser (ativo em prod via `VITE_SENTRY_DSN`)
 - **activity_logs** — auditoria de ações (admin lê via SQL ou painel)
 - **Edge function logs** — Supabase dashboard
-- **AdminSystemHealth** — checa CompreFace, Orthanc, MiroTalk, etc.
+- **AdminSystemHealth** — checa CompreFace, MiroTalk, etc.
 
 ---
 

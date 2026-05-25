@@ -77,7 +77,6 @@
     --laudo-urgent: 0 90% 60%;
     --laudo-warning: 38 95% 55%;
     --laudo-success: 152 60% 44%;
-    --laudo-dicom-bg: 0 0% 3%;
 
     /* Patient panel tokens */
     --p-primary: 215 80% 28%;

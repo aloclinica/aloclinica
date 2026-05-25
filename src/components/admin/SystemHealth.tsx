@@ -168,8 +168,6 @@ const SystemHealth = () => {
     // 6–10. VPS Services
     const vpsServices = [
       { name: "CompreFace (Biometria)", url: "http://72.62.138.208:8000", icon: <Shield className="w-5 h-5" /> },
-      { name: "Orthanc PACS (DICOM)", url: "http://72.62.138.208:8042", icon: <Server className="w-5 h-5" /> },
-      { name: "OHIF Viewer", url: "http://72.62.138.208:3001", icon: <Monitor className="w-5 h-5" /> },
       { name: "DocuSeal (Assinaturas)", url: "http://72.62.138.208:3200", icon: <FileText className="w-5 h-5" /> },
       { name: "Jitsi Meet (Vídeo)", url: "https://meet.telemedicinaaloclinica.sbs", icon: <Video className="w-5 h-5" /> },
     ];
@@ -196,7 +194,6 @@ const SystemHealth = () => {
       { name: "VidaaS (Assinatura ICP)", fn: "vidaas-sign", icon: <FileSignature className="w-5 h-5" /> },
       { name: "CompreFace Proxy (KYC)", fn: "compreface-proxy", icon: <Eye className="w-5 h-5" /> },
       { name: "Didit KYC", fn: "didit-kyc", icon: <Shield className="w-5 h-5" /> },
-      { name: "Orthanc Proxy (DICOM)", fn: "orthanc-proxy", icon: <Server className="w-5 h-5" /> },
       { name: "Resend (E-mail)", fn: "send-email", icon: <Mail className="w-5 h-5" /> },
       { name: "Push Notifications", fn: "send-push-notification", icon: <Bell className="w-5 h-5" /> },
       { name: "Verify CRM (CFM)", fn: "verify-crm", icon: <Shield className="w-5 h-5" /> },

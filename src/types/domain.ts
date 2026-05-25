@@ -148,8 +148,6 @@ export interface ExamRequest {
   priority?: string;
   sla_hours?: number | null;
   sla_deadline?: string | null;
-  orthanc_study_uid?: string | null;
-  source?: string | null;
   specialty_required?: string | null;
   started_at?: string | null;
   completed_at?: string | null;

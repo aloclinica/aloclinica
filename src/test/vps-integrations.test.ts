@@ -251,49 +251,6 @@ describe("DocuSeal — src/lib/docuseal.ts", () => {
   });
 });
 
-// ── Orthanc PACS ────────────────────────────────────────────────────────────
-describe("Orthanc PACS — src/lib/orthanc.ts", () => {
-  it("getOHIFUrl gera URL correta do visualizador OHIF", async () => {
-    const { getOHIFUrl } = await import("@/lib/orthanc");
-    const url = getOHIFUrl("1.2.3.4.5678");
-    expect(url).toContain("72.62.138.208:3001");
-    expect(url).toContain("1.2.3.4.5678");
-    expect(url).toContain("StudyInstanceUIDs");
-  });
-
-  it("uploadDICOM é uma função assíncrona", async () => {
-    const { uploadDICOM } = await import("@/lib/orthanc");
-    expect(typeof uploadDICOM).toBe("function");
-  });
-
-  it("uploadDICOM invoca orthanc-proxy edge function", async () => {
-    mockInvoke.mockReset();
-    mockInvoke.mockResolvedValue({
-      data: { success: true, studyInstanceUID: "1.2.3.4" },
-      error: null,
-    });
-    const { uploadDICOM } = await import("@/lib/orthanc");
-    const file = new File(["dicom-data"], "scan.dcm", {
-      type: "application/dicom",
-    });
-    const uid = await uploadDICOM(file);
-    expect(uid).toBe("1.2.3.4");
-    expect(mockInvoke).toHaveBeenCalledWith("orthanc-proxy", {
-      body: expect.any(FormData),
-    });
-  });
-
-  it("uploadDICOM lança erro quando falha", async () => {
-    mockInvoke.mockReset();
-    mockInvoke.mockResolvedValue({
-      data: null,
-      error: { message: "Upload failed" },
-    });
-    const { uploadDICOM } = await import("@/lib/orthanc");
-    const file = new File(["data"], "scan.dcm");
-    await expect(uploadDICOM(file)).rejects.toThrow("Upload failed");
-  });
-});
 
 // ── WhatsApp ────────────────────────────────────────────────────────────────
 describe("WhatsApp — src/lib/whatsapp.ts", () => {
@@ -370,10 +327,6 @@ describe("Configuração dos servidores VPS", () => {
     expect(jitsi.JITSI_BASE_URL).toBe("https://meet.telemedicinaaloclinica.sbs");
     expect(jitsi.gerarRoomId).toBeDefined();
     expect(jitsi.getJitsiUrl).toBeDefined();
-
-    const orthanc = await import("@/lib/orthanc");
-    expect(orthanc.uploadDICOM).toBeDefined();
-    expect(orthanc.getOHIFUrl).toBeDefined();
 
     const whatsapp = await import("@/lib/whatsapp");
     expect(whatsapp.sendWhatsApp).toBeDefined();

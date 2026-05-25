@@ -114,7 +114,7 @@ prompt DOCUSEAL_API_KEY       "DOCUSEAL_API_KEY" "${DOCUSEAL_API_KEY:-}"
 echo -e "\n${BLUE}🔧 Serviços opcionais (pressione Enter para pular)${NC}"
 read -rp "$(echo -e "${GREEN}MEMED_API_KEY (prescriptions)${NC} [pular]: ")" MEMED_API_KEY
 read -rp "$(echo -e "${GREEN}MEMED_SECRET_KEY${NC} [pular]: ")"               MEMED_SECRET_KEY
-read -rp "$(echo -e "${GREEN}PACS_WEBHOOK_SECRET (DICOM/laudo)${NC} [pular]: ")" PACS_WEBHOOK_SECRET
+
 read -rp "$(echo -e "${GREEN}VITE_SENTRY_DSN (monitoramento)${NC} [pular]: ")" VITE_SENTRY_DSN
 
 # ─── Apply Supabase Secrets ───────────────────────────────────────────────────
@@ -141,7 +141,7 @@ SECRETS_ARGS=(
 [ -n "$DOCUSEAL_API_KEY"    ] && SECRETS_ARGS+=("DOCUSEAL_API_KEY=${DOCUSEAL_API_KEY}")
 [ -n "$MEMED_API_KEY"       ] && SECRETS_ARGS+=("MEMED_API_KEY=${MEMED_API_KEY}")
 [ -n "$MEMED_SECRET_KEY"    ] && SECRETS_ARGS+=("MEMED_SECRET_KEY=${MEMED_SECRET_KEY}")
-[ -n "$PACS_WEBHOOK_SECRET" ] && SECRETS_ARGS+=("PACS_WEBHOOK_SECRET=${PACS_WEBHOOK_SECRET}")
+
 
 supabase secrets set --project-ref "${PROJECT_REF}" "${SECRETS_ARGS[@]}" && success "Secrets configurados no Supabase" || error "Falha ao configurar secrets"
 
