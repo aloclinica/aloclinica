@@ -5354,6 +5354,7 @@ export type Database = {
           bio: string | null
           consultation_duration_min: number | null
           consultation_price: number | null
+          council_type: string | null
           crm: string | null
           crm_state: string | null
           crm_verified: boolean | null
