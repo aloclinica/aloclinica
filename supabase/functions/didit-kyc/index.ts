@@ -130,12 +130,13 @@ Deno.serve(async (req) => {
     }
     const userId = user.id;
 
-    const { document_image, selfie_image } = await req.json();
+    const { document_image, selfie_image, document_back, document_type } = await req.json();
     if (!document_image || !selfie_image) {
       return new Response(JSON.stringify({ error: "document_image e selfie_image são obrigatórios (data URL base64)" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const docType: string = typeof document_type === "string" ? document_type : "rg";
 
     // LAYER 1: Anti-spoof — detect faces in both, require real face + high probability
     let docDetect, selfieDetect;
@@ -194,8 +195,13 @@ Deno.serve(async (req) => {
     const score = Math.round(similarity * 100);
     const match = similarity >= MIN_SIMILARITY;
 
-    // LAYER 3: OCR (best-effort, doesn't block approval)
-    const { nome, cpf } = await extractDocumentData(document_image);
+    // LAYER 3: OCR — tenta na frente; se faltar nome ou CPF e houver verso, tenta no verso (ex: RG brasileiro tem CPF no verso)
+    let { nome, cpf } = await extractDocumentData(document_image);
+    if ((!nome || !cpf) && document_back) {
+      const back = await extractDocumentData(document_back);
+      nome = nome || back.nome;
+      cpf = cpf || back.cpf;
+    }
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -245,6 +251,8 @@ Deno.serve(async (req) => {
       entity_type: "kyc", entity_id: userId, user_id: userId,
       details: {
         provider: "compreface+claude_ocr",
+        document_type: docType,
+        document_back_provided: !!document_back,
         similarity, score, match: finalMatch, biometric_match: match,
         data_mismatch: dataMismatch, mismatch_reasons: mismatchReasons,
         nome, cpf, profile_name: profile ? `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() : null,
