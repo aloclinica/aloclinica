@@ -65,3 +65,46 @@ export function safeEqual(a: string | null | undefined, b: string | null | undef
   for (let i = 0; i < ba.length; i++) diff |= ba[i] ^ bb[i];
   return diff === 0;
 }
+
+/**
+ * True when the request is a trusted server-to-server call: it carries the
+ * internal secret (DB triggers via invoke_edge_function) OR a service-role
+ * bearer (other edge functions). Such calls bypass per-user rate limits.
+ */
+export function isInternalOrService(req: Request): boolean {
+  const internal = Deno.env.get("INTERNAL_FUNCTION_SECRET");
+  if (internal && safeEqual(req.headers.get("x-internal-secret"), internal)) return true;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const bearer = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  return !!serviceKey && safeEqual(bearer, serviceKey);
+}
+
+/**
+ * Fixed-window per-identifier rate limit backed by the rate_limits table.
+ * Returns true when the call is allowed. Fails open on errors (non-blocking).
+ */
+export async function checkRateLimit(
+  identifier: string,
+  endpoint: string,
+  max: number,
+  windowMin: number,
+): Promise<boolean> {
+  try {
+    const sb = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const since = new Date(Date.now() - windowMin * 60_000).toISOString();
+    const { count } = await sb
+      .from("rate_limits")
+      .select("id", { count: "exact", head: true })
+      .eq("identifier", identifier)
+      .eq("endpoint", endpoint)
+      .gte("window_start", since);
+    if ((count ?? 0) >= max) return false;
+    await sb.from("rate_limits").insert({ identifier, endpoint, window_start: new Date().toISOString() });
+    return true;
+  } catch {
+    return true;
+  }
+}

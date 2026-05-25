@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
+import { getCaller, isInternalOrService, checkRateLimit } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -892,21 +893,25 @@ serve(async (req) => {
   }
 
   try {
-    // Rate limiting: 10 emails/min per recipient IP (prevents spam abuse)
-    const identifier = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anonymous";
-    try {
-      const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
-      const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-      const since = new Date(Date.now() - 60000).toISOString();
-      const { count } = await sb.from("rate_limits").select("id", { count: "exact", head: true })
-        .eq("identifier", identifier).eq("endpoint", "send-email").gte("window_start", since);
-      if ((count ?? 0) >= 10) {
-        return new Response(JSON.stringify({ error: "Muitas requisições. Aguarde um momento." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json", "Retry-After": "60" },
+    // Trigger/cron and cross-function calls bypass per-user limits. Everyone
+    // else must be an authenticated user and is rate-limited — prevents abuse
+    // of the branded email templates for phishing/spam to arbitrary addresses.
+    if (!isInternalOrService(req)) {
+      const caller = await getCaller(req);
+      if (!caller.user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      await sb.from("rate_limits").insert({ identifier, endpoint: "send-email", window_start: new Date().toISOString() });
-    } catch { /* rate limit check failure is non-blocking */ }
+      if (!caller.isAdmin) {
+        const allowed = await checkRateLimit(`user:${caller.user.id}`, "send-email", 40, 10);
+        if (!allowed) {
+          return new Response(JSON.stringify({ error: "Muitas requisições. Aguarde um momento." }), {
+            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json", "Retry-After": "60" },
+          });
+        }
+      }
+    }
 
     const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY") || Deno.env.get("RESEND_API_KEY");
 

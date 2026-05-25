@@ -82,6 +82,7 @@ serve(async (req) => {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+            "x-internal-secret": Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "",
           },
           body: JSON.stringify({
             type: "appointment_confirmation",
@@ -104,6 +105,7 @@ serve(async (req) => {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+            "x-internal-secret": Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "",
           },
           body: JSON.stringify({
             type: "payment_receipt",
@@ -143,6 +145,7 @@ serve(async (req) => {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+            "x-internal-secret": Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "",
           },
           body: JSON.stringify({ phone: patient.phone, message: msg }),
         });
@@ -161,6 +164,7 @@ serve(async (req) => {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+            "x-internal-secret": Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "",
           },
           body: JSON.stringify({ phone: patient.phone, message: receiptMsg }),
         });

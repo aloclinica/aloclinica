@@ -96,6 +96,7 @@ serve(async (req) => {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${anonKey}`,
+              "x-internal-secret": Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "",
             },
             body: JSON.stringify({
               type: "appointment_reminder",
@@ -126,6 +127,7 @@ serve(async (req) => {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${anonKey}`,
+              "x-internal-secret": Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "",
             },
             body: JSON.stringify({ phone: patientPhone, message: msg }),
           });

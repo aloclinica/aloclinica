@@ -53,7 +53,12 @@ ALTER DATABASE postgres SET app.settings.internal_function_secret = '<segredo>';
 supabase secrets set INTERNAL_FUNCTION_SECRET=<mesmo-segredo>
 ```
 
-### Residual remanescente (não bloqueante)
-`send-email` / `send-whatsapp` / `send-push-notification` são chamadas por qualquer usuário autenticado com destinatário/mensagem arbitrários (vetor de spam) — pré-existente. Requer regra de autorização por caso de uso; avaliar em follow-up.
+### Anti-spam em send-email / send-whatsapp / send-push-notification
+Essas funções eram chamáveis por qualquer usuário autenticado com destinatário arbitrário (spam/phishing com a marca). Agora:
+- chamadas internas (trigger via `x-internal-secret`) e cross-function (service-role bearer) passam sem limite;
+- usuários comuns precisam estar **autenticados** e são **rate-limited por usuário** (send-email 40 / send-whatsapp 30 / send-push 60 por 10 min); admins isentos;
+- callers internos que usavam anon key (`appointment-confirmed`, `cart-abandonment`, `post-consultation-survey`, `whatsapp-notify`) passaram a enviar `x-internal-secret`.
+
+Mitigação completa de longo prazo (não neste PR): mover todo o dispatch de notificação para o servidor, validando destinatário por relacionamento.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
