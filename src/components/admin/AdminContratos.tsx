@@ -428,6 +428,18 @@ function BeneficiariosDialog({ open, onOpenChange, contrato }: { open: boolean; 
     load();
   };
 
+  // Lê um arquivo .csv e joga no campo (ignora linha de cabeçalho, se houver).
+  const onCsvFile = async (file: File | null) => {
+    if (!file) return;
+    const text = await file.text();
+    const linhas = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    if (linhas.length && /e-?mail|cpf|nome/i.test(linhas[0]) && !/@/.test(linhas[0])) {
+      linhas.shift(); // descarta cabeçalho
+    }
+    setBulk((prev) => (prev ? prev + "\n" : "") + linhas.join("\n"));
+    toast.success(`${linhas.length} linha(s) carregada(s) do CSV — revise e clique em Importar`);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
@@ -436,7 +448,16 @@ function BeneficiariosDialog({ open, onOpenChange, contrato }: { open: boolean; 
           <div>
             <Label>Importar (uma linha por pessoa: <code>email,cpf,nome</code>)</Label>
             <Textarea rows={4} value={bulk} onChange={(e) => setBulk(e.target.value)} placeholder="joao@empresa.com,12345678900,João Silva" />
-            <Button size="sm" className="mt-2" onClick={importar}>Importar</Button>
+            <div className="mt-2 flex items-center gap-2">
+              <Button size="sm" onClick={importar}>Importar</Button>
+              <input
+                id="benef-csv" type="file" accept=".csv,text/csv" className="hidden"
+                onChange={(e) => { onCsvFile(e.target.files?.[0] ?? null); e.target.value = ""; }}
+              />
+              <Button size="sm" variant="outline" asChild>
+                <label htmlFor="benef-csv" className="cursor-pointer"><Upload className="h-4 w-4 mr-1" />Carregar CSV</label>
+              </Button>
+            </div>
           </div>
           <div className="max-h-72 overflow-auto border rounded">
             <Table>
@@ -645,6 +666,18 @@ function FaturamentoDialog({ open, onOpenChange, contrato }: { open: boolean; on
   const total = linhas.reduce((sum, l) => sum + (Number(l.valor_repassado) || 0), 0);
 
   const exportCsv = () => {
+    // Bloco de medição (para empenho/NF — Lei 14.133/2021)
+    const valorUnit = linhas.length ? (total / linhas.length) : 0;
+    const medicao = [
+      `Relatório de Medição`,
+      `Contrato,${contrato.nome}`,
+      `CNPJ,${contrato.cnpj ?? ""}`,
+      `Competência,${inicio} a ${fim}`,
+      `Consultas realizadas,${linhas.length}`,
+      `Valor unitário médio,${valorUnit.toFixed(2).replace(".", ",")}`,
+      `Valor total,${total.toFixed(2).replace(".", ",")}`,
+      ``, // linha em branco separando do detalhamento
+    ];
     const header = ["Data", "Appointment", "Paciente", "Valor"].join(",");
     const rows = linhas.map((l) => [
       new Date(l.created_at).toLocaleString("pt-BR"),
@@ -652,7 +685,7 @@ function FaturamentoDialog({ open, onOpenChange, contrato }: { open: boolean; on
       l.patient_user_id,
       (l.valor_repassado ?? 0).toString().replace(".", ","),
     ].join(","));
-    const csv = [header, ...rows, `Total,,,${total.toString().replace(".", ",")}`].join("\n");
+    const csv = [...medicao, header, ...rows, `Total,,,${total.toString().replace(".", ",")}`].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

@@ -7,6 +7,7 @@ import { PINGO_LOGO_URL } from "@/lib/constants";
 const mascot = PINGO_LOGO_URL;
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useContrato } from "@/contexts/ContratoContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import {
   NavigationMenu,
@@ -59,9 +60,12 @@ const Header = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, profile, signOut } = useAuth();
+  const { contratoAtivo } = useContrato();
   const [scrolled, setScrolled] = useState(false);
 
-  const logoUrl = config?.logo_url || mascot;
+  // White-label: logo do tenant (contrato) tem prioridade sobre o do site.
+  const tenantLogo = (contratoAtivo?.branding as Record<string, unknown> | undefined)?.logo_url;
+  const logoUrl = (typeof tenantLogo === "string" && tenantLogo) || config?.logo_url || mascot;
   const baseMenuItems = config?.menu_items || [
     { label: "Especialidades", href: "/#especialidades" },
     { label: "Para Médicos", href: "/#para-medicos" },
