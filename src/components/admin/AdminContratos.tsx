@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -17,7 +18,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Trash2, Users, Ticket, Briefcase, Handshake, FileText, Download, Upload } from "lucide-react";
+import { Plus, Trash2, Users, Ticket, Briefcase, Handshake, FileText, Download, Upload, Gavel, HeartHandshake, Building2, Search, TrendingUp, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Contrato = {
@@ -72,6 +73,9 @@ const AdminContratos = () => {
   const [vouchOpen, setVouchOpen] = useState(false);
   const [docsOpen, setDocsOpen] = useState(false);
   const [faturaOpen, setFaturaOpen] = useState(false);
+  const [tab, setTab] = useState<"overview" | "licitacoes" | "acoes" | "orgaos">("overview");
+  const [search, setSearch] = useState("");
+  const [statusFiltro, setStatusFiltro] = useState<"todos" | Contrato["status"]>("todos");
 
   const fetch = async () => {
     setLoading(true);
@@ -81,6 +85,38 @@ const AdminContratos = () => {
   };
 
   useEffect(() => { fetch(); }, []);
+
+  // ─── Derivações por aba ────────────────────────────────────────────────
+  const filtrar = (lista: Contrato[]) => {
+    const q = search.trim().toLowerCase();
+    return lista.filter((c) => {
+      if (statusFiltro !== "todos" && c.status !== statusFiltro) return false;
+      if (!q) return true;
+      return (
+        c.nome.toLowerCase().includes(q) ||
+        (c.cnpj ?? "").toLowerCase().includes(q) ||
+        (c.numero_processo ?? "").toLowerCase().includes(q) ||
+        (c.subdominio ?? "").toLowerCase().includes(q)
+      );
+    });
+  };
+
+  const licitacoes = filtrar(contratos.filter((c) => c.tipo === "prefeitura"));
+  const acoes = filtrar(contratos.filter((c) => c.tipo === "ong"));
+  const orgaos = filtrar(contratos.filter((c) => c.tipo === "empresa" || c.tipo === "plano_proprio"));
+
+  // KPIs
+  const totalAtivos = contratos.filter((c) => c.status === "ativo").length;
+  const totalConsumido = contratos.reduce((s, c) => s + (c.cota_utilizada || 0), 0);
+  const totalContratado = contratos.reduce((s, c) => s + (c.cota_total || 0), 0);
+  const valorPrevistoMes = contratos
+    .filter((c) => c.status === "ativo" && c.valor_consulta)
+    .reduce((s, c) => s + Number(c.valor_consulta) * (c.cota_total || 0), 0);
+  const vencendo30d = contratos.filter((c) => {
+    if (!c.vigencia_fim) return false;
+    const diff = (new Date(c.vigencia_fim).getTime() - Date.now()) / 86400000;
+    return diff > 0 && diff <= 30;
+  }).length;
 
   const handleCreate = async () => {
     if (!form.nome.trim()) { toast.error("Nome obrigatório"); return; }
@@ -127,6 +163,97 @@ const AdminContratos = () => {
     return <Badge variant={map[s]}>{s}</Badge>;
   };
 
+  const Kpi = ({ icon: Icon, label, value, accent }: any) => (
+    <Card>
+      <CardContent className="p-4 flex items-center gap-3">
+        <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${accent}`}>
+          <Icon className="h-5 w-5 text-white" />
+        </div>
+        <div>
+          <div className="text-xs text-muted-foreground">{label}</div>
+          <div className="text-lg font-semibold">{value}</div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const Linha = ({ c, mostrarProcesso = false }: { c: Contrato; mostrarProcesso?: boolean }) => (
+    <TableRow key={c.id}>
+      <TableCell className="font-medium">{c.nome}</TableCell>
+      {mostrarProcesso && (
+        <TableCell className="text-xs">
+          {c.numero_processo ? (
+            <div>
+              <div className="font-mono">{c.numero_processo}</div>
+              {c.modalidade_licitacao && <div className="text-muted-foreground">{c.modalidade_licitacao.replace(/_/g, " ")}</div>}
+            </div>
+          ) : "—"}
+        </TableCell>
+      )}
+      <TableCell className="text-xs">{c.modelo_cobranca.replace(/_/g, " ")}</TableCell>
+      <TableCell>
+        {c.cota_utilizada}{c.cota_total ? ` / ${c.cota_total}` : ""}
+        {c.cota_total ? (
+          <div className="h-1 mt-1 bg-muted rounded overflow-hidden">
+            <div
+              className="h-full bg-primary"
+              style={{ width: `${Math.min(100, (c.cota_utilizada / c.cota_total) * 100)}%` }}
+            />
+          </div>
+        ) : null}
+      </TableCell>
+      <TableCell className="text-xs">{c.vigencia_fim ?? "—"}</TableCell>
+      <TableCell>{statusBadge(c.status)}</TableCell>
+      <TableCell className="space-x-1 whitespace-nowrap">
+        <Button size="sm" variant="ghost" onClick={() => { setSelected(c); setBenefOpen(true); }} title="Beneficiários"><Users className="h-4 w-4" /></Button>
+        <Button size="sm" variant="ghost" onClick={() => { setSelected(c); setVouchOpen(true); }} title="Vouchers"><Ticket className="h-4 w-4" /></Button>
+        <Button size="sm" variant="ghost" onClick={() => { setSelected(c); setDocsOpen(true); }} title="Documentos"><FileText className="h-4 w-4" /></Button>
+        <Button size="sm" variant="ghost" onClick={() => { setSelected(c); setFaturaOpen(true); }} title="Faturamento"><Download className="h-4 w-4" /></Button>
+        <Select value={c.status} onValueChange={(v) => updateStatus(c.id, v as Contrato["status"])}>
+          <SelectTrigger className="inline-flex w-24 h-8 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ativo">ativo</SelectItem>
+            <SelectItem value="pausado">pausado</SelectItem>
+            <SelectItem value="encerrado">encerrado</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button size="sm" variant="ghost" onClick={() => removerContrato(c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+      </TableCell>
+    </TableRow>
+  );
+
+  const Tabela = ({ lista, mostrarProcesso = false, vazio }: { lista: Contrato[]; mostrarProcesso?: boolean; vazio: string }) => (
+    <Card>
+      <CardContent className="p-0">
+        {loading ? (
+          <div className="p-8 text-center text-muted-foreground">Carregando...</div>
+        ) : lista.length === 0 ? (
+          <div className="p-8 text-center text-muted-foreground">
+            <Briefcase className="mx-auto mb-2 h-8 w-8 opacity-30" />
+            {vazio}
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                {mostrarProcesso && <TableHead>Processo / Modalidade</TableHead>}
+                <TableHead>Cobrança</TableHead>
+                <TableHead>Cota</TableHead>
+                <TableHead>Vigência</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {lista.map((c) => <Linha key={c.id} c={c} mostrarProcesso={mostrarProcesso} />)}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <DashboardLayout title="Contratos & Ações" nav={nav}>
       <AdminPageHeader
@@ -136,75 +263,63 @@ const AdminContratos = () => {
         accent="from-emerald-500 to-teal-600"
       />
 
-      <div className="flex justify-end mb-4">
+      {/* KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+        <Kpi icon={Handshake} label="Contratos ativos" value={totalAtivos} accent="bg-emerald-500" />
+        <Kpi icon={Gavel} label="Licitações" value={contratos.filter(c => c.tipo === "prefeitura").length} accent="bg-blue-600" />
+        <Kpi icon={HeartHandshake} label="Ações sociais" value={contratos.filter(c => c.tipo === "ong").length} accent="bg-pink-500" />
+        <Kpi icon={TrendingUp} label="Consultas (consumo/cota)" value={`${totalConsumido}${totalContratado ? ` / ${totalContratado}` : ""}`} accent="bg-purple-500" />
+        <Kpi icon={AlertCircle} label="Vencem em 30 dias" value={vencendo30d} accent="bg-amber-500" />
+      </div>
+
+      {/* Toolbar */}
+      <div className="flex flex-col md:flex-row gap-2 md:items-center justify-between mb-3">
+        <div className="flex gap-2 flex-1 max-w-xl">
+          <div className="relative flex-1">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input className="pl-8" placeholder="Buscar por nome, CNPJ, processo, subdomínio..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
+          <Select value={statusFiltro} onValueChange={(v) => setStatusFiltro(v as any)}>
+            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos status</SelectItem>
+              <SelectItem value="ativo">Ativos</SelectItem>
+              <SelectItem value="pausado">Pausados</SelectItem>
+              <SelectItem value="encerrado">Encerrados</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <Button onClick={() => setOpen(true)}><Plus className="mr-2 h-4 w-4" />Novo contrato</Button>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="p-8 text-center text-muted-foreground">Carregando...</div>
-          ) : contratos.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              <Briefcase className="mx-auto mb-2 h-8 w-8 opacity-30" />
-              Nenhum contrato cadastrado ainda.
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Cobrança</TableHead>
-                  <TableHead>Cota</TableHead>
-                  <TableHead>Subdomínio</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {contratos.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell className="font-medium">{c.nome}</TableCell>
-                    <TableCell>{c.tipo}</TableCell>
-                    <TableCell className="text-xs">{c.modelo_cobranca.replace(/_/g, " ")}</TableCell>
-                    <TableCell>{c.cota_utilizada}{c.cota_total ? ` / ${c.cota_total}` : ""}</TableCell>
-                    <TableCell className="text-xs">{c.subdominio ?? "—"}</TableCell>
-                    <TableCell>{statusBadge(c.status)}</TableCell>
-                    <TableCell className="space-x-1">
-                      <Button size="sm" variant="ghost" onClick={() => { setSelected(c); setBenefOpen(true); }} title="Beneficiários">
-                        <Users className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => { setSelected(c); setVouchOpen(true); }} title="Vouchers">
-                        <Ticket className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => { setSelected(c); setDocsOpen(true); }} title="Documentos">
-                        <FileText className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => { setSelected(c); setFaturaOpen(true); }} title="Faturamento">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Select value={c.status} onValueChange={(v) => updateStatus(c.id, v as Contrato["status"])}>
-                        <SelectTrigger className="inline-flex w-28 h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="ativo">ativo</SelectItem>
-                          <SelectItem value="pausado">pausado</SelectItem>
-                          <SelectItem value="encerrado">encerrado</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button size="sm" variant="ghost" onClick={() => removerContrato(c.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      {/* Abas */}
+      <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+        <TabsList className="mb-3">
+          <TabsTrigger value="overview"><Briefcase className="h-4 w-4 mr-1" />Visão geral</TabsTrigger>
+          <TabsTrigger value="licitacoes"><Gavel className="h-4 w-4 mr-1" />Licitações <Badge variant="secondary" className="ml-2">{licitacoes.length}</Badge></TabsTrigger>
+          <TabsTrigger value="acoes"><HeartHandshake className="h-4 w-4 mr-1" />Ações sociais <Badge variant="secondary" className="ml-2">{acoes.length}</Badge></TabsTrigger>
+          <TabsTrigger value="orgaos"><Building2 className="h-4 w-4 mr-1" />Órgãos & Empresas <Badge variant="secondary" className="ml-2">{orgaos.length}</Badge></TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          <div className="text-sm text-muted-foreground mb-2">
+            Valor previsto (cota × valor/consulta dos ativos): <strong className="text-foreground">R$ {valorPrevistoMes.toFixed(2).replace(".", ",")}</strong>
+          </div>
+          <Tabela lista={filtrar(contratos)} mostrarProcesso vazio="Nenhum contrato cadastrado ainda." />
+        </TabsContent>
+
+        <TabsContent value="licitacoes">
+          <Tabela lista={licitacoes} mostrarProcesso vazio="Nenhuma licitação registrada. Crie um contrato do tipo Prefeitura/Órgão público." />
+        </TabsContent>
+
+        <TabsContent value="acoes">
+          <Tabela lista={acoes} vazio="Nenhuma ação social cadastrada. Crie um contrato do tipo ONG/Ação social." />
+        </TabsContent>
+
+        <TabsContent value="orgaos">
+          <Tabela lista={orgaos} vazio="Nenhuma empresa ou plano próprio cadastrado." />
+        </TabsContent>
+      </Tabs>
 
       {/* Dialog: novo contrato */}
       <Dialog open={open} onOpenChange={setOpen}>
