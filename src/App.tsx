@@ -4,6 +4,7 @@ import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ContratoProvider } from "@/contexts/ContratoContext";
 import MaintenanceBanner from "@/components/MaintenanceBanner";
 import ThemeApplier from "@/components/ThemeApplier";
 import { ThemeProvider } from "next-themes";
@@ -91,6 +92,8 @@ const CompanyCheckout = lazy(() => import("./pages/CompanyCheckout"));
 const EmployeeActivate = lazy(() => import("./pages/EmployeeActivate"));
 const TermoTelemedicina = lazy(() => import("./pages/TermoTelemedicina"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
+const ParceirosEntrar = lazy(() => import("./pages/ParceirosEntrar"));
+const AcoesEntrar = lazy(() => import("./pages/AcoesEntrar"));
 
 if (typeof window !== "undefined") {
   const prefetch = () => {
@@ -215,6 +218,8 @@ const AnimatedRoutes = () => {
       <Route path="/funcionario/ativar/:token" element={<EmployeeActivate />} />
       <Route path="/termo-telemedicina" element={<TermoTelemedicina />} />
       <Route path="/onboarding" element={<Onboarding />} />
+      <Route path="/parceiros/entrar" element={<ParceirosEntrar />} />
+      <Route path="/acoes/entrar" element={<AcoesEntrar />} />
 
       <Route
         path="/dashboard/*"
@@ -319,6 +324,7 @@ const App = () => {
               <Sonner />
               <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <AuthProvider>
+                <ContratoProvider>
                   <Suspense fallback={null}>
                     <KeyboardShortcutsProvider />
                     <SubdomainRedirectProvider />
@@ -349,6 +355,7 @@ const App = () => {
                       </Suspense>
                     </ErrorBoundary>
                   )}
+                </ContratoProvider>
                 </AuthProvider>
               </BrowserRouter>
               </ConfirmProvider>
