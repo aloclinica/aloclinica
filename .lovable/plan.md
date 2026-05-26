@@ -1,54 +1,103 @@
-# Melhoria do cadastro de médico
+## Objetivo
 
-Transformar `/medico/cadastro` num wizard de 3 etapas com convite obrigatório, validação automática de CRM (CFM) e upload de documentos já na inscrição.
+Manter a plataforma AloClínica funcionando normalmente para pacientes particulares (B2C via MercadoPago) e adicionar um **subdomínio dedicado** para contratos B2B/B2G e ações sociais, onde beneficiários acessam consultas sem passar pelo checkout.
 
-## Fluxo final
-
+```text
+aloclinica.com.br          → fluxo normal (paciente paga)
+parceiros.aloclinica.com.br → contratos empresa/prefeitura (contratante paga)
+acoes.aloclinica.com.br    → ações sociais (patrocinador paga, voucher)
 ```
-[1] Convite + Email   →   [2] Dados + CRM (auto-valida)   →   [3] Documentos + Senha   →   Aguardando aprovação
+
+Mesma base de código, mesmo banco, mesmos médicos. Muda só **quem paga** e **como o paciente entra**.
+
+---
+
+## Etapa 1 — Banco de dados
+
+Novas tabelas (migration única):
+
+- **`contratos`** — contratante (empresa/prefeitura/ONG), tipo (`empresa | prefeitura | ong | plano_proprio`), modelo de cobrança (`mensal | pacote_pre_pago | gratuito_patrocinado`), vigência, status, limite de consultas, especialidades permitidas, subdomínio vinculado.
+- **`contrato_beneficiarios`** — vínculo CPF/e-mail → contrato. Opcional: cadastro prévio ou auto-cadastro via voucher.
+- **`vouchers`** — código único, contrato_id, validade, usos restantes, especialidades permitidas. Usado em ações sociais.
+- **`consulta_contrato`** — liga `appointments.id` a `contratos.id` para relatório de consumo.
+
+RLS + GRANTs padrão. Admin vê tudo, beneficiário vê só o próprio voucher.
+
+## Etapa 2 — Roteamento por subdomínio
+
+Atualizar `src/hooks/use-subdomain-redirect.ts` adicionando:
+
+```ts
+parceiros: { authRoute: "/parceiros/entrar", dashboardRole: "patient", contratoMode: true },
+acoes:     { authRoute: "/acoes/entrar",     dashboardRole: "patient", vouchersMode: true },
 ```
 
-- **Passo 1** — código de convite + e-mail. Valida em RPC `validate_doctor_invite` (existe, não usado, não expirado, e-mail bate).
-- **Passo 2** — nome, CPF, telefone, CRM + UF, especialidade. Botão "Validar CRM" chama edge function `validate-crm` que consulta o portal do CFM e retorna nome + situação ("Ativo"). Se confere, marca verde e libera passo 3.
-- **Passo 3** — upload de: foto do CRM, RG/CNH (frente), selfie segurando documento. Senha forte. No submit: signUp → signIn → insert `doctor_profiles` → upload no bucket privado `doctor-documents` → consome convite → redireciona para `/aguardando-aprovacao?role=doctor`.
+Criar um **contexto global** `ContratoContext` que detecta o subdomínio e expõe:
+- `isContratoMode: boolean`
+- `isVoucherMode: boolean`
+- `contratoAtivo: Contrato | null`
 
-## Mudanças no banco
+## Etapa 3 — Fluxo do beneficiário (subdomínio `parceiros`)
 
-Migration nova:
+1. Landing simples com logo do contratante (puxado de `contratos.branding`).
+2. Login: CPF + senha (ou primeiro acesso valida contra `contrato_beneficiarios`).
+3. KYC obrigatório (mesma regra atual).
+4. Agendamento normal, **mas no checkout**:
+   - Verifica se o usuário é beneficiário ativo → marca consulta como `paga_por_contrato`.
+   - Pula MercadoPago.
+   - Decrementa cota do contrato.
 
-- `doctor_invites` (code unique, email, expires_at, used_at, used_by, created_by, notes).
-- RPCs `SECURITY DEFINER`:
-  - `validate_doctor_invite(p_code text, p_email text) → boolean` — valida sem consumir.
-  - `consume_doctor_invite(p_code text, p_user_id uuid)` — marca como usado.
-  - `admin_create_doctor_invite(p_email text, p_expires_days int default 30)` — gera código aleatório (admin only).
-- Bucket `doctor-documents` (privado) + policies em `storage.objects` (médico só insere/lê pasta `{auth.uid()}/...`; admin lê tudo).
-- Coluna nova em `doctor_profiles`: `documents jsonb` (URLs dos arquivos enviados).
+## Etapa 4 — Fluxo do voucher (subdomínio `acoes`)
 
-## Edge function
+1. Landing da campanha (ex: "Mutirão Saúde Mental — Prefeitura X").
+2. Paciente insere **código do voucher** + dados básicos.
+3. Cria conta automática, KYC, agenda na especialidade permitida pelo voucher.
+4. Voucher decrementa `usos_restantes`.
 
-`validate-crm`:
-- Input: `{ crm, uf }`
-- Tenta `https://portal.cfm.org.br/api_rest_php/api/v1/medico/buscar_medicos` (POST form-encoded). Retorna `{ ok, name, situation, source }`.
-- Se CFM indisponível retorna `{ ok: false, fallback: true }` e o front permite continuar com `crm_verified=false`.
+## Etapa 5 — Admin (painel interno AloClínica)
 
-## Frontend
+Nova seção `Admin → Contratos`:
+- CRUD de contratos e vouchers.
+- Upload de lista de CPFs beneficiários (CSV).
+- Relatório de consumo por contrato (consultas, valor, especialidades mais usadas).
+- Export PDF/CSV para enviar ao contratante por e-mail.
 
-Reescrever `src/pages/SignupDoctor.tsx`:
-- Componente `DoctorSignupWizard` com `step` 1/2/3, barra de progresso, validação por etapa, animação `motion`.
-- Novo componente `DoctorDocumentsUpload` reutilizável (3 dropzones).
-- Mantém painel lateral atual com benefícios.
-- Mantém uso do cliente `db` (untyped) conforme regra do projeto.
+**Sem painel para o contratante** — gestão 100% interna, conforme já decidido.
+
+## Etapa 6 — Cobrança do contratante
+
+Lógica interna no admin (não automatizada nesta fase):
+- **Pacote pré-pago**: contratante paga X consultas antecipado (boleto/Pix manual).
+- **Mensal pós-pago**: ao fim do mês, admin gera fatura no relatório e envia.
+- **Gratuito patrocinado**: já pago — sem cobrança recorrente.
+
+MercadoPago segue exclusivo para B2C (pacientes particulares). Contratos não passam por gateway nesta fase.
+
+---
 
 ## Detalhes técnicos
 
-- Geração de código de convite: `encode(gen_random_bytes(6), 'hex')` em uppercase (12 chars).
-- Validações zod no client + checagem server-side via RPC.
-- Upload usa `db.storage.from('doctor-documents').upload(\`${userId}/crm.jpg\`, file, { upsert: true })`.
-- Convite é marcado como `used_at = now()` somente após sucesso completo.
-- `signup_doctor_requires_invite` em `site_config` passa a ser respeitado (já era `true`).
-- Admin pode gerar códigos via SQL: `select admin_create_doctor_invite('medico@x.com', 30);` (UI admin fica para próxima iteração).
+- Subdomínios apontam pro mesmo deploy Vercel (já suportado pelo `vercel.json`).
+- DNS: `CNAME parceiros → cname.vercel-dns.com` e `CNAME acoes → cname.vercel-dns.com`.
+- Branding por subdomínio: ler `contratos` por host na primeira carga; cache em `localStorage`.
+- Bypass de checkout: ajustar `src/components/patient/BookAppointment.tsx` para consultar `ContratoContext` antes de invocar MercadoPago.
+- Edge function nova: `validate-voucher` (valida código, retorna especialidades permitidas).
+- Auditoria: toda consulta paga por contrato grava em `audit_logs` com `source=contrato:{id}`.
 
-## Fora de escopo
+## O que NÃO entra agora
 
-- UI admin para gerenciar convites (deferida).
-- Verificação biométrica/CompreFace continua acontecendo depois, no `/kyc`.
+- Painel self-service para contratante (futuro).
+- Integração automática de cobrança recorrente do contratante.
+- SSO corporativo (futuro, se cliente pedir).
+
+---
+
+## Entregáveis
+
+1. Migration com 4 tabelas + RLS + GRANTs.
+2. `ContratoContext` + atualização do `use-subdomain-redirect`.
+3. Páginas `/parceiros/entrar` e `/acoes/entrar`.
+4. Bypass de checkout no fluxo de agendamento.
+5. Edge function `validate-voucher`.
+6. Admin: CRUD contratos + vouchers + upload CSV + relatório.
+7. Documentação atualizada (`docs/CONTRATOS_E_ACOES.md`).

@@ -853,6 +853,61 @@ export type Database = {
         }
         Relationships: []
       }
+      consulta_contrato: {
+        Row: {
+          appointment_id: string
+          beneficiario_id: string | null
+          contrato_id: string
+          created_at: string
+          id: string
+          patient_user_id: string
+          valor_repassado: number | null
+          voucher_id: string | null
+        }
+        Insert: {
+          appointment_id: string
+          beneficiario_id?: string | null
+          contrato_id: string
+          created_at?: string
+          id?: string
+          patient_user_id: string
+          valor_repassado?: number | null
+          voucher_id?: string | null
+        }
+        Update: {
+          appointment_id?: string
+          beneficiario_id?: string | null
+          contrato_id?: string
+          created_at?: string
+          id?: string
+          patient_user_id?: string
+          valor_repassado?: number | null
+          voucher_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consulta_contrato_beneficiario_id_fkey"
+            columns: ["beneficiario_id"]
+            isOneToOne: false
+            referencedRelation: "contrato_beneficiarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consulta_contrato_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consulta_contrato_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "vouchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consultation_notes: {
         Row: {
           appointment_id: string
@@ -914,6 +969,125 @@ export type Database = {
             referencedColumns: ["doctor_id"]
           },
         ]
+      }
+      contrato_beneficiarios: {
+        Row: {
+          ativo: boolean
+          consultas_utilizadas: number
+          contrato_id: string
+          cpf: string | null
+          created_at: string
+          email: string | null
+          id: string
+          limite_individual: number | null
+          nome: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          consultas_utilizadas?: number
+          contrato_id: string
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          limite_individual?: number | null
+          nome?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          consultas_utilizadas?: number
+          contrato_id?: string
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          limite_individual?: number | null
+          nome?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contrato_beneficiarios_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contratos: {
+        Row: {
+          branding: Json | null
+          cnpj: string | null
+          contato_email: string | null
+          contato_nome: string | null
+          contato_telefone: string | null
+          cota_total: number | null
+          cota_utilizada: number
+          created_at: string
+          especialidades_permitidas: string[] | null
+          id: string
+          modelo_cobranca: Database["public"]["Enums"]["contrato_cobranca"]
+          nome: string
+          observacoes: string | null
+          status: Database["public"]["Enums"]["contrato_status"]
+          subdominio: string | null
+          tipo: Database["public"]["Enums"]["contrato_tipo"]
+          updated_at: string
+          valor_consulta: number | null
+          vigencia_fim: string | null
+          vigencia_inicio: string
+        }
+        Insert: {
+          branding?: Json | null
+          cnpj?: string | null
+          contato_email?: string | null
+          contato_nome?: string | null
+          contato_telefone?: string | null
+          cota_total?: number | null
+          cota_utilizada?: number
+          created_at?: string
+          especialidades_permitidas?: string[] | null
+          id?: string
+          modelo_cobranca?: Database["public"]["Enums"]["contrato_cobranca"]
+          nome: string
+          observacoes?: string | null
+          status?: Database["public"]["Enums"]["contrato_status"]
+          subdominio?: string | null
+          tipo: Database["public"]["Enums"]["contrato_tipo"]
+          updated_at?: string
+          valor_consulta?: number | null
+          vigencia_fim?: string | null
+          vigencia_inicio?: string
+        }
+        Update: {
+          branding?: Json | null
+          cnpj?: string | null
+          contato_email?: string | null
+          contato_nome?: string | null
+          contato_telefone?: string | null
+          cota_total?: number | null
+          cota_utilizada?: number
+          created_at?: string
+          especialidades_permitidas?: string[] | null
+          id?: string
+          modelo_cobranca?: Database["public"]["Enums"]["contrato_cobranca"]
+          nome?: string
+          observacoes?: string | null
+          status?: Database["public"]["Enums"]["contrato_status"]
+          subdominio?: string | null
+          tipo?: Database["public"]["Enums"]["contrato_tipo"]
+          updated_at?: string
+          valor_consulta?: number | null
+          vigencia_fim?: string | null
+          vigencia_inicio?: string
+        }
+        Relationships: []
       }
       coupons: {
         Row: {
@@ -5275,6 +5449,59 @@ export type Database = {
           },
         ]
       }
+      vouchers: {
+        Row: {
+          ativo: boolean
+          codigo: string
+          contrato_id: string
+          created_at: string
+          descricao: string | null
+          especialidades_permitidas: string[] | null
+          id: string
+          updated_at: string
+          usos_atuais: number
+          usos_maximos: number
+          validade_fim: string | null
+          validade_inicio: string
+        }
+        Insert: {
+          ativo?: boolean
+          codigo: string
+          contrato_id: string
+          created_at?: string
+          descricao?: string | null
+          especialidades_permitidas?: string[] | null
+          id?: string
+          updated_at?: string
+          usos_atuais?: number
+          usos_maximos?: number
+          validade_fim?: string | null
+          validade_inicio?: string
+        }
+        Update: {
+          ativo?: boolean
+          codigo?: string
+          contrato_id?: string
+          created_at?: string
+          descricao?: string | null
+          especialidades_permitidas?: string[] | null
+          id?: string
+          updated_at?: string
+          usos_atuais?: number
+          usos_maximos?: number
+          validade_fim?: string | null
+          validade_inicio?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vouchers_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet_transactions: {
         Row: {
           amount: number
@@ -5560,6 +5787,9 @@ export type Database = {
         | "confirmed"
       appointment_type: "first_visit" | "return" | "urgency"
       approval_status: "pending" | "approved" | "rejected"
+      contrato_cobranca: "mensal" | "pacote_pre_pago" | "gratuito_patrocinado"
+      contrato_status: "ativo" | "pausado" | "encerrado"
+      contrato_tipo: "empresa" | "prefeitura" | "ong" | "plano_proprio"
       council_type:
         | "CRM"
         | "CRP"
@@ -5732,6 +5962,9 @@ export const Constants = {
       ],
       appointment_type: ["first_visit", "return", "urgency"],
       approval_status: ["pending", "approved", "rejected"],
+      contrato_cobranca: ["mensal", "pacote_pre_pago", "gratuito_patrocinado"],
+      contrato_status: ["ativo", "pausado", "encerrado"],
+      contrato_tipo: ["empresa", "prefeitura", "ong", "plano_proprio"],
       council_type: [
         "CRM",
         "CRP",
