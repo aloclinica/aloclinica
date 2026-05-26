@@ -1,0 +1,56 @@
+# =============================================================
+# Traefik DYNAMIC file-config — habilita subdomínios de tenant (wildcard).
+# Easypanel: adicione/!merge este conteúdo ao dynamic file config do Traefik
+# (o mesmo onde já estão os routers do projeto). NÃO usa labels.
+#
+# Pré-requisitos no SEU ambiente (não dá para automatizar daqui):
+#   1) DNS:  *.aloclinica.com.br  A  72.62.138.208
+#   2) Cert wildcard via DNS-01 (Let's Encrypt não emite wildcard por HTTP-01)
+#      → ver bloco "certificatesResolvers" no static config abaixo.
+# =============================================================
+
+http:
+  routers:
+    # Apex + www (mantém o comportamento atual)
+    aloclinica-apex:
+      rule: "Host(`aloclinica.com.br`) || Host(`www.aloclinica.com.br`)"
+      entryPoints: ["websecure"]
+      service: aloclinica-web
+      tls:
+        certResolver: letsencrypt
+
+    # Qualquer subdomínio de tenant: prefeitura-x.aloclinica.com.br, etc.
+    # Traefik v3 (regex Go). Para Traefik v2, use a variante comentada abaixo.
+    aloclinica-tenants:
+      rule: "HostRegexp(`^[a-z0-9-]+\\.aloclinica\\.com\\.br$`)"
+      # v2: rule: "HostRegexp(`{sub:[a-z0-9-]+}.aloclinica.com.br`)"
+      priority: 1                      # menor que o apex p/ não capturar www
+      entryPoints: ["websecure"]
+      service: aloclinica-web
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: "aloclinica.com.br"
+            sans: ["*.aloclinica.com.br"]
+
+  services:
+    aloclinica-web:
+      loadBalancer:
+        servers:
+          - url: "http://aloclinica-web:80"   # container na rede 'easypanel'
+
+# =============================================================
+# STATIC config do Traefik (traefik.yml / flags) — adicionar UMA vez:
+#
+# certificatesResolvers:
+#   letsencrypt:
+#     acme:
+#       email: admin@aloclinica.com.br
+#       storage: /letsencrypt/acme.json
+#       dnsChallenge:
+#         provider: cloudflare        # troque pelo provedor do seu DNS
+#
+# E exporte o token do provedor como env do container Traefik, ex.:
+#   CF_DNS_API_TOKEN=...   (Cloudflare)
+#   (cada provedor tem suas envs — ver docs.traefik.io/https/acme/#providers)
+# =============================================================
