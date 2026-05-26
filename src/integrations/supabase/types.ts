@@ -1020,6 +1020,47 @@ export type Database = {
           },
         ]
       }
+      contrato_documentos: {
+        Row: {
+          contrato_id: string
+          created_at: string
+          id: string
+          nome: string
+          storage_path: string
+          tamanho_bytes: number | null
+          tipo: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          contrato_id: string
+          created_at?: string
+          id?: string
+          nome: string
+          storage_path: string
+          tamanho_bytes?: number | null
+          tipo: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          contrato_id?: string
+          created_at?: string
+          id?: string
+          nome?: string
+          storage_path?: string
+          tamanho_bytes?: number | null
+          tipo?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contrato_documentos_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contratos: {
         Row: {
           branding: Json | null
@@ -1032,8 +1073,11 @@ export type Database = {
           created_at: string
           especialidades_permitidas: string[] | null
           id: string
+          modalidade_licitacao: string | null
           modelo_cobranca: Database["public"]["Enums"]["contrato_cobranca"]
           nome: string
+          numero_empenho: string | null
+          numero_processo: string | null
           observacoes: string | null
           status: Database["public"]["Enums"]["contrato_status"]
           subdominio: string | null
@@ -1054,8 +1098,11 @@ export type Database = {
           created_at?: string
           especialidades_permitidas?: string[] | null
           id?: string
+          modalidade_licitacao?: string | null
           modelo_cobranca?: Database["public"]["Enums"]["contrato_cobranca"]
           nome: string
+          numero_empenho?: string | null
+          numero_processo?: string | null
           observacoes?: string | null
           status?: Database["public"]["Enums"]["contrato_status"]
           subdominio?: string | null
@@ -1076,8 +1123,11 @@ export type Database = {
           created_at?: string
           especialidades_permitidas?: string[] | null
           id?: string
+          modalidade_licitacao?: string | null
           modelo_cobranca?: Database["public"]["Enums"]["contrato_cobranca"]
           nome?: string
+          numero_empenho?: string | null
+          numero_processo?: string | null
           observacoes?: string | null
           status?: Database["public"]["Enums"]["contrato_status"]
           subdominio?: string | null
