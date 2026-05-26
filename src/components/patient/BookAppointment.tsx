@@ -513,6 +513,16 @@ const BookAppointment = () => {
         }
       } catch { /* ignore */ }
 
+      // Rede de segurança: paciente logado que é beneficiário (por CPF/user_id)
+      // de um contrato ativo é coberto mesmo sem ter entrado pelo portal.
+      if (!coverContratoId) {
+        try {
+          const { data: mc } = await db.rpc("meu_contrato_ativo");
+          const row = Array.isArray(mc) ? mc[0] : mc;
+          if (row?.contrato_id) coverContratoId = row.contrato_id;
+        } catch { /* ignore */ }
+      }
+
       if (coverContratoId) {
         try {
           const { data: cc } = await db.functions.invoke("contrato-checkout", {

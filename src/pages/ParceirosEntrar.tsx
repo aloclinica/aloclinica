@@ -32,20 +32,25 @@ const ParceirosEntrar = () => {
       toast.error("Não foi possível entrar", { description: error?.message });
       return;
     }
-    // Verifica se é beneficiário ativo do contrato
+    // Verifica se é beneficiário ativo do contrato (por user_id, e-mail OU CPF)
     if (contratoAtivo) {
+      const { data: prof } = await db
+        .from("profiles").select("cpf").eq("user_id", data.user.id).maybeSingle();
+      const cpfDigits = (prof?.cpf ?? "").replace(/\D/g, "");
+      const ors = [`user_id.eq.${data.user.id}`, `email.eq.${email.toLowerCase()}`];
+      if (cpfDigits) ors.push(`cpf.eq.${cpfDigits}`, `cpf.eq.${prof!.cpf}`);
       const { data: benef } = await db
         .from("contrato_beneficiarios")
         .select("id, ativo")
         .eq("contrato_id", contratoAtivo.id)
-        .or(`user_id.eq.${data.user.id},email.eq.${email.toLowerCase()}`)
+        .or(ors.join(","))
         .maybeSingle();
       if (!benef || !benef.ativo) {
-        toast.error("Seu e-mail não está vinculado a este contrato. Procure o RH/responsável.");
+        toast.error("Seu CPF/e-mail não está vinculado a este contrato. Procure o responsável.");
         await supabase.auth.signOut();
         return;
       }
-      // Vincula user_id se ainda não estava
+      // Vincula user_id se ainda não estava (acelera logins futuros)
       await db.from("contrato_beneficiarios").update({ user_id: data.user.id }).eq("id", benef.id);
     }
     navigate("/dashboard?role=patient");
