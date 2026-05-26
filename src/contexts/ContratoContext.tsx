@@ -40,39 +40,61 @@ const ContratoContext = createContext<ContratoCtxValue>({
   setVoucherContrato: () => {},
 });
 
-function detectModoFromHost(): { modo: ContratoModo; sub: string | null } {
-  if (typeof window === "undefined") return { modo: "particular", sub: null };
+/** slug de path /p/:slug, se houver */
+function pathSlug(): string | null {
+  if (typeof window === "undefined") return null;
+  const m = window.location.pathname.match(/^\/p\/([a-z0-9-]+)/i);
+  return m ? m[1].toLowerCase() : null;
+}
+
+function detectModoFromHost(): ContratoModo {
+  if (typeof window === "undefined") return "particular";
   const host = window.location.hostname;
-  if (host === "localhost" || host.endsWith(".lovable.app")) {
-    return { modo: "particular", sub: null };
-  }
+  const isLocal = host === "localhost" || host.endsWith(".lovable.app");
   const sub = host.split(".")[0];
-  if (sub === "parceiros") return { modo: "contrato", sub };
-  if (sub === "acoes") return { modo: "voucher", sub };
-  return { modo: "particular", sub: null };
+  if (!isLocal && sub === "acoes") return "voucher";   // entra com voucher (resolve depois)
+  // parceiros / subdomínio de tenant / domínio próprio / path /p/:slug → resolve_tenant
+  return "particular";
 }
 
 export function ContratoProvider({ children }: { children: ReactNode }) {
-  const [{ modo, sub }] = useState(() => detectModoFromHost());
+  const [modoInicial] = useState(detectModoFromHost);
+  const [modo, setModo] = useState<ContratoModo>(modoInicial);
   const [contratoAtivo, setContratoAtivo] = useState<ContratoAtivo | null>(null);
-  const [loading, setLoading] = useState(modo === "contrato");
+  const [loading, setLoading] = useState(modoInicial !== "voucher");
 
   useEffect(() => {
-    if (modo !== "contrato" || !sub) {
-      setLoading(false);
-      return;
+    // Ações sociais resolvem o contrato só após o voucher (setVoucherContrato).
+    if (modoInicial === "voucher") { setLoading(false); return; }
+    const host = typeof window !== "undefined" ? window.location.hostname : "";
+    if (host === "localhost" || host.endsWith(".lovable.app")) {
+      // sem tenant em local, a menos que venha por /p/:slug
+      if (!pathSlug()) { setLoading(false); return; }
     }
     (async () => {
-      const { data } = await db
-        .from("contratos")
-        .select("id,nome,tipo,modelo_cobranca,especialidades_permitidas,branding,status,subdominio")
-        .eq("subdominio", sub)
-        .eq("status", "ativo")
-        .maybeSingle();
-      if (data) setContratoAtivo(data as ContratoAtivo);
+      // resolve_tenant (SECURITY DEFINER) contorna a RLS admin-only de contratos
+      // e cobre subdomínio, path /p/:slug e domínio próprio.
+      const { data, error } = await db.rpc("resolve_tenant", {
+        p_host: host,
+        p_slug: pathSlug(),
+      });
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!error && row) {
+        setContratoAtivo({
+          id: row.contrato_id,
+          nome: row.nome,
+          tipo: row.tipo,
+          modelo_cobranca: row.modelo_cobranca,
+          especialidades_permitidas: row.especialidades_permitidas ?? [],
+          branding: row.branding ?? {},
+          status: "ativo",
+          subdominio: row.subdominio ?? null,
+        });
+        setModo("contrato");
+      }
       setLoading(false);
     })();
-  }, [modo, sub]);
+  }, [modoInicial]);
 
   return (
     <ContratoContext.Provider

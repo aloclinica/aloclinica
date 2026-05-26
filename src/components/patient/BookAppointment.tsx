@@ -27,6 +27,7 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { getFeriadosNacionais } from "@/lib/feriados";
+import { useContrato } from "@/contexts/ContratoContext";
 
 import { getPatientNav } from "./patientNav";
 import {
@@ -46,6 +47,7 @@ const BookAppointment = () => {
   const { doctorId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { isContratoMode, contratoAtivo } = useContrato();
   const kycPending = localStorage.getItem(KYC_PENDING_KEY) === "true";
 
   const [doctor, setDoctor] = useState<DoctorInfo | null>(null);
@@ -498,6 +500,24 @@ const BookAppointment = () => {
 
     if (errorOccurred || !firstApptId) {
       toastError(toast, errorOccurred || "agendamento_falhou", "agendamento");
+    } else if (isContratoMode && contratoAtivo) {
+      // Consulta custeada por contrato (órgão público / ação social / empresa):
+      // valida elegibilidade + consome a cota no servidor e pula o pagamento.
+      try {
+        const { data: cc } = await db.functions.invoke("contrato-checkout", {
+          body: { appointment_id: firstApptId, contrato_id: contratoAtivo.id },
+        });
+        if (cc?.ok) {
+          toast.success("Consulta confirmada pelo contrato! ✅");
+          navigate(`/dashboard/appointments/${firstApptId}/confirmed`);
+          return;
+        }
+        toast.message("Sem cobertura de contrato para este CPF — siga com o pagamento.");
+      } catch (e) {
+        logError("contrato-checkout falhou", e);
+      }
+      setAppointmentId(firstApptId);
+      setPaymentStep(true);
     } else {
       setAppointmentId(firstApptId);
       setPaymentStep(true);

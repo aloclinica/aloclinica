@@ -24,6 +24,8 @@ RETURNS TABLE (
   contrato_id uuid,
   nome text,
   tipo public.contrato_tipo,
+  modelo_cobranca public.contrato_cobranca,
+  especialidades_permitidas text[],
   subdominio text,
   branding jsonb
 )
@@ -38,21 +40,21 @@ DECLARE
   v_sub  text;
 BEGIN
   IF v_slug <> '' THEN
-    RETURN QUERY SELECT c.id, c.nome, c.tipo, c.subdominio, c.branding
+    RETURN QUERY SELECT c.id, c.nome, c.tipo, c.modelo_cobranca, c.especialidades_permitidas, c.subdominio, c.branding
       FROM public.contratos c
       WHERE c.subdominio = v_slug AND c.status = 'ativo' LIMIT 1;
     RETURN;
   END IF;
 
-  RETURN QUERY SELECT c.id, c.nome, c.tipo, c.subdominio, c.branding
+  RETURN QUERY SELECT c.id, c.nome, c.tipo, c.modelo_cobranca, c.especialidades_permitidas, c.subdominio, c.branding
     FROM public.contratos c
     WHERE lower(c.dominio_proprio) = v_host AND c.status = 'ativo' LIMIT 1;
   IF FOUND THEN RETURN; END IF;
 
   IF v_host LIKE '%.aloclinica.com.br' THEN
     v_sub := split_part(v_host, '.', 1);
-    IF v_sub NOT IN ('www','app','api','admin','paciente','medico','clinica','parceiro','laudista','oftalmo','meet','whatsapp','face') THEN
-      RETURN QUERY SELECT c.id, c.nome, c.tipo, c.subdominio, c.branding
+    IF v_sub NOT IN ('www','app','api','admin','paciente','medico','clinica','parceiro','parceiros','acoes','laudista','oftalmo','meet','whatsapp','face') THEN
+      RETURN QUERY SELECT c.id, c.nome, c.tipo, c.modelo_cobranca, c.especialidades_permitidas, c.subdominio, c.branding
         FROM public.contratos c
         WHERE c.subdominio = v_sub AND c.status = 'ativo' LIMIT 1;
     END IF;
