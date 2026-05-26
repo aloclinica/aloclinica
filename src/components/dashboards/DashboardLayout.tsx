@@ -497,6 +497,16 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
   );
   };
 
+  // Modo embed (?embed=1): usado dentro da sala de consulta — sem sidebar/header,
+  // só o conteúdo, pra ferramenta aparecer "dentro da chamada".
+  if (searchParams.get("embed") === "1") {
+    return (
+      <div className="min-h-screen bg-background">
+        <main className="p-3 sm:p-4">{children}</main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-muted/30 flex flex-col">
 

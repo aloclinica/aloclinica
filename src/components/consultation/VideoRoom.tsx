@@ -75,6 +75,8 @@ const VideoRoom = () => {
   const [showInfo, setShowInfo] = useState(false);
   const [splitMode, setSplitMode] = useState(false);
    const [activePanel, setActivePanel] = useState<"chat" | "notes" | "info" | "referral" | null>(null);
+   // Ferramenta aberta SOBRE a chamada (médico não sai do vídeo): {url, título}
+   const [toolOverlay, setToolOverlay] = useState<{ url: string; title: string } | null>(null);
   const presenceLogId = useRef<string | null>(null);
   const videoRef = useRef<VideoConsultationHandle>(null);
   const [webrtcStatus, setWebrtcStatus] = useState<string>("idle");
@@ -1348,17 +1350,17 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
               <ToolbarBtn
                 icon={<Pill className="w-3.5 h-3.5" />}
                 label="Receita"
-                onClick={() => window.open(`/dashboard/prescribe/${appointmentId}`, '_blank')}
+                onClick={() => setToolOverlay({ url: `/dashboard/prescribe/${appointmentId}?embed=1`, title: "Receita / Prescrição" })}
               />
               <ToolbarBtn
                 icon={<FileBadge className="w-3.5 h-3.5" />}
                 label="Atestado"
-                onClick={() => window.open('/dashboard/certificates', '_blank')}
+                onClick={() => setToolOverlay({ url: `/dashboard/certificates?embed=1&appointment=${appointmentId}`, title: "Atestado / Declaração" })}
               />
               <ToolbarBtn
                 icon={<Stethoscope className="w-3.5 h-3.5" />}
                 label="Exames"
-                onClick={() => window.open(`/dashboard/exam-request?appointment=${appointmentId}`, '_blank')}
+                onClick={() => setToolOverlay({ url: `/dashboard/exam-request?embed=1&appointment=${appointmentId}`, title: "Pedido de Exames" })}
               />
               <div className="w-px h-6 bg-[hsl(220,15%,15%)] mx-1" />
               <ToolbarBtn
@@ -1419,6 +1421,31 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
             )}
           </VideoErrorBoundary>
         </div>
+
+        {/* Ferramenta SOBRE a chamada — médico não sai do vídeo (continua rodando atrás) */}
+        {isDoctor && toolOverlay && (
+          <div className="absolute inset-0 z-[60] flex flex-col bg-[hsl(220,20%,8%)]">
+            <div className="flex items-center justify-between px-4 py-2 shrink-0 bg-[hsl(220,15%,12%)] border-b border-[hsl(220,15%,18%)]">
+              <span className="text-sm font-semibold text-white">{toolOverlay.title}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] text-emerald-400 font-medium hidden sm:inline">● Chamada ativa</span>
+                <button
+                  onClick={() => setToolOverlay(null)}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium"
+                  aria-label="Voltar à chamada"
+                >
+                  <X className="w-4 h-4" /> Voltar à chamada
+                </button>
+              </div>
+            </div>
+            <iframe
+              src={toolOverlay.url}
+              title={toolOverlay.title}
+              className="flex-1 w-full border-0 bg-white"
+              allow="clipboard-write; clipboard-read"
+            />
+          </div>
+        )}
 
         {/* Split screen notes (desktop doctor) */}
         {splitMode && isDoctor && !isMobile && (
