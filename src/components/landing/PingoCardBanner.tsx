@@ -23,24 +23,31 @@ const PingoCardBanner = () => {
         className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-white/10 shadow-2xl"
         style={{
           background:
-            "radial-gradient(ellipse at top right, #0b1a3a 0%, #060c1f 55%, #03060f 100%)",
+            "linear-gradient(135deg, hsl(220, 85%, 18%) 0%, hsl(215, 80%, 28%) 35%, hsl(210, 75%, 38%) 70%, hsl(200, 85%, 48%) 100%)",
+          boxShadow:
+            "0 40px 80px -30px hsl(215, 90%, 30% / 0.6), 0 0 0 1px hsl(215, 80%, 60% / 0.15)",
         }}
       >
         {/* Atmospheric glows — blue brand */}
         <div
           aria-hidden
-          className="pointer-events-none absolute top-0 right-0 w-2/3 h-full opacity-60"
-          style={{ background: "radial-gradient(at 65% 35%, hsl(215, 90%, 55% / 0.28), transparent 60%)" }}
+          className="pointer-events-none absolute top-0 right-0 w-2/3 h-full opacity-70"
+          style={{ background: "radial-gradient(at 65% 35%, hsl(195, 100%, 65% / 0.35), transparent 60%)" }}
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -bottom-24 -left-24 w-[28rem] h-[28rem] rounded-full blur-[120px]"
-          style={{ background: "hsl(200, 95%, 55% / 0.18)" }}
+          className="pointer-events-none absolute -bottom-32 -left-32 w-[34rem] h-[34rem] rounded-full blur-[140px]"
+          style={{ background: "hsl(190, 100%, 60% / 0.28)" }}
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute top-1/2 right-1/3 w-72 h-72 rounded-full blur-[100px] opacity-50"
-          style={{ background: "hsl(190, 90%, 55% / 0.15)" }}
+          className="pointer-events-none absolute top-1/4 right-1/4 w-80 h-80 rounded-full blur-[100px] opacity-60"
+          style={{ background: "hsl(180, 95%, 60% / 0.22)" }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-20 left-1/3 w-96 h-96 rounded-full blur-[130px] opacity-50"
+          style={{ background: "hsl(225, 90%, 55% / 0.4)" }}
         />
 
         {/* Stardust texture */}
@@ -95,20 +102,20 @@ const PingoCardBanner = () => {
               transition={{ duration: 0.5, delay: 0.05 }}
               className="space-y-4"
             >
-              <h2 className="text-5xl md:text-5xl lg:text-6xl font-extrabold text-white leading-[1.05] tracking-tight">
+              <h2 className="text-5xl md:text-5xl lg:text-6xl font-extrabold text-white leading-[1.05] tracking-tight drop-shadow-[0_2px_20px_rgba(0,0,0,0.3)]">
                 Seu cartão de
                 <br />
                 <span
                   className="bg-clip-text text-transparent"
                   style={{
                     backgroundImage:
-                      "linear-gradient(90deg, hsl(200, 95%, 75%) 0%, hsl(215, 90%, 70%) 50%, hsl(225, 85%, 65%) 100%)",
+                      "linear-gradient(90deg, hsl(180, 100%, 85%) 0%, hsl(195, 100%, 80%) 50%, hsl(210, 100%, 88%) 100%)",
                   }}
                 >
                   saúde digital.
                 </span>
               </h2>
-              <p className="text-base md:text-lg text-slate-300/80 max-w-lg leading-relaxed">
+              <p className="text-base md:text-lg text-sky-100/85 max-w-lg leading-relaxed">
                 Com o Pingo Card você e sua família têm acesso a consultas
                 online 24h, descontos em farmácias e atendimento prioritário
                 com especialistas — tudo em um único cartão digital.
@@ -126,18 +133,18 @@ const PingoCardBanner = () => {
               {benefits.map(({ icon: Icon, label, hint }) => (
                 <div
                   key={label}
-                  className="group flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl transition-all hover:bg-white/[0.08] hover:border-[hsl(215,90%,55%/0.45)] hover:-translate-y-0.5"
+                  className="group flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/[0.08] border border-white/15 backdrop-blur-xl transition-all hover:bg-white/[0.14] hover:border-white/30 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-10px_hsl(200,100%,50%/0.5)]"
                 >
                   <div
-                    className="w-9 h-9 flex items-center justify-center rounded-xl shrink-0 ring-1 ring-white/10"
+                    className="w-9 h-9 flex items-center justify-center rounded-xl shrink-0 ring-1 ring-white/20 group-hover:ring-white/40 transition"
                     style={{
                       background:
-                        "linear-gradient(135deg, hsl(215, 90%, 55% / 0.25), hsl(200, 95%, 55% / 0.15))",
+                        "linear-gradient(135deg, hsl(195, 100%, 65% / 0.4), hsl(215, 100%, 60% / 0.25))",
                     }}
                   >
                     <Icon
                       className="w-4 h-4"
-                      style={{ color: "hsl(200, 95%, 70%)" }}
+                      style={{ color: "hsl(190, 100%, 85%)" }}
                       strokeWidth={2.5}
                     />
                   </div>
@@ -145,7 +152,7 @@ const PingoCardBanner = () => {
                     <span className="text-sm font-bold text-white leading-tight">
                       {label}
                     </span>
-                    <span className="text-[10.5px] text-slate-400 leading-tight mt-0.5">
+                    <span className="text-[10.5px] text-sky-200/70 leading-tight mt-0.5">
                       {hint}
                     </span>
                   </div>
@@ -169,15 +176,15 @@ const PingoCardBanner = () => {
                 <div
                   aria-hidden
                   className="absolute -inset-1 rounded-2xl blur-lg opacity-40 group-hover:opacity-80 transition duration-500"
-                  style={{ background: "linear-gradient(90deg, hsl(200,95%,55%), hsl(215,90%,55%))" }}
+                  style={{ background: "linear-gradient(90deg, hsl(180,100%,60%), hsl(210,100%,60%), hsl(225,100%,65%))" }}
                 />
                 <div
                   className="relative flex items-center justify-center gap-3 px-10 py-5 rounded-2xl text-white font-bold text-base md:text-lg transition-transform group-hover:-translate-y-0.5"
                   style={{
                     background:
-                      "linear-gradient(135deg, hsl(215, 85%, 48%) 0%, hsl(200, 95%, 45%) 100%)",
+                      "linear-gradient(135deg, hsl(210, 100%, 55%) 0%, hsl(195, 100%, 50%) 50%, hsl(185, 100%, 45%) 100%)",
                     boxShadow:
-                      "0 14px 38px -12px hsl(215, 90%, 50% / 0.7), inset 0 1px 0 rgba(255,255,255,0.18)",
+                      "0 18px 45px -12px hsl(200, 100%, 50% / 0.8), inset 0 1px 0 rgba(255,255,255,0.25)",
                   }}
                 >
                   <Sparkles className="w-4 h-4 opacity-90" strokeWidth={2.5} />
@@ -188,7 +195,7 @@ const PingoCardBanner = () => {
               <button
                 type="button"
                 onClick={() => navigate("/pingo-card")}
-                className="group text-slate-300 hover:text-white font-bold flex items-center gap-2 transition-colors tracking-wide text-sm"
+                className="group text-sky-100/90 hover:text-white font-bold flex items-center gap-2 transition-colors tracking-wide text-sm"
               >
                 Saber mais
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" strokeWidth={2.5} />
@@ -201,15 +208,15 @@ const PingoCardBanner = () => {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="flex items-center gap-4 pt-1 text-[11px] text-slate-400"
+              className="flex items-center gap-4 pt-1 text-[11px] text-sky-100/70"
             >
               <div className="flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5" style={{ color: "hsl(200, 90%, 65%)" }} strokeWidth={2.5} />
+                <ShieldCheck className="w-3.5 h-3.5" style={{ color: "hsl(190, 100%, 80%)" }} strokeWidth={2.5} />
                 Sem fidelidade
               </div>
-              <span className="w-1 h-1 rounded-full bg-slate-600" />
+              <span className="w-1 h-1 rounded-full bg-sky-300/40" />
               <div>Cancele quando quiser</div>
-              <span className="w-1 h-1 rounded-full bg-slate-600" />
+              <span className="w-1 h-1 rounded-full bg-sky-300/40" />
               <div>+12 mil famílias</div>
             </motion.div>
           </div>
