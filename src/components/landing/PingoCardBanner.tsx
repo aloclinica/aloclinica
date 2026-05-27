@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ShieldCheck, Clock, Users, Pill, ArrowRight, Sparkles, Wifi } from "lucide-react";
+import { ShieldCheck, Clock, Users, Pill, ArrowRight, Sparkles } from "lucide-react";
 import pingoCartao from "@/assets/pingo-cartao.png";
 import logoPingo from "@/assets/logo-pingo.png";
 
@@ -275,45 +275,6 @@ const PingoCardBanner = () => {
                 />
               </motion.div>
 
-              {/* Floating realistic credit card */}
-              <motion.div
-                aria-hidden
-                initial={{ opacity: 0, y: -10, rotate: -8 }}
-                animate={{ opacity: 1, y: [0, -10, 0], rotate: [-12, -10, -12] }}
-                transition={{
-                  opacity: { duration: 0.6, delay: 0.3 },
-                  y: { duration: 4.5, ease: "easeInOut", repeat: Infinity },
-                  rotate: { duration: 4.5, ease: "easeInOut", repeat: Infinity },
-                }}
-                className="hidden md:flex absolute top-[8%] -left-4 lg:-left-14 z-30 w-72 aspect-[1.58/1] rounded-2xl border border-white/20 shadow-[0_30px_60px_-12px_rgba(0,0,0,0.85)] p-5 flex-col justify-between overflow-hidden"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #0c4a8a 0%, #0a2e6b 55%, #061a3f 100%)",
-                }}
-              >
-                {/* sheen */}
-                <div aria-hidden className="absolute inset-0 pointer-events-none opacity-40" style={{ background: "radial-gradient(at 85% 15%, rgba(255,255,255,0.35), transparent 55%)" }} />
-                <div className="relative flex justify-between items-start">
-                  <div className="w-11 h-8 rounded-md bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 border border-white/10 shadow-inner" />
-                  <div className="flex items-center gap-1.5">
-                    <img src={logoPingo} alt="" className="w-5 h-5 object-contain drop-shadow" />
-                    <Wifi className="w-3.5 h-3.5 text-white/80 rotate-90" strokeWidth={2.5} />
-                  </div>
-                </div>
-                <div className="relative text-white/90 font-mono tracking-[0.18em] text-[13px]">
-                  •••• •••• •••• 4000
-                </div>
-                <div className="relative flex justify-between items-end">
-                  <div className="flex flex-col">
-                    <span className="text-[7.5px] text-white/50 uppercase font-bold tracking-wider">Titular</span>
-                    <span className="text-[10px] text-white font-black tracking-[0.16em] uppercase">Pingo Card</span>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-[7.5px] text-white/50 uppercase font-bold tracking-wider">Validade</span>
-                    <span className="text-[10px] text-white/90 font-bold">12/29</span>
-                  </div>
-                </div>
-              </motion.div>
             </div>
           </div>
         </div>
