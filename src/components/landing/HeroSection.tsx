@@ -6,6 +6,7 @@ import { usePrefetchRoute } from "@/hooks/use-prefetch-route";
 import OptimizedImage from "@/components/ui/optimized-image";
 import { ArrowRight, Star, CreditCard, VideoCamera, ShieldCheck, Clock, Sparkle, Check, WifiHigh } from "@phosphor-icons/react";
 import heroPingoFamily from "@/assets/hero-pingo-family.png";
+import logoPingo from "@/assets/logo-pingo.png";
 import { isFeatureEnabled } from "@/lib/featureFlags";
 
 const highlights = [
