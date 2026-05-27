@@ -191,48 +191,7 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
                   </h2>
                 </motion.div>
 
-                <div className="space-y-5">
-                  {(sectionData.testimonials?.reviews || []).map((t: any, i: number) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: 24 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                      className="group relative p-6 md:p-7 rounded-[1.75rem] bg-card border border-border/60 shadow-[0_8px_30px_-12px_hsl(var(--primary)/0.12)] hover:shadow-[0_20px_50px_-20px_hsl(var(--primary)/0.25)] hover:-translate-y-1 hover:border-primary/30 transition-all duration-500 overflow-hidden"
-                    >
-                      {/* Accent bar */}
-                      <div className="absolute left-0 top-6 bottom-6 w-1 rounded-r-full bg-gradient-to-b from-primary via-primary/60 to-secondary opacity-70 group-hover:opacity-100 transition-opacity" />
-                      {/* Quote watermark */}
-                      <Quote className="absolute -top-2 -right-2 w-24 h-24 text-primary/[0.06] rotate-180" strokeWidth={1.5} />
-
-                      <div className="relative pl-3">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="flex items-center gap-0.5">
-                            {Array.from({ length: 5 }).map((_, si) => (
-                              <Star key={si} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                            ))}
-                          </div>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-primary/70 bg-primary/8 px-2.5 py-1 rounded-full border border-primary/15">
-                            {t.specialty}
-                          </span>
-                        </div>
-                        <p className="text-base md:text-lg text-foreground/90 mb-5 leading-relaxed font-medium">
-                          "{t.text}"
-                        </p>
-                        <div className="flex items-center gap-3 pt-4 border-t border-border/50">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center font-extrabold text-primary-foreground text-sm shadow-md">
-                            {t.name[0]}
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-foreground leading-tight">{t.name}</p>
-                            <p className="text-xs text-muted-foreground font-medium">{t.city}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+                <TestimonialsMarquee />
               </div>
             </div>
           </div>
