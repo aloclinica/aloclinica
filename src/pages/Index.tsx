@@ -16,6 +16,7 @@ import ConsultaInfoBanner from "@/components/landing/ConsultaInfoBanner";
 import TrustBanner from "@/components/landing/TrustBanner";
 import PingoCardBanner from "@/components/landing/PingoCardBanner";
 import FAQSection from "@/components/landing/FAQSection";
+import TestimonialsMarquee from "@/components/landing/TestimonialsMarquee";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Video, Star, Quote } from "lucide-react";
 import { useSiteSections } from "@/lib/site-sections";
