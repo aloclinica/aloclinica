@@ -4,14 +4,14 @@ import { memo, forwardRef } from "react";
 import { motion } from "framer-motion";
 import { usePrefetchRoute } from "@/hooks/use-prefetch-route";
 import OptimizedImage from "@/components/ui/optimized-image";
-import { ArrowRight, Star, CheckCircle, CreditCard, VideoCamera } from "@phosphor-icons/react";
+import { ArrowRight, Star, CreditCard, VideoCamera, ShieldCheck, Clock, Sparkle } from "@phosphor-icons/react";
 import heroPingoFamily from "@/assets/hero-pingo-family.png";
 import { isFeatureEnabled } from "@/lib/featureFlags";
 
 const highlights = [
-  "Receita digital válida em todo o Brasil",
-  "Atendimento 24h — inclusive feriados",
-  "30+ especialidades médicas",
+  { icon: ShieldCheck, text: "Receita digital válida em todo o Brasil" },
+  { icon: Clock, text: "Atendimento 24h — inclusive feriados" },
+  { icon: Sparkle, text: "30+ especialidades médicas" },
 ];
 
 const HeroSection = memo(
@@ -29,12 +29,13 @@ const HeroSection = memo(
       <section
         ref={ref}
         aria-label="Início"
-        className="relative pt-24 sm:pt-28 lg:pt-32 pb-16 sm:pb-20 lg:pb-24 overflow-hidden bg-[#f0f9ff]"
+        className="relative pt-24 sm:pt-28 lg:pt-32 pb-16 sm:pb-20 lg:pb-24 overflow-hidden bg-gradient-to-b from-[#f0f9ff] via-white to-[#f0f9ff]"
       >
         {/* Ambient glow */}
         <div aria-hidden className="absolute inset-0 -z-10 pointer-events-none">
-          <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full bg-[#0ea5e9]/[0.08] blur-[120px]" />
-          <div className="absolute bottom-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#0284c7]/[0.06] blur-[120px]" />
+          <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full bg-[#0ea5e9]/[0.10] blur-[120px]" />
+          <div className="absolute bottom-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#0284c7]/[0.08] blur-[120px]" />
+          <div className="absolute inset-0 opacity-[0.025] [background-image:radial-gradient(circle_at_1px_1px,#0284c7_1px,transparent_0)] [background-size:24px_24px]" />
         </div>
 
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -45,11 +46,12 @@ const HeroSection = memo(
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="lg:col-span-7 lg:row-span-4 bg-white rounded-3xl p-8 md:p-10 flex flex-col justify-center border border-[#e0f2fe] shadow-sm relative overflow-hidden"
+              className="lg:col-span-7 lg:row-span-4 bg-white/95 backdrop-blur-sm rounded-[28px] p-8 md:p-12 flex flex-col justify-center border border-white shadow-[0_20px_60px_-20px_rgba(2,132,199,0.15)] relative overflow-hidden"
             >
-              <div aria-hidden className="absolute top-0 right-0 w-32 h-32 bg-[#e0f2fe]/50 rounded-bl-full" />
+              <div aria-hidden className="absolute -top-10 -right-10 w-48 h-48 bg-gradient-to-br from-[#e0f2fe] to-transparent rounded-full blur-2xl" />
+              <div aria-hidden className="absolute -bottom-16 -left-10 w-40 h-40 bg-gradient-to-tr from-sky-100/60 to-transparent rounded-full blur-2xl" />
 
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold mb-6 border border-emerald-100 w-fit relative">
+              <div className="inline-flex items-center gap-2 pl-2 pr-3.5 py-1.5 bg-gradient-to-r from-emerald-50 to-emerald-50/50 text-emerald-700 rounded-full text-xs font-semibold mb-6 border border-emerald-200/60 shadow-sm shadow-emerald-100/50 w-fit relative">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
@@ -57,12 +59,15 @@ const HeroSection = memo(
                 {badgeText}
               </div>
 
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#0284c7] leading-[1.05] mb-5 tracking-tight relative">
-                Cuidado médico de <br className="hidden sm:block" />
-                <span className="text-[#0ea5e9]">excelência</span>
+              <h1 className="text-4xl md:text-5xl lg:text-[64px] font-extrabold leading-[1.02] mb-5 tracking-[-0.02em] relative">
+                <span className="text-slate-900">Cuidado médico de </span>
+                <br className="hidden sm:block" />
+                <span className="bg-gradient-to-r from-[#0ea5e9] via-[#0284c7] to-[#0369a1] bg-clip-text text-transparent">
+                  excelência
+                </span>
               </h1>
 
-              <p className="text-base sm:text-lg text-slate-500 max-w-lg mb-8 leading-relaxed relative">
+              <p className="text-base sm:text-lg text-slate-600 max-w-lg mb-8 leading-relaxed relative">
                 {subtitle}
               </p>
 
@@ -71,10 +76,11 @@ const HeroSection = memo(
                   size="lg"
                   onClick={() => navigate(ctaUrl)}
                   onMouseEnter={prefetchPaciente}
-                  className="rounded-2xl h-[60px] px-8 text-base font-bold bg-[#0ea5e9] hover:bg-[#0284c7] text-white shadow-lg shadow-sky-300/40 transition-all duration-300 hover:scale-[1.02] group"
+                  className="relative rounded-2xl h-[60px] px-8 text-base font-bold bg-gradient-to-br from-[#0ea5e9] to-[#0369a1] hover:from-[#0284c7] hover:to-[#075985] text-white shadow-[0_12px_30px_-8px_rgba(2,132,199,0.55)] hover:shadow-[0_18px_40px_-8px_rgba(2,132,199,0.65)] transition-all duration-300 hover:-translate-y-0.5 group overflow-hidden"
                 >
-                  {ctaText}
-                  <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" weight="bold" />
+                  <span aria-hidden className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                  <span className="relative">{ctaText}</span>
+                  <ArrowRight className="relative w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" weight="bold" />
                 </Button>
 
                 <div className="hidden sm:flex items-center gap-2">
@@ -84,11 +90,16 @@ const HeroSection = memo(
                         <img src={`https://i.pravatar.cc/80?u=${i}`} alt="Paciente" className="w-full h-full object-cover" loading="lazy" />
                       </div>
                     ))}
-                    <div className="w-10 h-10 rounded-full bg-[#e0f2fe] border-2 border-white flex items-center justify-center text-[10px] font-bold text-[#0284c7]">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0ea5e9] to-[#0369a1] border-2 border-white flex items-center justify-center text-[10px] font-bold text-white shadow-md">
                       +12k
                     </div>
                   </div>
-                  <span className="text-xs text-slate-500 font-medium ml-1">pacientes atendidos</span>
+                  <div className="ml-1 leading-tight">
+                    <div className="flex items-center gap-0.5 text-amber-400">
+                      {[1,2,3,4,5].map((i)=>(<Star key={i} className="w-3 h-3" weight="fill" />))}
+                    </div>
+                    <span className="text-[11px] text-slate-500 font-medium">+12k pacientes atendidos</span>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -190,14 +201,14 @@ const HeroSection = memo(
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className={`${showPingo ? "lg:col-span-3" : "lg:col-span-7"} lg:row-span-2 bg-white rounded-3xl p-6 border border-[#e0f2fe] flex flex-col gap-3 justify-center shadow-sm`}
+              className={`${showPingo ? "lg:col-span-3" : "lg:col-span-7"} lg:row-span-2 bg-white/95 backdrop-blur-sm rounded-3xl p-6 border border-white shadow-[0_12px_40px_-16px_rgba(2,132,199,0.18)] flex flex-col gap-3 justify-center`}
             >
-              {highlights.map((h) => (
-                <div key={h} className="flex items-center gap-3">
-                  <div className="bg-sky-100 p-2 rounded-lg flex-shrink-0">
-                    <CheckCircle className="w-4 h-4 text-[#0ea5e9]" weight="fill" />
+              {highlights.map(({ icon: Icon, text }) => (
+                <div key={text} className="flex items-center gap-3 group">
+                  <div className="bg-gradient-to-br from-sky-50 to-sky-100 p-2 rounded-lg flex-shrink-0 ring-1 ring-sky-100 group-hover:scale-110 transition-transform">
+                    <Icon className="w-4 h-4 text-[#0284c7]" weight="fill" />
                   </div>
-                  <p className="text-sm font-semibold text-slate-700">{h}</p>
+                  <p className="text-sm font-semibold text-slate-700 leading-snug">{text}</p>
                 </div>
               ))}
             </motion.div>

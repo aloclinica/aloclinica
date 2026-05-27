@@ -1071,6 +1071,7 @@ export type Database = {
           cota_total: number | null
           cota_utilizada: number
           created_at: string
+          dominio_proprio: string | null
           especialidades_permitidas: string[] | null
           id: string
           modalidade_licitacao: string | null
@@ -1096,6 +1097,7 @@ export type Database = {
           cota_total?: number | null
           cota_utilizada?: number
           created_at?: string
+          dominio_proprio?: string | null
           especialidades_permitidas?: string[] | null
           id?: string
           modalidade_licitacao?: string | null
@@ -1121,6 +1123,7 @@ export type Database = {
           cota_total?: number | null
           cota_utilizada?: number
           created_at?: string
+          dominio_proprio?: string | null
           especialidades_permitidas?: string[] | null
           id?: string
           modalidade_licitacao?: string | null
@@ -5733,6 +5736,20 @@ export type Database = {
       fn_auto_no_show: { Args: never; Returns: undefined }
       fn_auto_pause_doctor_no_shows: { Args: never; Returns: undefined }
       fn_calculate_doctor_risk_score: { Args: never; Returns: undefined }
+      fn_consumir_contrato: {
+        Args: {
+          p_appointment_id: string
+          p_contrato_id: string
+          p_cpf?: string
+          p_patient_user_id: string
+          p_voucher_codigo?: string
+        }
+        Returns: Json
+      }
+      fn_contrato_elegivel: {
+        Args: { p_contrato_id: string; p_cpf?: string; p_user_id?: string }
+        Returns: boolean
+      }
       fn_detect_churn: { Args: never; Returns: undefined }
       fn_doctor_onboarding_progress: {
         Args: { p_user_id: string }
@@ -5766,6 +5783,10 @@ export type Database = {
       }
       fn_subscription_retry: { Args: never; Returns: undefined }
       fn_suggest_price_increase: { Args: never; Returns: undefined }
+      fn_trigger_edge_email: {
+        Args: { p_data: Json; p_to: string; p_type: string }
+        Returns: undefined
+      }
       get_active_theme: { Args: never; Returns: Json }
       get_maintenance_status: { Args: never; Returns: Json }
       get_public_doctor_profile: {
@@ -5785,7 +5806,30 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       mark_no_shows: { Args: never; Returns: undefined }
+      meu_contrato_ativo: {
+        Args: never
+        Returns: {
+          branding: Json
+          contrato_id: string
+          especialidades_permitidas: string[]
+          modelo_cobranca: Database["public"]["Enums"]["contrato_cobranca"]
+          nome: string
+          tipo: Database["public"]["Enums"]["contrato_tipo"]
+        }[]
+      }
       resolve_doctor_slug: { Args: { p_slug: string }; Returns: string }
+      resolve_tenant: {
+        Args: { p_host?: string; p_slug?: string }
+        Returns: {
+          branding: Json
+          contrato_id: string
+          especialidades_permitidas: string[]
+          modelo_cobranca: Database["public"]["Enums"]["contrato_cobranca"]
+          nome: string
+          subdominio: string
+          tipo: Database["public"]["Enums"]["contrato_tipo"]
+        }[]
+      }
       search_doctor_by_name: { Args: { p_query: string }; Returns: Json[] }
       validate_doctor_signup_invite: {
         Args: { p_code: string; p_email: string }
@@ -5800,6 +5844,18 @@ export type Database = {
           is_valid: boolean
           patient_name_masked: string
           verified_at: string
+        }[]
+      }
+      verify_document_public: {
+        Args: { p_code: string }
+        Returns: {
+          details: Json
+          doctor_crm: string
+          doctor_name: string
+          document_type: string
+          issued_at: string
+          patient_name: string
+          verification_code: string
         }[]
       }
       verify_prescription_code: {
