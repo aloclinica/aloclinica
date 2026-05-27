@@ -1,13 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ShieldCheck, Clock, Users, Pill, ArrowRight } from "lucide-react";
+import { ShieldCheck, Clock, Users, Pill, ArrowRight, Sparkles, Wifi } from "lucide-react";
 import pingoCartao from "@/assets/pingo-cartao.png";
+import logoPingo from "@/assets/logo-pingo.png";
 
 const benefits = [
-  { icon: Clock, label: "Consultas 24h" },
-  { icon: Pill, label: "Desconto Farmácia" },
-  { icon: Users, label: "Toda a família" },
-  { icon: ShieldCheck, label: "Prioridade" },
+  { icon: Clock, label: "Consultas 24h", hint: "Atendimento imediato" },
+  { icon: Pill, label: "Desconto Farmácia", hint: "Até 70% off" },
+  { icon: Users, label: "Toda a família", hint: "Até 4 dependentes" },
+  { icon: ShieldCheck, label: "Prioridade", hint: "Fila preferencial" },
 ];
 
 const PingoCardBanner = () => {
@@ -16,22 +17,30 @@ const PingoCardBanner = () => {
   return (
     <section
       aria-label="Pingo Card - Cartão de saúde digital"
-      className="relative w-full px-4 sm:px-6 lg:px-8 py-12"
+      className="relative w-full px-4 sm:px-6 lg:px-8 py-16"
     >
       <div
         className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-white/10 shadow-2xl"
-        style={{ background: "#050b1a" }}
+        style={{
+          background:
+            "radial-gradient(ellipse at top right, #0b1a3a 0%, #060c1f 55%, #03060f 100%)",
+        }}
       >
-        {/* Atmospheric glows */}
+        {/* Atmospheric glows — blue brand */}
         <div
           aria-hidden
-          className="pointer-events-none absolute top-0 right-0 w-2/3 h-full opacity-40"
-          style={{ background: "radial-gradient(at 60% 40%, hsl(168, 70%, 45% / 0.20), transparent 60%)" }}
+          className="pointer-events-none absolute top-0 right-0 w-2/3 h-full opacity-60"
+          style={{ background: "radial-gradient(at 65% 35%, hsl(215, 90%, 55% / 0.28), transparent 60%)" }}
         />
         <div
           aria-hidden
           className="pointer-events-none absolute -bottom-24 -left-24 w-[28rem] h-[28rem] rounded-full blur-[120px]"
-          style={{ background: "hsl(220, 90%, 50% / 0.10)" }}
+          style={{ background: "hsl(200, 95%, 55% / 0.18)" }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute top-1/2 right-1/3 w-72 h-72 rounded-full blur-[100px] opacity-50"
+          style={{ background: "hsl(190, 90%, 55% / 0.15)" }}
         />
 
         {/* Stardust texture */}
@@ -45,10 +54,17 @@ const PingoCardBanner = () => {
           }}
         />
 
-        {/* Corner accents */}
-        <div aria-hidden className="absolute top-0 left-0 w-48 h-48 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
-        <div aria-hidden className="absolute bottom-0 right-0 w-48 h-48 pointer-events-none"
-          style={{ background: "linear-gradient(to top left, hsl(168, 70%, 45% / 0.08), transparent)" }} />
+        {/* Grid lines for depth */}
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
+            backgroundSize: "64px 64px",
+            maskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+          }}
+        />
 
         <div className="relative z-10 grid lg:grid-cols-12 items-center gap-8 lg:gap-6 p-8 md:p-12 lg:p-16">
           {/* Left content */}
@@ -58,16 +74,16 @@ const PingoCardBanner = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4 }}
-              className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md w-fit"
+              className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/[0.06] border border-white/10 backdrop-blur-md w-fit"
             >
               <span
                 className="flex h-2 w-2 rounded-full animate-pulse"
                 style={{
-                  background: "hsl(168, 70%, 55%)",
-                  boxShadow: "0 0 10px hsl(168, 70%, 55%)",
+                  background: "hsl(200, 95%, 60%)",
+                  boxShadow: "0 0 10px hsl(200, 95%, 60%)",
                 }}
               />
-              <span className="text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: "hsl(168, 70%, 75%)" }}>
+              <span className="text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: "hsl(200, 90%, 80%)" }}>
                 Novo • Pingo Card
               </span>
             </motion.div>
@@ -86,13 +102,13 @@ const PingoCardBanner = () => {
                   className="bg-clip-text text-transparent"
                   style={{
                     backgroundImage:
-                      "linear-gradient(90deg, hsl(168, 70%, 70%) 0%, hsl(160, 65%, 70%) 50%, hsl(168, 70%, 55%) 100%)",
+                      "linear-gradient(90deg, hsl(200, 95%, 75%) 0%, hsl(215, 90%, 70%) 50%, hsl(225, 85%, 65%) 100%)",
                   }}
                 >
                   saúde digital.
                 </span>
               </h2>
-              <p className="text-base md:text-lg text-slate-400 max-w-lg leading-relaxed">
+              <p className="text-base md:text-lg text-slate-300/80 max-w-lg leading-relaxed">
                 Com o Pingo Card você e sua família têm acesso a consultas
                 online 24h, descontos em farmácias e atendimento prioritário
                 com especialistas — tudo em um único cartão digital.
@@ -107,24 +123,32 @@ const PingoCardBanner = () => {
               transition={{ duration: 0.5, delay: 0.15 }}
               className="grid grid-cols-2 gap-3 max-w-lg"
             >
-              {benefits.map(({ icon: Icon, label }) => (
+              {benefits.map(({ icon: Icon, label, hint }) => (
                 <div
                   key={label}
-                  className="flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl transition-all hover:bg-white/10 hover:border-[hsl(168,70%,45%/0.4)]"
+                  className="group flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl transition-all hover:bg-white/[0.08] hover:border-[hsl(215,90%,55%/0.45)] hover:-translate-y-0.5"
                 >
                   <div
-                    className="w-8 h-8 flex items-center justify-center rounded-lg shrink-0"
-                    style={{ background: "hsl(168, 70%, 45% / 0.12)" }}
+                    className="w-9 h-9 flex items-center justify-center rounded-xl shrink-0 ring-1 ring-white/10"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, hsl(215, 90%, 55% / 0.25), hsl(200, 95%, 55% / 0.15))",
+                    }}
                   >
                     <Icon
                       className="w-4 h-4"
-                      style={{ color: "hsl(168, 70%, 60%)" }}
+                      style={{ color: "hsl(200, 95%, 70%)" }}
                       strokeWidth={2.5}
                     />
                   </div>
-                  <span className="text-sm font-semibold text-slate-200">
-                    {label}
-                  </span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-bold text-white leading-tight">
+                      {label}
+                    </span>
+                    <span className="text-[10.5px] text-slate-400 leading-tight mt-0.5">
+                      {hint}
+                    </span>
+                  </div>
                 </div>
               ))}
             </motion.div>
@@ -144,16 +168,19 @@ const PingoCardBanner = () => {
               >
                 <div
                   aria-hidden
-                  className="absolute -inset-1 rounded-2xl blur-lg opacity-30 group-hover:opacity-60 transition duration-500"
-                  style={{ background: "hsl(168, 70%, 45%)" }}
+                  className="absolute -inset-1 rounded-2xl blur-lg opacity-40 group-hover:opacity-80 transition duration-500"
+                  style={{ background: "linear-gradient(90deg, hsl(200,95%,55%), hsl(215,90%,55%))" }}
                 />
                 <div
-                  className="relative flex items-center justify-center gap-3 px-10 py-5 rounded-2xl text-white font-bold text-base md:text-lg transition-all"
+                  className="relative flex items-center justify-center gap-3 px-10 py-5 rounded-2xl text-white font-bold text-base md:text-lg transition-transform group-hover:-translate-y-0.5"
                   style={{
-                    background: "hsl(215, 80%, 45%)",
-                    boxShadow: "0 10px 30px -10px hsl(215, 80%, 45% / 0.6)",
+                    background:
+                      "linear-gradient(135deg, hsl(215, 85%, 48%) 0%, hsl(200, 95%, 45%) 100%)",
+                    boxShadow:
+                      "0 14px 38px -12px hsl(215, 90%, 50% / 0.7), inset 0 1px 0 rgba(255,255,255,0.18)",
                   }}
                 >
+                  <Sparkles className="w-4 h-4 opacity-90" strokeWidth={2.5} />
                   Assinar agora · R$ 29/mês
                   <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" strokeWidth={2.5} />
                 </div>
@@ -161,35 +188,69 @@ const PingoCardBanner = () => {
               <button
                 type="button"
                 onClick={() => navigate("/pingo-card")}
-                className="text-slate-400 hover:text-white font-bold flex items-center gap-2 transition-colors tracking-wide text-sm"
+                className="group text-slate-300 hover:text-white font-bold flex items-center gap-2 transition-colors tracking-wide text-sm"
               >
                 Saber mais
-                <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" strokeWidth={2.5} />
               </button>
+            </motion.div>
+
+            {/* Trust line */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="flex items-center gap-4 pt-1 text-[11px] text-slate-400"
+            >
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5" style={{ color: "hsl(200, 90%, 65%)" }} strokeWidth={2.5} />
+                Sem fidelidade
+              </div>
+              <span className="w-1 h-1 rounded-full bg-slate-600" />
+              <div>Cancele quando quiser</div>
+              <span className="w-1 h-1 rounded-full bg-slate-600" />
+              <div>+12 mil famílias</div>
             </motion.div>
           </div>
 
           {/* Right — mascot + floating card */}
-          <div className="relative flex justify-center lg:justify-end items-end min-h-[360px] lg:min-h-[480px] lg:col-span-5">
-            <div className="relative w-full max-w-[520px] h-full flex items-end">
+          <div className="relative flex justify-center lg:justify-end items-end min-h-[380px] lg:min-h-[500px] lg:col-span-5">
+            <div className="relative w-full max-w-[520px] h-full flex items-end justify-center">
+              {/* Soft radial spotlight behind mascot */}
+              <div
+                aria-hidden
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background:
+                    "radial-gradient(ellipse at 55% 55%, hsl(215, 90%, 55% / 0.25), transparent 60%)",
+                }}
+              />
               {/* Rim light */}
               <div
                 aria-hidden
-                className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[120%] h-[60%] rounded-full blur-[80px] opacity-50"
-                style={{ background: "radial-gradient(at 50% 70%, hsl(168, 70%, 45% / 0.30), transparent 70%)" }}
+                className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[120%] h-[60%] rounded-full blur-[80px] opacity-60"
+                style={{ background: "radial-gradient(at 50% 70%, hsl(215, 90%, 55% / 0.35), transparent 70%)" }}
               />
               <div
                 aria-hidden
                 className="absolute bottom-[15%] right-0 w-32 h-32 rounded-full blur-[60px]"
-                style={{ background: "hsl(168, 70%, 55% / 0.20)" }}
+                style={{ background: "hsl(200, 95%, 60% / 0.25)" }}
+              />
+              {/* Ground shadow under mascot */}
+              <div
+                aria-hidden
+                className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[70%] h-6 rounded-[50%] blur-xl opacity-70"
+                style={{ background: "radial-gradient(ellipse, rgba(0,0,0,0.7), transparent 70%)" }}
               />
 
-              {/* Mascot */}
+              {/* Mascot — multiply blend hides the white photo bg */}
               <motion.img
                 src={pingoCartao}
                 alt="Pingo segurando o Pingo Card"
                 loading="lazy"
                 className="relative z-10 w-full h-auto select-none drop-shadow-[0_30px_50px_rgba(0,0,0,0.55)]"
+                style={{ mixBlendMode: "screen", filter: "drop-shadow(0 30px 50px rgba(0,0,0,0.55))" }}
                 animate={{ y: [0, -12, 0] }}
                 transition={{ duration: 5, ease: "easeInOut", repeat: Infinity }}
                 draggable={false}
@@ -205,33 +266,34 @@ const PingoCardBanner = () => {
                   y: { duration: 4.5, ease: "easeInOut", repeat: Infinity },
                   rotate: { duration: 4.5, ease: "easeInOut", repeat: Infinity },
                 }}
-                className="hidden md:flex absolute top-[8%] -left-4 lg:-left-12 z-30 w-64 aspect-[1.58/1] rounded-2xl border border-white/20 shadow-[0_30px_60px_-12px_rgba(0,0,0,0.8)] p-5 flex-col justify-between overflow-hidden"
+                className="hidden md:flex absolute top-[8%] -left-4 lg:-left-14 z-30 w-72 aspect-[1.58/1] rounded-2xl border border-white/20 shadow-[0_30px_60px_-12px_rgba(0,0,0,0.85)] p-5 flex-col justify-between overflow-hidden"
                 style={{
                   background:
-                    "linear-gradient(135deg, #1e293b 0%, #0f172a 55%, #020617 100%)",
+                    "linear-gradient(135deg, #0c4a8a 0%, #0a2e6b 55%, #061a3f 100%)",
                 }}
               >
-                <div className="flex justify-between items-start">
+                {/* sheen */}
+                <div aria-hidden className="absolute inset-0 pointer-events-none opacity-40" style={{ background: "radial-gradient(at 85% 15%, rgba(255,255,255,0.35), transparent 55%)" }} />
+                <div className="relative flex justify-between items-start">
                   <div className="w-11 h-8 rounded-md bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 border border-white/10 shadow-inner" />
-                  <div className="text-[10px] text-white font-black tracking-[0.18em] italic opacity-90 uppercase">
-                    Pingo Card
+                  <div className="flex items-center gap-1.5">
+                    <img src={logoPingo} alt="" className="w-5 h-5 object-contain drop-shadow" />
+                    <Wifi className="w-3.5 h-3.5 text-white/80 rotate-90" strokeWidth={2.5} />
                   </div>
                 </div>
-                <div className="text-white/90 font-mono tracking-[0.18em] text-[13px]">
+                <div className="relative text-white/90 font-mono tracking-[0.18em] text-[13px]">
                   •••• •••• •••• 4000
                 </div>
-                <div className="flex justify-between items-end">
-                  <div className="text-[8.5px] text-white/50 uppercase font-bold tracking-wider">
-                    Exp 12/29
+                <div className="relative flex justify-between items-end">
+                  <div className="flex flex-col">
+                    <span className="text-[7.5px] text-white/50 uppercase font-bold tracking-wider">Titular</span>
+                    <span className="text-[10px] text-white font-black tracking-[0.16em] uppercase">Pingo Card</span>
                   </div>
-                  <div className="flex -space-x-3 opacity-90">
-                    <div className="w-7 h-7 rounded-full backdrop-blur-sm" style={{ background: "hsl(168, 70%, 45% / 0.55)" }} />
-                    <div className="w-7 h-7 rounded-full backdrop-blur-sm border border-white/10" style={{ background: "hsl(215, 80%, 50% / 0.55)" }} />
+                  <div className="flex flex-col items-end">
+                    <span className="text-[7.5px] text-white/50 uppercase font-bold tracking-wider">Validade</span>
+                    <span className="text-[10px] text-white/90 font-bold">12/29</span>
                   </div>
                 </div>
-                {/* shine */}
-                <div aria-hidden className="absolute inset-0 pointer-events-none rounded-2xl"
-                  style={{ background: "linear-gradient(to top right, rgba(255,255,255,0.10), transparent 60%)" }} />
               </motion.div>
             </div>
           </div>
