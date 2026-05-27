@@ -61,6 +61,7 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
       
       {isOn("header") && <Header config={sectionData.header} />}
       {isOn("hero") && <HeroSection config={sectionData.hero} />}
+      <SpecialtiesSection config={sectionData.specialties} />
       <PingoRunBanner />
 
       {/* ═══════════════ AGENDAR CONSULTA ═══════════════ */}
