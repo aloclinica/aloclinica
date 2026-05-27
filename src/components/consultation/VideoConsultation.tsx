@@ -390,8 +390,9 @@ const VideoConsultation = forwardRef<VideoConsultationHandle, VideoConsultationP
                   : "border-white/20 text-white hover:bg-white/10"
               }`}
               title={isScreenSharing ? "Parar compartilhamento" : "Compartilhar tela"}
+              aria-label={isScreenSharing ? "Parar compartilhamento de tela" : "Compartilhar tela"}
             >
-              {isScreenSharing ? <Monitor className="w-5 h-5" /> : <MonitorOff className="w-5 h-5" />}
+              {isScreenSharing ? <MonitorOff className="w-5 h-5" /> : <Monitor className="w-5 h-5" />}
             </Button>
 
             <Button
