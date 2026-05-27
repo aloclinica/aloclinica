@@ -79,6 +79,7 @@ const OphthalmologyPrescriptionForm = lazy(() => import("@/components/ophthalmol
 const OphthalmologyMyExams = lazy(() => import("@/components/ophthalmology/OphthalmologyMyExams"));
 const OphthalmologyEditExam = lazy(() => import("@/components/ophthalmology/OphthalmologyEditExam"));
 const PrescriptionForm = lazy(() => import("@/components/consultation/PrescriptionForm"));
+const ExamRequestForm = lazy(() => import("@/components/doctor/ExamRequestForm"));
 const RateConsultationPage = lazy(() => import("@/components/patient/RateConsultationPage"));
 const PreConsultationPage = lazy(() => import("@/components/patient/PreConsultationPage"));
 const ChatPage = lazy(() => import("@/components/chat/ChatPage"));
@@ -324,6 +325,7 @@ const Dashboard = () => {
       {/* Consultation */}
       <Route path="consultation/:appointmentId" element={<RoleGuard allowed={["doctor", "patient"]} roles={roles}><KycRequiredGate reason="Para entrar em uma consulta por vídeo, sua identidade precisa estar verificada. É exigência do CFM (Resolução 2.314/2022)."><VideoRoom /></KycRequiredGate></RoleGuard>} />
       <Route path="prescribe/:appointmentId" element={<RoleGuard allowed={["doctor"]} roles={roles}><PrescriptionForm /></RoleGuard>} />
+      <Route path="exam-request" element={<RoleGuard allowed={["doctor"]} roles={roles}><ContextGuard panel="doctor" forceRole={forceRole} roles={roles}><ExamRequestForm /></ContextGuard></RoleGuard>} />
       <Route path="rate/:appointmentId" element={<RoleGuard allowed={["patient"]} roles={roles}><RateConsultationPage /></RoleGuard>} />
       <Route path="pre-consultation/:appointmentId" element={<RoleGuard allowed={["patient"]} roles={roles}><PreConsultationPage /></RoleGuard>} />
       <Route path="doctor-profile/:doctorId" element={<DoctorPublicProfile />} />
