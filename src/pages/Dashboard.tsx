@@ -21,6 +21,7 @@ const ReceptionDashboard = lazy(() => import("@/components/dashboards/ReceptionD
 const SupportDashboard = lazy(() => import("@/components/dashboards/SupportDashboard"));
 const PartnerDashboard = lazy(() => import("@/components/dashboards/PartnerDashboard")); // kept for admin view-as
 const CartaoDashboard = lazy(() => import("@/components/dashboards/CartaoDashboard"));
+const OrgaoDashboard = lazy(() => import("@/components/dashboards/OrgaoDashboard"));
 
 // ── Cartão Benefícios sub-pages ──
 const CarteirinhaDigital = lazy(() => import("@/components/cartao/CarteirinhaDigital"));
@@ -208,7 +209,7 @@ const Dashboard = () => {
   if (!user) return <Navigate to="/paciente" replace />;
 
   const isAdmin = roles.includes("admin");
-  const validForceRoles = ["patient", "doctor", "support", "admin", "ophthalmologist", "cartao_beneficios"];
+  const validForceRoles = ["patient", "doctor", "support", "admin", "ophthalmologist", "cartao_beneficios", "contract_manager"];
 
   // Allow any user to use ?role= IF they actually have that role (not just admins)
   const primaryRole = (() => {
@@ -227,6 +228,7 @@ const Dashboard = () => {
     if (roles.includes("clinic")) return "clinic";
     if (roles.includes("partner")) return "partner";
     if (roles.includes("cartao_beneficios")) return "cartao_beneficios";
+    if (roles.includes("contract_manager" as any)) return "contract_manager";
     return "patient";
   })();
 
@@ -241,6 +243,7 @@ const Dashboard = () => {
       case "clinic": return <ClinicDashboard />;
       case "partner": return <PartnerDashboard />;
       case "cartao_beneficios": return <CartaoDashboard />;
+      case "contract_manager": return <OrgaoDashboard />;
       default: return <PatientDashboard />;
     }
   };
@@ -260,6 +263,7 @@ const Dashboard = () => {
       <Route path="receptionist" element={<RoleGuard allowed={["receptionist"]} roles={roles}><ContextGuard panel="receptionist" forceRole={forceRole} roles={roles}><ReceptionDashboard /></ContextGuard></RoleGuard>} />
       <Route path="support" element={<RoleGuard allowed={["support"]} roles={roles}><ContextGuard panel="support" forceRole={forceRole} roles={roles}><SupportDashboard /></ContextGuard></RoleGuard>} />
       <Route path="partner" element={<RoleGuard allowed={["partner"]} roles={roles}><ContextGuard panel="partner" forceRole={forceRole} roles={roles}><PartnerDashboard /></ContextGuard></RoleGuard>} />
+      <Route path="orgao" element={<RoleGuard allowed={["contract_manager"]} roles={roles}><OrgaoDashboard /></RoleGuard>} />
 
       {/* Shared — preserve ?role context */}
       <Route path="profile" element={<UserProfile />} />

@@ -1424,7 +1424,7 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
 
         {/* Ferramenta SOBRE a chamada — médico não sai do vídeo (continua rodando atrás) */}
         {isDoctor && toolOverlay && (
-          <div className="absolute inset-0 z-[60] flex flex-col bg-[hsl(220,20%,8%)]">
+          <div className={`absolute z-[60] flex flex-col bg-[hsl(220,20%,8%)] ${isMobile ? "inset-0" : "inset-y-0 right-0 w-[58%] border-l border-[hsl(220,15%,18%)] shadow-2xl"}`}>
             <div className="flex items-center justify-between px-4 py-2 shrink-0 bg-[hsl(220,15%,12%)] border-b border-[hsl(220,15%,18%)]">
               <span className="text-sm font-semibold text-white">{toolOverlay.title}</span>
               <div className="flex items-center gap-3">
