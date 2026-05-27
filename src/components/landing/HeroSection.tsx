@@ -4,7 +4,7 @@ import { memo, forwardRef } from "react";
 import { motion } from "framer-motion";
 import { usePrefetchRoute } from "@/hooks/use-prefetch-route";
 import OptimizedImage from "@/components/ui/optimized-image";
-import { ArrowRight, Star, CreditCard, VideoCamera, ShieldCheck, Clock, Sparkle, Check, Wifi } from "@phosphor-icons/react";
+import { ArrowRight, Star, CreditCard, VideoCamera, ShieldCheck, Clock, Sparkle, Check, WifiHigh } from "@phosphor-icons/react";
 import heroPingoFamily from "@/assets/hero-pingo-family.png";
 import { isFeatureEnabled } from "@/lib/featureFlags";
 
@@ -237,7 +237,7 @@ const HeroSection = memo(
                     <div aria-hidden className="absolute inset-0 opacity-30" style={{ background: "radial-gradient(at 80% 20%,rgba(255,255,255,0.5),transparent 55%)" }} />
                     <div className="relative flex items-start justify-between">
                       <div className="w-7 h-5 rounded bg-gradient-to-br from-amber-200 to-amber-500 ring-1 ring-white/30" />
-                      <Wifi className="w-3.5 h-3.5 text-white/80 rotate-90" weight="bold" />
+                      <WifiHigh className="w-3.5 h-3.5 text-white/80 rotate-90" weight="bold" />
                     </div>
                     <div className="relative mt-2 text-white/90 font-mono text-[10px] tracking-[0.18em]">
                       •••• 4000
