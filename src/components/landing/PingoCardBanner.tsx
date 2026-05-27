@@ -61,17 +61,6 @@ const PingoCardBanner = () => {
           }}
         />
 
-        {/* Grid lines for depth */}
-        <div
-          aria-hidden
-          className="absolute inset-0 opacity-[0.04] pointer-events-none"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
-            backgroundSize: "64px 64px",
-            maskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
-          }}
-        />
 
         <div className="relative z-10 grid lg:grid-cols-12 items-center gap-8 lg:gap-6 p-8 md:p-12 lg:p-16">
           {/* Left content */}
