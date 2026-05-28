@@ -12,7 +12,9 @@ export const DEFAULT_CONSULTATION_PRICE = 89;
 export const PLATFORM_FEE_PERCENT       = 10;
 export const DEFAULT_DOCTOR_PERCENT     = 70;
 export const MIN_WITHDRAWAL_BRL         = 50;
-export const ASAAS_SPLIT_PERCENT        = PLATFORM_FEE_PERCENT;
+export const MP_SPLIT_PERCENT           = PLATFORM_FEE_PERCENT;
+/** @deprecated use MP_SPLIT_PERCENT — pagamento migrado para Mercado Pago. */
+export const ASAAS_SPLIT_PERCENT        = MP_SPLIT_PERCENT;
 
 // ─── Plan IDs ─────────────────────────────────────────────────────────────────
 export const PLAN_IDS = {

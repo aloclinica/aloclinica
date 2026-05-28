@@ -17,8 +17,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Activity, Stethoscope, TrendingUp, TrendingDown, AlertCircle, BarChart3, Sparkles, Loader2, Users } from "lucide-react";
+import { Activity, Stethoscope, TrendingUp, TrendingDown, AlertCircle, BarChart3, Sparkles, Loader2, Users, MapPin } from "lucide-react";
 import { logError } from "@/lib/logger";
+import BrazilHeatGrid from "./BrazilHeatGrid";
 
 interface Props {
   contratoIds: string[];
@@ -379,32 +380,18 @@ export default function OrgaoSaudeTab({ contratoIds }: Props) {
         </Card>
       </div>
 
-      {/* Distribuição por estado */}
+      {/* Mapa de calor por estado */}
       <Card>
         <CardContent className="p-5">
           <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mb-3 flex items-center gap-1.5">
-            <BarChart3 className="w-3.5 h-3.5" /> Distribuição por estado
+            <MapPin className="w-3.5 h-3.5" /> Distribuição por estado
           </p>
           {totalState === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Sem dados geográficos ainda — os pacientes precisam informar o estado no perfil para aparecer aqui.
+              Sem dados geográficos ainda — os pacientes precisam informar o estado no perfil para aparecer no mapa.
             </p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
-              {topStates.map(([uf, count]) => {
-                const pct = Math.round((count / maxState) * 100);
-                const sharePct = Math.round((count / totalState) * 100);
-                return (
-                  <div key={uf} className="flex items-center gap-3">
-                    <span className="w-8 text-xs font-bold text-foreground shrink-0 text-center">{uf}</span>
-                    <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-                      <div className="h-full bg-primary/70" style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className="text-xs tabular-nums text-muted-foreground w-16 text-right">{count} · {sharePct}%</span>
-                  </div>
-                );
-              })}
-            </div>
+            <BrazilHeatGrid counts={stateCount} />
           )}
         </CardContent>
       </Card>

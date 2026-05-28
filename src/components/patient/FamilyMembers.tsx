@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Users, Trash2, UserPlus, Heart, Baby, User as UserIcon } from "lucide-react";
+import { Plus, Users, Trash2, UserPlus, Heart, Baby, User as UserIcon, Sparkles, CalendarPlus, ShieldCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { logError } from "@/lib/logger";
@@ -41,6 +41,8 @@ const REL_OPTIONS = [
   { value: "outro", label: "Outro", icon: UserIcon },
 ];
 
+const TOUR_KEY = "aloclinica.tour.family.dismissed";
+
 const FamilyMembers = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -48,6 +50,11 @@ const FamilyMembers = () => {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ full_name: "", birth_date: "", cpf: "", relationship: "", phone: "", email: "" });
+  const [showTour, setShowTour] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(TOUR_KEY) !== "1";
+  });
+  const dismissTour = () => { localStorage.setItem(TOUR_KEY, "1"); setShowTour(false); };
 
   const load = async () => {
     if (!user) return;
@@ -122,6 +129,30 @@ const FamilyMembers = () => {
   return (
     <DashboardLayout title="Família" nav={getPatientNav("family")} role="patient">
       <div className="max-w-2xl mx-auto space-y-4">
+        {showTour && (
+          <Card className="border-primary/30 bg-gradient-to-br from-primary/[0.06] to-primary/[0.02]">
+            <CardContent className="p-5 relative">
+              <button onClick={dismissTour} aria-label="Fechar dica" className="absolute right-3 top-3 text-muted-foreground hover:text-foreground">
+                <X className="w-4 h-4" />
+              </button>
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-foreground mb-2">Bem-vindo ao Pacote Família</p>
+                  <ul className="text-sm text-muted-foreground space-y-1.5">
+                    <li className="flex items-start gap-2"><CalendarPlus className="w-3.5 h-3.5 mt-0.5 text-primary shrink-0" /> Adicione cônjuge, filhos e pais para agendar consultas no nome deles.</li>
+                    <li className="flex items-start gap-2"><Users className="w-3.5 h-3.5 mt-0.5 text-primary shrink-0" /> Se o dependente tem conta na plataforma, a consulta é registrada no prontuário dele.</li>
+                    <li className="flex items-start gap-2"><ShieldCheck className="w-3.5 h-3.5 mt-0.5 text-primary shrink-0" /> Você gerencia sozinho — adicionar e remover não exige nova senha.</li>
+                  </ul>
+                  <Button size="sm" variant="ghost" className="mt-3 h-7 text-xs text-primary" onClick={dismissTour}>Entendi</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="flex items-start justify-between gap-3">
           <div>
             <h1 className="text-xl font-bold flex items-center gap-2"><Users className="w-5 h-5 text-primary" /> Pacote família</h1>

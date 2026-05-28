@@ -377,7 +377,31 @@ const DoctorEarnings = () => {
                 </button>
               ))}
             </div>
-            <p className="text-[10px] text-muted-foreground mt-2">A integração com o PSP (Asaas) executa a transferência segundo essa preferência.</p>
+            {(() => {
+              const today = new Date();
+              let next = new Date(today);
+              if (payoutFreq === "daily") {
+                next.setDate(next.getDate() + 1);
+                // pula sábado/domingo (D+1 útil)
+                while (next.getDay() === 0 || next.getDay() === 6) next.setDate(next.getDate() + 1);
+              } else if (payoutFreq === "weekly") {
+                // próxima segunda-feira
+                const diff = (8 - next.getDay()) % 7 || 7;
+                next.setDate(next.getDate() + diff);
+              } else {
+                // dia 5 do próximo mês (ou deste, se ainda for futuro)
+                next = today.getDate() < 5
+                  ? new Date(today.getFullYear(), today.getMonth(), 5)
+                  : new Date(today.getFullYear(), today.getMonth() + 1, 5);
+              }
+              const fmt = next.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" });
+              return (
+                <p className="text-xs text-foreground mt-3 pt-3 border-t border-border/40 flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-primary" /> Próximo repasse: <span className="font-semibold">{fmt}</span>
+                </p>
+              );
+            })()}
+            <p className="text-[10px] text-muted-foreground mt-1.5">Transferência via Mercado Pago — o saldo disponível é enviado para o PIX cadastrado.</p>
           </CardContent>
         </Card>
 
