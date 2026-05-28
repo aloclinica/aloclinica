@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getPatientNav } from "./patientNav";
+import HealthScoreRing from "./HealthScoreRing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -212,6 +213,9 @@ const PatientHealth = () => {
             </div>
           </div>
         </motion.div>
+
+        {/* Score de saúde */}
+        {user?.id && <div className="mb-5"><HealthScoreRing patientUserId={user.id} /></div>}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-6">

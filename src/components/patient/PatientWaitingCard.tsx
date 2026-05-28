@@ -7,6 +7,7 @@ import { Clock, Video, Users, Lightbulb } from "lucide-react";
 import { db } from "@/integrations/supabase/untyped";
 import { useNavigate } from "react-router-dom";
 import mascotWave from "@/assets/mascot-wave.png";
+import WaitingAnamnesis from "./WaitingAnamnesis";
 
 interface Props {
   appointment: {
@@ -14,6 +15,7 @@ interface Props {
     doctor_id: string;
     doctor_name: string;
     status: string;
+    patient_id?: string;
   };
 }
 
@@ -178,6 +180,11 @@ const PatientWaitingCard = ({ appointment }: Props) => {
           )}
         </CardContent>
       </Card>
+
+      {/* Anamnese assistida pela IA enquanto o paciente espera o médico entrar */}
+      <div className="mt-3">
+        <WaitingAnamnesis appointmentId={appointment.id} patientId={(appointment as any).patient_id ?? ""} />
+      </div>
     </motion.div>
   );
 };

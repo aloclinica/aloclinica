@@ -19,6 +19,7 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
+import NoShowBadge from "./NoShowBadge";
 
 const statusColor: Record<string, string> = {
   scheduled: "bg-primary/10 text-primary border-primary/20",
@@ -85,7 +86,7 @@ const DoctorConsultations = () => {
     setDoctorIdLocal(docProfile.id);
 
     const { data } = await db.from("appointments")
-      .select("id, scheduled_at, status, patient_id, duration_minutes, notes, guest_patient_id")
+      .select("id, scheduled_at, status, patient_id, duration_minutes, notes, guest_patient_id, payment_status, created_at")
       .eq("doctor_id", docProfile.id)
       .order("scheduled_at", { ascending: false })
       .limit(300);
@@ -353,7 +354,13 @@ const DoctorConsultations = () => {
                          )}
                        </div>
                        <div className="min-w-0">
-                         <p className="text-[14px] font-bold text-foreground truncate group-hover:text-emerald-600 transition-colors">{a.patient_name}</p>
+                         <div className="flex items-center gap-2">
+                           <p className="text-[14px] font-bold text-foreground truncate group-hover:text-emerald-600 transition-colors">{a.patient_name}</p>
+                           {a.patient_id && (a.status === "scheduled" || a.status === "waiting") && (
+                             <NoShowBadge appointmentId={a.id} patientId={a.patient_id} scheduledAt={a.scheduled_at}
+                               paymentStatus={(a as any).payment_status} createdAt={(a as any).created_at} />
+                           )}
+                         </div>
                          <div className="flex items-center gap-2 mt-0.5">
                            <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-medium">
                              <CalendarIcon className="w-3 h-3" />
