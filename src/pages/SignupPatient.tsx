@@ -134,6 +134,25 @@ export default function SignupPatient() {
         { type: "tcle_telemedicine", userId: auth.user.id, documentUrl: "/terms#5",
           metadata: { resolution: "CFM 2.314/2022", scope: "signup_once" } },
       ]);
+      // Programa de indicação: ?ref=CODIGO no signup credita ambas as partes.
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const ref = params.get("ref");
+        if (ref && auth.user.id) {
+          const { data: refRow } = await db.from("referrals").select("id, referrer_user_id").eq("code", ref).maybeSingle();
+          if (refRow && (refRow as any).referrer_user_id !== auth.user.id) {
+            await db.from("referral_uses").insert({
+              referral_id: (refRow as any).id,
+              referred_user_id: auth.user.id,
+            } as any);
+            await db.from("referrals").update({
+              usage_count: ((refRow as any).usage_count ?? 0) + 1,
+            } as any).eq("id", (refRow as any).id);
+            toast.success("Código aplicado! Você ganhou R$ 30 de crédito.");
+          }
+        }
+      } catch { /* não bloqueia o cadastro */ }
+
       toast.success("Cadastro realizado com sucesso!");
       // Deep-link: ?redirect=/qualquer-rota → segue direto para lá após cadastro
       const params = new URLSearchParams(window.location.search);

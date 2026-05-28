@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { Building2, Users, Activity, FileText, Mail, AlertCircle, BarChart3 } from "lucide-react";
 import OrgaoSaudeTab from "./OrgaoSaudeTab";
+import OrgaoDepartamentosTab from "./OrgaoDepartamentosTab";
 
 type Contrato = {
   id: string; nome: string; tipo: string; status: string;
@@ -71,12 +72,17 @@ const OrgaoDashboard = () => {
         </div>
 
         <Tabs defaultValue="contratos" className="w-full">
-          <TabsList className="grid grid-cols-2 w-full max-w-md">
+          <TabsList className="grid grid-cols-3 w-full max-w-lg">
             <TabsTrigger value="contratos" className="gap-1.5"><FileText className="w-3.5 h-3.5" /> Contratos</TabsTrigger>
-            <TabsTrigger value="saude" className="gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> Saúde da população</TabsTrigger>
+            <TabsTrigger value="saude" className="gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> Saúde</TabsTrigger>
+            <TabsTrigger value="departamentos" className="gap-1.5"><Building2 className="w-3.5 h-3.5" /> Departamentos</TabsTrigger>
           </TabsList>
           <TabsContent value="saude" className="mt-4">
             <OrgaoSaudeTab contratoIds={contratoIds} />
+          </TabsContent>
+          <TabsContent value="departamentos" className="mt-4">
+            <OrgaoDepartamentosTab contratoIds={contratoIds}
+              contratosNomes={Object.fromEntries(contratos.map((c) => [c.id, c.nome]))} />
           </TabsContent>
           <TabsContent value="contratos" className="mt-4 space-y-4">
 

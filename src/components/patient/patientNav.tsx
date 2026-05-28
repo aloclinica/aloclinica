@@ -57,6 +57,7 @@ export const getPatientNav = (active: string, t: Translator = fallback) => {
     { label: "Exames (laboratórios)", href: "/dashboard/patient/exams?role=patient", icon: <NavIcon icon={<FirstAid size={16} weight="fill" />} color="cyan" />, active: active === "exams", group: health },
     { label: t("patientNav.renewal"), href: "/dashboard/prescription-renewal?role=patient", icon: <NavIcon icon={<BookOpen size={16} weight="fill" />} color="emerald" />, active: active === "renewal", group: health },
     { label: "Família", href: "/dashboard/patient/family?role=patient", icon: <NavIcon icon={<Users size={16} weight="fill" />} color="rose" />, active: active === "family", group: health },
+    { label: "Indique e ganhe", href: "/dashboard/patient/referral?role=patient", icon: <NavIcon icon={<Heart size={16} weight="fill" />} color="amber" />, active: active === "referral", group: finance },
 
     // ── Financeiro & Notificações ──
     { label: t("patientNav.payments"), href: "/dashboard/payment-history?role=patient", icon: <NavIcon icon={<CreditCard size={16} weight="fill" />} color="green" />, active: active === "payments", group: finance },

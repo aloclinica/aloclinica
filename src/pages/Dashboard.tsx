@@ -87,6 +87,7 @@ const QuickRxRenewal = lazy(() => import("@/components/patient/QuickRxRenewal"))
 const FamilyMembers = lazy(() => import("@/components/patient/FamilyMembers"));
 const AccessLog = lazy(() => import("@/components/patient/AccessLog"));
 const ExamMarketplace = lazy(() => import("@/components/patient/ExamMarketplace"));
+const ReferralPage = lazy(() => import("@/components/patient/ReferralPage"));
 const ChatPage = lazy(() => import("@/components/chat/ChatPage"));
 const MedicalRecords = lazy(() => import("@/components/medical/MedicalRecords"));
 const AIAssistantPanel = lazy(() => import("@/components/ai/AIAssistantPanel"));
@@ -307,6 +308,7 @@ const Dashboard = () => {
       <Route path="patient/family" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><FamilyMembers /></ContextGuard></RoleGuard>} />
       <Route path="patient/access-log" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><AccessLog /></ContextGuard></RoleGuard>} />
       <Route path="patient/exams" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><ExamMarketplace /></ContextGuard></RoleGuard>} />
+      <Route path="patient/referral" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><ReferralPage /></ContextGuard></RoleGuard>} />
       <Route path="patient/health-card" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><HealthCardPage /></ContextGuard></RoleGuard>} />
       <Route path="patient/care-plans" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><CarePlansPage /></ContextGuard></RoleGuard>} />
       <Route path="patient/vaccinations" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><VaccinationsPage /></ContextGuard></RoleGuard>} />
