@@ -165,7 +165,28 @@ const PatientDashboard = () => {
 
   if (loading) return (
     <DashboardLayout title="Perfil do Paciente" nav={getPatientNav("home", t)} role="patient">
-      <div className="space-y-6 pb-24 md:pb-8"><Skeleton className="h-56 rounded-[2rem]" /><div className="grid grid-cols-5 gap-3">{[0,1,2,3,4].map(i => <Skeleton key={i} className="h-16 rounded-2xl" />)}</div><Skeleton className="h-40 rounded-2xl" /></div>
+      <div className="space-y-6 max-w-7xl mx-auto" aria-busy="true" aria-label="Carregando seu painel">
+        {/* Hero */}
+        <Skeleton className="h-56 md:h-64 rounded-[2rem]" />
+        {/* Ações rápidas */}
+        <div>
+          <Skeleton className="h-4 w-32 mb-3 rounded" />
+          <div className="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-5 gap-2.5 sm:gap-4">
+            {[0,1,2,3,4].map(i => <Skeleton key={i} className="h-20 rounded-2xl" />)}
+          </div>
+        </div>
+        {/* Próxima consulta + KPIs */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-8 space-y-4">
+            <Skeleton className="h-40 rounded-2xl" />
+            <Skeleton className="h-56 rounded-2xl" />
+          </div>
+          <div className="lg:col-span-4 space-y-4">
+            <Skeleton className="h-32 rounded-2xl" />
+            <Skeleton className="h-32 rounded-2xl" />
+          </div>
+        </div>
+      </div>
     </DashboardLayout>
   );
 

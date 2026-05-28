@@ -64,6 +64,7 @@ const CartaoDashboard = () => {
   const nav = getCartaoNav("home");
 
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [subscription, setSubscription] = useState<SubscriptionLite | null>(null);
   const [partnersCount, setPartnersCount] = useState(0);
   const [usageCount, setUsageCount] = useState(0);
@@ -78,6 +79,7 @@ const CartaoDashboard = () => {
 
   const load = async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const [{ data: sub }, { count: pc }, { data: tk }, { data: txs }] = await Promise.all([
         db
@@ -113,6 +115,8 @@ const CartaoDashboard = () => {
           .eq("subscription_id", sub.id);
         setUsageCount(uc ?? 0);
       }
+    } catch {
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -278,10 +282,18 @@ const CartaoDashboard = () => {
                     </button>
                   </div>
                   {ticketTxs.length === 0 ? (
-                    <div className="text-center py-6 text-sm text-muted-foreground">
-                      <ForkKnife size={28} className="mx-auto mb-2 opacity-40" />
-                      Nenhum gasto ainda. Use seu Pingo Ticket no primeiro estabelecimento!
-                    </div>
+                    loadError ? (
+                      <div className="text-center py-6 text-sm">
+                        <p className="font-semibold text-foreground">Falha ao carregar transações</p>
+                        <p className="text-xs text-muted-foreground mb-3">Verifique sua conexão e tente novamente.</p>
+                        <button onClick={() => load()} className="text-xs font-semibold text-primary hover:underline">Recarregar</button>
+                      </div>
+                    ) : (
+                      <div className="text-center py-6 text-sm text-muted-foreground">
+                        <ForkKnife size={28} className="mx-auto mb-2 opacity-40" />
+                        Nenhum gasto ainda. Use seu Pingo Ticket no primeiro estabelecimento!
+                      </div>
+                    )
                   ) : (
                     <ul className="space-y-1.5">
                       {ticketTxs.slice(0, 4).map(t => {

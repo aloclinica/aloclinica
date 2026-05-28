@@ -41,6 +41,7 @@ const ClinicDashboard = () => {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [totalSlots, setTotalSlots] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [profileError, setProfileError] = useState(false);
 
   // Route-based active nav detection
   const pathSegment = location.pathname.split("/").pop() || "";
@@ -66,7 +67,9 @@ const ClinicDashboard = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const { data: clinic } = await db.from("clinic_profiles").select("*").eq("user_id", user!.id).single();
+    setProfileError(false);
+    const { data: clinic, error: clinicErr } = await db.from("clinic_profiles").select("*").eq("user_id", user!.id).maybeSingle();
+    if (clinicErr) { setProfileError(true); setLoading(false); return; }
     setClinicProfile(clinic);
     if (!clinic) { setLoading(false); return; }
     const { data: affiliations } = await db.from("clinic_affiliations").select("*, doctor_profiles(*, profiles(first_name, last_name))").eq("clinic_id", clinic.id);
@@ -292,8 +295,21 @@ const ClinicDashboard = () => {
           </motion.div>
         )}
 
-        {/* Welcome state for new clinics */}
-        {!loading && !clinicProfile && (
+        {/* Erro ao carregar perfil da clínica (distinto de onboarding) */}
+        {!loading && profileError && (
+          <motion.div variants={fadeUp}>
+            <Card className="border-destructive/40">
+              <CardContent className="p-6 text-center">
+                <p className="font-semibold text-foreground mb-1">Não foi possível carregar o perfil da sua clínica</p>
+                <p className="text-sm text-muted-foreground mb-4">Verifique sua conexão e tente novamente.</p>
+                <Button variant="outline" className="rounded-xl" onClick={fetchData}>Recarregar</Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Welcome state for new clinics (apenas quando a query rodou e voltou sem perfil) */}
+        {!loading && !profileError && !clinicProfile && (
           <motion.div variants={fadeUp}>
             <Card className="border-dashed border-border/60">
               <CardContent className="p-8 text-center">
