@@ -15,6 +15,7 @@ import {
   Sparkles, Loader2, Stethoscope, ClipboardList, SwitchCamera, CheckCircle2
 } from "lucide-react";
 import ConsentTCLE from "./ConsentTCLE";
+import AIClinicalPanel from "./AIClinicalPanel";
 import VideoConsultation, { type VideoConsultationHandle } from "./VideoConsultation";
 import JitsiRoom from "./JitsiRoom";
 import { gerarRoomId } from "@/lib/jitsi";
@@ -73,8 +74,9 @@ const VideoRoom = () => {
   const [showChat, setShowChat] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [showAI, setShowAI] = useState(false);
   const [splitMode, setSplitMode] = useState(false);
-   const [activePanel, setActivePanel] = useState<"chat" | "notes" | "info" | "referral" | null>(null);
+   const [activePanel, setActivePanel] = useState<"chat" | "notes" | "info" | "referral" | "ai" | null>(null);
    // Ferramenta aberta SOBRE a chamada (médico não sai do vídeo): {url, título}
    const [toolOverlay, setToolOverlay] = useState<{ url: string; title: string } | null>(null);
   const presenceLogId = useRef<string | null>(null);
@@ -123,11 +125,12 @@ const VideoRoom = () => {
   }, [appointmentId]);
 
   // Sync panel state helpers
-   const openPanel = (panel: "chat" | "notes" | "info" | "referral") => {
+   const openPanel = (panel: "chat" | "notes" | "info" | "referral" | "ai") => {
     setActivePanel(prev => prev === panel ? null : panel);
     setShowChat(panel === "chat" ? !showChat : false);
     setShowNotes(panel === "notes" ? !showNotes : false);
      setShowInfo(panel === "info" ? !showInfo : false);
+     setShowAI(panel === "ai" ? !showAI : false);
      if (panel === "referral") {
        // Reset others if we had separate booleans, but here we use activePanel mostly
      }
@@ -138,6 +141,14 @@ const VideoRoom = () => {
     setShowChat(false);
     setShowNotes(false);
     setShowInfo(false);
+    setShowAI(false);
+  };
+
+  /** Recebe texto da IA e injeta no prontuário SOAP (append não destrutivo). */
+  const handleAISendToNotes = (text: string, field?: "subjective" | "objective" | "assessment" | "plan") => {
+    const f = field ?? "plan";
+    const current = (soap.notes as any)?.[f] ?? "";
+    soap.updateSection(f, current ? `${current}\n${text}` : text);
   };
 
   // ─── Check CRM verified (doctors only) ───
@@ -945,8 +956,8 @@ const VideoRoom = () => {
     : user?.user_metadata?.first_name || "Paciente";
 
   const showQueueBanner = !isDoctor && doctorBusy && queuePosition !== null;
-  const showSidePanel = (showChat || showNotes || showInfo || activePanel === "referral") && !isMobile;
-  const showBottomSheet = (showChat || showNotes || showInfo || activePanel === "referral") && isMobile;
+  const showSidePanel = (showChat || showNotes || showInfo || showAI || activePanel === "referral") && !isMobile;
+  const showBottomSheet = (showChat || showNotes || showInfo || showAI || activePanel === "referral") && isMobile;
 
   // Timer color based on duration
   const timerColor = elapsed > 3600
@@ -1010,46 +1021,32 @@ const VideoRoom = () => {
       // Gather chat messages for context
       const chatContext = messages.slice(-10).map(m => `${m.sender}: ${m.text}`).join("\n");
 
-      const { data, error } = await db.functions.invoke("ai-assistant", {
-        body: {
-          messages: [
-            {
-              role: "system",
-              content: `Você é um assistente médico. Com base nos dados da pré-consulta e chat, preencha um prontuário SOAP estruturado.
-Responda APENAS em JSON válido com as chaves: subjective, objective, assessment, plan.
-- subjective: queixa do paciente em linguagem clínica
-- objective: dados objetivos observáveis (se não houver, coloque "Teleconsulta - exame físico não realizado")
-- assessment: hipóteses diagnósticas baseadas nos sintomas
-- plan: conduta sugerida (medicamentos, exames, retorno)
-Seja conciso, máx 3 linhas por campo.`,
-            },
-            {
-              role: "user",
-              content: `Queixa principal: ${symptoms?.main_complaint || "Não informada"}
+      const ctx = `Queixa principal: ${symptoms?.main_complaint || "Não informada"}
 Sintomas: ${(symptoms?.symptoms as string[])?.join(", ") || "Não informados"}
 Severidade: ${symptoms?.severity || "Não informada"}
 Duração: ${symptoms?.duration || "Não informada"}
 Notas adicionais: ${symptoms?.additional_notes || ""}
 Chat médico-paciente: ${chatContext || "Sem mensagens"}
-SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.notes.assessment}, P=${soap.notes.plan}`,
-            },
-          ],
-          role_context: "doctor",
-        },
-      });
+SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.notes.assessment}, P=${soap.notes.plan}`;
 
-      if (data?.response) {
+      const { data, error } = await db.functions.invoke("clinical-ai", {
+        body: { task: "soap", payload: { context: ctx } },
+      });
+      if (error) throw error;
+
+      const text: string = (data as any)?.result || "";
+      if (text) {
         try {
-          // Try to extract JSON from the response
-          const jsonMatch = data.response.match(/\{[\s\S]*\}/);
+          const jsonMatch = text.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
             const parsed = JSON.parse(jsonMatch[0]);
-            // Update each field using the hook's updateSection
             if (parsed.subjective) soap.updateSection("subjective", parsed.subjective);
             if (parsed.objective) soap.updateSection("objective", parsed.objective);
             if (parsed.assessment) soap.updateSection("assessment", parsed.assessment);
             if (parsed.plan) soap.updateSection("plan", parsed.plan);
             toast.success("🤖 SOAP preenchido pela IA", { description: "Revise e ajuste antes de salvar." });
+          } else {
+            toast.error("IA respondeu", { description: "Formato inesperado. Tente novamente." });
           }
         } catch {
           toast.error("IA respondeu", { description: "Não foi possível interpretar o formato. Tente novamente." });
@@ -1196,7 +1193,7 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
   );
 
   return (
-    <div className="h-[100dvh] bg-[hsl(220,30%,4%)] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 h-[100dvh] w-screen bg-[hsl(220,30%,4%)] flex flex-col overflow-hidden">
       <ConnectionStatus onReconnect={handleReconnect} usingJitsi={!!jitsiRoomId} />
 
       {/* Queue banner */}
@@ -1329,6 +1326,12 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
                 icon={<FileText className="w-3.5 h-3.5" />}
                 label="Prontuário"
                 onClick={() => openPanel("notes")}
+              />
+              <ToolbarBtn
+                active={showAI}
+                icon={<Sparkles className="w-3.5 h-3.5" />}
+                label="IA Clínica"
+                onClick={() => openPanel("ai")}
               />
               <ToolbarBtn
                 active={splitMode}
@@ -1479,18 +1482,19 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
               <div className="p-4 border-b border-[hsl(220,15%,10%)] flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2.5">
                   <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                    showChat ? "bg-primary/10" : showNotes ? "bg-amber-500/10" : "bg-[hsl(220,20%,12%)]"
+                    showChat ? "bg-primary/10" : showNotes ? "bg-amber-500/10" : showAI ? "bg-primary/10" : "bg-[hsl(220,20%,12%)]"
                   }`}>
                     {showChat ? <MessageSquare className="w-4 h-4 text-primary" /> :
                      showNotes ? <FileText className="w-4 h-4 text-amber-400" /> :
+                     showAI ? <Sparkles className="w-4 h-4 text-primary" /> :
                      <UserRound className="w-4 h-4 text-[hsl(220,15%,55%)]" />}
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-white">
-                      {showChat ? "Chat" : showNotes ? "Prontuário" : isDoctor ? "Paciente" : "Médico"}
+                      {showChat ? "Chat" : showNotes ? "Prontuário" : showAI ? "IA Clínica" : isDoctor ? "Paciente" : "Médico"}
                     </p>
                     <p className="text-[10px] text-[hsl(220,15%,40%)]">
-                      {showChat ? `${messages.length} mensagens` : showNotes ? "Auto-save ativo" : "Informações"}
+                      {showChat ? `${messages.length} mensagens` : showNotes ? "Auto-save ativo" : showAI ? "Apoio à decisão" : "Informações"}
                     </p>
                   </div>
                 </div>
@@ -1511,6 +1515,14 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
                 />
               )}
               {showNotes && isDoctor && notesPanel}
+              {showAI && isDoctor && (
+                <AIClinicalPanel
+                  appointmentId={appointmentId!}
+                  patientId={appointment?.patient_id}
+                  recentMessages={messages.map((m) => ({ sender: m.sender, text: m.text }))}
+                  onSendToNotes={handleAISendToNotes}
+                />
+              )}
               {showInfo && isDoctor && appointment?.patient_id && (
                 <PatientInfoPanel patientId={appointment.patient_id} appointmentId={appointmentId!} />
               )}
@@ -1559,14 +1571,15 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
                 <div className="px-4 pb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                      showChat ? "bg-primary/10" : showNotes ? "bg-amber-500/10" : "bg-[hsl(220,20%,12%)]"
+                      showChat ? "bg-primary/10" : showNotes ? "bg-amber-500/10" : showAI ? "bg-primary/10" : "bg-[hsl(220,20%,12%)]"
                     }`}>
                       {showChat ? <MessageSquare className="w-4 h-4 text-primary" /> :
                        showNotes ? <FileText className="w-4 h-4 text-amber-400" /> :
+                       showAI ? <Sparkles className="w-4 h-4 text-primary" /> :
                        <UserRound className="w-4 h-4 text-[hsl(220,15%,55%)]" />}
                     </div>
                     <p className="text-sm font-semibold text-white">
-                      {showChat ? "Chat" : showNotes ? "Prontuário" : isDoctor ? "Paciente" : "Médico"}
+                      {showChat ? "Chat" : showNotes ? "Prontuário" : showAI ? "IA Clínica" : isDoctor ? "Paciente" : "Médico"}
                     </p>
                   </div>
                   <button
@@ -1587,6 +1600,14 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
                 />
               )}
                   {showNotes && isDoctor && notesPanel}
+                  {showAI && isDoctor && (
+                    <AIClinicalPanel
+                      appointmentId={appointmentId!}
+                      patientId={appointment?.patient_id}
+                      recentMessages={messages.map((m) => ({ sender: m.sender, text: m.text }))}
+                      onSendToNotes={handleAISendToNotes}
+                    />
+                  )}
                   {showInfo && isDoctor && appointment?.patient_id && (
                     <PatientInfoPanel patientId={appointment.patient_id} appointmentId={appointmentId!} />
                   )}
@@ -1636,6 +1657,14 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
               icon={<FileText className="w-5 h-5" />}
               label="SOAP"
               onClick={() => openPanel("notes")}
+            />
+          )}
+          {isDoctor && (
+            <ToolbarBtn
+              active={showAI}
+              icon={<Sparkles className="w-5 h-5" />}
+              label="IA"
+              onClick={() => openPanel("ai")}
             />
           )}
           <ToolbarBtn
