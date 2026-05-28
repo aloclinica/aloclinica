@@ -20,6 +20,7 @@ import jsPDF from "jspdf";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { drawSafeText, safeQrBox } from "@/lib/pdf-layout";
+import { TemplateControls } from "@/components/consultation/DoctorTemplates";
 
 const MedicalCertificate = () => {
   const { profile, user } = useAuth();
@@ -330,7 +331,14 @@ const MedicalCertificate = () => {
                 )}
 
                 <div>
-                  <Label>{certType === "attendance" ? "Observações" : "Motivo / Observação"}</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>{certType === "attendance" ? "Observações" : "Motivo / Observação"}</Label>
+                    <TemplateControls
+                      type="generic"
+                      currentText={reason}
+                      onInsert={(t) => setReason(reason ? `${reason}\n${t}` : t)}
+                    />
+                  </div>
                   <Textarea value={reason} onChange={e => setReason(e.target.value)} rows={3} placeholder="Detalhes adicionais..." className="mt-1" />
                 </div>
 

@@ -61,6 +61,8 @@ const UserProfile = () => {
   const [phone, setPhone] = useState("");
   const [cpf, setCpf] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
+  const [state, setState] = useState("");
+  const [city, setCity] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [allergies, setAllergies] = useState("");
   const [bloodType, setBloodType] = useState("");
@@ -93,6 +95,8 @@ const UserProfile = () => {
       setPhone(profile.phone || "");
       setCpf(profile.cpf || "");
       setDateOfBirth(profile.date_of_birth || "");
+      setState((profile as { state?: string }).state ?? "");
+      setCity((profile as { city?: string }).city ?? "");
       setAvatarUrl(profile.avatar_url);
       setAllergies(((profile as { allergies?: string[] }).allergies ?? []).join(", "));
       setBloodType((profile as { blood_type?: string }).blood_type ?? "");
@@ -161,6 +165,8 @@ const UserProfile = () => {
     const conditionArr = chronicConditions.split(",").map(s => s.trim()).filter(Boolean);
     const { error } = await db.from("profiles").update({
       first_name: firstName, last_name: lastName, phone, cpf, date_of_birth: dateOfBirth || null,
+      state: state ? state.toUpperCase().slice(0, 2) : null,
+      city: city.trim() || null,
       allergies: allergyArr, blood_type: bloodType || null, chronic_conditions: conditionArr,
     }).eq("user_id", user.id);
     if (isDoctor) {
@@ -445,6 +451,16 @@ const UserProfile = () => {
           <div>
             <Label className="text-sm">Telefone</Label>
             <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="(11) 99999-9999" className="h-12 rounded-xl bg-muted/30 border-transparent mt-1" />
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-1">
+              <Label className="text-sm">Estado</Label>
+              <Input value={state} onChange={e => setState(e.target.value.toUpperCase().slice(0, 2))} placeholder="SP" maxLength={2} className="h-12 rounded-xl bg-muted/30 border-transparent mt-1 uppercase" />
+            </div>
+            <div className="col-span-2">
+              <Label className="text-sm">Cidade</Label>
+              <Input value={city} onChange={e => setCity(e.target.value)} placeholder="São Paulo" className="h-12 rounded-xl bg-muted/30 border-transparent mt-1" />
+            </div>
           </div>
           <div>
             <Label className="text-sm">Senha</Label>

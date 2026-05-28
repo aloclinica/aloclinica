@@ -25,7 +25,7 @@ interface Props {
 }
 
 type SymRow = { main_complaint: string | null; severity: number | null; symptoms: string[] | null; created_at: string; appointment_id: string; patient_id?: string };
-type Demo = { age: number | null; gender: string | null };
+type Demo = { age: number | null; gender: string | null; state: string | null };
 
 function topN(items: string[], n = 10) {
   const map = new Map<string, number>();
@@ -82,7 +82,7 @@ export default function OrgaoSaudeTab({ contratoIds }: Props) {
         const patientIds = [...new Set(list.map((r) => r.patient_id).filter(Boolean))] as string[];
         if (patientIds.length) {
           const { data: profs } = await db.from("profiles")
-            .select("birth_date, gender")
+            .select("birth_date, gender, state")
             .in("user_id", patientIds);
           const today = new Date();
           setDemos((profs ?? []).map((p: any) => {
@@ -91,7 +91,7 @@ export default function OrgaoSaudeTab({ contratoIds }: Props) {
               const d = new Date(p.birth_date);
               age = Math.floor((today.getTime() - d.getTime()) / 3.156e10);
             }
-            return { age, gender: p.gender ?? null };
+            return { age, gender: p.gender ?? null, state: p.state ?? null };
           }));
         } else {
           setDemos([]);
@@ -225,6 +225,13 @@ export default function OrgaoSaudeTab({ contratoIds }: Props) {
   const genderCount = new Map<string, number>();
   demos.forEach((d) => { if (d.gender) genderCount.set(d.gender, (genderCount.get(d.gender) ?? 0) + 1); });
   const totalGender = [...genderCount.values()].reduce((a, b) => a + b, 0);
+
+  // Distribuição por estado (top 8)
+  const stateCount = new Map<string, number>();
+  demos.forEach((d) => { if (d.state) stateCount.set(d.state.toUpperCase().slice(0, 2), (stateCount.get(d.state.toUpperCase().slice(0, 2)) ?? 0) + 1); });
+  const topStates = [...stateCount.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const maxState = Math.max(1, ...topStates.map(([, v]) => v));
+  const totalState = [...stateCount.values()].reduce((a, b) => a + b, 0);
 
   return (
     <div className="space-y-5">
@@ -371,6 +378,36 @@ export default function OrgaoSaudeTab({ contratoIds }: Props) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Distribuição por estado */}
+      <Card>
+        <CardContent className="p-5">
+          <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mb-3 flex items-center gap-1.5">
+            <BarChart3 className="w-3.5 h-3.5" /> Distribuição por estado
+          </p>
+          {totalState === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Sem dados geográficos ainda — os pacientes precisam informar o estado no perfil para aparecer aqui.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+              {topStates.map(([uf, count]) => {
+                const pct = Math.round((count / maxState) * 100);
+                const sharePct = Math.round((count / totalState) * 100);
+                return (
+                  <div key={uf} className="flex items-center gap-3">
+                    <span className="w-8 text-xs font-bold text-foreground shrink-0 text-center">{uf}</span>
+                    <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                      <div className="h-full bg-primary/70" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="text-xs tabular-nums text-muted-foreground w-16 text-right">{count} · {sharePct}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Insights da IA */}
       <Card>

@@ -72,6 +72,23 @@ const QuickRxRenewal = () => {
         notes,
       } as any);
       if (error) throw error;
+
+      // Push notification ao médico (best-effort; trigger DB já criou a notification in-app)
+      try {
+        const { data: doc } = await db.from("doctor_profiles").select("user_id").eq("id", rx.doctor_id).maybeSingle();
+        const docUserId = (doc as any)?.user_id;
+        if (docUserId) {
+          db.functions.invoke("send-push-notification", {
+            body: {
+              user_id: docUserId,
+              title: "💊 Pedido de renovação de receita",
+              message: "Um paciente solicitou renovação. Toque para revisar e aprovar.",
+              link: "/dashboard/prescription-renewals",
+            },
+          }).catch(() => { /* push não bloqueia o fluxo */ });
+        }
+      } catch { /* tolerante */ }
+
       setDone(true);
       toast.success("Pedido de renovação enviado", { description: "O médico aprova em breve. Você é notificado quando estiver pronta." });
     } catch (e: any) {

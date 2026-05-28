@@ -57,7 +57,7 @@ const BookAppointment = () => {
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(false);
-  const [dependents, setDependents] = useState<{ id: string; name: string; relationship: string }[]>([]);
+  const [dependents, setDependents] = useState<{ id: string; name: string; relationship: string; user_id?: string | null; source?: "legacy" | "family" }[]>([]);
   const [bookingFor, setBookingFor] = useState<string>("self");
   const [feriados, setFeriados] = useState<Date[]>([]);
   const [recurrence, setRecurrence] = useState("none");
@@ -96,8 +96,16 @@ const BookAppointment = () => {
 
   useEffect(() => {
     if (user) {
-      db.from("dependents").select("id, name, relationship").eq("user_id", user.id)
-        .then(({ data }) => setDependents(data ?? []));
+      Promise.all([
+        db.from("dependents").select("id, name, relationship").eq("user_id", user.id),
+        db.from("family_members").select("id, full_name, relationship, user_id").eq("holder_user_id", user.id),
+      ]).then(([legacy, family]) => {
+        const merged: typeof dependents = [
+          ...((legacy.data ?? []) as any[]).map((d: any) => ({ id: d.id, name: d.name, relationship: d.relationship, source: "legacy" as const })),
+          ...((family.data ?? []) as any[]).map((f: any) => ({ id: f.id, name: f.full_name, relationship: f.relationship ?? "dependente", user_id: f.user_id ?? null, source: "family" as const })),
+        ];
+        setDependents(merged);
+      });
     }
     const currentYear = new Date().getFullYear();
     Promise.all([getFeriadosNacionais(currentYear), getFeriadosNacionais(currentYear + 1)])
@@ -412,7 +420,14 @@ const BookAppointment = () => {
     }
 
     const dependentInfo = bookingFor !== "self" ? dependents.find(d => d.id === bookingFor) : null;
-    const notesText = dependentInfo ? `Consulta para dependente: ${dependentInfo.name} (${dependentInfo.relationship})` : null;
+    // Se o dependente tem conta na plataforma (family_members.user_id), a consulta é REGISTRADA NO NOME DELE.
+    // Caso contrário, paciente_id segue o titular, com identificação nos notes (compat com fluxo legado).
+    const patientUserIdForAppt = dependentInfo?.user_id ?? user.id;
+    const notesText = dependentInfo
+      ? (dependentInfo.user_id
+          ? `Agendado pelo titular ${user.email ?? ""} — paciente: ${dependentInfo.name} (${dependentInfo.relationship})`
+          : `Consulta para dependente: ${dependentInfo.name} (${dependentInfo.relationship})`)
+      : null;
 
     // Build list of dates (single or recurring)
     const datesToBook: Date[] = [scheduledAt];
@@ -467,7 +482,7 @@ const BookAppointment = () => {
           : appointmentType;
 
       const { data: insertedAppt, error } = await db.from("appointments").insert({
-        patient_id: user.id,
+        patient_id: patientUserIdForAppt,
         doctor_id: doctor.id,
         scheduled_at: dt.toISOString(),
         status: "scheduled",
