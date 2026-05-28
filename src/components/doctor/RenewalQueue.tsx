@@ -20,7 +20,10 @@ import type { Json } from "@/integrations/supabase/types";
 interface RenewalItem {
   id: string;
   patient_id: string;
+  doctor_id: string | null;
+  prescription_id: string | null;
   status: string;
+  notes: string | null;
   created_at: string;
   assigned_doctor_id: string | null;
   original_prescription_url: string | null;
@@ -73,22 +76,73 @@ const RenewalQueue = () => {
     return data ? `Dr(a). ${data.first_name} ${data.last_name}` : "Médico";
   };
 
-  const handleApprove = async () => {
-    if (!selectedRenewal || !doctorProfileId) return;
+  /**
+   * Renovar em 1 clique: duplica a receita original com nova validade,
+   * marca a renovação como approved e notifica o paciente. Funciona com
+   * pending (auto-assume) ou in_review (já assumida).
+   */
+  const renewOneClick = async (renewal: RenewalItem) => {
+    if (!doctorProfileId) return;
     setProcessing(true);
-    await db.from("prescription_renewals").update({
-      status: "approved",
-      reviewed_at: new Date().toISOString(),
-    }).eq("id", selectedRenewal.id);
-    
-    // Notify patient
-    const docName = await getDoctorName();
-    notifyRenewalApproved(selectedRenewal.patient_id, docName);
-    
-    toast.success("Renovação aprovada!");
-    setSelectedRenewal(null);
-    setProcessing(false);
-    fetchRenewals();
+    try {
+      if (!renewal.prescription_id) {
+        toast.error("Receita original ausente — abra para análise manual.");
+        setSelectedRenewal(renewal);
+        return;
+      }
+      const { data: orig, error: origErr } = await db.from("prescriptions")
+        .select("medications, diagnosis, instructions, prescription_type, observations, patient_id, appointment_id")
+        .eq("id", renewal.prescription_id)
+        .maybeSingle();
+      if (origErr || !orig) throw origErr || new Error("Receita original não encontrada");
+
+      const today = new Date();
+      const validUntil = new Date(today); validUntil.setDate(validUntil.getDate() + 30);
+      const verification = `RX-${today.getTime().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+
+      const { data: newRx, error: insErr } = await db.from("prescriptions")
+        .insert({
+          patient_id: (orig as any).patient_id ?? renewal.patient_id,
+          doctor_id: doctorProfileId,
+          appointment_id: (orig as any).appointment_id ?? null,
+          medications: (orig as any).medications,
+          diagnosis: (orig as any).diagnosis,
+          instructions: (orig as any).instructions,
+          prescription_type: (orig as any).prescription_type ?? "comum",
+          observations: (orig as any).observations,
+          status: "active",
+          is_signed: true,
+          signed_at: today.toISOString(),
+          signature_hash: verification,
+          verification_code: verification,
+          valid_until: validUntil.toISOString().slice(0, 10),
+        } as any)
+        .select("id")
+        .single();
+      if (insErr) throw insErr;
+
+      await db.from("prescription_renewals").update({
+        status: "approved",
+        reviewed_at: today.toISOString(),
+        assigned_doctor_id: doctorProfileId,
+        renewed_to_prescription_id: (newRx as any).id,
+      } as any).eq("id", renewal.id);
+
+      const docName = await getDoctorName();
+      notifyRenewalApproved(renewal.patient_id, docName);
+
+      toast.success("Receita renovada", { description: "Nova receita ativa por 30 dias. O paciente foi notificado." });
+      setSelectedRenewal(null);
+      fetchRenewals();
+    } catch (e: any) {
+      toast.error("Não foi possível renovar", { description: e?.message });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleApprove = async () => {
+    if (selectedRenewal) await renewOneClick(selectedRenewal);
   };
 
   const handleReject = async () => {
@@ -158,12 +212,17 @@ const RenewalQueue = () => {
                       )}
                     </TableCell>
                     <TableCell className="text-right space-x-1">
-                      {r.status === "pending" ? (
-                        <Button size="sm" onClick={() => handleClaim(r)}>
+                      {r.prescription_id && (
+                        <Button size="sm" variant="default" disabled={processing} onClick={() => renewOneClick(r)} title="Duplica a receita anterior com 30 dias de validade">
+                          <CheckCircle2 className="w-3 h-3 mr-1" /> Renovar 1-clique
+                        </Button>
+                      )}
+                      {r.status === "pending" && !r.prescription_id ? (
+                        <Button size="sm" variant="outline" onClick={() => handleClaim(r)}>
                           <UserCheck className="w-3 h-3 mr-1" /> Assumir
                         </Button>
                       ) : (
-                        <Button size="sm" onClick={() => setSelectedRenewal(r)}>
+                        <Button size="sm" variant="outline" onClick={() => setSelectedRenewal(r)}>
                           <FileText className="w-3 h-3 mr-1" /> Analisar
                         </Button>
                       )}
