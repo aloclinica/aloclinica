@@ -54,6 +54,20 @@ const DoctorDashboard = () => {
   const [onlineLoading, setOnlineLoading] = useState(false);
   const { data, isLoading: loading, isError, refetch } = useDoctorStats();
 
+  // Realtime: revalida o dashboard quando appointments mudam (badges sempre frescos)
+  useEffect(() => {
+    if (!user?.id) return;
+    let pending: ReturnType<typeof setTimeout> | null = null;
+    const channel = db
+      .channel(`doctor-dashboard-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "appointments" }, () => {
+        if (pending) clearTimeout(pending);
+        pending = setTimeout(() => refetch(), 300); // debounce contra bursts
+      })
+      .subscribe();
+    return () => { if (pending) clearTimeout(pending); db.removeChannel(channel); };
+  }, [user?.id, refetch]);
+
   // Load online status from doctor_profiles on mount
   useEffect(() => {
     if (user?.id) {

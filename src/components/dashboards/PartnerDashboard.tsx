@@ -145,7 +145,10 @@ const PartnerDashboard = () => {
                 <p className="text-[11.5px] font-bold text-foreground">Histórico de Validações</p>
               </div>
               {loading ? (
-                <div className="p-4 space-y-3">{[1,2,3].map(i => <div key={i} className="h-12 animate-pulse rounded-xl bg-muted/50" />)}</div>
+                <div className="p-4 space-y-3" aria-busy="true" aria-label="Carregando histórico de validações">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-semibold">Carregando histórico…</p>
+                  {[1,2,3,4].map(i => <div key={i} className="h-12 animate-pulse rounded-xl bg-muted/50" />)}
+                </div>
               ) : validations.length === 0 ? (
                 <div className="p-8 text-center">
                   <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted/40 text-[22px]">📋</div>
