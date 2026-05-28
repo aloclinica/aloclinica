@@ -3445,6 +3445,7 @@ export type Database = {
         Row: {
           accepted: boolean | null
           accepted_at: string | null
+          appointment_id: string | null
           consent_type: string
           created_at: string
           id: string
@@ -3456,6 +3457,7 @@ export type Database = {
         Insert: {
           accepted?: boolean | null
           accepted_at?: string | null
+          appointment_id?: string | null
           consent_type: string
           created_at?: string
           id?: string
@@ -3467,6 +3469,7 @@ export type Database = {
         Update: {
           accepted?: boolean | null
           accepted_at?: string | null
+          appointment_id?: string | null
           consent_type?: string
           created_at?: string
           id?: string
@@ -3475,7 +3478,15 @@ export type Database = {
           user_agent?: string | null
           version?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "patient_consents_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       patient_documents: {
         Row: {
