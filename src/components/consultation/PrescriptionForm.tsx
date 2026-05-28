@@ -26,6 +26,7 @@ import { useDigitalSignature } from "@/hooks/useDigitalSignature";
 import type { Medication } from "@/hooks/usePrescriptionData";
 import logoReceita from "@/assets/logo-receita.png";
 import PrescriptionTemplates from "@/components/doctor/PrescriptionTemplates";
+import { TemplateControls } from "./DoctorTemplates";
 import { isFeatureEnabled } from "@/lib/featureFlags";
 
 const doctorNav = [
@@ -810,7 +811,14 @@ const PrescriptionForm = () => {
 
         {/* Observations */}
         <Card variant="elevated" className="mb-6">
-          <CardHeader><CardTitle className="text-base">Observações</CardTitle></CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-base">Observações</CardTitle>
+            <TemplateControls
+              type="prescription"
+              currentText={data.observations}
+              onInsert={(t) => prescription.updateField("observations", data.observations ? `${data.observations}\n${t}` : t)}
+            />
+          </CardHeader>
           <CardContent>
             <Textarea
               value={data.observations}

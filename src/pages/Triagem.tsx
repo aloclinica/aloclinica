@@ -149,9 +149,21 @@ const Triagem = () => {
                   <p className="text-lg font-bold text-foreground">{specLabel}</p>
                 </div>
               </div>
-              <Button size="lg" className="w-full h-12 rounded-2xl gap-2" onClick={() => navigate(`/paciente?next=${encodeURIComponent(`/dashboard/schedule?spec=${result.specialty}`)}`)}>
-                Agendar consulta <ArrowRight className="w-4 h-4" />
-              </Button>
+              {(() => {
+                const specLabel = SPECIALTY_LABELS[result.specialty] || "Clínico Geral";
+                const next = `/dashboard/schedule?q=${encodeURIComponent(specLabel)}`;
+                const redir = encodeURIComponent(next);
+                return (
+                  <div className="grid grid-cols-1 gap-2">
+                    <Button size="lg" className="h-12 rounded-2xl gap-2" onClick={() => navigate(`/paciente?redirect=${redir}`)}>
+                      Já tenho conta — agendar agora <ArrowRight className="w-4 h-4" />
+                    </Button>
+                    <Button size="lg" variant="outline" className="h-12 rounded-2xl" onClick={() => navigate(`/paciente/cadastro?redirect=${redir}`)}>
+                      Criar conta e agendar (1 minuto)
+                    </Button>
+                  </div>
+                );
+              })()}
               {result.red_flags.length > 0 && (
                 <div className="rounded-xl border border-amber-300/40 bg-amber-50/50 dark:bg-amber-950/20 p-3">
                   <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1">Atenção a estes sinais — se aparecerem, procure pronto-socorro:</p>

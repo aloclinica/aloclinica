@@ -135,7 +135,10 @@ export default function SignupPatient() {
           metadata: { resolution: "CFM 2.314/2022", scope: "signup_once" } },
       ]);
       toast.success("Cadastro realizado com sucesso!");
-      navigate("/dashboard");
+      // Deep-link: ?redirect=/qualquer-rota → segue direto para lá após cadastro
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get("redirect");
+      navigate(redirect && redirect.startsWith("/") ? redirect : "/dashboard");
     } catch (err) {
       toastError(toast, err, "signup");
     } finally {

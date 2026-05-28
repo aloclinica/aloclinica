@@ -22,6 +22,7 @@ import { HeroBanner } from "./HeroBanner";
 import { StatBento } from "./StatBento";
 import { ActionPills } from "./ActionPills";
 import { LiveQueue, QueueItem } from "./LiveQueue";
+import DoctorDaySummaryCard from "./DoctorDaySummaryCard";
 import { cn } from "@/lib/utils";
 import { GoalProgressCard } from "./GoalProgressCard";
 import { DashboardShortcuts } from "./DashboardShortcuts";
@@ -251,6 +252,16 @@ const DoctorDashboard = () => {
             nextAppt={upcomingAppts[0] ?? (todayAppts.find(a => a.status === "scheduled" || a.status === "waiting"))}
             onEnterRoom={(id) => navigate(`/dashboard/doctor/waiting-room?appt=${id}`)}
             onSeeQueue={() => navigate("/dashboard/doctor/waiting-room")}
+          />
+        </motion.div>
+
+        {/* Resumo do dia (IA) */}
+        <motion.div variants={fadeUp}>
+          <DoctorDaySummaryCard
+            todayAppts={todayAppts as any}
+            waitingCount={waitingCount}
+            inProgress={inProg}
+            done={done}
           />
         </motion.div>
 
