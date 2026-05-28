@@ -442,13 +442,31 @@ const DoctorCalendar = () => {
 
         {/* Navigation */}
         <div className="flex items-center justify-between mb-4">
-          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Ação" onClick={() =>  navigateDate(-1)}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Período anterior" onClick={() =>  navigateDate(-1)}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <h2 className="text-sm sm:text-lg font-semibold text-foreground capitalize">{headerLabel}</h2>
-          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Ação" onClick={() =>  navigateDate(1)}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Próximo período" onClick={() =>  navigateDate(1)}>
             <ChevronRight className="w-4 h-4" />
           </Button>
+        </div>
+
+        {/* Legenda de status — ajuda a decodificar as cores no calendário */}
+        <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[10px] text-muted-foreground">
+          <span className="font-semibold uppercase tracking-wider">Legenda:</span>
+          {([
+            { k: "scheduled",  label: "Agendada",     dot: "bg-primary" },
+            { k: "waiting",    label: "Aguardando",   dot: "bg-warning" },
+            { k: "in_progress",label: "Em andamento", dot: "bg-success" },
+            { k: "completed",  label: "Concluída",    dot: "bg-muted-foreground/50" },
+            { k: "cancelled",  label: "Cancelada",    dot: "bg-destructive" },
+            { k: "no_show",    label: "Ausente",      dot: "bg-destructive/70" },
+          ] as const).map((s) => (
+            <span key={s.k} className="inline-flex items-center gap-1.5">
+              <span className={`w-2.5 h-2.5 rounded-full ${s.dot}`} aria-hidden="true" />
+              <span>{s.label}</span>
+            </span>
+          ))}
         </div>
 
         {/* Content */}
