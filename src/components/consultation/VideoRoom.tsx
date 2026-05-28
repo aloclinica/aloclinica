@@ -12,7 +12,8 @@ import {
   MessageSquare, FileText, Clock, Send, X, PanelLeftClose, PanelLeft,
    UserRound, Pill, PhoneOff, Mic, MicOff, Video, VideoOff, Shield, UserPlus,
   MoreVertical, Maximize2, Minimize2, Copy, Share2, FileBadge, Paperclip, Image,
-  Sparkles, Loader2, Stethoscope, ClipboardList, SwitchCamera, CheckCircle2
+  Sparkles, Loader2, Stethoscope, ClipboardList, SwitchCamera, CheckCircle2,
+  PictureInPicture2, Camera, Disc, Download
 } from "lucide-react";
 import ConsentTCLE from "./ConsentTCLE";
 import AIClinicalPanel from "./AIClinicalPanel";
@@ -149,6 +150,45 @@ const VideoRoom = () => {
     const f = field ?? "plan";
     const current = (soap.notes as any)?.[f] ?? "";
     soap.updateSection(f, current ? `${current}\n${text}` : text);
+  };
+
+  // Snapshot clínico do vídeo do paciente → baixa o quadro capturado
+  const handleSnapshot = () => {
+    const url = videoRef.current?.captureSnapshot?.();
+    if (!url) { toast.info("Sem vídeo do paciente para capturar agora."); return; }
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `captura-consulta-${appointmentId}-${Date.now()}.jpg`;
+    a.click();
+    toast.success("Captura salva", { description: "Anexe no painel IA → “Resumir exames” se quiser análise." });
+  };
+
+  // Picture-in-Picture do vídeo do paciente
+  const handlePiP = async () => {
+    if (!videoRef.current?.requestPiP) { toast.info("Disponível no modo de vídeo P2P."); return; }
+    await videoRef.current.requestPiP();
+  };
+
+  // Gravação da consulta (requer consentimento expresso — CFM 2.314/2022 / TCLE)
+  const handleToggleRecording = () => {
+    const v = videoRef.current;
+    if (!v) { toast.info("Gravação disponível no modo de vídeo P2P."); return; }
+    if (v.isRecording) {
+      v.stopRecording();
+      toast.success("Gravação finalizada", { description: "Clique em “Baixar gravação” para salvar o arquivo." });
+      return;
+    }
+    const ok = window.confirm(
+      "Gravar a teleconsulta exige consentimento expresso de ambas as partes (CFM 2.314/2022 e TCLE). " +
+      "Confirme que o paciente consentiu com a gravação antes de prosseguir."
+    );
+    if (!ok) return;
+    v.startRecording();
+    toast.success("Gravando a consulta…", { description: "O arquivo é gerado localmente; baixe ao final." });
+  };
+
+  const handleDownloadRecording = () => {
+    videoRef.current?.downloadRecording?.(`consulta-${appointmentId}-${Date.now()}.webm`);
   };
 
   // ─── Check CRM verified (doctors only) ───
@@ -1365,6 +1405,30 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
                 label="Exames"
                 onClick={() => setToolOverlay({ url: `/dashboard/exam-request?embed=1&appointment=${appointmentId}`, title: "Pedido de Exames" })}
               />
+              <div className="w-px h-6 bg-[hsl(220,15%,15%)] mx-1" />
+              <ToolbarBtn
+                icon={<Camera className="w-3.5 h-3.5" />}
+                label="Capturar"
+                onClick={handleSnapshot}
+              />
+              <ToolbarBtn
+                icon={<PictureInPicture2 className="w-3.5 h-3.5" />}
+                label="PiP"
+                onClick={handlePiP}
+              />
+              <ToolbarBtn
+                active={videoRef.current?.isRecording}
+                icon={<Disc className={`w-3.5 h-3.5 ${videoRef.current?.isRecording ? "text-red-500 animate-pulse" : ""}`} />}
+                label={videoRef.current?.isRecording ? "Parar" : "Gravar"}
+                onClick={handleToggleRecording}
+              />
+              {videoRef.current?.hasRecording && !videoRef.current?.isRecording && (
+                <ToolbarBtn
+                  icon={<Download className="w-3.5 h-3.5" />}
+                  label="Baixar"
+                  onClick={handleDownloadRecording}
+                />
+              )}
               <div className="w-px h-6 bg-[hsl(220,15%,15%)] mx-1" />
               <ToolbarBtn
                 active={useJitsi}

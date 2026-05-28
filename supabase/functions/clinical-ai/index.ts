@@ -60,6 +60,11 @@ const TASKS: Record<string, TaskDef> = {
     user: (p) => `Gere um resumo para o paciente a partir de:\n\n${p.context}`,
     max: 1200, temp: 0.4,
   },
+  final_summary: {
+    system: `${SAFETY}\nTarefa: RESUMO CLÍNICO FINAL (para o médico). Estruture em markdown com as seções: **Motivo da consulta**, **História/achados relevantes**, **Hipóteses (CID-10)**, **Conduta adotada**, **Prescrições/exames**, **Encaminhamentos**, **Retorno/orientações** e **Pendências**. Seja conciso e fiel ao contexto; marque o que ficou indefinido como pendência.`,
+    user: (p) => `Gere o resumo clínico final da teleconsulta a partir do contexto:\n\n${p.context}`,
+    max: 1600, temp: 0.3,
+  },
   anamnese: {
     system: `${SAFETY}\nTarefa: SUGERIR ANAMNESE. Liste perguntas objetivas de anamnese dirigida à queixa, agrupadas (HMA, antecedentes, hábitos, revisão de sistemas pertinente).`,
     user: (p) => `Sugira perguntas de anamnese para o quadro:\n\n${p.context}`,

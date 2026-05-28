@@ -22,6 +22,8 @@ export interface VideoConsultationHandle {
   startRecording: () => void;
   stopRecording: () => void;
   downloadRecording: (filename?: string) => void;
+  requestPiP: () => Promise<void>;
+  captureSnapshot: () => string | null;
   isMuted: boolean;
   isVideoOff: boolean;
   isScreenSharing: boolean;
@@ -98,6 +100,33 @@ const VideoConsultation = forwardRef<VideoConsultationHandle, VideoConsultationP
       audioBitsPerSecond: 128000,
     });
 
+    // Picture-in-Picture: destaca o vídeo do paciente em janela flutuante
+    const requestPiP = async () => {
+      const v = remoteVideoRef.current;
+      try {
+        if (document.pictureInPictureElement) {
+          await document.exitPictureInPicture();
+        } else if (v && (v as any).requestPictureInPicture && v.videoWidth) {
+          await (v as any).requestPictureInPicture();
+        }
+      } catch {
+        /* PiP indisponível neste navegador */
+      }
+    };
+
+    // Snapshot clínico: captura um quadro do vídeo do paciente (data URL JPEG)
+    const captureSnapshot = (): string | null => {
+      const v = remoteVideoRef.current;
+      if (!v || !v.videoWidth || !v.videoHeight) return null;
+      const canvas = document.createElement("canvas");
+      canvas.width = v.videoWidth;
+      canvas.height = v.videoHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return null;
+      ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL("image/jpeg", 0.92);
+    };
+
     useImperativeHandle(ref, () => ({
       hangUp,
       toggleMute,
@@ -107,6 +136,8 @@ const VideoConsultation = forwardRef<VideoConsultationHandle, VideoConsultationP
       startRecording,
       stopRecording,
       downloadRecording,
+      requestPiP,
+      captureSnapshot,
       isMuted,
       isVideoOff,
       isScreenSharing,

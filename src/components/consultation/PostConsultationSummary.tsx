@@ -41,8 +41,10 @@ const PostConsultationSummary = ({
 
   // Resumo clínico por IA (pós-consulta, médico)
   const [aiSummary, setAiSummary] = useState("");
+  const [summaryCtx, setSummaryCtx] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiCopied, setAiCopied] = useState(false);
+  const [sendingSummary, setSendingSummary] = useState(false);
   const [summarySent, setSummarySent] = useState(false);
 
   // Rating state
@@ -153,12 +155,13 @@ const PostConsultationSummary = ({
       ].filter(Boolean).join("\n");
 
       const { data, error } = await db.functions.invoke("clinical-ai", {
-        body: { task: "patient_summary", payload: { context: ctx } },
+        body: { task: "final_summary", payload: { context: ctx } },
       });
       if (error) throw error;
       const text = (data as any)?.result || "";
       if (!text) throw new Error("Resposta vazia da IA");
       setAiSummary(text);
+      setSummaryCtx(ctx);
     } catch (e: any) {
       logError("[PostConsultationSummary] AI summary", e);
       toast.error("Não foi possível gerar o resumo", { description: e?.message || "Tente novamente." });
@@ -167,23 +170,31 @@ const PostConsultationSummary = ({
     }
   };
 
-  // Envia o resumo ao paciente como notificação in-app
+  // Gera uma versão em linguagem simples e envia ao paciente como notificação in-app
   const handleSendSummary = async () => {
-    if (!patientIdRaw || !aiSummary) return;
+    if (!patientIdRaw || !summaryCtx) return;
+    setSendingSummary(true);
     try {
-      const { error } = await (db as any).from("notifications").insert({
+      const { data, error } = await db.functions.invoke("clinical-ai", {
+        body: { task: "patient_summary", payload: { context: summaryCtx } },
+      });
+      if (error) throw error;
+      const patientText = (data as any)?.result || aiSummary;
+      const { error: insErr } = await (db as any).from("notifications").insert({
         user_id: patientIdRaw,
         title: "📋 Resumo da sua consulta",
-        message: aiSummary,
+        message: patientText,
         type: "info",
         link: "/dashboard/history",
       });
-      if (error) throw error;
+      if (insErr) throw insErr;
       setSummarySent(true);
-      toast.success("Resumo enviado ao paciente");
+      toast.success("Resumo enviado ao paciente", { description: "Em linguagem simples, na área do paciente." });
     } catch (e: any) {
       logError("[PostConsultationSummary] send summary", e);
       toast.error("Erro ao enviar resumo", { description: e?.message });
+    } finally {
+      setSendingSummary(false);
     }
   };
 
@@ -383,7 +394,7 @@ const PostConsultationSummary = ({
                   className="w-full h-11 rounded-xl font-medium gap-2"
                 >
                   {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  {aiLoading ? "Gerando resumo…" : "Gerar resumo clínico (IA)"}
+                  {aiLoading ? "Gerando resumo…" : "Gerar resumo clínico final (IA)"}
                 </Button>
               ) : (
                 <div className="rounded-xl border border-border bg-muted/30 p-3 space-y-2">
@@ -394,9 +405,9 @@ const PostConsultationSummary = ({
                       {aiCopied ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />} Copiar
                     </Button>
                     <Button size="sm" variant="ghost" className="h-8 text-xs gap-1.5"
-                      onClick={handleSendSummary} disabled={summarySent || !patientIdRaw}>
-                      {summarySent ? <Check className="w-3.5 h-3.5 text-success" /> : <BellRing className="w-3.5 h-3.5" />}
-                      {summarySent ? "Enviado ao paciente" : "Enviar ao paciente"}
+                      onClick={handleSendSummary} disabled={summarySent || sendingSummary || !patientIdRaw}>
+                      {summarySent ? <Check className="w-3.5 h-3.5 text-success" /> : sendingSummary ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <BellRing className="w-3.5 h-3.5" />}
+                      {summarySent ? "Enviado ao paciente" : sendingSummary ? "Enviando…" : "Enviar ao paciente"}
                     </Button>
                     <Button size="sm" variant="ghost" className="h-8 text-xs gap-1.5 ml-auto"
                       onClick={handleGenerateSummary} disabled={aiLoading}>
