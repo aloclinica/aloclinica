@@ -23,7 +23,8 @@ export default defineConfig(({ mode }) => ({
       includeAssets: ["favicon.ico", "pwa-192x192.png", "pwa-512x512.png"],
       devOptions: { enabled: false },
       workbox: {
-        navigateFallback: null,
+        navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/\/functions\//, /supabase\.co/, /\.(?:png|jpg|jpeg|svg|webp|webm|mp4|pdf)$/],
         globPatterns: ["**/*.{ico,png,svg,woff2}"],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         skipWaiting: true,

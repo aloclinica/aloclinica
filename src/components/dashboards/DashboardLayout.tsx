@@ -704,7 +704,7 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
             </div>
           </aside>
         )}
-        <main className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto pb-[88px] md:pb-10 scroll-smooth">
+        <main className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto pb-[max(104px,calc(88px+env(safe-area-inset-bottom,0px)))] md:pb-10 scroll-smooth">
           <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-6 min-h-0 max-w-[1400px] mx-auto w-full"
             style={{ paddingLeft: "max(0.75rem, env(safe-area-inset-left, 0px))", paddingRight: "max(0.75rem, env(safe-area-inset-right, 0px))" }}>
             <div className="hidden md:block"><DashboardBreadcrumbs /></div>
@@ -726,7 +726,8 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
        {/* ═══ Mobile bottom nav — Premium Floating TabBar ═══ */}
        {nav && nav.length > 0 && (
          <nav
-           className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[400px]"
+           className="md:hidden fixed left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[400px]"
+           style={{ bottom: "max(1.5rem, calc(0.5rem + env(safe-area-inset-bottom, 0px)))" }}
            aria-label="Navegação principal"
          >
            <div
