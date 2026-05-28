@@ -126,7 +126,7 @@ const ExamMarketplace = () => {
   const orderByRequest = new Map<string, Order>(orders.map((o) => [o.exam_request_id ?? "", o]));
 
   return (
-    <DashboardLayout title="Exames" nav={getPatientNav("home")} role="patient">
+    <DashboardLayout title="Exames" nav={getPatientNav("exams")} role="patient">
       <div className="max-w-2xl mx-auto space-y-4">
         <div>
           <h1 className="text-xl font-bold flex items-center gap-2"><FlaskConical className="w-5 h-5 text-primary" /> Meus exames</h1>

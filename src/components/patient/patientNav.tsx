@@ -54,7 +54,9 @@ export const getPatientNav = (active: string, t: Translator = fallback) => {
     { label: t("patientNav.health"), href: "/dashboard/patient/health?role=patient", icon: <NavIcon icon={<Heart size={16} weight="fill" />} color="rose" />, active: active === "health", group: health },
     { label: t("patientNav.prescriptions"), href: "/dashboard/history?role=patient", icon: <NavIcon icon={<FileText size={16} weight="fill" />} color="emerald" />, active: active === "history", group: health },
     { label: t("patientNav.uploadExams"), href: "/dashboard/patient/documents?role=patient", icon: <NavIcon icon={<Upload size={16} weight="fill" />} color="cyan" />, active: active === "documents", group: health },
+    { label: "Exames (laboratórios)", href: "/dashboard/patient/exams?role=patient", icon: <NavIcon icon={<FirstAid size={16} weight="fill" />} color="cyan" />, active: active === "exams", group: health },
     { label: t("patientNav.renewal"), href: "/dashboard/prescription-renewal?role=patient", icon: <NavIcon icon={<BookOpen size={16} weight="fill" />} color="emerald" />, active: active === "renewal", group: health },
+    { label: "Família", href: "/dashboard/patient/family?role=patient", icon: <NavIcon icon={<Users size={16} weight="fill" />} color="rose" />, active: active === "family", group: health },
 
     // ── Financeiro & Notificações ──
     { label: t("patientNav.payments"), href: "/dashboard/payment-history?role=patient", icon: <NavIcon icon={<CreditCard size={16} weight="fill" />} color="green" />, active: active === "payments", group: finance },
@@ -66,5 +68,6 @@ export const getPatientNav = (active: string, t: Translator = fallback) => {
     { label: t("patientNav.profile"), href: "/dashboard/profile?role=patient", icon: <NavIcon icon={<UserCircle size={16} weight="fill" />} color="blue" />, active: active === "profile", group: account },
     { label: t("patientNav.settings"), href: "/dashboard/settings?role=patient", icon: <NavIcon icon={<Sliders size={16} weight="fill" />} color="slate" />, active: active === "settings", group: account },
     { label: t("patientNav.privacy"), href: "/dashboard/patient/lgpd?role=patient", icon: <NavIcon icon={<Shield size={16} weight="fill" />} color="amber" />, active: active === "lgpd", group: account },
+    { label: "Quem acessou meus dados", href: "/dashboard/patient/access-log?role=patient", icon: <NavIcon icon={<Eye size={16} weight="fill" />} color="amber" />, active: active === "access-log", group: account },
   ];
 };

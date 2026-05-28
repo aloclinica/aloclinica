@@ -75,8 +75,9 @@ const AccessLog = () => {
         const rxIds = new Set((rxs ?? []).map((r: any) => r.id));
         const allIds = [...apptIds, ...rxIds];
 
-        // 2) Busca logs onde entity_id é um dos meus, OU user_id é o meu (minhas próprias ações)
-        const filters: string[] = [`user_id.eq.${user.id}`];
+        // 2) Busca logs onde entity_id é um dos meus, OU user_id é o meu (minhas próprias ações),
+        //    ou ainda quando o entity_id aponta para meu próprio user_id (acesso ao EMR/prontuário do paciente)
+        const filters: string[] = [`user_id.eq.${user.id}`, `entity_id.eq.${user.id}`];
         if (allIds.length) filters.push(`entity_id.in.(${allIds.join(",")})`);
 
         const { data, error: e } = await db.from("activity_logs")
@@ -129,7 +130,7 @@ const AccessLog = () => {
   }, [logs]);
 
   return (
-    <DashboardLayout title="Trilha de acesso" nav={getPatientNav("home")} role="patient">
+    <DashboardLayout title="Trilha de acesso" nav={getPatientNav("access-log")} role="patient">
       <div className="max-w-2xl mx-auto space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div>

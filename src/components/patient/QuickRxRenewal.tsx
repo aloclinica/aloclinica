@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { logError } from "@/lib/logger";
+import { logActivity } from "@/lib/activity";
 import { Pill, Check, AlertCircle, CheckCircle2, ArrowRight, ShieldCheck } from "lucide-react";
 
 const QuickRxRenewal = () => {
@@ -45,6 +46,7 @@ const QuickRxRenewal = () => {
           .eq("patient_id", user.id)
           .maybeSingle();
         setRx(data);
+        if (data?.id) logActivity({ action: "view", entity_type: "prescription", entity_id: data.id, reason: "patient_renewal" });
       } catch (e) {
         logError("QuickRxRenewal load", e);
       } finally {

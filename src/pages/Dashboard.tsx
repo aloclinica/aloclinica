@@ -143,6 +143,14 @@ const PatientOphthalmologyHub = lazy(() => import("@/pages/PatientOphthalmologyH
 // EMR wrapper with route params
 const PatientEMRPage = () => {
   const { patientUserId } = useParams();
+  // Loga acesso ao prontuário do paciente — alimenta a trilha LGPD
+  useEffect(() => {
+    if (patientUserId) {
+      import("@/lib/activity").then((m) =>
+        m.logActivity({ action: "view", entity_type: "medical_record", entity_id: patientUserId, reason: "doctor_emr_access" }),
+      );
+    }
+  }, [patientUserId]);
   if (!patientUserId) return <Navigate to="/dashboard/patients" replace />;
   return <PatientEMR patientId={patientUserId} isDoctor readOnly={false} />;
 };

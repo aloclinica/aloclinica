@@ -120,7 +120,7 @@ const FamilyMembers = () => {
   const relLabel = (r: string | null) => REL_OPTIONS.find((x) => x.value === r)?.label ?? "Dependente";
 
   return (
-    <DashboardLayout title="Família" nav={getPatientNav("home")} role="patient">
+    <DashboardLayout title="Família" nav={getPatientNav("family")} role="patient">
       <div className="max-w-2xl mx-auto space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div>
