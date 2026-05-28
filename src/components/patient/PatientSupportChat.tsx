@@ -103,7 +103,7 @@ const PatientSupportChat = () => {
         <div className="w-full mx-auto max-w-2xl pb-24 md:pb-6 flex flex-col h-[calc(100vh-120px)]">
           {/* Header */}
           <div className="flex items-center gap-3 pb-4 border-b border-border mb-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setSelectedTicket(null)}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setSelectedTicket(null)} aria-label="Voltar para a lista">
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div className="relative">
@@ -179,9 +179,9 @@ const PatientSupportChat = () => {
           {/* Input */}
           {selectedTicket.status !== "closed" ? (
             <div className="flex gap-2 items-center pt-2 border-t border-border">
-              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-full"><Plus className="w-5 h-5" /></Button>
+              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-full" aria-label="Anexar arquivo"><Plus className="w-5 h-5" /></Button>
               <Input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()} placeholder="Escreva sua mensagem..." disabled={sending} className="flex-1 h-11 rounded-2xl" />
-              <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={sendMessage} disabled={sending || !input.trim()}>
+              <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={sendMessage} disabled={sending || !input.trim()} aria-label="Enviar mensagem">
                 {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </Button>
             </div>

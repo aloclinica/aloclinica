@@ -53,7 +53,7 @@ const DoctorWallet = () => {
          <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="rounded-full">
+                <Button variant="ghost" size="icon" onClick={() => window.history.back()} className="rounded-full" aria-label="Voltar">
                   <ArrowLeft className="w-5 h-5" />
                 </Button>
                 <div>

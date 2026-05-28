@@ -4,8 +4,9 @@ import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { KpiCard } from "@/components/ui/kpi-card";
 import { Building2, Users, Activity, FileText, Mail, AlertCircle } from "lucide-react";
 
 type Contrato = {
@@ -77,23 +78,24 @@ const OrgaoDashboard = () => {
             ))}
           </div>
         ) : erro ? (
-          <Card><CardContent className="p-8 text-center">
-            <AlertCircle className="w-10 h-10 mx-auto text-destructive/60 mb-3" />
-            <p className="font-semibold text-foreground mb-1">Não foi possível carregar seus contratos</p>
-            <p className="text-sm text-muted-foreground mb-4">Verifique sua conexão e tente novamente.</p>
-            <Button variant="outline" size="sm" className="rounded-xl" onClick={() => window.location.reload()}>Recarregar</Button>
-          </CardContent></Card>
+          <EmptyState
+            variant="error"
+            icon={AlertCircle}
+            title="Não foi possível carregar seus contratos"
+            description="Verifique sua conexão e tente novamente."
+            action={{ label: "Recarregar", onClick: () => window.location.reload() }}
+          />
         ) : contratos.length === 0 ? (
-          <Card><CardContent className="p-10 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
-              <Building2 className="w-7 h-7 text-primary/70" />
-            </div>
-            <p className="font-semibold text-foreground mb-1">Nenhum contrato vinculado</p>
-            <p className="text-sm text-muted-foreground mb-4">Assim que seu contrato com a AloClínica for ativado, os dados de cota, beneficiários e medição aparecem aqui.</p>
-            <Button size="sm" className="rounded-xl gap-1.5" asChild>
-              <a href="mailto:contato@aloclinica.com.br?subject=Ativação%20de%20contrato%20(Órgão)"><Mail className="w-4 h-4" /> Falar com a AloClínica</a>
-            </Button>
-          </CardContent></Card>
+          <EmptyState
+            icon={Building2}
+            title="Nenhum contrato vinculado"
+            description="Assim que seu contrato com a AloClínica for ativado, os dados de cota, beneficiários e medição aparecem aqui."
+            action={{
+              label: "Falar com a AloClínica",
+              icon: Mail,
+              onClick: () => { window.location.href = "mailto:contato@aloclinica.com.br?subject=Ativação%20de%20contrato%20(Órgão)"; },
+            }}
+          />
         ) : contratos.map((c) => {
           const st = stats[c.id] ?? { benef: 0, mesQtd: 0, mesValor: 0 };
           const pct = c.cota_total ? Math.min(100, Math.round((c.cota_utilizada / c.cota_total) * 100)) : null;
@@ -105,10 +107,10 @@ const OrgaoDashboard = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <Kpi icon={<Activity className="w-4 h-4" />} label="Consultas usadas" value={`${c.cota_utilizada}${c.cota_total ? ` / ${c.cota_total}` : ""}`} />
-                  <Kpi icon={<Users className="w-4 h-4" />} label="Beneficiários ativos" value={String(st.benef)} />
-                  <Kpi icon={<FileText className="w-4 h-4" />} label="Consultas no mês" value={String(st.mesQtd)} />
-                  <Kpi icon={<FileText className="w-4 h-4" />} label="Medição do mês" value={`R$ ${st.mesValor.toFixed(2).replace(".", ",")}`} />
+                  <KpiCard icon={Activity} label="Consultas usadas" value={`${c.cota_utilizada}${c.cota_total ? ` / ${c.cota_total}` : ""}`} />
+                  <KpiCard icon={Users} label="Beneficiários ativos" value={st.benef} />
+                  <KpiCard icon={FileText} label="Consultas no mês" value={st.mesQtd} />
+                  <KpiCard icon={FileText} label="Medição do mês" value={`R$ ${st.mesValor.toFixed(2).replace(".", ",")}`} />
                 </div>
                 {pct !== null && (
                   <div>

@@ -91,7 +91,7 @@ const DoctorPatients = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="rounded-full">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="rounded-full" aria-label="Voltar ao painel">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
@@ -159,7 +159,7 @@ const DoctorPatients = () => {
                       {p.total_appointments} consultas
                     </p>
                   </div>
-                  <Button variant="ghost" size="icon" className="rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button variant="ghost" size="icon" className="rounded-full opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Ações do paciente">
                     <MoreVertical className="w-4 h-4" />
                   </Button>
                 </div>

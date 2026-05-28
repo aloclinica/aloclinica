@@ -53,7 +53,7 @@ const FaqChatWidget = () => {
         </div>
         <div className="p-3 border-t flex gap-2">
           <Input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="Digite sua dúvida..." disabled={busy} />
-          <Button onClick={send} disabled={busy || !input.trim()} size="icon"><Send className="h-4 w-4" /></Button>
+          <Button onClick={send} disabled={busy || !input.trim()} size="icon" aria-label="Enviar pergunta"><Send className="h-4 w-4" /></Button>
         </div>
       </SheetContent>
     </Sheet>

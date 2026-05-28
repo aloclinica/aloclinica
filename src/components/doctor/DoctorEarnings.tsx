@@ -27,6 +27,8 @@ const DoctorEarnings = () => {
   const [stats, setStats] = useState({ total: 0, pending: 0, thisMonth: 0, totalAppts: 0, available: 0 });
   const [monthlyData, setMonthlyData] = useState<{ month: string; consultas: number; valor: number }[]>([]);
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
+  const [withdrawalsHasMore, setWithdrawalsHasMore] = useState(false);
+  const [loadingMoreW, setLoadingMoreW] = useState(false);
   const [loading, setLoading] = useState(true);
   const [pixKey, setPixKey] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
@@ -89,7 +91,9 @@ const DoctorEarnings = () => {
 
     const confirmedAppts = confirmedRes.data ?? [];
     const pendingAppts = pendingRes.data ?? [];
-    setWithdrawals(withdrawRes.data ?? []);
+    const withdrawList = withdrawRes.data ?? [];
+    setWithdrawals(withdrawList);
+    setWithdrawalsHasMore(withdrawList.length === 20);
 
     const defaultPrice = Number(docProfile.consultation_price) || 89;
 
@@ -183,7 +187,7 @@ const DoctorEarnings = () => {
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="rounded-full">
+              <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="rounded-full" aria-label="Voltar ao painel">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
@@ -363,6 +367,27 @@ const DoctorEarnings = () => {
                   </div>
                 ))}
               </div>
+              {withdrawalsHasMore && (
+                <div className="mt-3 flex justify-center">
+                  <Button variant="outline" size="sm" className="rounded-xl"
+                    disabled={loadingMoreW}
+                    onClick={async () => {
+                      setLoadingMoreW(true);
+                      try {
+                        const offset = withdrawals.length;
+                        const { data } = await db.from("withdrawal_requests")
+                          .select("*").eq("user_id", user!.id)
+                          .order("created_at", { ascending: false })
+                          .range(offset, offset + 19);
+                        const more = data ?? [];
+                        setWithdrawals((w) => [...w, ...more]);
+                        setWithdrawalsHasMore(more.length === 20);
+                      } finally { setLoadingMoreW(false); }
+                    }}>
+                    {loadingMoreW ? "Carregando…" : "Ver mais"}
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

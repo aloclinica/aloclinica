@@ -721,7 +721,7 @@ const PatientOnboarding = ({ onComplete }: PatientOnboardingProps) => {
    return (
      <div className="fixed inset-0 z-[100] bg-background flex flex-col overflow-hidden">
        <div className="absolute top-4 right-4 z-[110]">
-         <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted" onClick={markAsCompleted}>
+         <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted" onClick={markAsCompleted} aria-label="Fechar onboarding">
            <X className="w-5 h-5 text-muted-foreground" />
          </Button>
        </div>

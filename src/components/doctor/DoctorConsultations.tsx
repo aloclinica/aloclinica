@@ -223,7 +223,7 @@ const DoctorConsultations = () => {
               <Button variant="outline" size="sm" onClick={exportPDF} className="rounded-xl h-9 px-4 hidden sm:flex">
                 <FileText className="w-4 h-4 mr-2" /> PDF
               </Button>
-              <Button variant="ghost" size="icon" className="sm:hidden rounded-full">
+              <Button variant="ghost" size="icon" className="sm:hidden rounded-full" aria-label="Mais ações">
                 <MoreHorizontal className="w-5 h-5" />
               </Button>
             </div>

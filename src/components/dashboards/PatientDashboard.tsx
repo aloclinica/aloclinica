@@ -121,6 +121,24 @@ const PatientDashboard = () => {
     setTimeout(() => setIsRefreshing(false), 600);
   }, [queryClient]);
 
+  // Realtime: revalida o painel quando appointments do paciente mudam
+  useEffect(() => {
+    if (!user?.id) return;
+    let pending: ReturnType<typeof setTimeout> | null = null;
+    const ch = db
+      .channel(`patient-dashboard-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "appointments", filter: `patient_id=eq.${user.id}` }, () => {
+        if (pending) clearTimeout(pending);
+        pending = setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ["patient-upcoming-enriched"] });
+          queryClient.invalidateQueries({ queryKey: ["patient-dashboard-stats"] });
+          queryClient.invalidateQueries({ queryKey: ["patient-return-appts"] });
+        }, 250);
+      })
+      .subscribe();
+    return () => { if (pending) clearTimeout(pending); db.removeChannel(ch); };
+  }, [user?.id, queryClient]);
+
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
