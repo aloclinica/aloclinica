@@ -46,6 +46,12 @@ const UserProfile = () => {
 
   const forceRole = searchParams.get("role");
   const openKyc = searchParams.get("kyc") === "open";
+  // Feedback do callback OAuth do Mercado Pago
+  useEffect(() => {
+    const mp = searchParams.get("mp");
+    if (mp === "ok") toast.success("Conta Mercado Pago conectada ✅");
+    if (mp === "err") toast.error("Falha ao conectar o Mercado Pago", { description: searchParams.get("reason") || undefined });
+  }, [searchParams]);
   const isAdmin = roles.includes("admin");
   const activeRole = isAdmin && forceRole ? forceRole
     : roles.includes("doctor") ? "doctor"
@@ -86,6 +92,9 @@ const UserProfile = () => {
   const [priceMax, setPriceMax] = useState<number | null>(null);
   const [doctorCareAreas, setDoctorCareAreas] = useState<string[]>([]);
   const [doctorProfileId, setDoctorProfileId] = useState<string | null>(null);
+  const [mpUserId, setMpUserId] = useState<string | null>(null);
+  const [mpConnectedAt, setMpConnectedAt] = useState<string | null>(null);
+  const [disconnectingMp, setDisconnectingMp] = useState(false);
   const isDoctor = roles.includes("doctor");
 
   useEffect(() => {
@@ -120,9 +129,11 @@ const UserProfile = () => {
   }, [user]);
 
   const fetchDoctorProfile = async () => {
-    const { data } = await db.from("doctor_profiles").select("id, bio, education, experience_years, consultation_price, display_name").eq("user_id", user!.id).single();
+    const { data } = await db.from("doctor_profiles").select("id, bio, education, experience_years, consultation_price, display_name, mp_user_id, mp_connected_at").eq("user_id", user!.id).single();
     if (data) {
       setDoctorProfileId(data.id);
+      setMpUserId((data as any).mp_user_id ?? null);
+      setMpConnectedAt((data as any).mp_connected_at ?? null);
       setBio(data.bio || ""); setEducation(data.education || "");
       setDisplayName((data as any).display_name || "");
       setExperienceYears(data.experience_years || 0); setConsultationPrice(Number(data.consultation_price) || 89);
@@ -467,6 +478,71 @@ const UserProfile = () => {
             <Input type="password" value="••••••••" disabled className="h-12 rounded-xl bg-muted/30 border-transparent mt-1" />
           </div>
         </div>
+
+        {/* Mercado Pago Marketplace (médico) */}
+        {isDoctor && (() => {
+          const appId = (import.meta as any).env?.VITE_MP_APP_ID;
+          const userId = user?.id ?? "";
+          const redirect = encodeURIComponent("https://pwxvvimdtmvziynbspgx.supabase.co/functions/v1/mp-oauth-callback");
+          const oauthUrl = appId
+            ? `https://auth.mercadopago.com.br/authorization?client_id=${appId}&response_type=code&platform_id=mp&state=${userId}&redirect_uri=${redirect}`
+            : null;
+          const disconnect = async () => {
+            if (!confirm("Desconectar sua conta Mercado Pago? Os próximos pagamentos voltam a cair na conta da plataforma.")) return;
+            setDisconnectingMp(true);
+            try {
+              const { error } = await db.from("doctor_profiles").update({
+                mp_user_id: null, mp_access_token: null, mp_refresh_token: null,
+                mp_token_expires_at: null, mp_connected_at: null,
+              } as any).eq("user_id", user!.id);
+              if (error) throw error;
+              setMpUserId(null); setMpConnectedAt(null);
+              toast.success("Conta Mercado Pago desconectada");
+            } catch (e: any) {
+              toast.error("Erro ao desconectar", { description: e?.message });
+            } finally { setDisconnectingMp(false); }
+          };
+          return (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-lg">Recebimento Mercado Pago</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {mpUserId ? (
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-success/30 bg-success/5 p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-success/15 flex items-center justify-center"><Shield className="w-5 h-5 text-success" /></div>
+                      <div>
+                        <p className="font-semibold text-foreground">Conta conectada</p>
+                        <p className="text-xs text-muted-foreground">
+                          ID MP {mpUserId}{mpConnectedAt ? ` · desde ${new Date(mpConnectedAt).toLocaleDateString("pt-BR")}` : ""}
+                        </p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm" className="rounded-xl" onClick={disconnect} disabled={disconnectingMp}>
+                      {disconnectingMp ? "Desconectando…" : "Desconectar"}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Conecte sua conta Mercado Pago para receber 90% do valor de cada consulta diretamente, sem espera de repasse.
+                    </p>
+                    {oauthUrl ? (
+                      <Button asChild className="rounded-xl gap-2 h-11">
+                        <a href={oauthUrl}>Conectar Mercado Pago</a>
+                      </Button>
+                    ) : (
+                      <p className="text-xs text-amber-600">
+                        ⚠️ O administrador da plataforma precisa configurar <code>VITE_MP_APP_ID</code> (build) e <code>MERCADOPAGO_APP_ID</code>/<code>MERCADOPAGO_CLIENT_SECRET</code> (edge functions) antes de habilitar a conexão.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Doctor fields */}
         {isDoctor && (

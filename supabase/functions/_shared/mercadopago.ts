@@ -28,11 +28,11 @@ export async function mpRequest<T = any>(
   method: "GET" | "POST" | "PUT" | "DELETE",
   path: string,
   body?: any,
-  options: { idempotencyKey?: string } = {}
+  options: { idempotencyKey?: string; accessToken?: string } = {}
 ): Promise<MpResponse<T>> {
   const url = path.startsWith("http") ? path : `${MP_BASE}${path}`;
   const headers: Record<string, string> = {
-    Authorization: `Bearer ${getAccessToken()}`,
+    Authorization: `Bearer ${options.accessToken || getAccessToken()}`,
     "Content-Type": "application/json",
   };
   if (options.idempotencyKey) {

@@ -149,10 +149,36 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: `payment_method inválido: ${payment_method}` }, 400);
     }
 
+    // Marketplace split: se o reference é uma consulta e o médico tem conta MP
+    // conectada, o pagamento vai DIRETO para a conta dele e descontamos a fee
+    // da plataforma. Caso contrário, mantém fluxo legado (recebemos 100%).
+    let marketplaceAccessToken: string | undefined;
+    if (reference_id.startsWith("appointment_")) {
+      const apptId = reference_id.replace("appointment_", "");
+      const { data: appt } = await admin.from("appointments")
+        .select("doctor_id, price_at_booking")
+        .eq("id", apptId).maybeSingle();
+      if (appt?.doctor_id) {
+        const { data: doc } = await admin.from("doctor_profiles")
+          .select("mp_access_token, mp_user_id")
+          .eq("id", appt.doctor_id).maybeSingle();
+        if (doc?.mp_access_token && doc?.mp_user_id) {
+          marketplaceAccessToken = doc.mp_access_token;
+          // marketplace_fee é EM REAIS, a fatia da plataforma (10% padrão)
+          const platformPercent = Number(Deno.env.get("PLATFORM_FEE_PERCENT") ?? 10);
+          mpPayload.marketplace_fee = Math.round(Number(amount) * platformPercent) / 100;
+          mpPayload.collector_id = Number(doc.mp_user_id);
+        }
+      }
+    }
+
     // Idempotency: por reference_id + timestamp arredondado (evita double-charge em retry)
     const idempotencyKey = `${user.id}-${reference_id}-${Math.floor(Date.now() / 60000)}`;
 
-    const mpRes = await mpRequest<any>("POST", "/v1/payments", mpPayload, { idempotencyKey });
+    const mpRes = await mpRequest<any>("POST", "/v1/payments", mpPayload, {
+      idempotencyKey,
+      accessToken: marketplaceAccessToken,
+    });
 
     if (!mpRes.ok) {
       const errMessage = mpRes.data?.message || mpRes.data?.error || `Mercado Pago ${mpRes.status}`;
