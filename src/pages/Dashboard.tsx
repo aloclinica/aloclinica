@@ -104,6 +104,8 @@ const AdminSpecialties = lazy(() => import("@/components/admin/AdminSpecialties"
 const AdminLogs = lazy(() => import("@/components/admin/AdminLogs"));
 const AdminFraudSignals = lazy(() => import("@/components/admin/AdminFraudSignals"));
 const ClinicalProtocols = lazy(() => import("@/components/doctor/ClinicalProtocols"));
+const AdminLeads = lazy(() => import("@/components/admin/AdminLeads"));
+const AdminContractNew = lazy(() => import("@/components/admin/AdminContractNew"));
 const AdminInviteCodes = lazy(() => import("@/components/admin/AdminInviteCodes"));
 const AdminReports = lazy(() => import("@/components/admin/AdminReports"));
 const AdminUsers = lazy(() => import("@/components/admin/AdminUsers"));
@@ -382,6 +384,8 @@ const Dashboard = () => {
       <Route path="admin/logs" element={<RoleGuard allowed={[]} roles={roles}><AdminLogs /></RoleGuard>} />
       <Route path="admin/fraud-signals" element={<RoleGuard allowed={[]} roles={roles}><AdminFraudSignals /></RoleGuard>} />
       <Route path="doctor/protocols" element={<RoleGuard allowed={["doctor"]} roles={roles}><ContextGuard panel="doctor" forceRole={forceRole} roles={roles}><ClinicalProtocols /></ContextGuard></RoleGuard>} />
+      <Route path="admin/leads" element={<RoleGuard allowed={[]} roles={roles}><AdminLeads /></RoleGuard>} />
+      <Route path="admin/contracts/new" element={<RoleGuard allowed={[]} roles={roles}><AdminContractNew /></RoleGuard>} />
       <Route path="admin/invite-codes" element={<RoleGuard allowed={[]} roles={roles}><AdminInviteCodes /></RoleGuard>} />
       <Route path="admin/reports" element={<RoleGuard allowed={[]} roles={roles}><AdminReports /></RoleGuard>} />
       <Route path="admin/approvals" element={<RoleGuard allowed={[]} roles={roles}><AdminApprovals /></RoleGuard>} />

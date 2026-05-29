@@ -38,6 +38,8 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Triagem = lazy(() => import("./pages/Triagem"));
 const Status = lazy(() => import("./pages/Status"));
+const Contratos = lazy(() => import("./pages/Contratos"));
+const AceitarConvite = lazy(() => import("./pages/AceitarConvite"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const LGPD = lazy(() => import("./pages/LGPD"));
@@ -176,6 +178,8 @@ const AnimatedRoutes = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/triagem" element={<Triagem />} />
       <Route path="/status" element={<Status />} />
+      <Route path="/contratos" element={<Contratos />} />
+      <Route path="/parceiros/aceitar/:token" element={<AceitarConvite />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/lgpd" element={<LGPD />} />
