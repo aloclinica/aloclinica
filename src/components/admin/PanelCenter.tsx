@@ -216,14 +216,14 @@ const PanelCenter = () => {
     "M0,16 L12,13 L24,15 L36,9 L48,11 L60,6 L72,10 L84,4 L96,7 L108,5 L120,3",
   ];
 
-   const quickActions = [
-     { label: "Aprovar Médicos", icon: UserPlus, route: "/dashboard/admin/approvals?role=admin", color: "text-emerald-500", bg: "bg-emerald-500/10" },
-     { label: "Relatório Financeiro", icon: ClipboardList, route: "/dashboard/admin/financial?role=admin", color: "text-blue-500", bg: "bg-blue-500/10" },
-     { label: "Configurar WhatsApp", icon: WhatsappLogo, route: "/dashboard/admin/whatsapp?role=admin", color: "text-green-500", bg: "bg-green-500/10" },
-     { label: "Novas Especialidades", icon: ShieldStar, route: "/dashboard/admin/specialties?role=admin", color: "text-cyan-500", bg: "bg-cyan-500/10" },
-     { label: "Cupons de Desconto", icon: Tag, route: "/dashboard/admin/coupons?role=admin", color: "text-orange-500", bg: "bg-orange-500/10" },
-     { label: "Ver Logs", icon: Database, route: "/dashboard/admin/logs?role=admin", color: "text-slate-500", bg: "bg-slate-500/10" },
-   ];
+    const quickActions = [
+      { label: "Aprovações", icon: UserCircleCheck, route: "/dashboard/admin/approvals?role=admin", color: "text-emerald-500", bg: "bg-emerald-500/10" },
+      { label: "Consultas", icon: CalendarCheck, route: "/dashboard/admin/appointments?role=admin", color: "text-blue-500", bg: "bg-blue-500/10" },
+      { label: "WhatsApp", icon: WhatsappLogo, route: "/dashboard/admin/whatsapp?role=admin", color: "text-green-500", bg: "bg-green-500/10" },
+      { label: "Contratos", icon: Handshake, route: "/dashboard/admin/contratos?role=admin", color: "text-cyan-500", bg: "bg-cyan-500/10" },
+      { label: "Cupons", icon: Tag, route: "/dashboard/admin/coupons?role=admin", color: "text-orange-500", bg: "bg-orange-500/10" },
+      { label: "Segurança", icon: ShieldCheck, route: "/dashboard/admin/security?role=admin", color: "text-rose-500", bg: "bg-rose-500/10" },
+    ];
 
    // Simulated revenue data for the chart
    const revenueData = [
