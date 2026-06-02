@@ -50,8 +50,6 @@ export const getAdminNav = (active: string) => [
 
   // ── Sistema ──
    { label: "WhatsApp",      href: "/dashboard/admin/whatsapp?role=admin", icon: <NavIcon icon={<WhatsappLogo size={16} weight="fill" />}          color="green" />, active: active === "whatsapp", group: "Sistema" },
-   { label: "PagBank",        href: "/dashboard/admin/financial?role=admin",    icon: <NavIcon icon={<CreditCard size={16} weight="fill" />}  color="blue" />, active: active === "financial", group: "Sistema" },
-  { label: "Teste Pagamento", href: "/dashboard/admin/payment-test?role=admin", icon: <NavIcon icon={<TestTube size={16} weight="fill" />} color="amber" />, active: active === "payment-test", group: "Sistema" },
   { label: "Histórico",     href: "/dashboard/admin/logs?role=admin",     icon: <NavIcon icon={<ClockCounterClockwise size={16} weight="fill" />} color="slate" />, active: active === "logs",     group: "Sistema" },
   { label: "Plataforma",    href: "/dashboard/admin/platform-settings?role=admin", icon: <NavIcon icon={<Sliders size={16} weight="fill" />}        color="slate" />, active: active === "platform-settings", group: "Sistema" },
   { label: "Templates Notif.", href: "/dashboard/admin/notification-templates?role=admin", icon: <NavIcon icon={<WhatsappLogo size={16} weight="fill" />} color="blue" />, active: active === "notification-templates", group: "Sistema" },
