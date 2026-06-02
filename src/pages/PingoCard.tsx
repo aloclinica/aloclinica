@@ -731,9 +731,9 @@ const PingoCard = () => {
       <PingoSubscribeDialog
         open={subscribeOpen}
         onOpenChange={setSubscribeOpen}
-        plan={selectedPlan!}
+        plan={selectedPlan}
         billingCycle={billing}
-        onSuccess={handleSubscribed}
+        onSubscribed={handleSubscribed}
       />
     </div>
   );
