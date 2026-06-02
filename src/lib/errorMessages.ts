@@ -128,7 +128,7 @@ const PATTERNS: Array<{
     result: { title: "Não conseguimos acessar câmera/microfone",
               description: "Permita acesso nas configurações do navegador e recarregue." } },
 
-  // PagBank/payment validation
+  // Gateway/payment validation
   { match: /invalid.*cpf|tax_id.*invalid/i,
     context: ["pagamento", "kyc"],
     result: { title: "CPF inválido",
