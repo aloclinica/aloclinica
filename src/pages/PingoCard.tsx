@@ -609,7 +609,9 @@ const PingoCard = () => {
               <h2 className="pc-display text-4xl md:text-5xl mt-4">Famílias que <em>cuidam melhor</em> com o Pingo Card.</h2>
             </div>
             <div className="col-span-12 md:col-span-5 flex md:justify-end items-center gap-3">
-              <img src={pingoDepoimentos} alt="" aria-hidden="true" className="w-24 select-none" draggable={false}/>
+              <div className="w-24 h-16 rounded-lg overflow-hidden border border-slate-200">
+                <img src={PINGO_ASSETS.acesso} alt="Uso simples" className="w-full h-full object-cover" />
+              </div>
               <div className="flex gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (<Star key={i} size={18} weight="fill" className="pc-gold" />))}
                 <p className="ml-2 text-sm self-center" style={{ color: "rgba(10,19,46,.65)" }}>4.9 · +2 mil avaliações</p>
