@@ -149,29 +149,30 @@ const AdminDoctorApplications = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground flex items-center gap-2"><Stethoscope className="w-6 h-6 text-primary" /> Solicitações de Médicos</h2>
-          <p className="text-sm text-muted-foreground mt-1">Analise e aprove cadastros de novos médicos</p>
+    <DashboardLayout title="Administração" nav={getAdminNav("doctor-applications")}>
+      <div className="w-full mx-auto max-w-5xl space-y-5 pb-24 md:pb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground flex items-center gap-2"><Stethoscope className="w-6 h-6 text-primary" /> Solicitações de Médicos</h2>
+            <p className="text-sm text-muted-foreground mt-1">Analise e aprove cadastros de novos médicos</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={fetchApplications}><RefreshCw className={cn("w-4 h-4 mr-2", loading && "animate-spin")} /> Atualizar</Button>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchApplications}><RefreshCw className="w-4 h-4 mr-2" /> Atualizar</Button>
-      </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="flex gap-2">
-          {(["pending", "all", "approved", "rejected"] as const).map(f => (
-            <Button key={f} variant={filter === f ? "default" : "outline"} size="sm" onClick={() => setFilter(f)} className="text-xs">
-              {f === "pending" ? "Pendentes" : f === "all" ? "Todos" : f === "approved" ? "Aprovados" : "Rejeitados"}
-            </Button>
-          ))}
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex gap-2 p-1 bg-muted/50 rounded-lg">
+            {(["pending", "all", "approved", "rejected"] as const).map(f => (
+              <Button key={f} variant={filter === f ? "secondary" : "ghost"} size="sm" onClick={() => setFilter(f)} className="text-xs h-8 px-3 rounded-md shadow-none">
+                {f === "pending" ? "Pendentes" : f === "all" ? "Todos" : f === "approved" ? "Aprovados" : "Rejeitados"}
+              </Button>
+            ))}
+          </div>
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nome, email ou CRM..." className="pl-9 h-10" onKeyDown={e => e.key === "Enter" && fetchApplications()} />
+          </div>
         </div>
-        <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nome, email ou CRM..." className="pl-9 h-10" onKeyDown={e => e.key === "Enter" && fetchApplications()} />
-        </div>
-      </div>
 
       {/* List */}
       {loading ? (
