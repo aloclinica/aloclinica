@@ -479,7 +479,7 @@ const PingoCard = () => {
       </section>
 
       {/* ============ PLANOS ============ */}
-      <section id="planos" className="py-20 md:py-28" style={{ background: "var(--pc-cream)" }}>
+      <section id="planos" className="py-20 md:py-28 bg-slate-50/50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <div className="text-center mb-12 max-w-2xl mx-auto">
             <span className="pc-eyebrow justify-center"><span className="hidden">·</span></span>
