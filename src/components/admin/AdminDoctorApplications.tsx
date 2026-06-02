@@ -268,7 +268,7 @@ const AdminDoctorApplications = () => {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardLayout>
   );
 };
 
