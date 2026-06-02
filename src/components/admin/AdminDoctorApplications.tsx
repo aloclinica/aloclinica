@@ -2,12 +2,15 @@ import { logError } from "@/lib/logger";
 import pingoAdmin from "@/assets/pingo-admin.png";
 import { useState, useEffect } from "react";
 import { db } from "@/integrations/supabase/untyped";
+import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { getAdminNav } from "./adminNav";
+import { cn } from "@/lib/utils";
 import {
   Stethoscope, Check, X, Mail, Clock, Eye, Send, Copy,
   CheckCircle2, XCircle, Loader2, RefreshCw, Search
