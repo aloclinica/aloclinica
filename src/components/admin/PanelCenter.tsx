@@ -164,52 +164,52 @@ const PanelCenter = () => {
 
   const activePanels = panels.filter(p => p.onlineCount > 0).length;
 
-   const stats = [
-     {
-       label: "Online agora",
-       sublabel: "Usuários conectados",
-       value: totalOnline,
-       icon: Zap,
-       gradient: "from-emerald-400 via-emerald-500 to-teal-600",
-       ring: "ring-emerald-500/30",
-       glow: "shadow-emerald-500/20",
-       sparkColor: "stroke-emerald-500",
-       route: "/dashboard/admin/live?role=admin"
-     },
-     {
-       label: "Automações",
-       sublabel: "WhatsApp & Bots",
-       value: "100%",
-       icon: WhatsappLogo,
-       gradient: "from-green-400 via-green-500 to-emerald-600",
-       ring: "ring-green-500/30",
-       glow: "shadow-green-500/20",
-       sparkColor: "stroke-green-500",
-       route: "/dashboard/admin/whatsapp?role=admin"
-     },
+    const stats = [
       {
-        label: "Mercado Pago",
-        sublabel: "Status Pagamentos",
-       value: "Operando",
-       icon: CreditCard,
-       gradient: "from-blue-400 via-blue-500 to-indigo-600",
-       ring: "ring-blue-500/30",
-       glow: "shadow-blue-500/20",
-       sparkColor: "stroke-blue-500",
-       route: "/dashboard/admin/financial?role=admin"
-     },
-     {
-       label: "Saúde Sistema",
-       sublabel: "Status dos serviços",
-       value: "Ok",
-       icon: Activity,
-       gradient: "from-violet-400 via-violet-500 to-purple-600",
-       ring: "ring-violet-500/30",
-       glow: "shadow-violet-500/20",
-       sparkColor: "stroke-violet-500",
-       route: "/dashboard/admin/health?role=admin"
-     },
-   ];
+        label: "Online agora",
+        sublabel: "Usuários conectados",
+        value: totalOnline,
+        icon: Zap,
+        gradient: "from-emerald-400 via-emerald-500 to-teal-600",
+        ring: "ring-emerald-500/30",
+        glow: "shadow-emerald-500/20",
+        sparkColor: "stroke-emerald-500",
+        route: "/dashboard/admin/live?role=admin"
+      },
+      {
+        label: "WhatsApp API",
+        sublabel: "Automações & Bots",
+        value: "Ativo",
+        icon: WhatsappLogo,
+        gradient: "from-green-400 via-green-500 to-emerald-600",
+        ring: "ring-green-500/30",
+        glow: "shadow-green-500/20",
+        sparkColor: "stroke-green-500",
+        route: "/dashboard/admin/whatsapp?role=admin"
+      },
+      {
+        label: "Faturamento",
+        sublabel: "Receita (7d)",
+        value: "R$ 12.4k",
+        icon: TrendingUp,
+        gradient: "from-blue-400 via-blue-500 to-indigo-600",
+        ring: "ring-blue-500/30",
+        glow: "shadow-blue-500/20",
+        sparkColor: "stroke-blue-500",
+        route: "/dashboard/admin/financial?role=admin"
+      },
+      {
+        label: "Consultas",
+        sublabel: "Agendadas hoje",
+        value: "42",
+        icon: ClipboardList,
+        gradient: "from-violet-400 via-violet-500 to-purple-600",
+        ring: "ring-violet-500/30",
+        glow: "shadow-violet-500/20",
+        sparkColor: "stroke-violet-500",
+        route: "/dashboard/admin/appointments?role=admin"
+      },
+    ];
 
   const sparkPaths = [
     "M0,18 L12,14 L24,16 L36,10 L48,12 L60,6 L72,9 L84,4 L96,7 L108,3 L120,5",
