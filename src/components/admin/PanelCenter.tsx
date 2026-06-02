@@ -14,7 +14,7 @@ import {
   UserPlus, Layers, TrendingUp, Zap, Settings2,
   FileText, PieChart, ShieldAlert, Database, 
   CreditCard, ClipboardList, CheckCircle, AlertCircle,
-  Eye, Heart, Phone, CalendarCheck, UserCircleCheck
+  Eye, Heart, Phone, CalendarCheck, UserCheck
 } from "lucide-react";
  import { SquaresFour, WhatsappLogo, ShieldStar, Tag } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
