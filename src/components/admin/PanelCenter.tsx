@@ -13,7 +13,8 @@ import {
   Activity, RefreshCw, Monitor, Sparkles, LayoutGrid,
   UserPlus, Layers, TrendingUp, Zap, Settings2,
   FileText, PieChart, ShieldAlert, Database, 
-  CreditCard, ClipboardList, CheckCircle, AlertCircle
+  CreditCard, ClipboardList, CheckCircle, AlertCircle,
+  Eye, Heart, Phone, CalendarCheck, UserCheck
 } from "lucide-react";
  import { SquaresFour, WhatsappLogo, ShieldStar, Tag } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
@@ -21,7 +22,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import pingoAdmin from "@/assets/pingo-admin.png";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartTooltip, Cell, LineChart, Line, AreaChart, Area } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartTooltip, Cell, AreaChart, Area } from "recharts";
 
 interface RecentUser { name: string; page: string; lastSeen: string }
 interface PanelInfo {
@@ -40,14 +41,11 @@ interface PanelInfo {
 
 const PANELS: Omit<PanelInfo, "onlineCount" | "totalUsers" | "recentUsers">[] = [
   { id: "admin",        label: "Administração", description: "Controle total do sistema, permissões e auditoria", icon: ShieldCheck,  gradient: "from-primary to-blue-700",       glow: "shadow-primary/25",       route: "/dashboard?role=admin",        roleKey: "admin" },
-  { id: "clinic",       label: "Clínica",       description: "Gestão de médicos, afiliações e unidades",    icon: Building2,    gradient: "from-violet-500 to-purple-600",  glow: "shadow-violet-500/25",    route: "/dashboard?role=clinic",       roleKey: "clinic" },
   { id: "doctor",       label: "Médico",        description: "Consultas, prontuários, receitas e telemedicina", icon: Stethoscope,  gradient: "from-emerald-500 to-teal-600",   glow: "shadow-emerald-500/25",   route: "/dashboard?role=doctor",       roleKey: "doctor" },
   { id: "patient",      label: "Paciente",      description: "Agendamentos, histórico e jornada de saúde",   icon: Users,        gradient: "from-blue-500 to-blue-600",      glow: "shadow-blue-500/25",      route: "/dashboard?role=patient",      roleKey: "patient" },
-  { id: "cartao_beneficios", label: "Cartão Benefícios", description: "Carteirinha digital, rede credenciada e descontos", icon: CreditCard, gradient: "from-rose-500 to-pink-600", glow: "shadow-rose-500/25", route: "/dashboard?role=cartao_beneficios", roleKey: "cartao_beneficios" },
-  { id: "receptionist", label: "Recepção",      description: "Agendas, check-in, faturamento e cobranças",     icon: Monitor,      gradient: "from-amber-500 to-orange-600",   glow: "shadow-amber-500/25",     route: "/dashboard?role=receptionist", roleKey: "receptionist" },
-  { id: "support",      label: "Suporte",       description: "Tickets, logs, monitoramento e auxílio",     icon: Headphones,   gradient: "from-rose-500 to-pink-600",      glow: "shadow-rose-500/25",      route: "/dashboard?role=support",      roleKey: "support" },
-  { id: "partner",      label: "Parceiro",      description: "Validações, integrações e API",          icon: Handshake,    gradient: "from-teal-500 to-emerald-600",   glow: "shadow-teal-500/25",      route: "/dashboard?role=partner",      roleKey: "partner" },
-  { id: "ai-assistant", label: "Assistente IA", description: "Chat, triagem inteligente e processamento",        icon: Bot,          gradient: "from-purple-500 to-fuchsia-600", glow: "shadow-purple-500/25",    route: "/dashboard/ai-assistant",      roleKey: "ai-assistant" },
+  { id: "cartao_beneficios", label: "Benefícios", description: "Carteirinha digital e descontos", icon: Heart, gradient: "from-rose-500 to-pink-600", glow: "shadow-rose-500/25", route: "/dashboard?role=cartao_beneficios", roleKey: "cartao_beneficios" },
+  { id: "support",      label: "Suporte",       description: "Tickets e monitoramento", icon: Headphones,   gradient: "from-amber-500 to-orange-600",      glow: "shadow-amber-500/25",      route: "/dashboard?role=support",      roleKey: "support" },
+  { id: "ai-assistant", label: "Assistente IA", description: "Chat e triagem inteligente",        icon: Bot,          gradient: "from-purple-500 to-fuchsia-600", glow: "shadow-purple-500/25",    route: "/dashboard/ai-assistant",      roleKey: "ai-assistant" },
 ];
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };
@@ -164,52 +162,52 @@ const PanelCenter = () => {
 
   const activePanels = panels.filter(p => p.onlineCount > 0).length;
 
-   const stats = [
-     {
-       label: "Online agora",
-       sublabel: "Usuários conectados",
-       value: totalOnline,
-       icon: Zap,
-       gradient: "from-emerald-400 via-emerald-500 to-teal-600",
-       ring: "ring-emerald-500/30",
-       glow: "shadow-emerald-500/20",
-       sparkColor: "stroke-emerald-500",
-       route: "/dashboard/admin/live?role=admin"
-     },
-     {
-       label: "Automações",
-       sublabel: "WhatsApp & Bots",
-       value: "100%",
-       icon: WhatsappLogo,
-       gradient: "from-green-400 via-green-500 to-emerald-600",
-       ring: "ring-green-500/30",
-       glow: "shadow-green-500/20",
-       sparkColor: "stroke-green-500",
-       route: "/dashboard/admin/whatsapp?role=admin"
-     },
+    const stats = [
       {
-        label: "Mercado Pago",
-        sublabel: "Status Pagamentos",
-       value: "Operando",
-       icon: CreditCard,
-       gradient: "from-blue-400 via-blue-500 to-indigo-600",
-       ring: "ring-blue-500/30",
-       glow: "shadow-blue-500/20",
-       sparkColor: "stroke-blue-500",
-       route: "/dashboard/admin/financial?role=admin"
-     },
-     {
-       label: "Saúde Sistema",
-       sublabel: "Status dos serviços",
-       value: "Ok",
-       icon: Activity,
-       gradient: "from-violet-400 via-violet-500 to-purple-600",
-       ring: "ring-violet-500/30",
-       glow: "shadow-violet-500/20",
-       sparkColor: "stroke-violet-500",
-       route: "/dashboard/admin/health?role=admin"
-     },
-   ];
+        label: "Online agora",
+        sublabel: "Usuários conectados",
+        value: totalOnline,
+        icon: Zap,
+        gradient: "from-emerald-400 via-emerald-500 to-teal-600",
+        ring: "ring-emerald-500/30",
+        glow: "shadow-emerald-500/20",
+        sparkColor: "stroke-emerald-500",
+        route: "/dashboard/admin/live?role=admin"
+      },
+      {
+        label: "WhatsApp API",
+        sublabel: "Automações & Bots",
+        value: "Ativo",
+        icon: WhatsappLogo,
+        gradient: "from-green-400 via-green-500 to-emerald-600",
+        ring: "ring-green-500/30",
+        glow: "shadow-green-500/20",
+        sparkColor: "stroke-green-500",
+        route: "/dashboard/admin/whatsapp?role=admin"
+      },
+      {
+        label: "Faturamento",
+        sublabel: "Receita (7d)",
+        value: "R$ 12.4k",
+        icon: TrendingUp,
+        gradient: "from-blue-400 via-blue-500 to-indigo-600",
+        ring: "ring-blue-500/30",
+        glow: "shadow-blue-500/20",
+        sparkColor: "stroke-blue-500",
+        route: "/dashboard/admin/financial?role=admin"
+      },
+      {
+        label: "Consultas",
+        sublabel: "Agendadas hoje",
+        value: "42",
+        icon: ClipboardList,
+        gradient: "from-violet-400 via-violet-500 to-purple-600",
+        ring: "ring-violet-500/30",
+        glow: "shadow-violet-500/20",
+        sparkColor: "stroke-violet-500",
+        route: "/dashboard/admin/appointments?role=admin"
+      },
+    ];
 
   const sparkPaths = [
     "M0,18 L12,14 L24,16 L36,10 L48,12 L60,6 L72,9 L84,4 L96,7 L108,3 L120,5",
@@ -218,14 +216,14 @@ const PanelCenter = () => {
     "M0,16 L12,13 L24,15 L36,9 L48,11 L60,6 L72,10 L84,4 L96,7 L108,5 L120,3",
   ];
 
-   const quickActions = [
-     { label: "Aprovar Médicos", icon: UserPlus, route: "/dashboard/admin/approvals?role=admin", color: "text-emerald-500", bg: "bg-emerald-500/10" },
-     { label: "Relatório Financeiro", icon: ClipboardList, route: "/dashboard/admin/financial?role=admin", color: "text-blue-500", bg: "bg-blue-500/10" },
-     { label: "Configurar WhatsApp", icon: WhatsappLogo, route: "/dashboard/admin/whatsapp?role=admin", color: "text-green-500", bg: "bg-green-500/10" },
-     { label: "Novas Especialidades", icon: ShieldStar, route: "/dashboard/admin/specialties?role=admin", color: "text-cyan-500", bg: "bg-cyan-500/10" },
-     { label: "Cupons de Desconto", icon: Tag, route: "/dashboard/admin/coupons?role=admin", color: "text-orange-500", bg: "bg-orange-500/10" },
-     { label: "Ver Logs", icon: Database, route: "/dashboard/admin/logs?role=admin", color: "text-slate-500", bg: "bg-slate-500/10" },
-   ];
+    const quickActions = [
+      { label: "Aprovações", icon: UserCheck, route: "/dashboard/admin/approvals?role=admin", color: "text-emerald-500", bg: "bg-emerald-500/10" },
+      { label: "Consultas", icon: CalendarCheck, route: "/dashboard/admin/appointments?role=admin", color: "text-blue-500", bg: "bg-blue-500/10" },
+      { label: "WhatsApp", icon: WhatsappLogo, route: "/dashboard/admin/whatsapp?role=admin", color: "text-green-500", bg: "bg-green-500/10" },
+      { label: "Contratos", icon: Handshake, route: "/dashboard/admin/contratos?role=admin", color: "text-cyan-500", bg: "bg-cyan-500/10" },
+      { label: "Cupons", icon: Tag, route: "/dashboard/admin/coupons?role=admin", color: "text-orange-500", bg: "bg-orange-500/10" },
+      { label: "Segurança", icon: ShieldCheck, route: "/dashboard/admin/security?role=admin", color: "text-rose-500", bg: "bg-rose-500/10" },
+    ];
 
    // Simulated revenue data for the chart
    const revenueData = [
@@ -316,29 +314,6 @@ const PanelCenter = () => {
             <Zap className="w-5 h-5 text-amber-500" fill="currentColor" />
             <h2 className="text-lg font-bold text-foreground">Ações Rápidas</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {quickActions.map((action) => (
-              <Button
-                key={action.label}
-                variant="outline"
-                className="h-auto py-4 px-4 flex flex-col items-center gap-3 bg-card hover:bg-muted/50 border-border/40 rounded-2xl group transition-all"
-                onClick={() => navigate(action.route)}
-              >
-                <div className={cn("p-3 rounded-xl transition-transform group-hover:scale-110", action.bg)}>
-                  <action.icon className={cn("w-5 h-5", action.color)} />
-                </div>
-                <span className="text-xs font-bold text-foreground">{action.label}</span>
-              </Button>
-            ))}
-          </div>
-        </motion.section>
-
-        {/* ─────── QUICK ACTIONS ─────── */}
-        <motion.section variants={fadeUp} className="space-y-4">
-          <div className="flex items-center gap-2 px-1">
-            <Zap className="w-5 h-5 text-amber-500" fill="currentColor" />
-            <h2 className="text-lg font-bold text-foreground">Ações Rápidas</h2>
-          </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             {quickActions.map((action) => (
               <Button
@@ -357,8 +332,8 @@ const PanelCenter = () => {
         </motion.section>
 
         {/* ─────── PLATFORM PULSE ─────── */}
-        <motion.section variants={fadeUp} className="grid lg:grid-cols-3 gap-4">
-          <Card className="lg:col-span-2 border-border/40 bg-card/50 overflow-hidden">
+        <motion.section variants={fadeUp} className="grid lg:grid-cols-12 gap-4">
+          <Card className="lg:col-span-8 border-border/40 bg-card/50 overflow-hidden">
             <div className="p-5 border-b border-border/40 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-emerald-500" />
@@ -368,7 +343,7 @@ const PanelCenter = () => {
                 +12% vs última semana
               </Badge>
             </div>
-            <div className="h-[200px] p-4">
+            <div className="h-[250px] p-4">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={revenueData}>
                   <defs>
@@ -380,13 +355,13 @@ const PanelCenter = () => {
                   <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
                   <YAxis hide />
                   <RechartTooltip />
-                  <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorRev)" />
+                  <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </Card>
 
-          <Card className="border-border/40 bg-card/50">
+          <Card className="lg:col-span-4 border-border/40 bg-card/50">
             <div className="p-5 border-b border-border/40 flex items-center gap-2">
               <ShieldAlert className="w-4 h-4 text-primary" />
               <h3 className="text-sm font-bold text-foreground">Integridade</h3>
@@ -400,7 +375,7 @@ const PanelCenter = () => {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500" /> Mercado Pago Gateway
+                  <div className="w-2 h-2 rounded-full bg-emerald-500" /> Mercado Pago
                 </span>
                 <Badge variant="outline" className="text-[9px] font-bold">CONECTADO</Badge>
               </div>
