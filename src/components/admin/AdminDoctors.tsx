@@ -15,6 +15,7 @@ import { AdminPageHeader } from "./AdminPageHeader";
 import { Search, Eye, Edit, Check, X, Stethoscope, Download } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { exportToCSV } from "@/lib/csv";
+import { cn } from "@/lib/utils";
 
 const AdminDoctors = () => {
   

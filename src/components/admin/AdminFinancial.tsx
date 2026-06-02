@@ -464,12 +464,45 @@ const AdminFinancial = () => {
 
         {/* KPI Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card variant="kpi">
+          <Card variant="kpi" className="bg-gradient-to-br from-background to-emerald-500/5">
             <CardContent className="pt-4 pb-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                 <DollarSign className="w-4 h-4 text-emerald-500" />
-                Receita Estimada
+                Receita Estimada (30d)
               </div>
+              <div className="text-2xl font-black">R$ {totalRevenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+            </CardContent>
+          </Card>
+          
+          <Card variant="kpi" className="bg-gradient-to-br from-background to-blue-500/5">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                <CheckCircle2 className="w-4 h-4 text-blue-500" />
+                Pagamentos Confirmados
+              </div>
+              <div className="text-2xl font-black">{confirmedPayments}</div>
+            </CardContent>
+          </Card>
+
+          <Card variant="kpi" className={cn("bg-gradient-to-br from-background", overduePayments > 0 ? "to-red-500/10 border-red-200" : "to-orange-500/5")}>
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                <AlertTriangle className={cn("w-4 h-4", overduePayments > 0 ? "text-red-500 animate-pulse" : "text-orange-500")} />
+                Inadimplência (Vencidos)
+              </div>
+              <div className="text-2xl font-black">{overduePayments}</div>
+            </CardContent>
+          </Card>
+
+          <Card variant="kpi" className="bg-gradient-to-br from-background to-purple-500/5">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                <RefreshCw className="w-4 h-4 text-purple-500" />
+                Saques Pendentes
+              </div>
+              <div className="text-2xl font-black">{pendingWithdrawals}</div>
+            </CardContent>
+          </Card>
               <p className="text-2xl font-bold text-foreground tabular-nums">
                 R$ {totalRevenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </p>
