@@ -151,7 +151,7 @@ export function AddCardForm({ onSaved, onCancel, defaultIsDefault = false }: Pro
       </div>
 
       <p className="text-[11px] text-muted-foreground text-center pt-1">
-        🔒 Dados do cartão são processados com criptografia pelo PagBank.
+        🔒 Dados do cartão são processados com criptografia pelo Mercado Pago.
         Não armazenamos número completo nem CVV.
       </p>
     </form>

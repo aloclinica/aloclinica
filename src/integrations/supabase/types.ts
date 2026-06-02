@@ -3988,104 +3988,6 @@ export type Database = {
           },
         ]
       }
-      payment_transactions: {
-        Row: {
-          amount_cents: number
-          authorized_at: string | null
-          created_at: string
-          currency: string
-          declined_at: string | null
-          description: string | null
-          gateway: string
-          id: string
-          installments: number | null
-          metadata: Json
-          mp_boleto_url: string | null
-          mp_payment_id: string | null
-          mp_preapproval_id: string | null
-          mp_qr_code: string | null
-          mp_qr_code_base64: string | null
-          paid_at: string | null
-          payment_method: string
-          raw_response: Json | null
-          refund_amount_cents: number | null
-          refund_reason: string | null
-          refunded_at: string | null
-          resource_id: string
-          resource_type: string
-          saved_card_id: string | null
-          status: string
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          amount_cents: number
-          authorized_at?: string | null
-          created_at?: string
-          currency?: string
-          declined_at?: string | null
-          description?: string | null
-          gateway?: string
-          id?: string
-          installments?: number | null
-          metadata?: Json
-          mp_boleto_url?: string | null
-          mp_payment_id?: string | null
-          mp_preapproval_id?: string | null
-          mp_qr_code?: string | null
-          mp_qr_code_base64?: string | null
-          paid_at?: string | null
-          payment_method: string
-          raw_response?: Json | null
-          refund_amount_cents?: number | null
-          refund_reason?: string | null
-          refunded_at?: string | null
-          resource_id: string
-          resource_type: string
-          saved_card_id?: string | null
-          status?: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          amount_cents?: number
-          authorized_at?: string | null
-          created_at?: string
-          currency?: string
-          declined_at?: string | null
-          description?: string | null
-          gateway?: string
-          id?: string
-          installments?: number | null
-          metadata?: Json
-          mp_boleto_url?: string | null
-          mp_payment_id?: string | null
-          mp_preapproval_id?: string | null
-          mp_qr_code?: string | null
-          mp_qr_code_base64?: string | null
-          paid_at?: string | null
-          payment_method?: string
-          raw_response?: Json | null
-          refund_amount_cents?: number | null
-          refund_reason?: string | null
-          refunded_at?: string | null
-          resource_id?: string
-          resource_type?: string
-          saved_card_id?: string | null
-          status?: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_transactions_saved_card_id_fkey"
-            columns: ["saved_card_id"]
-            isOneToOne: false
-            referencedRelation: "saved_cards"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       pingo_card_benefit_usage: {
         Row: {
           benefit_type: string
@@ -5267,63 +5169,6 @@ export type Database = {
           },
         ]
       }
-      saved_cards: {
-        Row: {
-          brand: string | null
-          created_at: string
-          expiry_month: string | null
-          expiry_year: string | null
-          gateway: string
-          holder_name: string | null
-          id: string
-          is_default: boolean
-          last4: string
-          mp_card_id: string | null
-          mp_customer_id: string | null
-          pagbank_card_id: string | null
-          removed_at: string | null
-          status: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          brand?: string | null
-          created_at?: string
-          expiry_month?: string | null
-          expiry_year?: string | null
-          gateway?: string
-          holder_name?: string | null
-          id?: string
-          is_default?: boolean
-          last4: string
-          mp_card_id?: string | null
-          mp_customer_id?: string | null
-          pagbank_card_id?: string | null
-          removed_at?: string | null
-          status?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          brand?: string | null
-          created_at?: string
-          expiry_month?: string | null
-          expiry_year?: string | null
-          gateway?: string
-          holder_name?: string | null
-          id?: string
-          is_default?: boolean
-          last4?: string
-          mp_card_id?: string | null
-          mp_customer_id?: string | null
-          pagbank_card_id?: string | null
-          removed_at?: string | null
-          status?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       site_config: {
         Row: {
           created_at: string
@@ -5479,78 +5324,51 @@ export type Database = {
       }
       subscriptions: {
         Row: {
-          amount_cents: number | null
           cancelled_at: string | null
           created_at: string
-          currency: string
           expires_at: string | null
           gateway: string
           id: string
-          interval_days: number
-          last_charge_at: string | null
-          last_charge_status: string | null
           last_retry_at: string | null
-          metadata: Json
           mp_payer_id: string | null
           mp_preapproval_id: string | null
-          next_charge_at: string | null
           payment_id: string | null
           pix_reminder_sent_at: string | null
           plan_id: string | null
-          retry_count: number
-          saved_card_id: string | null
           started_at: string | null
           status: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
-          amount_cents?: number | null
           cancelled_at?: string | null
           created_at?: string
-          currency?: string
           expires_at?: string | null
           gateway?: string
           id?: string
-          interval_days?: number
-          last_charge_at?: string | null
-          last_charge_status?: string | null
           last_retry_at?: string | null
-          metadata?: Json
           mp_payer_id?: string | null
           mp_preapproval_id?: string | null
-          next_charge_at?: string | null
           payment_id?: string | null
           pix_reminder_sent_at?: string | null
           plan_id?: string | null
-          retry_count?: number
-          saved_card_id?: string | null
           started_at?: string | null
           status?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
-          amount_cents?: number | null
           cancelled_at?: string | null
           created_at?: string
-          currency?: string
           expires_at?: string | null
           gateway?: string
           id?: string
-          interval_days?: number
-          last_charge_at?: string | null
-          last_charge_status?: string | null
           last_retry_at?: string | null
-          metadata?: Json
           mp_payer_id?: string | null
           mp_preapproval_id?: string | null
-          next_charge_at?: string | null
           payment_id?: string | null
           pix_reminder_sent_at?: string | null
           plan_id?: string | null
-          retry_count?: number
-          saved_card_id?: string | null
           started_at?: string | null
           status?: string | null
           updated_at?: string
@@ -5562,13 +5380,6 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "plans"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "subscriptions_saved_card_id_fkey"
-            columns: ["saved_card_id"]
-            isOneToOne: false
-            referencedRelation: "saved_cards"
             referencedColumns: ["id"]
           },
         ]
@@ -6260,14 +6071,6 @@ export type Database = {
           no_show_rate: number | null
           phone: string | null
           user_id: string | null
-        }
-        Relationships: []
-      }
-      payment_gateway_status: {
-        Row: {
-          mp_count: number | null
-          pagbank_count: number | null
-          table_name: string | null
         }
         Relationships: []
       }

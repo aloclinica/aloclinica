@@ -233,41 +233,13 @@ const CancelRescheduleDialog = ({ appointmentId, doctorId, currentDate, schedule
       let refundAmountCents: number | null = null;
       if (refundTier !== "none" && user) {
         try {
-          const { data: tx } = await db
-            .from("payment_transactions")
-            .select("amount_cents")
-            .eq("resource_id", appointmentId)
-            .eq("resource_type", "appointment")
-            .eq("status", "paid")
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          const paidCents = tx?.amount_cents ?? null;
-          refundAmountCents = paidCents != null
-            ? Math.round(paidCents * (refundTier === "full" ? 1 : 0.5))
-            : null;
-          const { data: inserted, error: refundErr } = await db
-            .from("refund_requests")
-            .insert({
-              appointment_id: appointmentId,
-              user_id: user.id,
-              status: "pending",
-              tier: refundTier,
-              amount_cents: refundAmountCents,
-              reason: finalReason,
-            })
-            .select("status")
-            .maybeSingle();
-          if (refundErr) {
-            logError("refund_request insert failed", refundErr, { appointmentId });
-          } else {
-            refundStatus = (inserted?.status as typeof refundStatus) ?? "pending";
-            toast.success("Solicitação de reembolso registrada", {
-              description: "Você pode acompanhar o status na sua agenda.",
-            });
-          }
+          // Note: Automatic refund request logic based on payment_transactions was removed.
+          // Refund logic should be handled by the specific gateway being used (e.g., Mercado Pago).
+          toast.info("Solicitação de estorno", {
+            description: "Como a consulta foi cancelada com antecedência, entre em contato com o suporte para processar seu estorno.",
+          });
         } catch (err) {
-          logError("refund_request flow failed", err, { appointmentId });
+          logError("refund flow failed", err, { appointmentId });
         }
       }
 

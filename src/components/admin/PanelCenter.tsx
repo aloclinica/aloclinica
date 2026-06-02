@@ -187,9 +187,9 @@ const PanelCenter = () => {
        sparkColor: "stroke-green-500",
        route: "/dashboard/admin/whatsapp?role=admin"
      },
-     {
-       label: "PagBank",
-       sublabel: "Status Pagamentos",
+      {
+        label: "Mercado Pago",
+        sublabel: "Status Pagamentos",
        value: "Operando",
        icon: CreditCard,
        gradient: "from-blue-400 via-blue-500 to-indigo-600",
@@ -400,7 +400,7 @@ const PanelCenter = () => {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500" /> PagBank Gateway
+                  <div className="w-2 h-2 rounded-full bg-emerald-500" /> Mercado Pago Gateway
                 </span>
                 <Badge variant="outline" className="text-[9px] font-bold">CONECTADO</Badge>
               </div>

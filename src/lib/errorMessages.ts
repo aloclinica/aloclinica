@@ -52,7 +52,7 @@ const PATTERNS: Array<{
     result: { title: "Dados do cartão inválidos",
               description: "Confira o número e os dados do titular." } },
 
-  // PagBank específico
+  // Gateway específico
   { match: /whitelist.*required|whitelist_unauthorized|access_denied/i,
     context: ["pagamento"],
     result: { title: "Pagamento temporariamente indisponível",
@@ -128,7 +128,7 @@ const PATTERNS: Array<{
     result: { title: "Não conseguimos acessar câmera/microfone",
               description: "Permita acesso nas configurações do navegador e recarregue." } },
 
-  // PagBank/payment validation
+  // Gateway/payment validation
   { match: /invalid.*cpf|tax_id.*invalid/i,
     context: ["pagamento", "kyc"],
     result: { title: "CPF inválido",

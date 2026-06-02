@@ -18,7 +18,7 @@ import { toastError } from "@/lib/errorMessages";
 export type SavedCard = {
   id: string;
   mp_card_id: string | null;
-  pagbank_card_id?: string | null;
+  
   last4: string;
   brand: string;
   holder_name: string;
@@ -26,7 +26,7 @@ export type SavedCard = {
   expiry_year: string;
   is_default: boolean;
   status: "active" | "expired" | "removed";
-  gateway?: "mercadopago" | "pagbank";
+  gateway?: "mercadopago";
   created_at: string;
 };
 

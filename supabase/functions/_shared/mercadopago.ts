@@ -109,7 +109,7 @@ export const mpCorsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-/** Mapeia status Mercado Pago → status interno (compat com PagBank) */
+/** Mapeia status Mercado Pago → status interno */
 export function mapMpStatus(mpStatus: string): string {
   switch (mpStatus) {
     case "approved":

@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
     }
 
     if (!tx.mp_payment_id) {
-      return json({ error: "Transação não tem mp_payment_id — possivelmente PagBank legacy" }, 400);
+      return json({ error: "Transação não tem mp_payment_id — possivelmente transação legacy" }, 400);
     }
 
     if (tx.status === "refunded") return json({ error: "Já estornado" }, 400);

@@ -29,7 +29,7 @@ export const getAdminNav = (active: string) => [
   { label: "Solicitações Médicos", href: "/dashboard/admin/doctor-applications?role=admin", icon: <NavIcon icon={<ClipboardText size={16} weight="fill" />}  color="purple"  />, active: active === "doctor-applications", group: "Operação" },
   { label: "Consultas",           href: "/dashboard/admin/appointments?role=admin",        icon: <NavIcon icon={<CalendarCheck size={16} weight="fill" />}  color="blue"    />, active: active === "appointments",        group: "Operação" },
    { label: "Faturamento",         href: "/dashboard/admin/financial?role=admin",           icon: <NavIcon icon={<Wallet size={16} weight="fill" />}         color="green"   />, active: active === "financial",           group: "Operação" },
-   { label: "Billing PagBank",     href: "/dashboard/admin/billing?role=admin",             icon: <NavIcon icon={<CreditCard size={16} weight="fill" />}     color="emerald" />, active: active === "billing",             group: "Operação" },
+   
    { label: "Repasses Médicos",    href: "/dashboard/admin/payouts?role=admin",             icon: <NavIcon icon={<Wallet size={16} weight="fill" />}         color="emerald" />, active: active === "payouts",             group: "Operação" },
    { label: "Contratos & Ações",   href: "/dashboard/admin/contratos?role=admin",           icon: <NavIcon icon={<Handshake size={16} weight="fill" />}      color="emerald" />, active: active === "contratos",           group: "Operação" },
 
@@ -50,8 +50,6 @@ export const getAdminNav = (active: string) => [
 
   // ── Sistema ──
    { label: "WhatsApp",      href: "/dashboard/admin/whatsapp?role=admin", icon: <NavIcon icon={<WhatsappLogo size={16} weight="fill" />}          color="green" />, active: active === "whatsapp", group: "Sistema" },
-   { label: "PagBank",        href: "/dashboard/admin/financial?role=admin",    icon: <NavIcon icon={<CreditCard size={16} weight="fill" />}  color="blue" />, active: active === "financial", group: "Sistema" },
-  { label: "Teste Pagamento", href: "/dashboard/admin/payment-test?role=admin", icon: <NavIcon icon={<TestTube size={16} weight="fill" />} color="amber" />, active: active === "payment-test", group: "Sistema" },
   { label: "Histórico",     href: "/dashboard/admin/logs?role=admin",     icon: <NavIcon icon={<ClockCounterClockwise size={16} weight="fill" />} color="slate" />, active: active === "logs",     group: "Sistema" },
   { label: "Plataforma",    href: "/dashboard/admin/platform-settings?role=admin", icon: <NavIcon icon={<Sliders size={16} weight="fill" />}        color="slate" />, active: active === "platform-settings", group: "Sistema" },
   { label: "Templates Notif.", href: "/dashboard/admin/notification-templates?role=admin", icon: <NavIcon icon={<WhatsappLogo size={16} weight="fill" />} color="blue" />, active: active === "notification-templates", group: "Sistema" },

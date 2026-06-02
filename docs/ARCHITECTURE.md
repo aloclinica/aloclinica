@@ -144,7 +144,7 @@ Veja `supabase/functions/`. Categorias:
 Veja `RUNBOOK.md` para gaps operacionais e procedimentos.
 
 Últimas mudanças relevantes (ver git log):
-- PagBank cobertura total (vault, recurring, refund) — PR #21
+- Mercado Pago cobertura total (vault, recurring, refund) — PR #21
 - KYC obrigatório (CFM 2.314/2022) — PR #19
 - TURN próprio (coturn público) — PR #20
 - Trigger `handle_new_user` cria role — PR #20
