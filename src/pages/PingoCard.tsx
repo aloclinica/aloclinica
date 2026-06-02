@@ -246,8 +246,7 @@ const PingoCard = () => {
 
       {/* ============ HERO ============ */}
       <section className="relative pt-24 md:pt-28 pb-16 md:pb-24 overflow-hidden">
-        <div aria-hidden className="absolute inset-x-0 top-0 h-[520px] -z-10"
-          style={{ background: "radial-gradient(80% 60% at 80% 0%, rgba(200,155,70,.10), transparent 60%), linear-gradient(180deg, var(--pc-cream) 0%, transparent 100%)" }} />
+        <div aria-hidden className="absolute inset-0 -z-10 bg-[image:var(--landing-bg)] opacity-40 pointer-events-none" />
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <div className="grid grid-cols-12 gap-10 lg:gap-14 items-center">
             <motion.div
