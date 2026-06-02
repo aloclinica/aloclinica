@@ -349,7 +349,9 @@ const PingoCard = () => {
               <p className="mt-5 text-base leading-relaxed" style={{ color: "rgba(10,19,46,.7)" }}>
                 Quatro pilares simples que fazem do Pingo Card a forma mais acolhedora de cuidar da família — sem contratos longos, sem letras miúdas, com transparência do começo ao fim.
               </p>
-              <img src={pingoConfianca} alt="" aria-hidden="true" className="w-40 mt-8 select-none" draggable={false}/>
+              <div className="mt-8 relative h-48 rounded-2xl overflow-hidden border border-slate-200">
+                <img src={PINGO_ASSETS.fases} alt="Benefícios para todas as fases" className="w-full h-full object-cover" />
+              </div>
             </div>
             <div className="col-span-12 lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-5">
               {benefits.map((b, i) => (
