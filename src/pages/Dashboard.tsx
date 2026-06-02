@@ -111,7 +111,7 @@ const AdminReports = lazy(() => import("@/components/admin/AdminReports"));
 const AdminUsers = lazy(() => import("@/components/admin/AdminUsers"));
 const AdminApprovals = lazy(() => import("@/components/admin/AdminApprovals"));
 const AdminKycReview = lazy(() => import("@/components/admin/AdminKycReview"));
-const AdminBilling = lazy(() => import("@/components/admin/AdminBilling"));
+
 const AdminPlatformSettings = lazy(() => import("@/components/admin/AdminPlatformSettings"));
 const AdminNotificationTemplates = lazy(() => import("@/components/admin/AdminNotificationTemplates"));
 const AdminSecurity = lazy(() => import("@/components/admin/AdminSecurity"));
