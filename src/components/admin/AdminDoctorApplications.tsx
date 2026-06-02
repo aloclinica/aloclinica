@@ -2,12 +2,15 @@ import { logError } from "@/lib/logger";
 import pingoAdmin from "@/assets/pingo-admin.png";
 import { useState, useEffect } from "react";
 import { db } from "@/integrations/supabase/untyped";
+import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { getAdminNav } from "./adminNav";
+import { cn } from "@/lib/utils";
 import {
   Stethoscope, Check, X, Mail, Clock, Eye, Send, Copy,
   CheckCircle2, XCircle, Loader2, RefreshCw, Search
@@ -53,7 +56,7 @@ const AdminDoctorApplications = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchApplications(); }, [filter]);
+  useEffect(() => { fetchApplications(); }, [filter, search]);
 
   const handleApprove = async () => {
     if (!selectedApp) return;
@@ -87,12 +90,11 @@ const AdminDoctorApplications = () => {
       // Send email with the code
       await db.functions.invoke("send-email", {
         body: {
-          type: "welcome",
+          type: "doctor_invite_code",
           to: selectedApp.email,
           data: {
             name: selectedApp.full_name,
-            subject: "Seu cadastro foi aprovado! — AloClinica",
-            message: `Olá Dr(a). ${selectedApp.full_name},\n\nSeu cadastro foi aprovado! Use o código abaixo para criar sua conta:\n\n🔑 Código de Acesso: ${code}\n\nEste código expira em 7 dias.\n\nAcesse o portal exclusivo para médicos:\n${window.location.origin}/medico?acesso=entrar\n\nBem-vindo(a) à AloClinica! 💚`,
+            invite_code: code,
           },
         },
       });
@@ -121,12 +123,11 @@ const AdminDoctorApplications = () => {
       // Notify by email
       await db.functions.invoke("send-email", {
         body: {
-          type: "welcome",
+          type: "doctor_rejected",
           to: selectedApp.email,
           data: {
             name: selectedApp.full_name,
-            subject: "Atualização do seu cadastro — AloClinica",
-            message: `Olá Dr(a). ${selectedApp.full_name},\n\nInfelizmente não foi possível aprovar seu cadastro neste momento.${adminNotes ? `\n\nMotivo: ${adminNotes}` : ""}\n\nCaso tenha dúvidas, entre em contato pelo nosso WhatsApp.\n\nEquipe AloClinica`,
+            reason: adminNotes || "Não atende aos requisitos mínimos da plataforma no momento.",
           },
         },
       });
@@ -151,29 +152,30 @@ const AdminDoctorApplications = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground flex items-center gap-2"><Stethoscope className="w-6 h-6 text-primary" /> Solicitações de Médicos</h2>
-          <p className="text-sm text-muted-foreground mt-1">Analise e aprove cadastros de novos médicos</p>
+    <DashboardLayout title="Administração" nav={getAdminNav("doctor-applications")}>
+      <div className="w-full mx-auto max-w-5xl space-y-5 pb-24 md:pb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground flex items-center gap-2"><Stethoscope className="w-6 h-6 text-primary" /> Solicitações de Médicos</h2>
+            <p className="text-sm text-muted-foreground mt-1">Analise e aprove cadastros de novos médicos</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={fetchApplications}><RefreshCw className={cn("w-4 h-4 mr-2", loading && "animate-spin")} /> Atualizar</Button>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchApplications}><RefreshCw className="w-4 h-4 mr-2" /> Atualizar</Button>
-      </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="flex gap-2">
-          {(["pending", "all", "approved", "rejected"] as const).map(f => (
-            <Button key={f} variant={filter === f ? "default" : "outline"} size="sm" onClick={() => setFilter(f)} className="text-xs">
-              {f === "pending" ? "Pendentes" : f === "all" ? "Todos" : f === "approved" ? "Aprovados" : "Rejeitados"}
-            </Button>
-          ))}
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex gap-2 p-1 bg-muted/50 rounded-lg">
+            {(["pending", "all", "approved", "rejected"] as const).map(f => (
+              <Button key={f} variant={filter === f ? "secondary" : "ghost"} size="sm" onClick={() => setFilter(f)} className="text-xs h-8 px-3 rounded-md shadow-none">
+                {f === "pending" ? "Pendentes" : f === "all" ? "Todos" : f === "approved" ? "Aprovados" : "Rejeitados"}
+              </Button>
+            ))}
+          </div>
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nome, email ou CRM..." className="pl-9 h-10" onKeyDown={e => e.key === "Enter" && fetchApplications()} />
+          </div>
         </div>
-        <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nome, email ou CRM..." className="pl-9 h-10" onKeyDown={e => e.key === "Enter" && fetchApplications()} />
-        </div>
-      </div>
 
       {/* List */}
       {loading ? (
@@ -267,6 +269,7 @@ const AdminDoctorApplications = () => {
         </DialogContent>
       </Dialog>
     </div>
+    </DashboardLayout>
   );
 };
 

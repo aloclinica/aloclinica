@@ -36,8 +36,10 @@ const AdminSpecialties = () => {
       toast.error("O valor mínimo não pode ser maior que o máximo");
       return;
     }
+    const slug = newName.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
     const { error } = await db.from("specialties").insert({
       name: newName.trim(),
+      slug,
       description: newDesc.trim() || null,
       price_min: min,
       price_max: max,

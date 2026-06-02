@@ -56,8 +56,18 @@ const AdminContractNew = () => {
   const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  // Pré-preenche do lead, se houver
+  // Pré-preenche do lead ou URL, se houver
   useEffect(() => {
+    const org = params.get("org");
+    const name = params.get("name");
+    const email = params.get("email");
+
+    if (org || name || email) {
+      if (org) setContrato(c => ({ ...c, nome: org }));
+      if (name || email) setGestor({ nome: name || "", email: email || "" });
+      return;
+    }
+
     if (!leadId) return;
     (async () => {
       const { data } = await db.from("contract_leads").select("*").eq("id", leadId).maybeSingle();
@@ -72,7 +82,7 @@ const AdminContractNew = () => {
         setGestor({ email: l.contact_email, nome: l.contact_name });
       }
     })();
-  }, [leadId]);
+  }, [leadId, params]);
 
   const submit = async () => {
     if (!contrato.nome || !contrato.tipo || !gestor.email) {
