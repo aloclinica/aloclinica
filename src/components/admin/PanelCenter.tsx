@@ -334,8 +334,8 @@ const PanelCenter = () => {
         </motion.section>
 
         {/* ─────── PLATFORM PULSE ─────── */}
-        <motion.section variants={fadeUp} className="grid lg:grid-cols-3 gap-4">
-          <Card className="lg:col-span-2 border-border/40 bg-card/50 overflow-hidden">
+        <motion.section variants={fadeUp} className="grid lg:grid-cols-12 gap-4">
+          <Card className="lg:col-span-8 border-border/40 bg-card/50 overflow-hidden">
             <div className="p-5 border-b border-border/40 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-emerald-500" />
@@ -345,7 +345,7 @@ const PanelCenter = () => {
                 +12% vs última semana
               </Badge>
             </div>
-            <div className="h-[200px] p-4">
+            <div className="h-[250px] p-4">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={revenueData}>
                   <defs>
@@ -357,7 +357,7 @@ const PanelCenter = () => {
                   <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
                   <YAxis hide />
                   <RechartTooltip />
-                  <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorRev)" />
+                  <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
