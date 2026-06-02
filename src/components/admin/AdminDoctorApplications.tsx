@@ -87,12 +87,11 @@ const AdminDoctorApplications = () => {
       // Send email with the code
       await db.functions.invoke("send-email", {
         body: {
-          type: "welcome",
+          type: "doctor_invite_code",
           to: selectedApp.email,
           data: {
             name: selectedApp.full_name,
-            subject: "Seu cadastro foi aprovado! — AloClinica",
-            message: `Olá Dr(a). ${selectedApp.full_name},\n\nSeu cadastro foi aprovado! Use o código abaixo para criar sua conta:\n\n🔑 Código de Acesso: ${code}\n\nEste código expira em 7 dias.\n\nAcesse o portal exclusivo para médicos:\n${window.location.origin}/medico?acesso=entrar\n\nBem-vindo(a) à AloClinica! 💚`,
+            invite_code: code,
           },
         },
       });
