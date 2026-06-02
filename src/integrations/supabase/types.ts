@@ -249,6 +249,83 @@ export type Database = {
           },
         ]
       }
+      api_keys: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          last_used_at: string | null
+          owner_user_id: string | null
+          prefix: string
+          rate_limit_per_min: number
+          revoked_at: string | null
+          scopes: string[]
+          secret_hash: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          last_used_at?: string | null
+          owner_user_id?: string | null
+          prefix: string
+          rate_limit_per_min?: number
+          revoked_at?: string | null
+          scopes?: string[]
+          secret_hash: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          last_used_at?: string | null
+          owner_user_id?: string | null
+          prefix?: string
+          rate_limit_per_min?: number
+          revoked_at?: string | null
+          scopes?: string[]
+          secret_hash?: string
+        }
+        Relationships: []
+      }
+      api_request_log: {
+        Row: {
+          api_key_id: string | null
+          created_at: string
+          endpoint: string
+          id: number
+          ip: string | null
+          status_code: number | null
+        }
+        Insert: {
+          api_key_id?: string | null
+          created_at?: string
+          endpoint: string
+          id?: number
+          ip?: string | null
+          status_code?: number | null
+        }
+        Update: {
+          api_key_id?: string | null
+          created_at?: string
+          endpoint?: string
+          id?: number
+          ip?: string | null
+          status_code?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_request_log_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           created_at: string
@@ -709,6 +786,42 @@ export type Database = {
         }
         Relationships: []
       }
+      clinical_protocols: {
+        Row: {
+          actions: Json
+          conditions: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           address: Json | null
@@ -970,6 +1083,104 @@ export type Database = {
           },
         ]
       }
+      contract_leads: {
+        Row: {
+          cnpj: string | null
+          contact_email: string
+          contact_name: string
+          contact_phone: string | null
+          contact_role: string | null
+          contacted_at: string | null
+          contacted_by: string | null
+          created_at: string
+          expected_beneficiaries: number | null
+          id: string
+          message: string | null
+          org_name: string
+          org_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cnpj?: string | null
+          contact_email: string
+          contact_name: string
+          contact_phone?: string | null
+          contact_role?: string | null
+          contacted_at?: string | null
+          contacted_by?: string | null
+          created_at?: string
+          expected_beneficiaries?: number | null
+          id?: string
+          message?: string | null
+          org_name: string
+          org_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cnpj?: string | null
+          contact_email?: string
+          contact_name?: string
+          contact_phone?: string | null
+          contact_role?: string | null
+          contacted_at?: string | null
+          contacted_by?: string | null
+          created_at?: string
+          expected_beneficiaries?: number | null
+          id?: string
+          message?: string | null
+          org_name?: string
+          org_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contract_manager_invites: {
+        Row: {
+          contrato_id: string
+          created_at: string
+          created_by_user_id: string | null
+          email: string
+          expires_at: string
+          id: string
+          token: string
+          used_at: string | null
+          used_by_user_id: string | null
+        }
+        Insert: {
+          contrato_id: string
+          created_at?: string
+          created_by_user_id?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          token: string
+          used_at?: string | null
+          used_by_user_id?: string | null
+        }
+        Update: {
+          contrato_id?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+          used_by_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_manager_invites_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contrato_beneficiarios: {
         Row: {
           ativo: boolean
@@ -977,6 +1188,7 @@ export type Database = {
           contrato_id: string
           cpf: string | null
           created_at: string
+          departamento_id: string | null
           email: string | null
           id: string
           limite_individual: number | null
@@ -990,6 +1202,7 @@ export type Database = {
           contrato_id: string
           cpf?: string | null
           created_at?: string
+          departamento_id?: string | null
           email?: string | null
           id?: string
           limite_individual?: number | null
@@ -1003,6 +1216,7 @@ export type Database = {
           contrato_id?: string
           cpf?: string | null
           created_at?: string
+          departamento_id?: string | null
           email?: string | null
           id?: string
           limite_individual?: number | null
@@ -1013,6 +1227,51 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "contrato_beneficiarios_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contrato_beneficiarios_departamento_id_fkey"
+            columns: ["departamento_id"]
+            isOneToOne: false
+            referencedRelation: "contrato_departamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contrato_departamentos: {
+        Row: {
+          ativo: boolean
+          contrato_id: string
+          cota_total: number | null
+          cota_utilizada: number
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          ativo?: boolean
+          contrato_id: string
+          cota_total?: number | null
+          cota_utilizada?: number
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          ativo?: boolean
+          contrato_id?: string
+          cota_total?: number | null
+          cota_utilizada?: number
+          created_at?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contrato_departamentos_contrato_id_fkey"
             columns: ["contrato_id"]
             isOneToOne: false
             referencedRelation: "contratos"
@@ -1460,6 +1719,7 @@ export type Database = {
           display_name: string | null
           doctor_type: string
           documents: Json
+          ical_token: string | null
           id: string
           is_active: boolean | null
           is_approved: boolean | null
@@ -1467,6 +1727,12 @@ export type Database = {
           kyc_face_match_score: number | null
           kyc_status: string | null
           kyc_verified_at: string | null
+          mp_access_token: string | null
+          mp_connected_at: string | null
+          mp_refresh_token: string | null
+          mp_token_expires_at: string | null
+          mp_user_id: string | null
+          payout_frequency: string | null
           pix_key: string | null
           price: number | null
           price_suggestion_sent_at: string | null
@@ -1499,6 +1765,7 @@ export type Database = {
           display_name?: string | null
           doctor_type?: string
           documents?: Json
+          ical_token?: string | null
           id?: string
           is_active?: boolean | null
           is_approved?: boolean | null
@@ -1506,6 +1773,12 @@ export type Database = {
           kyc_face_match_score?: number | null
           kyc_status?: string | null
           kyc_verified_at?: string | null
+          mp_access_token?: string | null
+          mp_connected_at?: string | null
+          mp_refresh_token?: string | null
+          mp_token_expires_at?: string | null
+          mp_user_id?: string | null
+          payout_frequency?: string | null
           pix_key?: string | null
           price?: number | null
           price_suggestion_sent_at?: string | null
@@ -1538,6 +1811,7 @@ export type Database = {
           display_name?: string | null
           doctor_type?: string
           documents?: Json
+          ical_token?: string | null
           id?: string
           is_active?: boolean | null
           is_approved?: boolean | null
@@ -1545,6 +1819,12 @@ export type Database = {
           kyc_face_match_score?: number | null
           kyc_status?: string | null
           kyc_verified_at?: string | null
+          mp_access_token?: string | null
+          mp_connected_at?: string | null
+          mp_refresh_token?: string | null
+          mp_token_expires_at?: string | null
+          mp_user_id?: string | null
+          payout_frequency?: string | null
           pix_key?: string | null
           price?: number | null
           price_suggestion_sent_at?: string | null
@@ -1646,6 +1926,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      doctor_text_templates: {
+        Row: {
+          body: string
+          created_at: string
+          doctor_user_id: string
+          id: string
+          title: string
+          type: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          doctor_user_id: string
+          id?: string
+          title: string
+          type: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          doctor_user_id?: string
+          id?: string
+          title?: string
+          type?: string
+        }
+        Relationships: []
       }
       document_verifications: {
         Row: {
@@ -1754,6 +2061,99 @@ export type Database = {
             columns: ["pingo_card_subscription_id"]
             isOneToOne: false
             referencedRelation: "pingo_card_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_labs: {
+        Row: {
+          city: string | null
+          cnpj: string | null
+          contact_email: string | null
+          created_at: string
+          description: string | null
+          exam_types: string[]
+          id: string
+          is_active: boolean
+          name: string
+          phone: string | null
+          state: string | null
+        }
+        Insert: {
+          city?: string | null
+          cnpj?: string | null
+          contact_email?: string | null
+          created_at?: string
+          description?: string | null
+          exam_types?: string[]
+          id?: string
+          is_active?: boolean
+          name: string
+          phone?: string | null
+          state?: string | null
+        }
+        Update: {
+          city?: string | null
+          cnpj?: string | null
+          contact_email?: string | null
+          created_at?: string
+          description?: string | null
+          exam_types?: string[]
+          id?: string
+          is_active?: boolean
+          name?: string
+          phone?: string | null
+          state?: string | null
+        }
+        Relationships: []
+      }
+      exam_orders: {
+        Row: {
+          created_at: string
+          exam_request_id: string | null
+          id: string
+          lab_id: string
+          notes: string | null
+          patient_id: string
+          preferred_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          exam_request_id?: string | null
+          id?: string
+          lab_id: string
+          notes?: string | null
+          patient_id: string
+          preferred_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          exam_request_id?: string | null
+          id?: string
+          lab_id?: string
+          notes?: string | null
+          patient_id?: string
+          preferred_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_orders_exam_request_id_fkey"
+            columns: ["exam_request_id"]
+            isOneToOne: false
+            referencedRelation: "exam_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_orders_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "exam_labs"
             referencedColumns: ["id"]
           },
         ]
@@ -1990,6 +2390,45 @@ export type Database = {
           ip_address?: string | null
           reason?: string | null
           user_agent?: string | null
+        }
+        Relationships: []
+      }
+      family_members: {
+        Row: {
+          birth_date: string | null
+          cpf: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          holder_user_id: string
+          id: string
+          phone: string | null
+          relationship: string | null
+          user_id: string | null
+        }
+        Insert: {
+          birth_date?: string | null
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          full_name: string
+          holder_user_id: string
+          id?: string
+          phone?: string | null
+          relationship?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          birth_date?: string | null
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          holder_user_id?: string
+          id?: string
+          phone?: string | null
+          relationship?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -4154,6 +4593,7 @@ export type Database = {
           created_at: string
           duration: string | null
           id: string
+          main_complaint: string | null
           patient_id: string
           severity: number | null
           symptoms: string[] | null
@@ -4164,6 +4604,7 @@ export type Database = {
           created_at?: string
           duration?: string | null
           id?: string
+          main_complaint?: string | null
           patient_id: string
           severity?: number | null
           symptoms?: string[] | null
@@ -4174,6 +4615,7 @@ export type Database = {
           created_at?: string
           duration?: string | null
           id?: string
+          main_complaint?: string | null
           patient_id?: string
           severity?: number | null
           symptoms?: string[] | null
@@ -4190,36 +4632,75 @@ export type Database = {
       }
       prescription_renewals: {
         Row: {
+          assigned_doctor_id: string | null
           created_at: string
           doctor_id: string
+          health_questionnaire: Json | null
           id: string
           notes: string | null
+          original_prescription_url: string | null
           patient_id: string
           prescription_id: string
+          rejection_reason: string | null
+          renewed_to_prescription_id: string | null
+          reviewed_at: string | null
           status: string | null
           updated_at: string
         }
         Insert: {
+          assigned_doctor_id?: string | null
           created_at?: string
           doctor_id: string
+          health_questionnaire?: Json | null
           id?: string
           notes?: string | null
+          original_prescription_url?: string | null
           patient_id: string
           prescription_id: string
+          rejection_reason?: string | null
+          renewed_to_prescription_id?: string | null
+          reviewed_at?: string | null
           status?: string | null
           updated_at?: string
         }
         Update: {
+          assigned_doctor_id?: string | null
           created_at?: string
           doctor_id?: string
+          health_questionnaire?: Json | null
           id?: string
           notes?: string | null
+          original_prescription_url?: string | null
           patient_id?: string
           prescription_id?: string
+          rejection_reason?: string | null
+          renewed_to_prescription_id?: string | null
+          reviewed_at?: string | null
           status?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "prescription_renewals_assigned_doctor_id_fkey"
+            columns: ["assigned_doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctor_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescription_renewals_assigned_doctor_id_fkey"
+            columns: ["assigned_doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctor_profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescription_renewals_assigned_doctor_id_fkey"
+            columns: ["assigned_doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctor_sla_dashboard"
+            referencedColumns: ["doctor_id"]
+          },
           {
             foreignKeyName: "prescription_renewals_doctor_id_fkey"
             columns: ["doctor_id"]
@@ -4244,6 +4725,13 @@ export type Database = {
           {
             foreignKeyName: "prescription_renewals_prescription_id_fkey"
             columns: ["prescription_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescription_renewals_renewed_to_prescription_id_fkey"
+            columns: ["renewed_to_prescription_id"]
             isOneToOne: false
             referencedRelation: "prescriptions"
             referencedColumns: ["id"]
@@ -4455,6 +4943,7 @@ export type Database = {
           blood_type: string | null
           chronic_conditions: string[] | null
           churn_flagged_at: string | null
+          city: string | null
           cpf: string | null
           created_at: string
           date_of_birth: string | null
@@ -4471,6 +4960,7 @@ export type Database = {
           reengagement_sent_at: string | null
           settings: Json | null
           social_name: string | null
+          state: string | null
           updated_at: string
           user_id: string
         }
@@ -4486,6 +4976,7 @@ export type Database = {
           blood_type?: string | null
           chronic_conditions?: string[] | null
           churn_flagged_at?: string | null
+          city?: string | null
           cpf?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -4502,6 +4993,7 @@ export type Database = {
           reengagement_sent_at?: string | null
           settings?: Json | null
           social_name?: string | null
+          state?: string | null
           updated_at?: string
           user_id: string
         }
@@ -4517,6 +5009,7 @@ export type Database = {
           blood_type?: string | null
           chronic_conditions?: string[] | null
           churn_flagged_at?: string | null
+          city?: string | null
           cpf?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -4533,6 +5026,7 @@ export type Database = {
           reengagement_sent_at?: string | null
           settings?: Json | null
           social_name?: string | null
+          state?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -4589,6 +5083,68 @@ export type Database = {
           identifier?: string
           request_count?: number
           window_start?: string
+        }
+        Relationships: []
+      }
+      referral_uses: {
+        Row: {
+          created_at: string
+          id: string
+          referee_credit_brl: number
+          referral_id: string
+          referred_user_id: string
+          referrer_credit_brl: number
+          referrer_credit_unlocked: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referee_credit_brl?: number
+          referral_id: string
+          referred_user_id: string
+          referrer_credit_brl?: number
+          referrer_credit_unlocked?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referee_credit_brl?: number
+          referral_id?: string
+          referred_user_id?: string
+          referrer_credit_brl?: number
+          referrer_credit_unlocked?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_uses_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          referrer_user_id: string
+          usage_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          referrer_user_id: string
+          usage_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          referrer_user_id?: string
+          usage_count?: number
         }
         Relationships: []
       }
@@ -5691,6 +6247,22 @@ export type Database = {
         }
         Relationships: []
       }
+      fraud_signals: {
+        Row: {
+          appointments_total: number | null
+          cpf: string | null
+          cpf_compartilhado_por: number | null
+          first_name: string | null
+          kyc_attempts: number | null
+          kyc_rejs: number | null
+          last_name: string | null
+          login_fails_24h: number | null
+          no_show_rate: number | null
+          phone: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       payment_gateway_status: {
         Row: {
           mp_count: number | null
@@ -5734,6 +6306,7 @@ export type Database = {
       consume_doctor_signup_invite: { Args: { p_code: string }; Returns: Json }
       cpf_in_use: { Args: { _cpf: string }; Returns: boolean }
       expire_subscriptions_and_cards: { Args: never; Returns: undefined }
+      fn_accept_manager_invite: { Args: { p_token: string }; Returns: Json }
       fn_admin_doctor_kyc_list: { Args: never; Returns: Json[] }
       fn_admin_set_doctor_kyc: {
         Args: { p_doctor_id: string; p_status: string }
@@ -5770,6 +6343,7 @@ export type Database = {
       fn_expire_discount_cards: { Args: never; Returns: undefined }
       fn_expire_invite_codes: { Args: never; Returns: undefined }
       fn_expire_queue_entries: { Args: never; Returns: undefined }
+      fn_generate_referral_code: { Args: { p_len?: number }; Returns: string }
       fn_get_cartao_summary: { Args: { p_user_id?: string }; Returns: Json }
       fn_handle_doctor_no_show: { Args: never; Returns: undefined }
       fn_idle_slot_suggestion: { Args: never; Returns: undefined }
