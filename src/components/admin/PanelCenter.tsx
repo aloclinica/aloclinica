@@ -217,7 +217,7 @@ const PanelCenter = () => {
   ];
 
     const quickActions = [
-      { label: "Aprovações", icon: UserCircleCheck, route: "/dashboard/admin/approvals?role=admin", color: "text-emerald-500", bg: "bg-emerald-500/10" },
+      { label: "Aprovações", icon: UserCheck, route: "/dashboard/admin/approvals?role=admin", color: "text-emerald-500", bg: "bg-emerald-500/10" },
       { label: "Consultas", icon: CalendarCheck, route: "/dashboard/admin/appointments?role=admin", color: "text-blue-500", bg: "bg-blue-500/10" },
       { label: "WhatsApp", icon: WhatsappLogo, route: "/dashboard/admin/whatsapp?role=admin", color: "text-green-500", bg: "bg-green-500/10" },
       { label: "Contratos", icon: Handshake, route: "/dashboard/admin/contratos?role=admin", color: "text-cyan-500", bg: "bg-cyan-500/10" },
