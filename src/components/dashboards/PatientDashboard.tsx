@@ -265,10 +265,10 @@ const PatientDashboard = () => {
                     whileHover={{ y: -3 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={() => navigate(action.path)}
-                    className="group flex flex-col items-center justify-center gap-3 p-4 rounded-3xl border border-border/50 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-md hover:border-primary/30 transition-all duration-300"
+                    className="group flex flex-col items-center justify-center gap-3 p-4 rounded-[28px] border border-border/50 bg-card shadow-[0_4px_12px_-4px_rgba(0,0,0,0.06)] hover:shadow-lg hover:border-primary/30 transition-all duration-300"
                   >
                     <div
-                      className="flex h-12 w-12 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110"
+                      className="flex h-12 w-12 items-center justify-center rounded-[18px] transition-transform duration-300 group-hover:scale-110"
                       style={{ backgroundColor: action.bg, color: action.color }}
                     >
                       <action.icon size={24} weight="fill" />
@@ -297,7 +297,7 @@ const PatientDashboard = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.15 + i * 0.05, ease: [0.22, 1, 0.36, 1] }}
                       whileHover={{ y: -3 }}
-                      className="group relative flex flex-col p-5 rounded-3xl border border-border/40 bg-gradient-to-br from-card via-card to-card/60 backdrop-blur-xl shadow-[0_4px_18px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_28px_-12px_rgba(0,0,0,0.15)] transition-all duration-300 overflow-hidden"
+                      className="group relative flex flex-col p-5 rounded-[28px] border border-border/40 bg-gradient-to-br from-card via-card to-card/60 backdrop-blur-xl shadow-[0_8px_24px_-10px_rgba(0,0,0,0.1)] hover:shadow-[0_16px_40px_-12px_rgba(0,0,0,0.18)] transition-all duration-300 overflow-hidden"
                     >
                       <div
                         className="pointer-events-none absolute -top-10 -right-10 h-24 w-24 rounded-full blur-3xl opacity-30 group-hover:opacity-60 transition-opacity"
@@ -305,7 +305,7 @@ const PatientDashboard = () => {
                       />
                       <div className="relative flex items-start justify-between mb-3">
                         <div
-                          className={cn("flex h-10 w-10 items-center justify-center rounded-2xl shadow-sm ring-1 ring-white/40", stat.bg)}
+                          className={cn("flex h-10 w-10 items-center justify-center rounded-[14px] shadow-sm ring-1 ring-white/40", stat.bg)}
                           style={{ color: stat.color }}
                         >
                           <stat.icon size={20} weight="fill" />
