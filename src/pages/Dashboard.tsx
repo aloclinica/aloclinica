@@ -390,7 +390,7 @@ const Dashboard = () => {
       <Route path="admin/reports" element={<RoleGuard allowed={[]} roles={roles}><AdminReports /></RoleGuard>} />
       <Route path="admin/approvals" element={<RoleGuard allowed={[]} roles={roles}><AdminApprovals /></RoleGuard>} />
       <Route path="admin/kyc-review" element={<RoleGuard allowed={[]} roles={roles}><AdminKycReview /></RoleGuard>} />
-      <Route path="admin/billing" element={<RoleGuard allowed={[]} roles={roles}><AdminBilling /></RoleGuard>} />
+      
       <Route path="admin/platform-settings" element={<RoleGuard allowed={[]} roles={roles}><AdminPlatformSettings /></RoleGuard>} />
       <Route path="admin/notification-templates" element={<RoleGuard allowed={[]} roles={roles}><AdminNotificationTemplates /></RoleGuard>} />
       <Route path="admin/broadcast" element={<RoleGuard allowed={[]} roles={roles}><AdminBroadcast /></RoleGuard>} />
