@@ -166,26 +166,26 @@ const PingoCard = () => {
     <div className="pingo-card-page min-h-screen">
       {/* Azul Confiança · DM Serif Display + Fira Sans · editorial caloroso */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         .pingo-card-page {
-          --pc-navy-900: #0a132e;
-          --pc-navy-800: #0f1b3d;
-          --pc-navy-700: #1e3a5f;
-          --pc-blue-500: #3b6fa0;
-          --pc-blue-100: #e8edf3;
-          --pc-gold: #c89b46;
-          --pc-gold-soft: #e8c882;
-          --pc-cream: #f7f1e6;
-          --pc-paper: #fbf7ef;
-          --pc-ink: #0a132e;
+          --pc-navy-900: hsl(var(--foreground));
+          --pc-navy-800: hsl(var(--primary));
+          --pc-navy-700: hsl(var(--primary) / 0.8);
+          --pc-blue-500: hsl(var(--secondary));
+          --pc-blue-100: hsl(var(--accent));
+          --pc-gold: hsl(var(--warning));
+          --pc-gold-soft: hsl(var(--warning) / 0.6);
+          --pc-cream: hsl(var(--background));
+          --pc-paper: hsl(var(--background));
+          --pc-ink: hsl(var(--foreground));
           background: var(--pc-paper);
           color: var(--pc-ink);
-          font-family: 'Fira Sans', system-ui, sans-serif;
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
         }
         .pingo-card-page h1,.pingo-card-page h2,.pingo-card-page h3,.pingo-card-page .pc-display {
-          font-family: 'DM Serif Display', serif;
-          font-weight: 400;
-          letter-spacing: -0.015em;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          font-weight: 800;
+          letter-spacing: -0.03em;
           color: var(--pc-navy-900);
         }
         .pingo-card-page .pc-display em { font-style: italic; color: var(--pc-blue-500); }
@@ -197,45 +197,44 @@ const PingoCard = () => {
         .pc-cream-bg { background: var(--pc-cream); }
         .pc-eyebrow {
           display: inline-flex; align-items: center; gap: 8px;
-          font-family: 'Fira Sans', sans-serif; font-weight: 600;
+          font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700;
           font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
-          color: var(--pc-gold);
+          color: var(--pc-navy-800);
+          opacity: 0.6;
         }
-        .pc-eyebrow::before { content: ""; width: 28px; height: 1px; background: currentColor; }
+        .pc-eyebrow::before { content: ""; width: 28px; height: 2px; background: currentColor; }
         .pc-card {
-          border-radius: 6px; background: #ffffff;
-          border: 1px solid rgba(10,19,46,.08);
-          box-shadow: 0 1px 2px rgba(10,19,46,.04), 0 20px 40px -28px rgba(10,19,46,.18);
-          transition: transform .35s ease, box-shadow .35s ease, border-color .35s ease;
+          border-radius: 1.5rem; background: hsl(var(--card));
+          border: 1px solid hsl(var(--border) / 0.5);
+          box-shadow: var(--shadow-card);
+          transition: all .35s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        .pc-card:hover { transform: translateY(-3px); box-shadow: 0 30px 60px -30px rgba(10,19,46,.28); border-color: rgba(200,155,70,.35); }
+        .pc-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-elevated); border-color: hsl(var(--primary) / 0.3); }
         .pc-card-dark {
-          border-radius: 6px;
-          background: linear-gradient(160deg, #1e3a5f 0%, #0f1b3d 60%, #0a132e 100%);
-          color: var(--pc-cream);
-          border: 1px solid rgba(200,155,70,.25);
-          box-shadow: 0 40px 80px -36px rgba(10,19,46,.55);
+          border-radius: 1.5rem;
+          background: var(--gradient-hero);
+          color: white;
+          border: none;
+          box-shadow: 0 20px 40px -10px hsl(var(--primary) / 0.3);
         }
-        .pc-rule { height: 1px; background: linear-gradient(90deg, transparent, rgba(10,19,46,.18), transparent); }
+        .pc-rule { height: 1px; background: hsl(var(--border)); }
         .pc-grain { position: relative; }
         .pc-grain::after {
-          content:""; position:absolute; inset:0; pointer-events:none; opacity:.06; border-radius: inherit;
-          background-image: radial-gradient(rgba(255,255,255,.6) 1px, transparent 1px);
-          background-size: 4px 4px;
+          content:""; position:absolute; inset:0; pointer-events:none; opacity:.03; border-radius: inherit;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
-        .pc-serif-num { font-family: 'DM Serif Display', serif; }
+        .pc-serif-num { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; }
         /* membership card */
         .pc-member-card {
-          position: relative; border-radius: 14px; overflow: hidden;
-          background: linear-gradient(135deg, #0f1b3d 0%, #1e3a5f 55%, #0a132e 100%);
-          color: var(--pc-cream); padding: 28px;
-          box-shadow: 0 40px 80px -30px rgba(10,19,46,.55), inset 0 1px 0 rgba(255,255,255,.08);
+          position: relative; border-radius: 1.5rem; overflow: hidden;
+          background: var(--gradient-hero);
+          color: white; padding: 2rem;
+          box-shadow: 0 30px 60px -12px hsl(var(--primary) / 0.4), inset 0 1px 1px hsl(0 0% 100% / 0.2);
           aspect-ratio: 1.586 / 1;
         }
         .pc-member-card::before {
           content:""; position:absolute; inset:0;
-          background: radial-gradient(120% 80% at 100% 0%, rgba(200,155,70,.35), transparent 55%),
-                      radial-gradient(60% 40% at 0% 100%, rgba(59,111,160,.35), transparent 70%);
+          background: radial-gradient(circle at top right, hsl(0 0% 100% / 0.1), transparent 70%);
         }
       `}</style>
       <SEOHead
