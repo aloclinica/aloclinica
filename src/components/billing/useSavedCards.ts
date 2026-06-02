@@ -18,7 +18,7 @@ import { toastError } from "@/lib/errorMessages";
 export type SavedCard = {
   id: string;
   mp_card_id: string | null;
-  pagbank_card_id?: string | null;
+  
   last4: string;
   brand: string;
   holder_name: string;
