@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Heart, Star, Shield, Check, X, ArrowRight, QrCode, Sparkle, MapPin, Storefront, Flask, Eyeglasses, Quotes, Lightning, Users, Clock, Buildings, ShieldCheck, CurrencyCircleDollar, CaretRight } from "@phosphor-icons/react";
+import { Heart, Star, Shield, Check, X, ArrowRight, QrCode, Sparkle, MapPin, Storefront, Flask, Eyeglasses, Quotes, Lightning, Users, Clock, Buildings, ShieldCheck, CurrencyCircleDollar, CaretRight, ShieldStar, Umbrella, Gift } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -10,10 +10,19 @@ import SEOHead from "@/components/SEOHead";
 import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { PingoSubscribeDialog } from "@/components/patient/PingoSubscribeDialog";
-import pingoCardHero from "@/assets/pingo-card-hero.png";
-import pingoFamily from "@/assets/hero-pingo-family.png";
-import pingoConfianca from "@/assets/pingo-confianca.png";
-import pingoDepoimentos from "@/assets/pingo-depoimentos.png";
+
+const PINGO_ASSETS = {
+  hero: "https://res.cloudinary.com/dvdyiyvpo/image/upload/v1780417543/ChatGPT_Image_2_de_jun._de_2026_13_17_09_1_vteboe.png",
+  telemedicina: "https://res.cloudinary.com/dvdyiyvpo/image/upload/v1780417543/ChatGPT_Image_2_de_jun._de_2026_13_17_09_2_xlpk3y.png",
+  seguro: "https://res.cloudinary.com/dvdyiyvpo/image/upload/v1780417543/ChatGPT_Image_2_de_jun._de_2026_13_17_09_3_khgobs.png",
+  funeral: "https://res.cloudinary.com/dvdyiyvpo/image/upload/v1780417543/ChatGPT_Image_2_de_jun._de_2026_13_17_10_4_ud4fn8.png",
+  sorteio: "https://res.cloudinary.com/dvdyiyvpo/image/upload/v1780417540/ChatGPT_Image_2_de_jun._de_2026_13_17_11_5_mhx48l.png",
+  economia: "https://res.cloudinary.com/dvdyiyvpo/image/upload/v1780417540/ChatGPT_Image_2_de_jun._de_2026_13_17_12_6_b0579j.png",
+  fases: "https://res.cloudinary.com/dvdyiyvpo/image/upload/v1780417540/ChatGPT_Image_2_de_jun._de_2026_13_17_13_7_tmjaau.png",
+  acesso: "https://res.cloudinary.com/dvdyiyvpo/image/upload/v1780417539/ChatGPT_Image_2_de_jun._de_2026_13_17_14_8_jgy1vq.png",
+  tudoEmUm: "https://res.cloudinary.com/dvdyiyvpo/image/upload/v1780417539/ChatGPT_Image_2_de_jun._de_2026_13_17_16_9_n9hcqp.png",
+  cuidado: "https://res.cloudinary.com/dvdyiyvpo/image/upload/v1780417539/ChatGPT_Image_2_de_jun._de_2026_13_17_20_10_qrm1hi.png",
+};
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -283,8 +292,13 @@ const PingoCard = () => {
               className="col-span-12 lg:col-span-5 relative"
             >
               <div className="relative max-w-md mx-auto">
-                <img src={pingoFamily} alt="Família Pingo" className="absolute -top-12 -right-6 w-36 md:w-44 z-20 select-none drop-shadow-2xl pointer-events-none" draggable={false}/>
-                <div className="pc-member-card relative z-10">
+                <div className="pc-member-card relative z-10 overflow-hidden">
+                  {/* Decorative background image */}
+                  <img 
+                    src={PINGO_ASSETS.tudoEmUm} 
+                    alt="" 
+                    className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay pointer-events-none"
+                  />
                   <div className="relative z-10 flex items-start justify-between">
                     <div>
                       <p className="text-[10px] font-semibold tracking-[0.24em] uppercase" style={{ color: "var(--pc-gold-soft)" }}>Membro · Família</p>
@@ -335,7 +349,9 @@ const PingoCard = () => {
               <p className="mt-5 text-base leading-relaxed" style={{ color: "rgba(10,19,46,.7)" }}>
                 Quatro pilares simples que fazem do Pingo Card a forma mais acolhedora de cuidar da família — sem contratos longos, sem letras miúdas, com transparência do começo ao fim.
               </p>
-              <img src={pingoConfianca} alt="" aria-hidden="true" className="w-40 mt-8 select-none" draggable={false}/>
+              <div className="mt-8 relative h-48 rounded-2xl overflow-hidden border border-slate-200">
+                <img src={PINGO_ASSETS.fases} alt="Benefícios para todas as fases" className="w-full h-full object-cover" />
+              </div>
             </div>
             <div className="col-span-12 lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-5">
               {benefits.map((b, i) => (
@@ -356,6 +372,79 @@ const PingoCard = () => {
                 </motion.div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+      {/* ============ VANTAGENS EXCLUSIVAS ============ */}
+      <section className="py-20 bg-white overflow-hidden">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+          <div className="text-center mb-16">
+            <span className="pc-eyebrow justify-center">Proteção total</span>
+            <h2 className="pc-display text-4xl md:text-5xl mt-4">Vantagens que vão além da saúde.</h2>
+            <p className="mt-4 text-slate-600 max-w-2xl mx-auto">Com o Pingo Card, você garante benefícios exclusivos pensados para a sua tranquilidade em todos os momentos.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Telemedicina 24h",
+                desc: "Acolhimento médico por vídeo a qualquer hora, de onde estiver.",
+                img: PINGO_ASSETS.telemedicina,
+                icon: <Lightning size={24} weight="fill" className="text-blue-500" />
+              },
+              {
+                title: "Seguro Acidente",
+                desc: "Tranquilidade garantida para você e sua família em imprevistos.",
+                img: PINGO_ASSETS.seguro,
+                icon: <ShieldStar size={24} weight="fill" className="text-emerald-500" />
+              },
+              {
+                title: "Assistência Funeral",
+                desc: "Apoio humanizado e completo quando você mais precisar.",
+                img: PINGO_ASSETS.funeral,
+                icon: <Umbrella size={24} weight="fill" className="text-indigo-500" />
+              },
+              {
+                title: "Sorteios Mensais",
+                desc: "Concorra a R$ 40 mil reais todos os meses pelo Pingo Card.",
+                img: PINGO_ASSETS.sorteio,
+                icon: <Gift size={24} weight="fill" className="text-amber-500" />
+              },
+              {
+                title: "Economia Real",
+                desc: "Descontos expressivos em farmácias, laboratórios e óticas.",
+                img: PINGO_ASSETS.economia,
+                icon: <CurrencyCircleDollar size={24} weight="fill" className="text-green-600" />
+              },
+              {
+                title: "Cuidado Completo",
+                desc: "Proteção e vantagens exclusivas em um único cartão digital.",
+                img: PINGO_ASSETS.cuidado,
+                icon: <Heart size={24} weight="fill" className="text-red-500" />
+              }
+            ].map((v, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="group relative bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 hover:shadow-2xl hover:shadow-slate-200 transition-all duration-500"
+              >
+                <div className="aspect-[16/9] overflow-hidden">
+                  <img src={v.img} alt={v.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                </div>
+                <div className="p-8">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-white rounded-xl shadow-sm border border-slate-100">
+                      {v.icon}
+                    </div>
+                    <h3 className="pc-display text-2xl">{v.title}</h3>
+                  </div>
+                  <p className="text-slate-600 leading-relaxed">{v.desc}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -593,7 +682,9 @@ const PingoCard = () => {
               <h2 className="pc-display text-4xl md:text-5xl mt-4">Famílias que <em>cuidam melhor</em> com o Pingo Card.</h2>
             </div>
             <div className="col-span-12 md:col-span-5 flex md:justify-end items-center gap-3">
-              <img src={pingoDepoimentos} alt="" aria-hidden="true" className="w-24 select-none" draggable={false}/>
+              <div className="w-24 h-16 rounded-lg overflow-hidden border border-slate-200">
+                <img src={PINGO_ASSETS.acesso} alt="Uso simples" className="w-full h-full object-cover" />
+              </div>
               <div className="flex gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (<Star key={i} size={18} weight="fill" className="pc-gold" />))}
                 <p className="ml-2 text-sm self-center" style={{ color: "rgba(10,19,46,.65)" }}>4.9 · +2 mil avaliações</p>
@@ -665,12 +756,15 @@ const PingoCard = () => {
       </section>
 
       {/* ============ CTA FINAL ============ */}
-      <section className="py-20 md:py-28">
+      <section className="py-20 md:py-28 relative overflow-hidden">
+        <div className="absolute inset-0 -z-10">
+          <img src={PINGO_ASSETS.hero} alt="" className="w-full h-full object-cover opacity-10" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/80 to-white" />
+        </div>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
           <div className="pc-card-dark pc-grain relative overflow-hidden p-10 md:p-16 grid grid-cols-12 gap-8 items-center">
-            <div aria-hidden className="pointer-events-none absolute -right-32 -top-32 w-96 h-96 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(200,155,70,.35), transparent)" }} />
-            <div aria-hidden className="pointer-events-none absolute -left-24 -bottom-24 w-80 h-80 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(59,111,160,.45), transparent)" }} />
-            <div className="col-span-12 md:col-span-8 relative">
+            <img src={PINGO_ASSETS.cuidado} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none" />
+            <div className="col-span-12 md:col-span-8 relative z-10">
               <span className="pc-eyebrow" style={{ color: "var(--pc-gold-soft)" }}>Sua saúde merece</span>
               <h2 className="pc-display text-4xl md:text-6xl mt-5 leading-[1.02]" style={{ color: "var(--pc-cream)" }}>
                 Pronto para cuidar de você <em style={{ color: "var(--pc-gold-soft)" }}>pagando menos</em>?
@@ -679,22 +773,25 @@ const PingoCard = () => {
                 Junte-se a milhares de famílias que já economizam com o Pingo Card. Sem carência, sem fidelidade.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Button size="lg" className="pc-gold-bg hover:opacity-90 font-semibold border-0 rounded-full px-7" style={{ color: "var(--pc-navy-900)" }}
+                <Button size="lg" className="pc-gold-bg hover:opacity-90 font-semibold border-0 rounded-full px-7 h-14" style={{ color: "var(--pc-navy-900)" }}
                   onClick={() => {
                     const target = plans.find(p => p.is_highlighted) ?? plans[0];
                     if (target) handleSubscribe(target);
                     else document.getElementById("planos")?.scrollIntoView({ behavior: "smooth" });
                   }}>
-                  Começar agora <ArrowRight size={18} className="ml-2" weight="bold" />
+                  Assinar agora <ArrowRight size={18} className="ml-2" weight="bold" />
                 </Button>
-                <Button size="lg" variant="ghost" className="rounded-full px-6 hover:bg-white/10" style={{ color: "var(--pc-cream)" }}
-                  onClick={() => navigate("/agendar")}>
-                  Falar com a gente
+                <Button size="lg" variant="ghost" className="rounded-full px-6 hover:bg-white/10 h-14" style={{ color: "var(--pc-cream)" }}
+                  onClick={() => window.open("https://wa.me/5581900000000", "_blank")}>
+                  Falar com especialista
                 </Button>
               </div>
             </div>
-            <div className="col-span-12 md:col-span-4 relative flex justify-center">
-              <img src={pingoCardHero} alt="Pingo segurando o cartão" className="w-56 md:w-full max-w-[260px] select-none drop-shadow-2xl" draggable={false}/>
+            <div className="col-span-12 md:col-span-4 relative flex justify-center z-10">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gold/20 blur-3xl rounded-full scale-150 group-hover:scale-200 transition-transform duration-1000" />
+                <img src={PINGO_ASSETS.acesso} alt="Pingo Card" className="w-56 md:w-full max-w-[280px] select-none drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative transition-transform duration-700 group-hover:translate-y-[-10px] group-hover:rotate-[-2deg]" draggable={false}/>
+              </div>
             </div>
           </div>
         </div>
