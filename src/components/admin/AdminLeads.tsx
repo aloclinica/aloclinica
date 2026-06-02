@@ -136,13 +136,13 @@ const AdminLeads = () => {
                     </div>
                     <div className="flex flex-col gap-2 shrink-0">
                       <Select value={l.status} onValueChange={(v) => updateStatus(l.id, v)}>
-                        <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-8 w-36 text-xs shadow-sm"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {Object.entries(STATUS_LABEL).map(([v, lab]) => <SelectItem key={v} value={v}>{lab}</SelectItem>)}
                         </SelectContent>
                       </Select>
-                      <Button size="sm" className="h-8 rounded-xl gap-1.5 text-xs"
-                        onClick={() => navigate(`/dashboard/admin/contracts/new?lead=${l.id}`)}>
+                      <Button size="sm" className="h-8 rounded-xl gap-1.5 text-xs shadow-sm"
+                        onClick={() => navigate(`/dashboard/admin/contracts/new?lead=${l.id}&org=${encodeURIComponent(l.org_name)}&name=${encodeURIComponent(l.contact_name)}&email=${encodeURIComponent(l.contact_email)}`)}>
                         <Building2 className="w-3.5 h-3.5" /> Criar contrato <ArrowRight className="w-3 h-3" />
                       </Button>
                     </div>
