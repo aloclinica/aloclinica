@@ -45,6 +45,7 @@ const PANELS: Omit<PanelInfo, "onlineCount" | "totalUsers" | "recentUsers">[] = 
   { id: "patient",      label: "Paciente",      description: "Agendamentos, histórico e jornada de saúde",   icon: Users,        gradient: "from-blue-500 to-blue-600",      glow: "shadow-blue-500/25",      route: "/dashboard?role=patient",      roleKey: "patient" },
   { id: "cartao_beneficios", label: "Benefícios", description: "Carteirinha digital e descontos", icon: Heart, gradient: "from-rose-500 to-pink-600", glow: "shadow-rose-500/25", route: "/dashboard?role=cartao_beneficios", roleKey: "cartao_beneficios" },
   { id: "support",      label: "Suporte",       description: "Tickets e monitoramento", icon: Headphones,   gradient: "from-amber-500 to-orange-600",      glow: "shadow-amber-500/25",      route: "/dashboard?role=support",      roleKey: "support" },
+  { id: "clinic",       label: "Clínicas",      description: "Unidades de saúde parceiras", icon: Building2,  gradient: "from-cyan-500 to-blue-600",      glow: "shadow-cyan-500/25",      route: "/dashboard/admin/clinics?role=admin",  roleKey: "clinic" },
   { id: "ai-assistant", label: "Assistente IA", description: "Chat e triagem inteligente",        icon: Bot,          gradient: "from-purple-500 to-fuchsia-600", glow: "shadow-purple-500/25",    route: "/dashboard/ai-assistant",      roleKey: "ai-assistant" },
 ];
 
@@ -230,10 +231,12 @@ const PanelCenter = () => {
     const quickActions = [
       { label: "Aprovações", icon: UserCheck, route: "/dashboard/admin/approvals?role=admin", color: "text-emerald-500", bg: "bg-emerald-500/10" },
       { label: "Consultas", icon: CalendarCheck, route: "/dashboard/admin/appointments?role=admin", color: "text-blue-500", bg: "bg-blue-500/10" },
-      { label: "WhatsApp", icon: WhatsappLogo, route: "/dashboard/admin/whatsapp?role=admin", color: "text-green-500", bg: "bg-green-500/10" },
-      { label: "Contratos", icon: Handshake, route: "/dashboard/admin/contratos?role=admin", color: "text-cyan-500", bg: "bg-cyan-500/10" },
-      { label: "Cupons", icon: Tag, route: "/dashboard/admin/coupons?role=admin", color: "text-orange-500", bg: "bg-orange-500/10" },
+      { label: "Financeiro", icon: Wallet, route: "/dashboard/admin/financial?role=admin", color: "text-green-500", bg: "bg-green-500/10" },
+      { label: "Relatórios", icon: Graph, route: "/dashboard/admin/reports?role=admin", color: "text-cyan-500", bg: "bg-cyan-500/10" },
+      { label: "Leads", icon: UserPlus, route: "/dashboard/admin/leads?role=admin", color: "text-indigo-500", bg: "bg-indigo-500/10" },
+      { label: "Broadcast", icon: Megaphone, route: "/dashboard/admin/broadcast?role=admin", color: "text-orange-500", bg: "bg-orange-500/10" },
       { label: "Segurança", icon: ShieldCheck, route: "/dashboard/admin/security?role=admin", color: "text-rose-500", bg: "bg-rose-500/10" },
+      { label: "Contratos", icon: Handshake, route: "/dashboard/admin/contratos?role=admin", color: "text-emerald-500", bg: "bg-emerald-500/10" },
     ];
 
    // Simulated revenue data for the chart
