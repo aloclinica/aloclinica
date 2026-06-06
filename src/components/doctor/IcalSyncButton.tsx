@@ -12,8 +12,9 @@ import { Input } from "@/components/ui/input";
 import { CalendarPlus, Copy, Check, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { logError } from "@/lib/logger";
+import { SUPABASE_FUNCTIONS_URL } from "@/lib/supabase-config";
 
-const FEED_BASE = "https://pwxvvimdtmvziynbspgx.supabase.co/functions/v1/doctor-ical-feed";
+const FEED_BASE = `${SUPABASE_FUNCTIONS_URL}/doctor-ical-feed`;
 
 export default function IcalSyncButton() {
   const { user } = useAuth();

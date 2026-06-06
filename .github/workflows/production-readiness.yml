@@ -1,0 +1,39 @@
+name: Production Readiness
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
+
+jobs:
+  readiness:
+    name: Audit and public health
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund --prefer-offline
+
+      - name: Static production audit
+        run: npm run audit:production
+
+      - name: Public health check
+        run: npm run health:production -- --json
+        env:
+          PROD_SITE_URL: https://aloclinica.com.br
+          SUPABASE_PROJECT_REF: pwxvvimdtmvziynbspgx
+
+      - name: Build
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          NODE_OPTIONS: "--max-old-space-size=4096"

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { db } from "@/integrations/supabase/untyped";
+import { SUPABASE_FUNCTIONS_URL } from "@/lib/supabase-config";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -483,7 +484,7 @@ const UserProfile = () => {
         {isDoctor && (() => {
           const appId = (import.meta as any).env?.VITE_MP_APP_ID;
           const userId = user?.id ?? "";
-          const redirect = encodeURIComponent("https://pwxvvimdtmvziynbspgx.supabase.co/functions/v1/mp-oauth-callback");
+          const redirect = encodeURIComponent(`${SUPABASE_FUNCTIONS_URL}/mp-oauth-callback`);
           const oauthUrl = appId
             ? `https://auth.mercadopago.com.br/authorization?client_id=${appId}&response_type=code&platform_id=mp&state=${userId}&redirect_uri=${redirect}`
             : null;

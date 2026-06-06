@@ -8,6 +8,7 @@
 import { useEffect, useState } from "react";
 import SEOHead from "@/components/SEOHead";
 import { Activity, CheckCircle2, AlertTriangle, XCircle, RefreshCw, Loader2 } from "lucide-react";
+import { SUPABASE_FUNCTIONS_URL, SUPABASE_URL } from "@/lib/supabase-config";
 
 type Health = "ok" | "degraded" | "down" | "checking";
 
@@ -30,7 +31,7 @@ const SERVICES: Service[] = [
   {
     id: "supabase",
     label: "Banco de dados & auth",
-    url: "https://pwxvvimdtmvziynbspgx.supabase.co/auth/v1/settings",
+    url: `${SUPABASE_URL}/auth/v1/settings`,
     ok_status: [200, 401],
     description: "Supabase (autenticação, banco, edge functions).",
   },
@@ -43,7 +44,7 @@ const SERVICES: Service[] = [
   {
     id: "clinical-ai",
     label: "IA Clínica",
-    url: "https://pwxvvimdtmvziynbspgx.supabase.co/functions/v1/clinical-ai",
+    url: `${SUPABASE_FUNCTIONS_URL}/clinical-ai`,
     method: "GET",
     ok_status: [400, 401, 405],
     description: "Função edge clinical-ai (triagem, resumos, interações).",
