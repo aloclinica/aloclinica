@@ -233,7 +233,10 @@ const CartaoDashboard = () => {
                   className="relative text-left p-6 md:p-7 text-white bg-[linear-gradient(135deg,#053b2a_0%,#0a6e4d_45%,#10a37a_100%)] group overflow-hidden"
                 >
                   <div className="absolute inset-0 opacity-25 mix-blend-screen bg-[conic-gradient(from_135deg_at_70%_30%,transparent_0deg,rgba(180,255,220,0.5)_60deg,transparent_120deg,rgba(255,240,180,0.3)_220deg,transparent_300deg)]" />
-                  <div className="absolute -inset-x-1/2 -inset-y-1/2 bg-[linear-gradient(115deg,transparent_40%,rgba(255,255,255,0.18)_50%,transparent_60%)] translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-[1400ms]" />
+                  <div
+                    className="absolute -inset-x-1/2 -inset-y-1/2 bg-[linear-gradient(115deg,transparent_40%,rgba(255,255,255,0.18)_50%,transparent_60%)] translate-x-[-100%] group-hover:translate-x-[100%] transition-transform"
+                    style={{ transitionDuration: "1400ms" }}
+                  />
                   <div className="relative flex items-center gap-2.5 mb-4">
                     <div className="w-9 h-9 rounded-full bg-white/95 ring-2 ring-emerald-200/70 flex items-center justify-center overflow-hidden">
                       <img src={pingoLogo} alt="Pingo" className="w-7 h-7 object-contain" />

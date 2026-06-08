@@ -1,7 +1,5 @@
 import { db } from "@/integrations/supabase/untyped";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export const ophthalmologyService = {
   // ── Exams ──
   async getExams(filters?: { status?: string; clinic_id?: string }): Promise<any[]> {

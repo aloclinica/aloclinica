@@ -104,7 +104,10 @@ const CarteirinhaDigital = () => {
               backgroundImage: "repeating-linear-gradient(45deg, #fff 0 1px, transparent 1px 8px), repeating-linear-gradient(-45deg, #fff 0 1px, transparent 1px 8px)"
             }} />
             {/* Brilho diagonal animado no hover */}
-            <div className="absolute -inset-x-1/2 -inset-y-1/2 bg-[linear-gradient(115deg,transparent_40%,rgba(255,255,255,0.18)_50%,transparent_60%)] translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-[1400ms]" />
+            <div
+              className="absolute -inset-x-1/2 -inset-y-1/2 bg-[linear-gradient(115deg,transparent_40%,rgba(255,255,255,0.18)_50%,transparent_60%)] translate-x-[-100%] group-hover:translate-x-[100%] transition-transform"
+              style={{ transitionDuration: "1400ms" }}
+            />
 
             <div className="relative h-full w-full p-5 sm:p-6 flex flex-col text-white">
               {/* Topo: Logo Pingo + bandeira plano */}

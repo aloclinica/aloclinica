@@ -1,7 +1,5 @@
 import jsPDF from "jspdf";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 const fmt = (v: number | null | undefined) => (v != null ? String(v) : "—");
 
 export function generateOphthalmologyPrescriptionPDF(rx: any, doctorName: string, doctorCRM: string) {

@@ -192,14 +192,14 @@ export function validateIcs(ics: string): IcsValidationResult {
  */
 export function logIcsValidation(label: string, ics: string, result: IcsValidationResult) {
   const tag = result.ok ? "✅" : "❌";
-  // eslint-disable-next-line no-console
+
   console.groupCollapsed(`[ICS] ${tag} ${label} — ${result.info.bytes}B, ${result.info.events} evento(s)`);
-  // eslint-disable-next-line no-console
+
   console.log("info:", result.info);
   if (result.errors.length) console.error("errors:", result.errors);
   if (result.warnings.length) console.warn("warnings:", result.warnings);
-  // eslint-disable-next-line no-console
+
   console.log("preview:\n" + ics.split(/\r?\n/).slice(0, 40).join("\n"));
-  // eslint-disable-next-line no-console
+
   console.groupEnd();
 }

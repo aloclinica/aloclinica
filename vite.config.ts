@@ -177,7 +177,6 @@ export default defineConfig(({ mode }) => ({
           if (id.includes("@tiptap") || id.includes("prosemirror")) return "vendor-editor";
           if (id.includes("jspdf") || id.includes("html2canvas")) return "vendor-pdf";
           if (id.includes("@sentry")) return "vendor-sentry";
-          if (id.includes("react-markdown") || id.includes("micromark") || id.includes("mdast") || id.includes("hast")) return "vendor-markdown";
           if (id.includes("framer-motion")) return "vendor-motion";
           if (id.includes("gsap")) return "vendor-gsap";
           if (id.includes("qrcode")) return "vendor-qrcode";
@@ -185,7 +184,6 @@ export default defineConfig(({ mode }) => ({
           if (id.includes("react-hook-form") || id.includes("@hookform")) return "vendor-forms";
           if (id.includes("zod")) return "vendor-zod";
           if (id.includes("@supabase") || id.includes("@tanstack/react-query")) return "vendor-data";
-          if (id.includes("@radix-ui")) return "vendor-ui-radix";
           // Icons agrupados pra reaproveitar entre páginas (tree-shaking ainda
           // mantém só os ícones usados em algum lugar do app)
           if (id.includes("lucide-react") || id.includes("@phosphor-icons")) return "vendor-icons";
