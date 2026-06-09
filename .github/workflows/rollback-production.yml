@@ -10,8 +10,6 @@ on:
         description: "Type ROLLBACK to confirm"
         required: true
 
-env:
-
 jobs:
   rollback:
     name: Redeploy known good commit
