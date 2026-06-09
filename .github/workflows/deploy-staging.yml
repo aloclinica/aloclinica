@@ -18,6 +18,21 @@ jobs:
           node-version: 20
           cache: "npm"
 
+      - name: Preflight SSH access to staging VPS
+        shell: bash
+        run: |
+          echo "Checking SSH connectivity to staging VPS:22..."
+          for attempt in 1 2 3; do
+            if timeout 20 bash -c "</dev/tcp/${{ secrets.STAGING_VPS_HOST }}/22"; then
+              echo "SSH port reachable on attempt ${attempt}."
+              exit 0
+            fi
+            echo "SSH port not reachable (attempt ${attempt}/3)."
+            sleep 10
+          done
+          echo "::error::SSH port 22 on staging VPS is unreachable from GitHub Actions. Check VPS firewall, provider security rules, or sshd before deploying."
+          exit 1
+
       - name: Install dependencies
         run: npm install --no-audit --no-fund --prefer-offline
 
@@ -43,7 +58,7 @@ jobs:
           source: "dist/,nginx.conf,Dockerfile.ci,docker-compose.yml"
           target: "/opt/aloclinica-staging/"
           strip_components: 0
-          timeout: 120s
+          timeout: 300s
           command_timeout: 20m
 
       - name: Build and restart staging container
@@ -52,7 +67,7 @@ jobs:
           host: ${{ secrets.STAGING_VPS_HOST }}
           username: ${{ secrets.STAGING_VPS_USER }}
           key: ${{ secrets.STAGING_VPS_SSH_PRIVATE_KEY }}
-          timeout: 120s
+          timeout: 300s
           command_timeout: 20m
           script: |
             set -e
