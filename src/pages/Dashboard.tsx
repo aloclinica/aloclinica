@@ -134,6 +134,7 @@ const AdminFullSiteEditor = lazy(() => import("@/components/admin/AdminFullSiteE
 const AdminMediaLibrary = lazy(() => import("@/components/admin/AdminMediaLibrary"));
 const AdminPingoCard = lazy(() => import("@/components/admin/AdminPingoCard"));
 const AdminPageBuilder = lazy(() => import("@/components/admin/AdminPageBuilder"));
+const AdminStudio = lazy(() => import("@/components/admin/AdminStudio"));
 
 const AdminPayouts = lazy(() => import("@/components/admin/AdminPayouts"));
 const AdminContratos = lazy(() => import("@/components/admin/AdminContratos"));
