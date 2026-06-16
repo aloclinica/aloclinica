@@ -38,19 +38,23 @@ const ResponsavelTecnico = () => {
             <CardContent className="space-y-3 text-sm">
               <div>
                 <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Razão Social</p>
-                <p className="font-medium text-foreground">AloClínica Telemedicina Ltda.</p>
+                <p className="font-medium text-foreground">ALO CLINICA MEDICA LTDA</p>
               </div>
               <div>
                 <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">CNPJ</p>
-                <p className="font-medium text-foreground">[a preencher]</p>
+                <p className="font-medium text-foreground">66.474.468/0001-26 (Matriz)</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">CNAE Principal</p>
+                <p className="font-medium text-foreground">86.30-5-03 — Atividade médica ambulatorial restrita a consultas</p>
               </div>
               <div>
                 <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">CRM-PJ</p>
-                <p className="font-medium text-foreground">[a preencher] / UF</p>
+                <p className="font-medium text-foreground">Em processo de inscrição / CRM-RR</p>
               </div>
               <div className="flex items-start gap-2 pt-2 border-t">
                 <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                <p className="text-muted-foreground">Sede em território brasileiro — endereço completo a preencher no painel administrativo.</p>
+                <p className="text-muted-foreground">Sede: Boa Vista — Roraima, Brasil.</p>
               </div>
             </CardContent>
           </Card>
@@ -65,15 +69,15 @@ const ResponsavelTecnico = () => {
             <CardContent className="space-y-3 text-sm">
               <div>
                 <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Nome</p>
-                <p className="font-medium text-foreground">[a preencher]</p>
+                <p className="font-medium text-foreground">Dra. Tâmara Oliveira Vieira</p>
               </div>
               <div>
                 <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">CRM ativo</p>
-                <p className="font-medium text-foreground">[a preencher] / UF</p>
+                <p className="font-medium text-foreground">CRM 2352 / RR</p>
               </div>
               <div>
-                <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Especialidade</p>
-                <p className="font-medium text-foreground">[a preencher]</p>
+                <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Inscrição CRM</p>
+                <p className="font-medium text-foreground">28/01/2022 — Conselho Regional de Medicina de Roraima</p>
               </div>
               <div className="flex items-start gap-2 pt-2 border-t">
                 <Mail className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
