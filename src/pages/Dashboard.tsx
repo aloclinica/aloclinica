@@ -398,6 +398,7 @@ const Dashboard = () => {
       <Route path="admin/broadcast" element={<RoleGuard allowed={[]} roles={roles}><AdminBroadcast /></RoleGuard>} />
       <Route path="admin/security" element={<RoleGuard allowed={[]} roles={roles}><AdminSecurity /></RoleGuard>} />
       <Route path="admin/lgpd-exports" element={<RoleGuard allowed={[]} roles={roles}><AdminLgpdExports /></RoleGuard>} />
+      <Route path="admin/compliance" element={<RoleGuard allowed={[]} roles={roles}><AdminCompliance /></RoleGuard>} />
       <Route path="admin/theme" element={<RoleGuard allowed={[]} roles={roles}><AdminThemeEditor /></RoleGuard>} />
       <Route path="admin/doctor-applications" element={<RoleGuard allowed={[]} roles={roles}><AdminDoctorApplications /></RoleGuard>} />
       <Route path="admin/switch-panel" element={<RoleGuard allowed={[]} roles={roles}><AdminSwitchPanel /></RoleGuard>} />
