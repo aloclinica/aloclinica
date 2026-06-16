@@ -134,6 +134,7 @@ const AdminFullSiteEditor = lazy(() => import("@/components/admin/AdminFullSiteE
 const AdminMediaLibrary = lazy(() => import("@/components/admin/AdminMediaLibrary"));
 const AdminPingoCard = lazy(() => import("@/components/admin/AdminPingoCard"));
 const AdminPageBuilder = lazy(() => import("@/components/admin/AdminPageBuilder"));
+const AdminStudio = lazy(() => import("@/components/admin/AdminStudio"));
 
 const AdminPayouts = lazy(() => import("@/components/admin/AdminPayouts"));
 const AdminContratos = lazy(() => import("@/components/admin/AdminContratos"));
@@ -413,6 +414,7 @@ const Dashboard = () => {
       
       <Route path="admin/site-config" element={<RoleGuard allowed={[]} roles={roles}><AdminSiteConfig /></RoleGuard>} />
       <Route path="admin/site-editor" element={<RoleGuard allowed={[]} roles={roles}><AdminFullSiteEditor /></RoleGuard>} />
+      <Route path="admin/studio" element={<RoleGuard allowed={[]} roles={roles}><AdminStudio /></RoleGuard>} />
       <Route path="admin/media" element={<RoleGuard allowed={[]} roles={roles}><AdminMediaLibrary /></RoleGuard>} />
       <Route path="admin/pingo-card" element={<RoleGuard allowed={[]} roles={roles}><AdminPingoCard /></RoleGuard>} />
       <Route path="admin/pages" element={<RoleGuard allowed={[]} roles={roles}><AdminPageBuilder /></RoleGuard>} />

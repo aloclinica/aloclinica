@@ -5274,6 +5274,115 @@ export type Database = {
           },
         ]
       }
+      site_block_versions: {
+        Row: {
+          block_id: string
+          change_note: string | null
+          id: string
+          locale: string | null
+          published_at: string
+          published_by: string | null
+          snapshot: Json
+          version: number
+        }
+        Insert: {
+          block_id: string
+          change_note?: string | null
+          id?: string
+          locale?: string | null
+          published_at?: string
+          published_by?: string | null
+          snapshot: Json
+          version: number
+        }
+        Update: {
+          block_id?: string
+          change_note?: string | null
+          id?: string
+          locale?: string | null
+          published_at?: string
+          published_by?: string | null
+          snapshot?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_block_versions_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "site_blocks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_blocks: {
+        Row: {
+          block_key: string
+          created_at: string
+          display_name: string
+          display_order: number
+          draft: Json | null
+          has_draft: boolean
+          i18n: Json
+          id: string
+          is_enabled: boolean
+          last_published_at: string | null
+          last_published_by: string | null
+          page_slug: string | null
+          parent_id: string | null
+          published: Json
+          schema: Json
+          scope: string
+          updated_at: string
+        }
+        Insert: {
+          block_key: string
+          created_at?: string
+          display_name: string
+          display_order?: number
+          draft?: Json | null
+          has_draft?: boolean
+          i18n?: Json
+          id?: string
+          is_enabled?: boolean
+          last_published_at?: string | null
+          last_published_by?: string | null
+          page_slug?: string | null
+          parent_id?: string | null
+          published?: Json
+          schema?: Json
+          scope: string
+          updated_at?: string
+        }
+        Update: {
+          block_key?: string
+          created_at?: string
+          display_name?: string
+          display_order?: number
+          draft?: Json | null
+          has_draft?: boolean
+          i18n?: Json
+          id?: string
+          is_enabled?: boolean
+          last_published_at?: string | null
+          last_published_by?: string | null
+          page_slug?: string | null
+          parent_id?: string | null
+          published?: Json
+          schema?: Json
+          scope?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_blocks_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "site_blocks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_config: {
         Row: {
           created_at: string
@@ -5378,6 +5487,42 @@ export type Database = {
           language?: string
           last_published_at?: string | null
           schema?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_themes: {
+        Row: {
+          created_at: string
+          favicon_url: string | null
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          name: string
+          og_image_url: string | null
+          tokens: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          favicon_url?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name: string
+          og_image_url?: string | null
+          tokens?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          favicon_url?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name?: string
+          og_image_url?: string | null
+          tokens?: Json
           updated_at?: string
         }
         Relationships: []
@@ -6310,6 +6455,34 @@ export type Database = {
           tipo: Database["public"]["Enums"]["contrato_tipo"]
         }[]
       }
+      publish_site_block: {
+        Args: { p_block_id: string; p_change_note?: string }
+        Returns: {
+          block_key: string
+          created_at: string
+          display_name: string
+          display_order: number
+          draft: Json | null
+          has_draft: boolean
+          i18n: Json
+          id: string
+          is_enabled: boolean
+          last_published_at: string | null
+          last_published_by: string | null
+          page_slug: string | null
+          parent_id: string | null
+          published: Json
+          schema: Json
+          scope: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "site_blocks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       resolve_doctor_slug: { Args: { p_slug: string }; Returns: string }
       resolve_tenant: {
         Args: { p_host?: string; p_slug?: string }
@@ -6322,6 +6495,34 @@ export type Database = {
           subdominio: string
           tipo: Database["public"]["Enums"]["contrato_tipo"]
         }[]
+      }
+      rollback_site_block: {
+        Args: { p_version_id: string }
+        Returns: {
+          block_key: string
+          created_at: string
+          display_name: string
+          display_order: number
+          draft: Json | null
+          has_draft: boolean
+          i18n: Json
+          id: string
+          is_enabled: boolean
+          last_published_at: string | null
+          last_published_by: string | null
+          page_slug: string | null
+          parent_id: string | null
+          published: Json
+          schema: Json
+          scope: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "site_blocks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       search_doctor_by_name: { Args: { p_query: string }; Returns: Json[] }
       validate_doctor_signup_invite: {

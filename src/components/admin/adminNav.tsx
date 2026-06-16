@@ -33,7 +33,8 @@ export const getAdminNav = (active: string) => [
 
   // ── Conteúdo ──
   { label: "Especialidades", href: "/dashboard/admin/specialties?role=admin",  icon: <NavIcon icon={<ShieldStar size={16} weight="fill" />} color="cyan"   />, active: active === "specialties",  group: "Conteúdo" },
-  { label: "Site Editor",    href: "/dashboard/admin/site-editor?role=admin",  icon: <NavIcon icon={<PaintBrush size={16} weight="fill" />}  color="purple" />, active: active === "site-editor", group: "Conteúdo" },
+  { label: "Studio",         href: "/dashboard/admin/studio?role=admin",       icon: <NavIcon icon={<PaintBrush size={16} weight="fill" />}  color="purple" />, active: active === "studio", group: "Conteúdo" },
+  { label: "Site Editor (legado)", href: "/dashboard/admin/site-editor?role=admin", icon: <NavIcon icon={<Layout size={16} weight="fill" />} color="slate" />, active: active === "site-editor", group: "Conteúdo" },
   { label: "Páginas Custom", href: "/dashboard/admin/pages?role=admin",        icon: <NavIcon icon={<Browser size={16} weight="fill" />}     color="blue" />, active: active === "pages", group: "Conteúdo" },
   { label: "Cupons",         href: "/dashboard/admin/coupons?role=admin",      icon: <NavIcon icon={<Tag size={16} weight="fill" />}         color="orange" />, active: active === "coupons",      group: "Conteúdo" },
 
