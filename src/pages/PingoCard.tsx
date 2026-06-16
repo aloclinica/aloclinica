@@ -466,6 +466,119 @@ const PingoCard = () => {
         </div>
       </section>
 
+      {/* Comparison Section */}
+      <section className="py-24 bg-slate-900 text-white overflow-hidden">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-black mb-6">Pingo Card vs. Planos Comuns</h2>
+            <p className="text-slate-400 font-medium">Compare e veja por que milhares de pessoas estão mudando para o Pingo.</p>
+          </div>
+          <div className="rounded-3xl border border-slate-800 bg-slate-950/50 overflow-hidden shadow-2xl">
+            {comparison.map((item, i) => (
+              <div key={i} className={`grid grid-cols-12 p-6 border-b border-slate-800 last:border-0 ${i % 2 === 0 ? 'bg-slate-900/30' : ''}`}>
+                <div className="col-span-6 md:col-span-8 font-bold text-slate-300">{item.feature}</div>
+                <div className="col-span-3 md:col-span-2 text-center text-blue-400 font-black">{item.pingo === true ? <Check className="mx-auto" size={24} weight="bold" /> : item.pingo}</div>
+                <div className="col-span-3 md:col-span-2 text-center text-slate-500 font-bold">{item.plano === false ? <X className="mx-auto" size={24} weight="bold" /> : item.plano}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Partners Section */}
+      <section id="parceiros" className="py-24 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-black mb-6">Rede Credenciada</h2>
+            <p className="text-slate-500 font-medium max-w-2xl mx-auto">Milhares de farmácias, laboratórios e clínicas em todo o Brasil com descontos exclusivos para membros.</p>
+          </div>
+          
+          <div className="flex justify-center mb-12">
+            <Tabs value={partnerCategory} onValueChange={setPartnerCategory} className="w-full max-w-2xl">
+              <TabsList className="grid grid-cols-2 md:grid-cols-5 h-auto p-1 bg-slate-50 rounded-2xl">
+                {partnerCategories.map(cat => (
+                  <TabsTrigger key={cat} value={cat} className="rounded-xl py-2.5 text-xs font-bold uppercase tracking-wider">
+                    {categoryLabels[cat] || cat}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {filteredPartners.map(partner => (
+              <div key={partner.id} className="p-6 rounded-2xl border border-slate-100 bg-slate-50/50 flex flex-col items-center text-center transition hover:bg-white hover:shadow-lg hover:border-blue-100 group">
+                <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-blue-600 mb-4 shadow-sm group-hover:scale-110 transition">
+                  {categoryIcons[partner.category] || <Buildings size={24} />}
+                </div>
+                <h4 className="font-bold text-slate-900 text-sm mb-1">{partner.name}</h4>
+                <div className="text-emerald-600 font-black text-xs uppercase tracking-tight">Até {partner.discount_percent}% OFF</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-24 bg-slate-50">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid md:grid-cols-3 gap-8">
+            {testimonials.map((t, i) => (
+              <div key={i} className="p-8 rounded-3xl bg-white border border-slate-100 shadow-sm relative">
+                <Quotes size={48} weight="fill" className="text-blue-100 absolute top-6 right-8" />
+                <div className="flex gap-1 mb-4">
+                  {[...Array(t.rating)].map((_, i) => <Star key={i} size={16} weight="fill" className="text-amber-400" />)}
+                </div>
+                <p className="text-slate-700 font-medium italic mb-6 leading-relaxed">"{t.text}"</p>
+                <div className="flex flex-col">
+                  <span className="font-black text-slate-900">{t.name}</span>
+                  <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">{t.role}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <h2 className="text-3xl md:text-5xl font-black text-center mb-16">Dúvidas Frequentes</h2>
+          <Accordion type="single" collapsible className="w-full space-y-4">
+            {faqs.map((faq, i) => (
+              <AccordionItem key={i} value={`item-${i}`} className="border rounded-2xl px-6 bg-slate-50/50 border-slate-100 overflow-hidden">
+                <AccordionTrigger className="hover:no-underline py-6 font-bold text-left text-slate-900">{faq.q}</AccordionTrigger>
+                <AccordionContent className="pb-6 text-slate-600 font-medium leading-relaxed">
+                  {faq.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="bg-gradient-to-r from-blue-600 to-cyan-500 rounded-[2.5rem] p-12 md:p-20 text-center text-white relative overflow-hidden shadow-2xl shadow-blue-500/20">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full blur-3xl -ml-32 -mb-32" />
+            
+            <h2 className="text-4xl md:text-6xl font-black mb-8 relative z-10">Sua saúde não pode esperar.</h2>
+            <p className="text-xl md:text-2xl font-medium text-white/90 mb-12 max-w-2xl mx-auto relative z-10">
+              Assine o Pingo Card agora e comece a usar no mesmo instante. Sem carência, sem burocracia.
+            </p>
+            <Button 
+              size="lg" 
+              className="h-16 px-12 rounded-2xl text-xl font-bold bg-white text-blue-600 hover:bg-slate-50 hover:scale-105 transition-all shadow-xl"
+              onClick={() => document.getElementById("planos")?.scrollIntoView({ behavior: "smooth" })}
+            >
+              Começar agora <ArrowRight className="w-6 h-6 ml-2" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
       <PingoSubscribeDialog 
         open={subscribeOpen} 
         onOpenChange={setSubscribeOpen} 
@@ -473,6 +586,10 @@ const PingoCard = () => {
         billingCycle={billing} 
         onSubscribed={handleSubscribed} 
       />
+
+      <Suspense fallback={null}>
+        <Footer />
+      </Suspense>
     </div>
   );
 };
