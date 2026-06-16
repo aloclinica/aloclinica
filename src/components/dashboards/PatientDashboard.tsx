@@ -329,7 +329,7 @@ const PatientDashboard = () => {
               </section>
             )}
           </div>
-          <div className="lg:col-span-4 space-y-6">
+          <div className="lg:col-span-4 space-y-6 min-w-0">
             {sections.healthTip && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="rounded-3xl border border-border/40 bg-card p-6 shadow-sm relative overflow-hidden">
                 <div className="flex items-center gap-2 mb-4"><div className="w-2 h-6 bg-blue-500 rounded-full" /><span className="text-[11px] font-black uppercase tracking-widest text-blue-500">Dica de saúde</span></div>
