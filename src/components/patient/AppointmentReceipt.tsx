@@ -13,6 +13,7 @@ import { jsPDF } from "jspdf";
 import QRCode from "qrcode";
 import { QRCodeSVG } from "qrcode.react";
 import { drawSafeText, safeQrBox, clampWidth } from "@/lib/pdf-layout";
+import { applyBrandDefaults, drawBrandHeader, drawBrandFooter } from "@/lib/pdf-brand";
 
 const nav = getPatientNav("appointments");
 
@@ -153,7 +154,15 @@ const AppointmentReceipt = () => {
     const W = doc.internal.pageSize.getWidth();
     const H = doc.internal.pageSize.getHeight();
     const M = 48; // margem
-    let y = M;
+    applyBrandDefaults(doc);
+    // Branded header (CNPJ + RT) — converte mm para pt internamente
+    let y = drawBrandHeader(doc, {
+      title: "Recibo de Pagamento",
+      subtitle: "Teleconsulta médica",
+      documentId: data.id.slice(0, 8).toUpperCase(),
+      date: issuedAt,
+    });
+    y += 6;
 
     const line = (h = 14) => { y += h; };
     const hr = () => {
@@ -184,38 +193,6 @@ const AppointmentReceipt = () => {
       doc.setTextColor(20);
       drawSafeText(doc, v, { x, y: y + 13, maxWidth: colWidth, fontSize: 11, minFontSize: 8.5, maxLines: 1, lineHeight: 13 });
     };
-
-    // Cabeçalho
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.setTextColor(30, 90, 170);
-    doc.text("RECIBO DE PAGAMENTO", M, y);
-    line(16);
-    doc.setFontSize(20);
-    doc.setTextColor(15);
-    doc.text("AloClínica", M, y);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.setTextColor(110);
-    doc.text("Plataforma de Telemedicina", M, y + 14);
-
-    // Bloco direito
-    doc.setFontSize(8);
-    doc.text("Nº do recibo", W - M, y - 14, { align: "right" });
-    doc.setFont("courier", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(20);
-    doc.text(data.id.slice(0, 8).toUpperCase(), W - M, y, { align: "right" });
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(110);
-    doc.text("Emitido em", W - M, y + 14, { align: "right" });
-    doc.setFontSize(10);
-    doc.setTextColor(20);
-    doc.text(format(issuedAt, "dd/MM/yyyy HH:mm", { locale: ptBR }), W - M, y + 26, { align: "right" });
-
-    y += 44;
-    hr();
 
     // Status
     const statusText = isPaid ? "PAGAMENTO CONFIRMADO" : "AGUARDANDO CONFIRMAÇÃO";
@@ -274,15 +251,15 @@ const AppointmentReceipt = () => {
     doc.text(formatBRL(data.price_at_booking), W - M, y + 6, { align: "right" });
     y += 36;
 
-    // Rodapé
+    // Nota de uso (acima do QR e do rodapé corporativo)
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(130);
-    const footer = doc.splitTextToSize(
-      "Este recibo é gerado automaticamente pela plataforma AloClínica e tem validade como comprovante de pagamento da teleconsulta indicada acima. Para reembolso junto ao seu plano de saúde, anexe este documento à nota fiscal emitida pelo profissional.",
-      W - 2 * M - 90
+    const note = doc.splitTextToSize(
+      "Recibo gerado automaticamente pela plataforma AloClínica · válido como comprovante de pagamento da teleconsulta · Para reembolso, anexe à nota fiscal do profissional.",
+      W - 2 * M - 90,
     );
-    doc.text(footer, M, y + 18);
+    doc.text(note, M, y + 18);
 
     // QR code (verificação) — posicionado e dimensionado dentro das margens
     try {
@@ -302,6 +279,12 @@ const AppointmentReceipt = () => {
     } catch {
       /* QR opcional */
     }
+
+    // Rodapé corporativo unificado (CNPJ + RT + CFM)
+    drawBrandFooter(doc, {
+      complianceNote:
+        "Comprovante de pagamento · CFM 2.314/2022 · Lei 14.510/2022 · Para fins de reembolso, anexar NF do profissional",
+    });
 
     doc.save(`recibo-aloclinica-${data.id.slice(0, 8)}.pdf`);
   };
