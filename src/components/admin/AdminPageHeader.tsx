@@ -1,6 +1,8 @@
 import { ReactNode } from "react";
 import { motion } from "framer-motion";
 import { LucideIcon } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
@@ -21,6 +23,12 @@ interface AdminPageHeaderProps {
   actions?: ReactNode;
   /** Children rendered below header (KPIs, filter row, etc.) */
   children?: ReactNode;
+  /** Optional breadcrumb trail rendered above the title */
+  breadcrumbs?: { label: string; href?: string }[];
+  /** Optional tab strip rendered just under the header divider */
+  tabs?: ReactNode;
+  /** Stick to top when scrolling. Default false. */
+  sticky?: boolean;
   className?: string;
 }
 
@@ -45,6 +53,9 @@ export const AdminPageHeader = ({
   badge,
   actions,
   children,
+  breadcrumbs,
+  tabs,
+  sticky = false,
   className,
 }: AdminPageHeaderProps) => {
   return (
@@ -53,18 +64,34 @@ export const AdminPageHeader = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "relative overflow-hidden rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm",
+        "relative overflow-hidden rounded-2xl border border-border/50 bg-card/85 backdrop-blur-xl shadow-[0_1px_0_0_hsl(var(--border)/0.4),0_8px_24px_-12px_hsl(var(--primary)/0.08)]",
+        sticky && "sticky top-2 z-30",
         className
       )}
     >
       {/* Top accent line */}
       <div className={cn("h-[3px] bg-gradient-to-r", accent)} />
 
+      {/* Subtle dot grid texture (Linear/Notion-style) */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.35] dark:opacity-[0.18]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px, hsl(var(--foreground) / 0.08) 1px, transparent 0)",
+          backgroundSize: "18px 18px",
+          maskImage:
+            "linear-gradient(180deg, rgba(0,0,0,0.9), rgba(0,0,0,0.0) 70%)",
+          WebkitMaskImage:
+            "linear-gradient(180deg, rgba(0,0,0,0.9), rgba(0,0,0,0.0) 70%)",
+        }}
+      />
+
       {/* Subtle radial glow */}
       <div
         aria-hidden
         className={cn(
-          "pointer-events-none absolute -top-20 -right-20 h-48 w-48 rounded-full opacity-[0.07] blur-3xl bg-gradient-to-br",
+          "pointer-events-none absolute -top-24 -right-24 h-56 w-56 rounded-full opacity-[0.10] blur-3xl bg-gradient-to-br",
           accent
         )}
       />
@@ -74,20 +101,47 @@ export const AdminPageHeader = ({
         <div className="flex items-start gap-3 min-w-0">
           <div
             className={cn(
-              "shrink-0 w-11 h-11 md:w-12 md:h-12 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-md",
+              "shrink-0 w-11 h-11 md:w-12 md:h-12 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-md ring-1 ring-white/10 ring-inset",
               accent
             )}
           >
             <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
           </div>
           <div className="min-w-0 flex-1">
+            {breadcrumbs && breadcrumbs.length > 0 && (
+              <nav
+                aria-label="Breadcrumb"
+                className="flex items-center gap-1 text-[11px] text-muted-foreground mb-1 flex-wrap"
+              >
+                {breadcrumbs.map((crumb, i) => {
+                  const isLast = i === breadcrumbs.length - 1;
+                  return (
+                    <span key={`${crumb.label}-${i}`} className="flex items-center gap-1">
+                      {crumb.href && !isLast ? (
+                        <Link
+                          to={crumb.href}
+                          className="hover:text-foreground transition-colors font-medium"
+                        >
+                          {crumb.label}
+                        </Link>
+                      ) : (
+                        <span className={cn("font-medium", isLast && "text-foreground/80")}>
+                          {crumb.label}
+                        </span>
+                      )}
+                      {!isLast && <ChevronRight className="w-3 h-3 opacity-60" />}
+                    </span>
+                  );
+                })}
+              </nav>
+            )}
             {eyebrow && (
-              <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-1">
+              <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-muted-foreground mb-1">
                 {eyebrow}
               </p>
             )}
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-lg md:text-xl font-bold text-foreground tracking-tight leading-tight">
+              <h1 className="text-lg md:text-[22px] font-bold text-foreground tracking-[-0.015em] leading-tight">
                 {title}
               </h1>
               {badge && (
@@ -100,7 +154,7 @@ export const AdminPageHeader = ({
               )}
             </div>
             {description && (
-              <p className="text-xs md:text-[13px] text-muted-foreground mt-0.5 leading-snug">
+              <p className="text-xs md:text-[13px] text-muted-foreground mt-1 leading-snug max-w-2xl">
                 {description}
               </p>
             )}
@@ -114,6 +168,14 @@ export const AdminPageHeader = ({
           </div>
         )}
       </div>
+
+      {tabs && (
+        <div className="relative border-t border-border/40 px-2 md:px-3">
+          <div className="overflow-x-auto scrollbar-hide">
+            {tabs}
+          </div>
+        </div>
+      )}
 
       {children && (
         <div className="relative border-t border-border/40 p-4 md:p-5">
