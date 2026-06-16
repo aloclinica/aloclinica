@@ -16,7 +16,7 @@ import {
   CreditCard, ClipboardList, CheckCircle, AlertCircle, History,
   Eye, Heart, Phone, CalendarCheck, UserCheck, Wallet, Megaphone
 } from "lucide-react";
-import { SquaresFour, WhatsappLogo, ShieldStar, Tag, Graph } from "@phosphor-icons/react";
+import { SquaresFour, WhatsappLogo, Graph } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
