@@ -18,6 +18,7 @@ import { ptBR } from "date-fns/locale";
 import { motion } from "framer-motion";
 import QRCode from "qrcode";
 import { drawSafeText, safeQrBox, clampWidth } from "@/lib/pdf-layout";
+import { drawBrandFooter } from "@/lib/pdf-brand";
 import MemedPrescription from "./MemedPrescription";
 import CfmPrescription from "./CfmPrescription";
 import { gerarHashDocumento, gerarCodigoVerificacao } from "@/lib/signature";
@@ -385,18 +386,11 @@ const PrescriptionForm = () => {
       x: infoX, y: sigY, maxWidth: infoWidth, fontSize: 8, minFontSize: 6.5, maxLines: 2, lineHeight: 4,
     });
 
-    // Bottom bar — Conformidade legal
-    doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-    doc.rect(0, pageHeight - 16, pageWidth, 16, "F");
-    doc.setFontSize(7);
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
-    drawSafeText(doc, "DOCUMENTO EMITIDO VIA TELEMEDICINA (Resolucao CFM 2.314/2022)", {
-      x: pageWidth / 2, y: pageHeight - 10, maxWidth: pageWidth - 2 * MARGIN, fontSize: 7, minFontSize: 6, align: "center", maxLines: 1, lineHeight: 3,
-    });
-    doc.setFont("helvetica", "normal");
-    drawSafeText(doc, "Assinatura eletronica avancada (Lei 14.063/2020 e CFM 2.299/2021) | Medicamentos controlados requerem certificado ICP-Brasil | Valide pelo QR Code", {
-      x: pageWidth / 2, y: pageHeight - 4, maxWidth: pageWidth - 2 * MARGIN, fontSize: 6.5, minFontSize: 5.5, align: "center", maxLines: 1, lineHeight: 3,
+    // Branded compliance footer — replaces inline footer with the unified
+    // corporate identity (legal name, CNPJ, RT, CRM-PJ) required by CFM 2.314/2022.
+    drawBrandFooter(doc, {
+      complianceNote:
+        "Documento assinado eletronicamente (Lei 14.063/2020 · CFM 2.299/2021) · Medicamentos controlados exigem certificado ICP-Brasil",
     });
 
       return { doc, prescriptionId };

@@ -20,6 +20,7 @@ import jsPDF from "jspdf";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { drawSafeText, safeQrBox } from "@/lib/pdf-layout";
+import { drawBrandFooter } from "@/lib/pdf-brand";
 import { TemplateControls } from "@/components/consultation/DoctorTemplates";
 
 const MedicalCertificate = () => {
@@ -178,12 +179,9 @@ const MedicalCertificate = () => {
       x: 105, y: signY + 38, maxWidth: PAGE_W - 2 * 30, fontSize: 10, minFontSize: 8, align: "center", maxLines: 1, lineHeight: 4,
     });
 
-    // Footer bar
-    doc.setFillColor(0, 105, 146);
-    doc.rect(0, 290, 210, 7, "F");
-    doc.setTextColor(255, 255, 255);
-    drawSafeText(doc, "AloClínica — Telemedicina Digital · contato@aloclinica.com.br · www.aloclinica.com.br", {
-      x: PAGE_W / 2, y: 294, maxWidth: PAGE_W - 2 * 5, fontSize: 7, minFontSize: 5.5, align: "center", maxLines: 1, lineHeight: 3,
+    // Branded compliance footer (corporate identity + CFM 2.314/2022)
+    drawBrandFooter(doc, {
+      complianceNote: "Documento emitido via telemedicina · Resolução CFM 2.314/2022 · Lei 14.510/2022",
     });
 
     // Download local pro médico imediato
