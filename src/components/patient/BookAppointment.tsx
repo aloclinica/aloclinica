@@ -40,6 +40,8 @@ import {
 } from "./BookAppointment.types";
 import { usePixCountdown } from "@/hooks/usePixCountdown";
 import QuickPatientCheckoutDialog, { isProfileComplete } from "./QuickPatientCheckoutDialog";
+import ConsentDialog from "@/components/legal/ConsentDialog";
+import type { LegalKind } from "@/lib/legal-docs";
 
 const patientNav = getPatientNav("schedule");
 
