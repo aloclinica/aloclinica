@@ -571,6 +571,13 @@ const UrgentCareQueue = () => {
           </motion.div>
         )}
       </div>
+      <ConsentDialog
+        open={consentOpen}
+        onOpenChange={setConsentOpen}
+        kind="telemed_ondemand"
+        acceptLabel="Aceitar e entrar na fila"
+        onAccepted={() => { setConsentDone(true); setTimeout(() => handleStartPayment(), 0); }}
+      />
     </DashboardLayout>
   );
 };
