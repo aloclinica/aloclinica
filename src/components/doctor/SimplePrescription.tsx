@@ -16,6 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import jsPDF from "jspdf";
+import { applyBrandDefaults, drawBrandHeader, drawBrandFooter, BRAND } from "@/lib/pdf-brand";
 
 const formatCPF = (value: string) => {
   const digits = value.replace(/\D/g, "").slice(0, 11);
@@ -73,35 +74,18 @@ const SimplePrescription = () => {
     const marginX = 20;
     const contentW = pageW - marginX * 2;
 
-    // ─── Colors ───
-    const primary = [22, 163, 74]; // green-600
     const dark = [30, 30, 30];
-    const muted = [107, 114, 128];
-    const line = [209, 213, 219];
+    const muted = [107, 116, 128];
+    const line = [228, 230, 235];
+    const primary = BRAND.colors.primary;
 
-    // ─── Top border bar ───
-    doc.setFillColor(primary[0], primary[1], primary[2]);
-    doc.rect(0, 0, pageW, 4, "F");
-
-    // ─── Header ───
-    let y = 18;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.setTextColor(primary[0], primary[1], primary[2]);
-    doc.text("RECEITUÁRIO MÉDICO", pageW / 2, y, { align: "center" });
-    y += 8;
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(muted[0], muted[1], muted[2]);
-    doc.text("Allo Médico — Telemedicina Digital", pageW / 2, y, { align: "center" });
-    y += 10;
-
-    // ─── Divider ───
-    doc.setDrawColor(line[0], line[1], line[2]);
-    doc.setLineWidth(0.5);
-    doc.line(marginX, y, pageW - marginX, y);
-    y += 10;
+    applyBrandDefaults(doc);
+    let y = drawBrandHeader(doc, {
+      title: "Receituário Médico",
+      subtitle: "Receituário digital — uso simples",
+      documentId: `RX-${Date.now().toString(36).toUpperCase()}`,
+      date: new Date(prescriptionDate + "T12:00:00"),
+    });
 
     // ─── Doctor info ───
     doc.setFont("helvetica", "bold");
@@ -165,10 +149,11 @@ const SimplePrescription = () => {
     for (const textLine of lines) {
       if (y + lineHeight > maxYForMeds) {
         doc.addPage();
-        y = 20;
-        // Re-draw top bar on new page
-        doc.setFillColor(primary[0], primary[1], primary[2]);
-        doc.rect(0, 0, pageW, 4, "F");
+        y = drawBrandHeader(doc, {
+          title: "Receituário Médico",
+          subtitle: "continuação",
+          date: new Date(prescriptionDate + "T12:00:00"),
+        });
       }
       doc.text(textLine, marginX + 2, y);
       y += lineHeight;
@@ -190,25 +175,11 @@ const SimplePrescription = () => {
       doc.text(crmText, pageW / 2, sigY + 10, { align: "center" });
     }
 
-    // ─── Footer ───
-    const footerY = pageH - 12;
-    doc.setDrawColor(line[0], line[1], line[2]);
-    doc.setLineWidth(0.3);
-    doc.line(marginX, footerY - 6, pageW - marginX, footerY - 6);
-
-    doc.setFont("helvetica", "italic");
-    doc.setFontSize(7.5);
-    doc.setTextColor(muted[0], muted[1], muted[2]);
-    doc.text(
-      "Documento assinado digitalmente. Valide a autenticidade em assinaturadigital.iti.gov.br",
-      pageW / 2,
-      footerY,
-      { align: "center" }
-    );
-
-    // ─── Bottom border bar ───
-    doc.setFillColor(primary[0], primary[1], primary[2]);
-    doc.rect(0, pageH - 4, pageW, 4, "F");
+    // ─── Footer corporativo unificado ───
+    drawBrandFooter(doc, {
+      complianceNote:
+        "Assine no portal gov.br (assinaturadigital.iti.gov.br) · Lei 14.063/2020 · CFM 2.299/2021",
+    });
 
     return doc;
   }, [patientName, patientCPF, prescriptionDate, medications, doctorName, crmText]);
