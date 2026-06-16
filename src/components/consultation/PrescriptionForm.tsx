@@ -18,7 +18,7 @@ import { ptBR } from "date-fns/locale";
 import { motion } from "framer-motion";
 import QRCode from "qrcode";
 import { drawSafeText, safeQrBox, clampWidth } from "@/lib/pdf-layout";
-import { drawBrandFooter, BRAND } from "@/lib/pdf-brand";
+import { drawBrandFooter } from "@/lib/pdf-brand";
 import MemedPrescription from "./MemedPrescription";
 import CfmPrescription from "./CfmPrescription";
 import { gerarHashDocumento, gerarCodigoVerificacao } from "@/lib/signature";
