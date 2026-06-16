@@ -116,6 +116,7 @@ const AdminPlatformSettings = lazy(() => import("@/components/admin/AdminPlatfor
 const AdminNotificationTemplates = lazy(() => import("@/components/admin/AdminNotificationTemplates"));
 const AdminSecurity = lazy(() => import("@/components/admin/AdminSecurity"));
 const AdminLgpdExports = lazy(() => import("@/components/admin/AdminLgpdExports"));
+const AdminCompliance = lazy(() => import("@/components/admin/AdminCompliance"));
 const AdminThemeEditor = lazy(() => import("@/components/admin/AdminThemeEditor"));
 const BillingPortal = lazy(() => import("@/components/billing/BillingPortal"));
 const AdminSwitchPanel = lazy(() => import("@/components/admin/AdminSwitchPanel"));
