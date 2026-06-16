@@ -709,6 +709,18 @@ const BookAppointment = () => {
     />
   );
 
+  // ── Termo de consentimento da consulta ──
+  const consentDialog = (
+    <ConsentDialog
+      open={consentOpen}
+      onOpenChange={setConsentOpen}
+      kind={consentKind}
+      appointmentId={appointmentId}
+      acceptLabel="Aceitar e prosseguir"
+      onAccepted={() => { setConsentDone(true); setTimeout(() => handlePayment(), 0); }}
+    />
+  );
+
   if (loading) return (
     <DashboardLayout title="Paciente" nav={patientNav}>
       <div className="w-full max-w-lg mx-auto space-y-4 pb-24 md:pb-6">
