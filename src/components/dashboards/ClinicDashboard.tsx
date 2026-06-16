@@ -342,7 +342,7 @@ const ClinicDashboard = () => {
             </TabsList>
 
             <TabsContent value="overview" className="space-y-5 mt-5">
-              <div className="grid md:grid-cols-2 gap-5">
+              <div className="grid gap-5 md:grid-cols-2 min-w-0">
                 <Card className="border-border/50">
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <CardTitle className="text-sm font-semibold flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> Próximas Consultas</CardTitle>

@@ -217,8 +217,8 @@ const PatientDashboard = () => {
           appt={waitingAppt ?? nextAppt}
           role="patient"
         />
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          <div className="lg:col-span-8 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start min-w-0">
+          <div className="lg:col-span-8 space-y-6 min-w-0">
             <div className="-mx-4 -mt-5 md:-mx-6 md:-mt-5 lg:-mx-8 lg:-mt-6">
               <HeroBanner
                 gradient="from-[hsl(215,75%,28%)] via-[hsl(195,70%,32%)] to-[hsl(168,55%,38%)]"
@@ -329,7 +329,7 @@ const PatientDashboard = () => {
               </section>
             )}
           </div>
-          <div className="lg:col-span-4 space-y-6">
+          <div className="lg:col-span-4 space-y-6 min-w-0">
             {sections.healthTip && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="rounded-3xl border border-border/40 bg-card p-6 shadow-sm relative overflow-hidden">
                 <div className="flex items-center gap-2 mb-4"><div className="w-2 h-6 bg-blue-500 rounded-full" /><span className="text-[11px] font-black uppercase tracking-widest text-blue-500">Dica de saúde</span></div>
