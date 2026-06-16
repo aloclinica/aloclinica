@@ -306,10 +306,10 @@ const DoctorDashboard = () => {
         </AnimatePresence>
 
         {/* Desktop 2-col */}
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:items-start">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-start min-w-0">
 
           {/* LEFT */}
-          <div className="space-y-5">
+          <div className="space-y-5 min-w-0">
             {/* Weekly pulse */}
             <DoctorWeeklyPulse
               series={(data as any)?.weekSeries ?? []}
@@ -349,7 +349,7 @@ const DoctorDashboard = () => {
           </div>
 
           {/* RIGHT */}
-          <div className="space-y-5">
+          <div className="space-y-5 min-w-0">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="h-10 w-full rounded-xl border border-border/30 bg-muted/40 p-1">
                 <TabsTrigger value="overview" className="flex-1 rounded-lg text-[11.5px] gap-1.5 font-semibold data-[state=active]:bg-card data-[state=active]:shadow-sm">
