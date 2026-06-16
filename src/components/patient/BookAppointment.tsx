@@ -571,6 +571,8 @@ const BookAppointment = () => {
   const handlePayment = async () => {
     if (processing) return; // Defesa síncrona extra (StrictMode, F5, double-click)
     if (!user || !doctor || !appointmentId) return;
+    // Termo da consulta deve ser aceito antes de qualquer pagamento / bypass de contrato.
+    if (!consentDone) { setConsentOpen(true); return; }
     if (paymentMethod === "card") {
       const cardError = validateCard(cardName, cardNumber, cardExpiry, cardCvv);
       if (cardError) { toast.error(cardError); return; }
