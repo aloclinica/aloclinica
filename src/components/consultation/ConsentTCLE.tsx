@@ -16,7 +16,7 @@ interface ConsentTCLEProps {
   onConsented: () => void;
 }
 
-const TCLE_VERSION = "1.0";
+const TCLE_VERSION = "1.1";
 
 const TCLE_TEXT = `TERMO DE CONSENTIMENTO LIVRE E ESCLARECIDO PARA TELECONSULTA — versão ${TCLE_VERSION}
 
@@ -45,7 +45,7 @@ A teleconsulta NÃO será gravada salvo com meu consentimento expresso adicional
 Os dados clínicos serão registrados em prontuário eletrônico, retidos por 20 anos conforme Resolução CFM 1.821/2007. Acessível apenas ao médico responsável e ao paciente.
 
 7. PAGAMENTO E NO-SHOW
-Pagamento processado pela Asaas (PSP licenciado pelo BACEN). Não comparecimento sem cancelamento prévio com 2h de antecedência: taxa de 50% do valor da consulta. Reembolsos seguem o CDC.
+Pagamento processado pelo Mercado Pago (PSP licenciado pelo BACEN). Não comparecimento sem cancelamento prévio com 2h de antecedência: taxa de 50% do valor da consulta. Reembolsos seguem o CDC.
 
 8. DIREITOS DO PACIENTE
 Tenho direito a: receber informações claras sobre diagnóstico e tratamento; acessar meu prontuário; solicitar encaminhamento presencial; revogar consentimento a qualquer momento; segunda opinião médica.
