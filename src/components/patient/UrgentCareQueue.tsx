@@ -448,7 +448,7 @@ const UrgentCareQueue = () => {
                 )}
                 <Button
                   className="rounded-full bg-white text-[#A32D2D] font-bold shadow-[0_4px_14px_rgba(163,45,45,0.4)] hover:bg-white/90 gap-2"
-                  onClick={handleStartPayment}
+                  onClick={handleEnterQueue}
                 >
                   <Zap className="w-4 h-4" /> Entrar na Fila
                 </Button>
