@@ -1,7 +1,7 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { lazy, Suspense, useEffect, useMemo, useState, useCallback } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Heart, Star, Shield, Check, X, ArrowRight, QrCode, Sparkle, MapPin, Storefront, Flask, Eyeglasses, Quotes, Lightning, Users, Clock, Buildings, ShieldCheck, CurrencyCircleDollar, CaretRight, ShieldStar, Umbrella, Gift } from "@phosphor-icons/react";
+import { Heart, Star, Shield, Check, X, ArrowRight, QrCode, Sparkle, MapPin, Storefront, Flask, Eyeglasses, Quotes, Lightning, Users, Clock, Buildings, ShieldCheck, CurrencyCircleDollar, CaretRight, ShieldStar, Umbrella, Gift, DeviceMobile, FileText, Prescription, Video, CaretLeft } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -10,6 +10,9 @@ import SEOHead from "@/components/SEOHead";
 import { db } from "@/integrations/supabase/untyped";
 import { useAuth } from "@/contexts/AuthContext";
 import { PingoSubscribeDialog } from "@/components/patient/PingoSubscribeDialog";
+import PublicPageEnhancer from "@/components/landing/PublicPageEnhancer";
+
+// Imagens da coleção Cloudinary (vias assets locais para retrocompatibilidade)
 import campaignAccidentInsuranceImage from "@/assets/pingo-campaign/accident-insurance.jpg";
 import campaignAllInOneCardImage from "@/assets/pingo-campaign/all-in-one-card.jpg";
 import campaignAppHealthImage from "@/assets/pingo-campaign/app-health.jpg";
@@ -41,6 +44,41 @@ const PINGO_ASSETS = {
   especialistas: campaignSpecialistsImage,
   prevencao: campaignPreventionCheckupImage,
 };
+
+const SLIDES = [
+  {
+    image: PINGO_ASSETS.hero,
+    title: "Sua família protegida com o melhor custo-benefício",
+    subtitle: "Acesso a saúde de qualidade por menos de R$ 1,00 por dia.",
+    badge: "O queridinho do Brasil",
+    cta: "Assinar agora",
+    color: "from-blue-600 to-cyan-500"
+  },
+  {
+    image: PINGO_ASSETS.telemedicina,
+    title: "Telemedicina 24h sem custo adicional",
+    subtitle: "Fale com médicos pelo celular de onde estiver, a qualquer hora.",
+    badge: "Saúde Digital",
+    cta: "Conhecer planos",
+    color: "from-emerald-600 to-teal-500"
+  },
+  {
+    image: PINGO_ASSETS.economia,
+    title: "Economia real em exames e farmácias",
+    subtitle: "Até 60% de desconto em mais de 15.000 pontos de atendimento.",
+    badge: "Economia Inteligente",
+    cta: "Ver parceiros",
+    color: "from-amber-500 to-orange-500"
+  },
+  {
+    image: PINGO_ASSETS.sorteio,
+    title: "Sorteios mensais de R$ 10.000,00",
+    subtitle: "Assinantes Pingo Card concorrem a prêmios todos os meses.",
+    badge: "Benefício Extra",
+    cta: "Quero concorrer",
+    color: "from-purple-600 to-pink-500"
+  }
+];
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
