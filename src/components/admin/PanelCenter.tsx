@@ -252,7 +252,7 @@ const PanelCenter = () => {
 
   return (
     <DashboardLayout title="Centro de Painéis" nav={getAdminNav("panel-center")}>
-      <motion.div variants={container} initial="hidden" animate="show" className="w-full max-w-7xl mx-auto space-y-6 pb-24 md:pb-8">
+      <motion.div variants={container} initial="hidden" animate="show" className="w-full max-w-7xl mx-auto space-y-4 md:space-y-6 pb-24 md:pb-8 min-w-0">
 
         {/* ─────── HERO HEADER ─────── */}
         <motion.section variants={fadeUp}>
@@ -263,8 +263,8 @@ const PanelCenter = () => {
             {/* Top accent line */}
             <div className="h-[3px] bg-gradient-to-r from-emerald-500 via-primary to-purple-500" />
 
-            <div className="relative grid lg:grid-cols-[1fr_auto] gap-0">
-              <div className="p-6 md:p-8 flex flex-col justify-center">
+            <div className="relative grid lg:grid-cols-[1fr_auto] gap-0 min-w-0">
+              <div className="p-4 sm:p-6 md:p-8 flex flex-col justify-center min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-3">
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 ring-1 ring-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
                     <LayoutGrid className="w-3 h-3" />
@@ -278,7 +278,7 @@ const PanelCenter = () => {
                     LIVE · {format(lastRefresh, "HH:mm:ss")}
                   </Badge>
                 </div>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight bg-gradient-to-br from-foreground via-foreground to-primary bg-clip-text text-transparent">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight bg-gradient-to-br from-foreground via-foreground to-primary bg-clip-text text-transparent break-words">
                   Painéis da Plataforma
                 </h1>
                 <p className="text-sm md:text-base text-muted-foreground mt-2 max-w-xl">
@@ -324,12 +324,12 @@ const PanelCenter = () => {
 
         {/* ─────── QUICK ACTIONS + STATUS BAR ─────── */}
         <motion.section variants={fadeUp} className="space-y-3">
-          <div className="flex items-center justify-between gap-3 px-1 flex-wrap">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 px-1">
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-amber-500" fill="currentColor" />
               <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Ações Rápidas</h2>
             </div>
-            <div className="flex items-center gap-x-4 gap-y-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex-wrap">
+            <div className="flex items-center gap-x-3 sm:gap-x-4 gap-y-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex-wrap">
               <span className="flex items-center gap-1.5">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60" />
@@ -339,10 +339,10 @@ const PanelCenter = () => {
               </span>
               <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Pagamentos</span>
               <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Vídeo HD</span>
-              <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Banco de dados</span>
+              <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> <span className="hidden xs:inline">Banco de </span>Dados</span>
             </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-2.5">
             {quickActions.map((action, idx) => (
               <motion.button
                 key={action.label}
@@ -352,12 +352,12 @@ const PanelCenter = () => {
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => navigate(action.route)}
-                className="h-auto py-3.5 px-2 flex flex-col items-center gap-2.5 bg-card hover:bg-muted/40 border border-border/40 hover:border-primary/30 rounded-2xl group transition-colors"
+                className="h-auto py-3 sm:py-3.5 px-2 flex flex-col items-center gap-2 sm:gap-2.5 bg-card hover:bg-muted/40 border border-border/40 hover:border-primary/30 rounded-2xl group transition-colors min-w-0"
               >
                 <div className={cn("p-2 rounded-xl transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3", action.bg)}>
                   <action.icon className={cn("w-4 h-4", action.color)} />
                 </div>
-                <span className="text-[10px] font-bold text-foreground text-center line-clamp-1">{action.label}</span>
+                <span className="text-[10px] font-bold text-foreground text-center line-clamp-1 w-full">{action.label}</span>
               </motion.button>
             ))}
           </div>
