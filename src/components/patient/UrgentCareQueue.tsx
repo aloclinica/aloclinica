@@ -16,6 +16,7 @@ import { notifyDoctorsNewQueueEntry } from "@/lib/notifications-queue";
 import { logError } from "@/lib/logger";
 import { validateCard } from "@/lib/card-utils";
 import mascotWave from "@/assets/mascot-wave.png";
+import ConsentDialog from "@/components/legal/ConsentDialog";
 
 type PaymentMethod = "pix" | "card" | "boleto";
 
@@ -232,6 +233,14 @@ const UrgentCareQueue = () => {
       : shiftInfo.price
     : 0;
   const handleStartPayment = () => setShowPayment(true);
+
+  // Aceite do termo de pronto-atendimento — bloqueia o "Entrar na Fila"
+  const [consentOpen, setConsentOpen] = useState(false);
+  const [consentDone, setConsentDone] = useState(false);
+  const handleEnterQueue = () => {
+    if (!consentDone) { setConsentOpen(true); return; }
+    handleStartPayment();
+  };
 
   const handlePayment = async () => {
     if (processing) return; // Guard double-submit
