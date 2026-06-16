@@ -94,6 +94,11 @@ const BookAppointment = () => {
   const [quickOpen, setQuickOpen] = useState(false);
   const [profileReady, setProfileReady] = useState(false);
 
+  // Aceite do termo da consulta (CFM 2.314/2022) — bloqueia o pagamento até confirmar
+  const [consentOpen, setConsentOpen] = useState(false);
+  const [consentDone, setConsentDone] = useState(false);
+  const consentKind: LegalKind = isContratoMode ? "telemed_contract" : "telemed_scheduled";
+
   const currentStep = paymentStep ? 3 : !selectedDate ? 0 : !selectedTime ? 1 : 2;
 
   useEffect(() => {
