@@ -26,13 +26,15 @@ import { toast } from "sonner";
 import {
   Save, Send, Undo2, History, Monitor, Tablet, Smartphone, RefreshCw,
   Search, Globe, FileText, Settings as SettingsIcon, Palette, Eye, EyeOff,
+  ClipboardList,
 } from "lucide-react";
 import {
-  useBlocks, saveBlockDraft, discardDraft, publishBlock, toggleBlock,
+  useBlocks, saveBlockDraft, discardDraft, publishBlock, toggleBlock, invalidateBlocksCache,
   type SiteBlock, type BlockScope,
 } from "@/lib/site-blocks";
 import { BlockFieldsForm } from "@/components/admin/studio/BlockFieldsForm";
 import { VersionHistoryDrawer } from "@/components/admin/studio/VersionHistoryDrawer";
+import { AuditTrailDrawer } from "@/components/admin/studio/AuditTrailDrawer";
 import { invalidateSiteSections } from "@/lib/site-sections";
 import { invalidateSiteConfig } from "@/lib/site-config";
 
