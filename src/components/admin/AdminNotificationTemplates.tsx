@@ -249,12 +249,12 @@ const AdminNotificationTemplates = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Quando</TableHead>
-                    <TableHead>Canal</TableHead>
-                    <TableHead>Template</TableHead>
-                    <TableHead>Para</TableHead>
-                    <TableHead>Provider</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead scope="col">Quando</TableHead>
+                    <TableHead scope="col">Canal</TableHead>
+                    <TableHead scope="col">Template</TableHead>
+                    <TableHead scope="col">Para</TableHead>
+                    <TableHead scope="col">Provider</TableHead>
+                    <TableHead scope="col">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

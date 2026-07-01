@@ -91,7 +91,8 @@ const withdrawalStatusConfig: Record<string, { label: string; className: string 
   failed:     { label: "Falhou",     className: "bg-red-500/10 text-red-600 border-red-200" },
 };
 
-const CHART_COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "#f59e0b", "#ef4444", "#8b5cf6"];
+// UI: use theme tokens for warning/destructive so charts adapt to dark mode; violet kept as a distinct chart hue
+const CHART_COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--warning))", "hsl(var(--destructive))", "#8b5cf6"];
 
 const AdminFinancial = () => {
   const [appointments, setAppointments] = useState<AppointmentPayment[]>([]);
@@ -729,11 +730,11 @@ const AdminFinancial = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Paciente</TableHead>
-                          <TableHead>Médico</TableHead>
-                          <TableHead>Data</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Pagamento</TableHead>
+                          <TableHead scope="col">Paciente</TableHead>
+                          <TableHead scope="col">Médico</TableHead>
+                          <TableHead scope="col">Data</TableHead>
+                          <TableHead scope="col">Status</TableHead>
+                          <TableHead scope="col">Pagamento</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -831,12 +832,12 @@ const AdminFinancial = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Médico</TableHead>
-                          <TableHead>Valor</TableHead>
-                          <TableHead>Chave PIX</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Data</TableHead>
-                          <TableHead className="text-right">Ações</TableHead>
+                          <TableHead scope="col">Médico</TableHead>
+                          <TableHead scope="col">Valor</TableHead>
+                          <TableHead scope="col">Chave PIX</TableHead>
+                          <TableHead scope="col">Status</TableHead>
+                          <TableHead scope="col">Data</TableHead>
+                          <TableHead scope="col" className="text-right">Ações</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>

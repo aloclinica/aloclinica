@@ -20,6 +20,8 @@ import {
 import { toast } from "sonner";
 import { Plus, Trash2, Users, Ticket, Briefcase, Handshake, FileText, Download, Upload, Gavel, HeartHandshake, Building2, Search, TrendingUp, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+// UI: accessible confirm dialog (replaces native window.confirm)
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 type Contrato = {
   id: string;
@@ -64,6 +66,7 @@ const emptyForm = {
 
 const AdminContratos = () => {
   const nav = getAdminNav("contratos");
+  const confirm = useConfirm();
   const [contratos, setContratos] = useState<Contrato[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -154,7 +157,13 @@ const AdminContratos = () => {
   };
 
   const removerContrato = async (id: string) => {
-    if (!confirm("Excluir este contrato? Isso remove beneficiários e vouchers vinculados.")) return;
+    const ok = await confirm({
+      title: "Excluir contrato?",
+      description: "Isso remove beneficiários e vouchers vinculados. Esta ação não pode ser desfeita.",
+      confirmLabel: "Excluir",
+      destructive: true,
+    });
+    if (!ok) return;
     await db.from("contratos").delete().eq("id", id);
     toast.success("Removido");
     fetch();
@@ -207,10 +216,11 @@ const AdminContratos = () => {
       <TableCell className="text-xs">{c.vigencia_fim ?? "—"}</TableCell>
       <TableCell>{statusBadge(c.status)}</TableCell>
       <TableCell className="space-x-1 whitespace-nowrap">
-        <Button size="sm" variant="ghost" onClick={() => { setSelected(c); setBenefOpen(true); }} title="Beneficiários"><Users className="h-4 w-4" /></Button>
-        <Button size="sm" variant="ghost" onClick={() => { setSelected(c); setVouchOpen(true); }} title="Vouchers"><Ticket className="h-4 w-4" /></Button>
-        <Button size="sm" variant="ghost" onClick={() => { setSelected(c); setDocsOpen(true); }} title="Documentos"><FileText className="h-4 w-4" /></Button>
-        <Button size="sm" variant="ghost" onClick={() => { setSelected(c); setFaturaOpen(true); }} title="Faturamento"><Download className="h-4 w-4" /></Button>
+        {/* UI: aria-labels for icon-only actions (mirrors existing title tooltips) */}
+        <Button size="sm" variant="ghost" onClick={() => { setSelected(c); setBenefOpen(true); }} title="Beneficiários" aria-label="Beneficiários"><Users className="h-4 w-4" /></Button>
+        <Button size="sm" variant="ghost" onClick={() => { setSelected(c); setVouchOpen(true); }} title="Vouchers" aria-label="Vouchers"><Ticket className="h-4 w-4" /></Button>
+        <Button size="sm" variant="ghost" onClick={() => { setSelected(c); setDocsOpen(true); }} title="Documentos" aria-label="Documentos"><FileText className="h-4 w-4" /></Button>
+        <Button size="sm" variant="ghost" onClick={() => { setSelected(c); setFaturaOpen(true); }} title="Faturamento" aria-label="Faturamento"><Download className="h-4 w-4" /></Button>
         <Select value={c.status} onValueChange={(v) => updateStatus(c.id, v as Contrato["status"])}>
           <SelectTrigger className="inline-flex w-24 h-8 text-xs"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -219,7 +229,7 @@ const AdminContratos = () => {
             <SelectItem value="encerrado">encerrado</SelectItem>
           </SelectContent>
         </Select>
-        <Button size="sm" variant="ghost" onClick={() => removerContrato(c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+        <Button size="sm" variant="ghost" onClick={() => removerContrato(c.id)} title="Excluir contrato" aria-label="Excluir contrato"><Trash2 className="h-4 w-4 text-destructive" /></Button>
       </TableCell>
     </TableRow>
   );
@@ -238,13 +248,13 @@ const AdminContratos = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nome</TableHead>
-                {mostrarProcesso && <TableHead>Processo / Modalidade</TableHead>}
-                <TableHead>Cobrança</TableHead>
-                <TableHead>Cota</TableHead>
-                <TableHead>Vigência</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead scope="col">Nome</TableHead>
+                {mostrarProcesso && <TableHead scope="col">Processo / Modalidade</TableHead>}
+                <TableHead scope="col">Cobrança</TableHead>
+                <TableHead scope="col">Cota</TableHead>
+                <TableHead scope="col">Vigência</TableHead>
+                <TableHead scope="col">Status</TableHead>
+                <TableHead scope="col">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

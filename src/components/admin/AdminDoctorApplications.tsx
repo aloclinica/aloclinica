@@ -241,7 +241,7 @@ const AdminDoctorApplications = () => {
                   <p className="text-sm text-success font-medium mb-2">✅ Código gerado e enviado por email:</p>
                   <div className="flex items-center justify-center gap-2">
                     <code className="text-lg font-mono font-bold text-success">{generatedCode}</code>
-                    <Button variant="ghost" size="sm" onClick={() => { navigator.clipboard.writeText(generatedCode); toast.success("Copiado!"); }}>
+                    <Button variant="ghost" size="sm" aria-label="Copiar código" onClick={() => { navigator.clipboard.writeText(generatedCode); toast.success("Copiado!"); }}>
                       <Copy className="w-4 h-4" />
                     </Button>
                   </div>

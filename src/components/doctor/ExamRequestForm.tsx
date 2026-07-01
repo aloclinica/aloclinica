@@ -109,7 +109,8 @@ const ExamRequestForm = () => {
                     {EXAMES_COMUNS.map((e) => {
                       const ativo = examType.split("\n").map((l) => l.trim()).includes(e);
                       return (
-                        <button key={e} type="button" onClick={() => toggleExame(e)}
+                        // UI: aria-pressed communicates toggle state to screen readers
+                        <button key={e} type="button" onClick={() => toggleExame(e)} aria-pressed={ativo}
                           className={`text-xs px-3 py-1.5 rounded-full border transition ${ativo ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted border-input"}`}>
                           {e}
                         </button>

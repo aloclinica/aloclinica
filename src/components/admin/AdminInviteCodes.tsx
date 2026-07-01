@@ -82,10 +82,10 @@ const AdminInviteCodes = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Código</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Criado em</TableHead>
-                  <TableHead>Ações</TableHead>
+                  <TableHead scope="col">Código</TableHead>
+                  <TableHead scope="col">Status</TableHead>
+                  <TableHead scope="col">Criado em</TableHead>
+                  <TableHead scope="col">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -97,17 +97,14 @@ const AdminInviteCodes = () => {
                   </TableRow>
                 )}
                 {loading ? (
-
+                  // UI: skeleton rows use TableRow/TableCell for semantic + responsive consistency
                   Array.from({ length: 5 }).map((_, i) => (
-
-                    <tr key={i} className="border-b border-border/30">
-                            <td className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></td>
-      <td className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></td>
-      <td className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></td>
-      <td className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></td>
-      <td className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></td>
-
-                    </tr>
+                    <TableRow key={i} className="border-b border-border/30">
+                      <TableCell className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></TableCell>
+                      <TableCell className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></TableCell>
+                      <TableCell className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></TableCell>
+                      <TableCell className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></TableCell>
+                    </TableRow>
                   ))
 
                 ) : codes.map(c => (
@@ -125,7 +122,7 @@ const AdminInviteCodes = () => {
                     </TableCell>
                     <TableCell data-label="">
                       {!c.is_used && (
-                        <Button size="sm" variant="ghost" onClick={() => copyCode(c.code, c.id)}>
+                        <Button size="sm" variant="ghost" aria-label={copiedId === c.id ? "Código copiado" : "Copiar código"} onClick={() => copyCode(c.code, c.id)}>
                           {copiedId === c.id ? <Check className="w-4 h-4 text-secondary" /> : <Copy className="w-4 h-4" />}
                         </Button>
                       )}

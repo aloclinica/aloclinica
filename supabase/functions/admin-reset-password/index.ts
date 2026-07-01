@@ -56,6 +56,21 @@ Deno.serve(async (req) => {
     });
     if (updErr) throw updErr;
 
+    // SECURITY: Audit every admin password reset (actor + target). Non-blocking — a
+    // failure to log must not fail the reset, but is surfaced in the function logs.
+    try {
+      await admin.from("activity_logs").insert({
+        action: "admin_password_reset",
+        entity_type: "user",
+        entity_id: user.id,
+        user_id: caller.user.id,
+        details: { target_user_id: user.id, target_email: user.email },
+        created_at: new Date().toISOString(),
+      });
+    } catch (auditErr) {
+      console.error("admin-reset-password audit log failed:", auditErr);
+    }
+
     return new Response(JSON.stringify({ ok: true, user_id: user.id, email: user.email }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

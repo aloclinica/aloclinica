@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// SECURITY: authenticate + authorize the caller before minting a joinable room.
+import { getCaller } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +15,14 @@ serve(async (req) => {
   }
 
   try {
+    // SECURITY: require an authenticated caller (401 if none).
+    const caller = await getCaller(req);
+    if (!caller.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { appointmentId } = await req.json();
 
     // Input validation
@@ -35,9 +45,10 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // SECURITY: load ownership columns so we can authorize the caller.
     const { data: appt } = await supabase
       .from("appointments")
-      .select("id, status")
+      .select("id, status, patient_id, doctor_id")
       .eq("id", appointmentId)
       .in("status", ["confirmed", "in_progress", "scheduled"])
       .maybeSingle();
@@ -45,6 +56,23 @@ serve(async (req) => {
     if (!appt) {
       return new Response(JSON.stringify({ error: "Appointment not found or not active" }), {
         status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // SECURITY: caller must be the appointment's patient OR its doctor, else 403.
+    let authorized = (appt as any).patient_id === caller.user.id;
+    if (!authorized && (appt as any).doctor_id) {
+      const { data: docProfile } = await supabase
+        .from("doctor_profiles")
+        .select("id")
+        .eq("user_id", caller.user.id)
+        .eq("id", (appt as any).doctor_id)
+        .maybeSingle();
+      authorized = !!docProfile;
+    }
+    if (!authorized) {
+      return new Response(JSON.stringify({ error: "Not authorized for this appointment" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 

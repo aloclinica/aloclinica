@@ -318,7 +318,7 @@ const AppointmentsList = () => {
                   {isActive && (
                     <Button
                       size="sm"
-                      className="h-8 px-3 rounded-full bg-[#00347F] text-white text-xs font-bold gap-1 shadow-[var(--p-shadow-btn)]"
+                      className="h-8 px-3 rounded-full bg-[hsl(var(--p-primary))] text-white text-xs font-bold gap-1 shadow-[var(--p-shadow-btn)]"
                       onClick={() => navigate(`/dashboard/consultation/${appt.id}`)}
                     >
                       <Video className="w-3.5 h-3.5" /> Entrar
@@ -435,6 +435,7 @@ const AppointmentsList = () => {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar médico..."
+              aria-label="Buscar consulta por médico"
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="pl-10 h-11 rounded-2xl text-sm bg-muted/50 border-transparent focus:border-[hsl(var(--p-primary))]/30"
@@ -445,7 +446,7 @@ const AppointmentsList = () => {
               <Button variant="outline" size="icon" className="h-11 w-11 rounded-2xl shrink-0 relative" aria-label="Filtrar">
                 <Filter className="w-4.5 h-4.5" />
                 {activeFilterCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#00347F] text-white text-[10px] flex items-center justify-center font-bold">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[hsl(var(--p-primary))] text-white text-[10px] flex items-center justify-center font-bold">
                     {activeFilterCount}
                   </span>
                 )}
@@ -491,7 +492,7 @@ const AppointmentsList = () => {
                   <Button variant="outline" className="flex-1 h-11 rounded-2xl" onClick={() => { setFilterStatus("all"); setPeriod("all"); setSearch(""); }}>
                     Limpar
                   </Button>
-                  <Button className="flex-1 h-11 rounded-2xl bg-[#00347F] text-white" onClick={() => setFiltersOpen(false)}>
+                  <Button className="flex-1 h-11 rounded-2xl bg-[hsl(var(--p-primary))] text-white" onClick={() => setFiltersOpen(false)}>
                     Aplicar
                   </Button>
                 </div>
@@ -509,7 +510,7 @@ const AppointmentsList = () => {
               className={cn(
                 "shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all active:scale-95",
                 filterStatus === chip.value
-                  ? "bg-[#00347F] text-white shadow-sm"
+                  ? "bg-[hsl(var(--p-primary))] text-white shadow-sm"
                   : "bg-muted/50 text-muted-foreground hover:bg-muted"
               )}
             >
@@ -541,7 +542,7 @@ const AppointmentsList = () => {
               <img src={mascotWelcome} alt="Pingo" className="w-20 h-20 object-contain mx-auto drop-shadow-md mb-3 select-none" loading="lazy" decoding="async" width={80} height={80} />
               <p className="text-[13px] font-semibold text-foreground mb-1">Nenhuma consulta próxima</p>
               <p className="text-[11px] text-muted-foreground mb-3">Agende agora e cuide da sua saúde</p>
-              <Button size="sm" className="rounded-full bg-[#00347F] text-white shadow-[var(--p-shadow-btn)]" onClick={() => navigate("/dashboard/schedule")}>
+              <Button size="sm" className="rounded-full bg-[hsl(var(--p-primary))] text-white shadow-[var(--p-shadow-btn)]" onClick={() => navigate("/dashboard/schedule")}>
                 Agendar consulta
               </Button>
             </div>

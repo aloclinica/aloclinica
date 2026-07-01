@@ -107,10 +107,12 @@ const PatientDocuments = () => {
         <div className="flex gap-3 mb-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
+            {/* UI: aria-label gives the search field an accessible name (only placeholder before) */}
+            <Input aria-label="Buscar documentos" placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
           </div>
           <Select value={filterPatient} onValueChange={setFilterPatient}>
-            <SelectTrigger className="w-48"><SelectValue placeholder="Todos pacientes" /></SelectTrigger>
+            {/* UI: aria-label names the patient filter for screen readers */}
+            <SelectTrigger aria-label="Filtrar por paciente" className="w-48"><SelectValue placeholder="Todos pacientes" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos pacientes</SelectItem>
               {patients.map(p => (
@@ -152,7 +154,8 @@ const PatientDocuments = () => {
                     </TableCell>
                     <TableCell data-label="Tipo" className="text-muted-foreground text-sm">{d.file_type?.split("/")[1] ?? "—"}</TableCell>
                     <TableCell data-label="">
-                      <Button size="sm" variant="outline" onClick={() => viewDocument(d)}>
+                      {/* UI: aria-label disambiguates repeated "Ver" buttons per row */}
+                      <Button size="sm" variant="outline" aria-label={`Ver documento ${d.description || d.file_name}`} onClick={() => viewDocument(d)}>
                         <Eye className="w-3 h-3 mr-1" /> Ver
                       </Button>
                     </TableCell>

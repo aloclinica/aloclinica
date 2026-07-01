@@ -17,22 +17,25 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const TABLES_TO_EXPORT = [
-  "profiles",
-  "user_roles",
-  "user_consents",
-  "user_consent_log",
-  "kyc_verificacoes",
-  "appointments",
-  "prescriptions",
-  "messages",
-  "notifications",
-  "payment_transactions",
-  "subscriptions",
-  "saved_cards",
-  "withdrawal_requests",
-  "patient_consents",
-];
+// SECURITY: explicit { table: ownerColumn } map. Each table is filtered ONLY on
+// its correct owner column — no cross-column guessing/fallback that could leak
+// another user's rows. Tables not listed here are skipped (see REQUIRES notes).
+const TABLE_OWNER_COLUMN: Record<string, string> = {
+  profiles: "user_id",
+  user_roles: "user_id",
+  user_consents: "user_id",
+  user_consent_log: "user_id",
+  kyc_verificacoes: "user_id",
+  appointments: "patient_id",
+  prescriptions: "patient_id",
+  messages: "user_id",
+  notifications: "user_id",
+  payment_transactions: "user_id",
+  subscriptions: "user_id",
+  saved_cards: "user_id",
+  withdrawal_requests: "user_id",
+  patient_consents: "patient_id",
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -114,17 +117,13 @@ Deno.serve(async (req) => {
       }
     } catch { /* skip */ }
 
-    for (const table of TABLES_TO_EXPORT) {
+    // SECURITY: filter each table on its single correct owner column only.
+    for (const [table, ownerColumn] of Object.entries(TABLE_OWNER_COLUMN)) {
       try {
-        // Tenta tanto user_id quanto patient_id
-        const tries = ["user_id", "patient_id"];
-        for (const col of tries) {
-          const { data, error } = await admin.from(table).select("*").eq(col, targetUserId);
-          if (!error && data && data.length > 0) {
-            exported[table] = data;
-            exportedNames.push(table);
-            break;
-          }
+        const { data, error } = await admin.from(table).select("*").eq(ownerColumn, targetUserId);
+        if (!error && data) {
+          exported[table] = data;
+          exportedNames.push(table);
         }
       } catch { /* tabela pode não existir, skip */ }
     }
@@ -170,10 +169,13 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Signed URL 7 dias
-    const { data: signed } = await admin.storage.from("lgpd-exports").createSignedUrl(filePath, 7 * 86400);
+    // SECURITY: short-lived signed URL (600s) instead of 7 days. See REQUIRES
+    // note — the persisted download_url in lgpd_export_jobs should be dropped in
+    // favour of an authenticated, re-signed-on-demand download endpoint.
+    const SIGNED_URL_TTL_SECONDS = 600;
+    const { data: signed } = await admin.storage.from("lgpd-exports").createSignedUrl(filePath, SIGNED_URL_TTL_SECONDS);
 
-    const expiresAt = new Date(Date.now() + 7 * 86400000).toISOString();
+    const expiresAt = new Date(Date.now() + SIGNED_URL_TTL_SECONDS * 1000).toISOString();
 
     await admin.from("lgpd_export_jobs").update({
       status: "completed",

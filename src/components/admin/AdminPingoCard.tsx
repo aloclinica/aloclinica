@@ -261,12 +261,12 @@ const AdminPingoCard = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Mensal</TableHead>
-                      <TableHead>Anual</TableHead>
-                      <TableHead>Desc. Consultas</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
+                      <TableHead scope="col">Nome</TableHead>
+                      <TableHead scope="col">Mensal</TableHead>
+                      <TableHead scope="col">Anual</TableHead>
+                      <TableHead scope="col">Desc. Consultas</TableHead>
+                      <TableHead scope="col">Status</TableHead>
+                      <TableHead scope="col" className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -285,8 +285,8 @@ const AdminPingoCard = () => {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right space-x-2">
-                          <Button size="sm" variant="ghost" onClick={() => openPlanForm(p)}><Pencil size={14} /></Button>
-                          <Button size="sm" variant="ghost" onClick={() => deletePlan(p.id)}><Trash size={14} /></Button>
+                          <Button size="sm" variant="ghost" aria-label="Editar plano" onClick={() => openPlanForm(p)}><Pencil size={14} /></Button>
+                          <Button size="sm" variant="ghost" aria-label="Excluir plano" onClick={() => deletePlan(p.id)}><Trash size={14} /></Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -307,12 +307,12 @@ const AdminPingoCard = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Categoria</TableHead>
-                      <TableHead>Desconto</TableHead>
-                      <TableHead>Cidade</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
+                      <TableHead scope="col">Nome</TableHead>
+                      <TableHead scope="col">Categoria</TableHead>
+                      <TableHead scope="col">Desconto</TableHead>
+                      <TableHead scope="col">Cidade</TableHead>
+                      <TableHead scope="col">Status</TableHead>
+                      <TableHead scope="col" className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -328,8 +328,8 @@ const AdminPingoCard = () => {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right space-x-2">
-                          <Button size="sm" variant="ghost" onClick={() => openPartnerForm(p)}><Pencil size={14} /></Button>
-                          <Button size="sm" variant="ghost" onClick={() => deletePartner(p.id)}><Trash size={14} /></Button>
+                          <Button size="sm" variant="ghost" aria-label="Editar parceiro" onClick={() => openPartnerForm(p)}><Pencil size={14} /></Button>
+                          <Button size="sm" variant="ghost" aria-label="Excluir parceiro" onClick={() => deletePartner(p.id)}><Trash size={14} /></Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -346,12 +346,12 @@ const AdminPingoCard = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Cartão</TableHead>
-                      <TableHead>Plano</TableHead>
-                      <TableHead>Cobrança</TableHead>
-                      <TableHead>Início</TableHead>
-                      <TableHead>Economia</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead scope="col">Cartão</TableHead>
+                      <TableHead scope="col">Plano</TableHead>
+                      <TableHead scope="col">Cobrança</TableHead>
+                      <TableHead scope="col">Início</TableHead>
+                      <TableHead scope="col">Economia</TableHead>
+                      <TableHead scope="col">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

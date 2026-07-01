@@ -69,20 +69,47 @@ Deno.serve(async (req) => {
       return json({ error: "Transação não tem mp_payment_id — possivelmente transação legacy" }, 400);
     }
 
-    if (tx.status === "refunded") return json({ error: "Já estornado" }, 400);
+    // SECURITY: block if already refunded (normalize legacy status spellings).
+    const REFUND_TERMINAL = new Set(["refunded", "partially_refunded", "partial_refund", "refunding"]);
+    if (REFUND_TERMINAL.has(String(tx.status))) return json({ error: "Já estornado ou em processamento" }, 400);
 
-    // Cria refund
     const isPartial = amount && Number(amount) > 0 && Math.round(Number(amount) * 100) < Number(tx.amount_cents);
+
+    // SECURITY: atomically CLAIM the transaction before calling MP. Only one
+    // concurrent request can flip a non-refunded row to 'refunding', so a
+    // double-submit / retry cannot trigger a second real refund at the gateway.
+    const { data: claimed } = await admin
+      .from("payment_transactions")
+      .update({ status: "refunding" } as any)
+      .eq("mp_payment_id", tx.mp_payment_id)
+      .not("status", "in", "(refunded,partially_refunded,partial_refund,refunding)")
+      .select("id");
+
+    if (!claimed || claimed.length === 0) {
+      return json({ error: "Estorno já em andamento ou concluído" }, 409);
+    }
+
+    // Cria refund. SECURITY: stable idempotency key derived from the MP payment id
+    // (+ amount for partial) — never Date.now() — so gateway retries are deduped.
     const refundBody: Record<string, any> = {};
     if (isPartial) refundBody.amount = Number(amount);
+    const idempotencyKey = isPartial
+      ? `refund-${tx.mp_payment_id}-${Math.round(Number(amount) * 100)}`
+      : `refund-${tx.mp_payment_id}-full`;
 
     const refund = await mpRequest<any>(
       "POST",
       `/v1/payments/${tx.mp_payment_id}/refunds`,
-      isPartial ? refundBody : undefined
+      isPartial ? refundBody : undefined,
+      { idempotencyKey }
     );
 
     if (!refund.ok) {
+      // SECURITY: release the claim so a legitimate retry can proceed.
+      await admin
+        .from("payment_transactions")
+        .update({ status: tx.status } as any)
+        .eq("id", tx.id);
       return json({
         error: refund.data?.message || refund.data?.cause?.[0]?.description || "Falha no refund",
         gateway: refund.data,
@@ -92,7 +119,7 @@ Deno.serve(async (req) => {
     await admin
       .from("payment_transactions")
       .update({
-        status: isPartial ? "partial_refund" : "refunded",
+        status: isPartial ? "partially_refunded" : "refunded",
         refunded_at: new Date().toISOString(),
         raw_response: { ...tx.raw_response, refund: refund.data },
       } as any)
@@ -102,7 +129,7 @@ Deno.serve(async (req) => {
     if (tx.resource_type === "appointment" && tx.resource_id) {
       await admin
         .from("appointments")
-        .update({ payment_status: isPartial ? "partial_refund" : "refunded" } as any)
+        .update({ payment_status: isPartial ? "partially_refunded" : "refunded" } as any)
         .eq("id", tx.resource_id);
     }
 

@@ -14,6 +14,8 @@ import { AdminPageHeader } from "./AdminPageHeader";
 import { Megaphone, Send, Users as UsersIcon, Bell } from "lucide-react";
 import { notifyMany } from "@/lib/notifications";
 import { logError } from "@/lib/logger";
+// UI: accessible confirm dialog (replaces native window.confirm)
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 type Audience = "all" | "patient" | "doctor" | "clinic" | "subscribers";
 
@@ -26,6 +28,7 @@ const AUDIENCE_LABELS: Record<Audience, string> = {
 };
 
 const AdminBroadcast = () => {
+  const confirm = useConfirm();
   const [audience, setAudience] = useState<Audience>("all");
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
@@ -76,7 +79,12 @@ const AdminBroadcast = () => {
       toast.error("Audiência vazia", { description: "Nenhum usuário se encaixa no filtro." });
       return;
     }
-    if (!confirm(`Enviar para ${userIds.length} usuário(s)?`)) return;
+    const ok = await confirm({
+      title: "Enviar broadcast?",
+      description: `A notificação será enviada para ${userIds.length} usuário(s). Esta ação não pode ser desfeita.`,
+      confirmLabel: "Enviar",
+    });
+    if (!ok) return;
 
     setSending(true);
     setLastResult(null);

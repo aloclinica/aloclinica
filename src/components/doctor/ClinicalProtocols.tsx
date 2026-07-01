@@ -141,12 +141,14 @@ const ClinicalProtocols = () => {
               <DialogHeader><DialogTitle>{editing ? "Editar" : "Novo"} protocolo</DialogTitle></DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label>Nome *</Label>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Cefaleia com sinais de alarme" />
+                  {/* UI: associate label with input for a11y */}
+                  <Label htmlFor="protocol-name">Nome *</Label>
+                  <Input id="protocol-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Cefaleia com sinais de alarme" />
                 </div>
                 <div>
-                  <Label>Descrição (opcional)</Label>
-                  <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Quando este protocolo deve ser aplicado…" className="resize-none" />
+                  {/* UI: associate label with textarea for a11y */}
+                  <Label htmlFor="protocol-description">Descrição (opcional)</Label>
+                  <Textarea id="protocol-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Quando este protocolo deve ser aplicado…" className="resize-none" />
                 </div>
                 <div className="rounded-xl border border-border bg-muted/30 p-3 space-y-3">
                   <p className="text-xs font-semibold text-foreground uppercase tracking-wider">SE</p>
@@ -167,16 +169,18 @@ const ClinicalProtocols = () => {
                 <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 space-y-3">
                   <p className="text-xs font-semibold text-primary uppercase tracking-wider">ENTÃO</p>
                   <div>
-                    <Label className="text-xs">Especialidade sugerida *</Label>
+                    {/* UI: associate label with select trigger for a11y */}
+                    <Label htmlFor="protocol-specialty" className="text-xs">Especialidade sugerida *</Label>
                     <Select value={suggestedSpecialty} onValueChange={setSuggestedSpecialty}>
-                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectTrigger id="protocol-specialty"><SelectValue placeholder="Selecione" /></SelectTrigger>
                       <SelectContent>{SPECIALTIES.map((s) => <SelectItem key={s} value={s}>{s.replace(/_/g, " ")}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label className="text-xs">Urgência *</Label>
+                    {/* UI: associate label with select trigger for a11y */}
+                    <Label htmlFor="protocol-urgency" className="text-xs">Urgência *</Label>
                     <Select value={urgency} onValueChange={setUrgency}>
-                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectTrigger id="protocol-urgency"><SelectValue placeholder="Selecione" /></SelectTrigger>
                       <SelectContent>{URGENCIES.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>

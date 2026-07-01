@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "SEU_TEAM_ID.br.com.aloclinica.app",
+        "paths": ["*"]
+      }
+    ]
+  }
+}

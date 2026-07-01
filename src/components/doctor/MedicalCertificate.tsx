@@ -286,9 +286,10 @@ const MedicalCertificate = () => {
               <CardHeader><CardTitle className="text-lg flex items-center gap-2"><FileBadge className="w-5 h-5 text-primary" /> Novo Documento</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Tipo de Documento</Label>
+                  {/* UI: associate label with the select trigger for a11y */}
+                  <Label htmlFor="cert-type">Tipo de Documento</Label>
                   <Select value={certType} onValueChange={(v: any) => setCertType(v)}>
-                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                    <SelectTrigger id="cert-type" className="mt-1"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="absence">📋 Atestado de Afastamento</SelectItem>
                       <SelectItem value="attendance">🕐 Declaração de Comparecimento</SelectItem>
@@ -299,8 +300,9 @@ const MedicalCertificate = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Nome do Paciente *</Label>
-                    <Input value={patientName} onChange={e => setPatientName(e.target.value)} placeholder="Nome completo" className="mt-1" required />
+                    {/* UI: associate label with input for a11y */}
+                    <Label htmlFor="cert-patient-name">Nome do Paciente *</Label>
+                    <Input id="cert-patient-name" value={patientName} onChange={e => setPatientName(e.target.value)} placeholder="Nome completo" className="mt-1" required />
                   </div>
                   <div>
                     <Label>CPF (opcional)</Label>
@@ -311,33 +313,37 @@ const MedicalCertificate = () => {
                 {certType === "absence" && (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label>Dias de Afastamento</Label>
-                      <Input type="number" value={days} onChange={e => setDays(Number(e.target.value))} min={1} className="mt-1" />
+                      {/* UI: associate label with input for a11y */}
+                      <Label htmlFor="cert-days">Dias de Afastamento</Label>
+                      <Input id="cert-days" type="number" value={days} onChange={e => setDays(Number(e.target.value))} min={1} className="mt-1" />
                     </div>
                     <div>
-                      <Label>CID-10 (opcional)</Label>
-                      <Input value={cid} onChange={e => setCid(e.target.value)} placeholder="Ex: J06, I10" className="mt-1" />
+                      {/* UI: associate label with input for a11y */}
+                      <Label htmlFor="cert-cid-absence">CID-10 (opcional)</Label>
+                      <Input id="cert-cid-absence" value={cid} onChange={e => setCid(e.target.value)} placeholder="Ex: J06, I10" className="mt-1" />
                     </div>
                   </div>
                 )}
 
                 {certType === "fitness" && (
                   <div>
-                    <Label>CID-10 (opcional)</Label>
-                    <Input value={cid} onChange={e => setCid(e.target.value)} placeholder="Ex: Z00.0" className="mt-1" />
+                    {/* UI: associate label with input for a11y */}
+                    <Label htmlFor="cert-cid-fitness">CID-10 (opcional)</Label>
+                    <Input id="cert-cid-fitness" value={cid} onChange={e => setCid(e.target.value)} placeholder="Ex: Z00.0" className="mt-1" />
                   </div>
                 )}
 
                 <div>
                   <div className="flex items-center justify-between">
-                    <Label>{certType === "attendance" ? "Observações" : "Motivo / Observação"}</Label>
+                    {/* UI: associate label with textarea for a11y */}
+                    <Label htmlFor="cert-reason">{certType === "attendance" ? "Observações" : "Motivo / Observação"}</Label>
                     <TemplateControls
                       type="generic"
                       currentText={reason}
                       onInsert={(t) => setReason(reason ? `${reason}\n${t}` : t)}
                     />
                   </div>
-                  <Textarea value={reason} onChange={e => setReason(e.target.value)} rows={3} placeholder="Detalhes adicionais..." className="mt-1" />
+                  <Textarea id="cert-reason" value={reason} onChange={e => setReason(e.target.value)} rows={3} placeholder="Detalhes adicionais..." className="mt-1" />
                 </div>
 
                 <Button onClick={generateCertificate} disabled={generating} className="bg-gradient-hero text-primary-foreground w-full" size="lg">

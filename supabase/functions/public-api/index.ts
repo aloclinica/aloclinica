@@ -13,6 +13,8 @@
  * Próximos: receitas, exames, webhook configurável.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// SECURITY: timing-safe comparison for the hashed-secret check.
+import { safeEqual } from "../_shared/auth.ts";
 
 function json(b: unknown, s = 200, headers: Record<string, string> = {}) {
   return new Response(JSON.stringify(b), {
@@ -50,15 +52,15 @@ Deno.serve(async (req) => {
     if (keyErr || !key) return json({ error: "Invalid API key" }, 401);
     if (!(key as any).is_active || (key as any).revoked_at) return json({ error: "API key inactive or revoked" }, 401);
 
-    // Verifica secret_hash via crypt() (pgcrypto)
-    const { data: hashOk } = await sb.rpc("crypt", { password: secret, salt: (key as any).secret_hash });
-    if (!hashOk || hashOk !== (key as any).secret_hash) {
-      // fallback: comparação direta se a função crypt RPC não estiver exposta (não está por padrão)
-      // ⚠️ Em produção, considere expor uma função SECURITY DEFINER `verify_api_key(prefix, secret)`.
-      // Para o MVP, aceitamos se secret_hash == secret (i.e. salvo em claro pelo admin para testar).
-      if ((key as any).secret_hash !== secret) {
-        return json({ error: "Invalid API key" }, 401);
-      }
+    // SECURITY: verify secret against the stored hash via crypt() (pgcrypto),
+    // comparing timing-safely. FAIL CLOSED — if the RPC returns null/undefined
+    // or errors, reject. NEVER accept a plaintext secret_hash === secret fallback.
+    const { data: hashOk, error: hashErr } = await sb.rpc("crypt", {
+      password: secret,
+      salt: (key as any).secret_hash,
+    });
+    if (hashErr || !hashOk || !safeEqual(String(hashOk), (key as any).secret_hash)) {
+      return json({ error: "Invalid API key" }, 401);
     }
 
     // Rate-limit (last minute)

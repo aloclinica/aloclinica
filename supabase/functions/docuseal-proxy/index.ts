@@ -1,4 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// SECURITY: authenticate + authorize callers of this privileged DocuSeal proxy.
+import { getCaller } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,7 +9,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const DOCUSEAL_BASE = "http://72.62.138.208:3200";
+// SECURITY: base URL comes from env (must be HTTPS in prod); no hardcoded plaintext IP.
+const DOCUSEAL_BASE = Deno.env.get("DOCUSEAL_BASE") ?? "";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -21,7 +25,54 @@ serve(async (req) => {
     });
   }
 
+  // SECURITY: refuse to run (and thus forward the privileged key) if the
+  // upstream integration is not configured — never fall back to a hardcoded host.
+  if (!DOCUSEAL_BASE) {
+    return new Response(JSON.stringify({ error: "DocuSeal integration not configured" }), {
+      status: 503,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
+    // SECURITY: require an authenticated caller (401 if none).
+    const caller = await getCaller(req);
+    if (!caller.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // SECURITY: restrict to doctor / laudista / admin roles. Query user_roles
+    // and doctor_profiles with the service-role client (bypasses RLS by design).
+    let allowed = caller.isAdmin;
+    if (!allowed) {
+      const admin = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      );
+      const { data: roles } = await admin
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", caller.user.id);
+      allowed = (roles ?? []).some((r: any) => ["doctor", "laudista", "admin"].includes(r.role));
+      if (!allowed) {
+        const { data: docProfile } = await admin
+          .from("doctor_profiles")
+          .select("id")
+          .eq("user_id", caller.user.id)
+          .maybeSingle();
+        allowed = !!docProfile;
+      }
+    }
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const { action } = body;
 
@@ -113,14 +164,17 @@ serve(async (req) => {
 
     if (action === "check_submission") {
       const { submission_id } = body;
-      if (!submission_id) {
-        return new Response(JSON.stringify({ error: "submission_id required" }), {
+      // SECURITY: submission_id must be a bare integer — prevents SSRF/path
+      // traversal via string concatenation into the upstream URL.
+      if (!/^\d+$/.test(String(submission_id))) {
+        return new Response(JSON.stringify({ error: "Invalid submission_id" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      const submissionId = String(Number(submission_id));
 
-      const res = await fetch(`${DOCUSEAL_BASE}/api/submissions/${submission_id}`, {
+      const res = await fetch(`${DOCUSEAL_BASE}/api/submissions/${submissionId}`, {
         headers: { "X-Auth-Token": apiKey },
       });
 

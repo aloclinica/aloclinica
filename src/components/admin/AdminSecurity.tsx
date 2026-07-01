@@ -259,11 +259,11 @@ const AdminSecurity = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Quando</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>IP</TableHead>
-                  <TableHead>Motivo</TableHead>
-                  <TableHead className="hidden lg:table-cell">User-Agent</TableHead>
+                  <TableHead scope="col">Quando</TableHead>
+                  <TableHead scope="col">Email</TableHead>
+                  <TableHead scope="col">IP</TableHead>
+                  <TableHead scope="col">Motivo</TableHead>
+                  <TableHead scope="col" className="hidden lg:table-cell">User-Agent</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

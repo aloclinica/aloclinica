@@ -90,28 +90,25 @@ const AdminClinics = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Clínica</TableHead>
-                  <TableHead>CNPJ</TableHead>
-                  <TableHead>Telefone</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableHead scope="col">Clínica</TableHead>
+                  <TableHead scope="col">CNPJ</TableHead>
+                  <TableHead scope="col">Telefone</TableHead>
+                  <TableHead scope="col">Status</TableHead>
+                  <TableHead scope="col" className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
-
+                  // UI: skeleton rows use TableRow/TableCell for semantic + responsive consistency
                   Array.from({ length: 5 }).map((_, i) => (
-
-                    <tr key={i} className="border-b border-border/30">
-                            <td className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></td>
-      <td className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></td>
-      <td className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></td>
-      <td className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></td>
-      <td className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></td>
-
-                    </tr>
+                    <TableRow key={i} className="border-b border-border/30">
+                      <TableCell className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></TableCell>
+                      <TableCell className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></TableCell>
+                      <TableCell className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></TableCell>
+                      <TableCell className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></TableCell>
+                      <TableCell className="px-4 py-3"><div className="shimmer-v2 h-4 rounded" /></TableCell>
+                    </TableRow>
                   ))
-
                 ) : filtered.map(c => (
                   <TableRow key={c.id}>
                     <TableCell>
@@ -124,7 +121,8 @@ const AdminClinics = () => {
                     <TableCell className="text-muted-foreground">{c.phone || "—"}</TableCell>
                     <TableCell><Badge variant={c.is_approved ? "default" : "outline"}>{c.is_approved ? "Aprovada" : "Pendente"}</Badge></TableCell>
                     <TableCell className="text-right space-x-1">
-                      <Button size="sm" variant="ghost" onClick={() => openDetail(c)}><Eye className="w-4 h-4" /></Button>
+                      {/* UI: aria-label for icon-only action */}
+                      <Button size="sm" variant="ghost" aria-label="Ver detalhes da clínica" onClick={() => openDetail(c)}><Eye className="w-4 h-4" /></Button>
                       <Button size="sm" variant="ghost" onClick={() => toggleApproval(c.id, c.is_approved === true)}>
                         <span className={`text-xs font-medium ${c.is_approved ? "text-destructive" : "text-secondary"}`}>{c.is_approved ? "Desativar" : "Aprovar"}</span>
                       </Button>

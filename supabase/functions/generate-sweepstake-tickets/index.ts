@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// SECURITY: gate cron/internal-only function against public callers
+import { isInternalOrService } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,13 +16,27 @@ const DEFAULT_TICKETS_BY_PLAN: Record<string, number> = {
   premium: 15,
 };
 
+// SECURITY: use cryptographically-secure randomness (not Math.random) for ticket numbers
+const secureRandomInt = (bound: number) => {
+  // Rejection sampling over a 32-bit uniform to avoid modulo bias.
+  const max = Math.floor(0xffffffff / bound) * bound;
+  const buf = new Uint32Array(1);
+  let x = 0;
+  do { crypto.getRandomValues(buf); x = buf[0]; } while (x >= max);
+  return x % bound;
+};
 const generateTicketNumber = () => {
-  const part = (n: number) => Math.floor(Math.random() * Math.pow(10, n)).toString().padStart(n, "0");
+  const part = (n: number) => secureRandomInt(Math.pow(10, n)).toString().padStart(n, "0");
   return `${part(5)}-${part(5)}-${part(4)}`;
 };
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  // SECURITY: cron/internal-only — reject public callers (anon key is public)
+  if (req.method !== "OPTIONS" && !isInternalOrService(req)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
 
   try {
     const supabase = createClient(

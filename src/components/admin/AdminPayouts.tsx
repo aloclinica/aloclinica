@@ -11,6 +11,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Wallet, CheckCircle2, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+// UI: standardized empty-state block
+import { AdminEmpty } from "@/components/admin/AdminStateBlocks";
 
 const STATUSES = ["pending", "ready", "paid", "disputed", "cancelled"] as const;
 type Status = (typeof STATUSES)[number];
@@ -83,7 +85,7 @@ const AdminPayouts = () => {
               </TabsList>
               <TabsContent value={tab} className="mt-4 space-y-2">
                 {isLoading ? <p className="text-sm text-muted-foreground">Carregando...</p>
-                : payouts.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum repasse {tab}.</p>
+                : payouts.length === 0 ? <AdminEmpty icon={Wallet} title={`Nenhum repasse ${tab}`} description="Não há repasses com este status no momento." />
                 : (payouts as any[]).map((p) => {
                     const dr = p.doctor_profiles?.profiles;
                     return (
@@ -94,7 +96,7 @@ const AdminPayouts = () => {
                           {p.pix_key && (
                             <p className="text-xs flex items-center gap-1 mt-1">
                               <span className="text-muted-foreground">PIX:</span> <code className="bg-muted px-1 rounded">{p.pix_key}</code>
-                              <button onClick={() => { navigator.clipboard.writeText(p.pix_key); toast.success("PIX copiado"); }}><Copy className="h-3 w-3" /></button>
+                              <button type="button" aria-label="Copiar chave PIX" onClick={() => { navigator.clipboard.writeText(p.pix_key); toast.success("PIX copiado"); }} className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Copy className="h-3 w-3" /></button>
                             </p>
                           )}
                         </div>

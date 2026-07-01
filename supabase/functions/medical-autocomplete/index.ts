@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { callClaude, FAST_CLAUDE_MODEL } from "../_shared/anthropic.ts";
+// SECURITY: require an authenticated caller and throttle calls to this paid LLM endpoint.
+import { getCaller, checkRateLimit } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,6 +12,20 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // SECURITY: require an authenticated caller (JWT). No token => 401.
+    const caller = await getCaller(req);
+    if (!caller.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // SECURITY: per-user rate limit — 20 requests / 10 min.
+    if (!(await checkRateLimit(caller.user.id, "medical-autocomplete", 20, 10))) {
+      return new Response(JSON.stringify({ error: "Rate limit exceeded" }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { text, field } = await req.json();
 
     if (!text || text.length < 5) {

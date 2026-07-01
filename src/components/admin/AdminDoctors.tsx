@@ -149,13 +149,13 @@ const AdminDoctors = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Médico</TableHead>
-                  <TableHead className="hidden sm:table-cell">CRM</TableHead>
-                  <TableHead className="hidden md:table-cell">Especialidade</TableHead>
-                  <TableHead className="hidden md:table-cell">Telefone</TableHead>
-                  <TableHead className="hidden lg:table-cell">Preço</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableHead scope="col">Médico</TableHead>
+                  <TableHead scope="col" className="hidden sm:table-cell">CRM</TableHead>
+                  <TableHead scope="col" className="hidden md:table-cell">Especialidade</TableHead>
+                  <TableHead scope="col" className="hidden md:table-cell">Telefone</TableHead>
+                  <TableHead scope="col" className="hidden lg:table-cell">Preço</TableHead>
+                  <TableHead scope="col">Status</TableHead>
+                  <TableHead scope="col" className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -198,8 +198,9 @@ const AdminDoctors = () => {
                     </TableCell>
                     <TableCell data-label="">
                       <div className="flex items-center gap-1">
-                        <Button size="sm" variant="ghost" onClick={() => openDetail(doc)}><Eye className="w-4 h-4" /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => toggleApproval(doc.id, doc.is_approved === true)}>
+                        {/* UI: aria-labels for icon-only actions */}
+                        <Button size="sm" variant="ghost" aria-label="Ver perfil do médico" onClick={() => openDetail(doc)}><Eye className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="ghost" aria-label={doc.is_approved ? "Desativar médico" : "Aprovar médico"} onClick={() => toggleApproval(doc.id, doc.is_approved === true)}>
                           {doc.is_approved ? <X className="w-4 h-4 text-destructive" /> : <Check className="w-4 h-4 text-secondary" />}
                         </Button>
                       </div>

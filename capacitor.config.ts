@@ -1,15 +1,15 @@
 import type { CapacitorConfig } from '@capacitor/core';
 
 /**
- * AloClínica — Capacitor wrap.
+ * AloClínica — Capacitor wrap (iOS/Android).
  *
- * Para gerar binário iOS/Android a partir da PWA atual:
- *   1. npm i -D @capacitor/cli @capacitor/core @capacitor/ios @capacitor/android
- *   2. npm run build                  (gera dist/)
- *   3. npx cap add ios && npx cap add android
- *   4. npx cap sync
- *   5. npx cap open ios               (Xcode) / open android (Android Studio)
- *   6. Configurar assinatura e publicar nas lojas.
+ * GERAR OS BINÁRIOS (ver docs/MOBILE_RELEASE_GUIDE.md para o passo a passo completo):
+ *   1. npm install
+ *   2. npm run build                       (gera dist/)
+ *   3. npx cap add android && npx cap add ios
+ *   4. npx @capacitor/assets generate      (ícones + splash a partir de resources/)
+ *   5. npx cap sync
+ *   6. npx cap open android  (Android Studio)  /  npx cap open ios  (Xcode, requer macOS)
  *
  * O bundle ID `br.com.aloclinica.app` precisa ser registrado no
  * Apple Developer Account e no Google Play Console.
@@ -18,12 +18,22 @@ const config: CapacitorConfig = {
   appId: 'br.com.aloclinica.app',
   appName: 'AloClínica',
   webDir: 'dist',
+  // Servir sob https:// no Android habilita cookies seguros, Service Worker,
+  // WebAuthn/biometria e evita bloqueios de conteúdo. NUNCA usar http.
+  server: {
+    androidScheme: 'https',
+    iosScheme: 'https',
+  },
   ios: {
     contentInset: 'always',
     preferredContentMode: 'mobile',
     scrollEnabled: true,
+    // Permite reprodução inline de vídeo (teleconsulta WebRTC) sem fullscreen forçado.
+    limitsNavigationsToAppBoundDomains: false,
   },
   android: {
+    // Mantém bloqueio de conteúdo misto (http em página https) — reforça o uso
+    // exclusivo de endpoints HTTPS (CompreFace/DocuSeal/vídeo via domínio).
     allowMixedContent: false,
   },
   plugins: {
@@ -42,6 +52,10 @@ const config: CapacitorConfig = {
     },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],
+    },
+    Keyboard: {
+      resize: 'native',
+      resizeOnFullScreen: true,
     },
   },
 };

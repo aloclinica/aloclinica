@@ -10,6 +10,8 @@ Deno.serve(async (req) => {
     const { data: { user } } = await supabase.auth.getUser(authHeader.replace('Bearer ',''))
     if (!user) return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401, headers: corsHeaders })
 
+    // SECURITY: every table is filtered by the authenticated caller's id
+    // (user.id from the verified JWT) — never a body-provided id.
     const tables = ['profiles','appointments','prescriptions','medical_certificates','exam_requests','notifications','satisfaction_surveys','document_verifications']
     const exportData: Record<string, unknown> = { exported_at: new Date().toISOString(), user_id: user.id }
     for (const t of tables) {
@@ -20,12 +22,16 @@ Deno.serve(async (req) => {
     const json = JSON.stringify(exportData, null, 2)
     const path = `lgpd-exports/${user.id}-${Date.now()}.json`
     await supabase.storage.from('backups').upload(path, new Blob([json], { type: 'application/json' }), { upsert: true })
-    const { data: signed } = await supabase.storage.from('backups').createSignedUrl(path, 60 * 60 * 24 * 7)
+    // SECURITY: short-lived signed URL (600s) instead of 7 days.
+    const { data: signed } = await supabase.storage.from('backups').createSignedUrl(path, 600)
 
+    // SECURITY: do NOT persist the signed URL in notifications.link (it would be
+    // a long-lived, unauthenticated PHI download link). Notify without the URL;
+    // return the short-lived URL only in this response to the authenticated caller.
     await supabase.from('notifications').insert({
       user_id: user.id, title: '📦 Seus dados estão prontos',
-      message: 'Exportação LGPD disponível por 7 dias.',
-      type: 'document', link: signed?.signedUrl,
+      message: 'Sua exportação LGPD foi gerada. Baixe agora — o link é válido por poucos minutos.',
+      type: 'document',
     })
     return new Response(JSON.stringify({ ok: true, url: signed?.signedUrl }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (e) {

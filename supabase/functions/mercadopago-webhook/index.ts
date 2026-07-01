@@ -18,6 +18,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { mpRequest, mpCorsHeaders, mapMpStatus } from "../_shared/mercadopago.ts";
+import { safeEqual } from "../_shared/auth.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: mpCorsHeaders });
@@ -304,5 +305,6 @@ async function validateSignature(req: Request, _rawBody: string, body: any, secr
   );
   const sigBuf = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(manifest));
   const expected = Array.from(new Uint8Array(sigBuf)).map(b => b.toString(16).padStart(2, "0")).join("");
-  return expected === v1;
+  // SECURITY: constant-time compare to avoid leaking the signature via timing.
+  return safeEqual(expected, v1);
 }

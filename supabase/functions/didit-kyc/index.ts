@@ -7,9 +7,18 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const COMPREFACE_URL = "http://72.62.138.208:8000";
-const COMPREFACE_VERIFY_KEY = "5f3c100e-0144-465d-87b3-86c34ba70a1e";
-const COMPREFACE_DETECT_KEY = "a2d930ec-e3ee-46b4-b770-023524e41178";
+// SECURITY: CompreFace endpoint and API keys must come from the environment, never
+// be hardcoded (the previous literals leaked a raw IP and two live keys in source).
+const COMPREFACE_URL = Deno.env.get("COMPREFACE_URL") ?? "https://face.aloclinica.com.br";
+const COMPREFACE_VERIFY_KEY = Deno.env.get("COMPREFACE_VERIFY_KEY") ?? "";
+const COMPREFACE_DETECT_KEY = Deno.env.get("COMPREFACE_DETECT_KEY") ?? "";
+
+// SECURITY: SHA-256 hash of a CPF so audit logs prove a match without storing the raw PII.
+async function sha256Hex(input: string): Promise<string> {
+  const data = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 // Strict anti-fraud thresholds
 const MIN_SIMILARITY = 0.90;      // 90% face match required
@@ -245,6 +254,16 @@ Deno.serve(async (req) => {
 
     const finalMatch = match && !dataMismatch;
 
+    // SECURITY: The audit log must not persist raw CPF or names (PII). Store only the
+    // boolean comparison outcomes plus a SHA-256 hash of the CPF (for later correlation
+    // without exposing the number). Names/CPFs are omitted entirely.
+    const docCpfDigits = onlyDigits(cpf);
+    const profileCpfDigits = onlyDigits(profile?.cpf);
+    const cpfMatch = !!(docCpfDigits && profileCpfDigits && docCpfDigits === profileCpfDigits);
+    const nameMatchResult = !!(profile && nome
+      && nameMatches(`${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim(), nome));
+    const cpfHash = docCpfDigits ? await sha256Hex(docCpfDigits) : null;
+
     // Audit log
     await supabaseAdmin.from("activity_logs").insert({
       action: finalMatch ? "kyc_approved" : "kyc_rejected",
@@ -255,8 +274,7 @@ Deno.serve(async (req) => {
         document_back_provided: !!document_back,
         similarity, score, match: finalMatch, biometric_match: match,
         data_mismatch: dataMismatch, mismatch_reasons: mismatchReasons,
-        nome, cpf, profile_name: profile ? `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() : null,
-        profile_cpf: profile?.cpf ?? null,
+        cpf_match: cpfMatch, name_match: nameMatchResult, cpf_sha256: cpfHash,
         doc_face_prob: docProb, selfie_face_prob: selfieProb,
         thresholds: { min_similarity: MIN_SIMILARITY, min_face_prob: MIN_FACE_DETECT_PROB },
       },
