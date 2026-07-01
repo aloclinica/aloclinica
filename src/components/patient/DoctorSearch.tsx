@@ -336,9 +336,11 @@ const DoctorSearch = () => {
   return (
     <DashboardLayout title="Paciente" nav={getPatientNav("doctors")} role="patient">
       <div className="w-full max-w-6xl mx-auto pb-24 md:pb-6">
-        <section className="mb-5 overflow-hidden rounded-[28px] border border-border/50 bg-background/82 shadow-sm backdrop-blur-xl">
+        <section className="relative mb-5 overflow-hidden rounded-[32px] border border-white/60 bg-[linear-gradient(135deg,#eef7ff_0%,#ffffff_52%,#f8fff6_100%)] shadow-[0_24px_70px_-46px_rgba(15,42,90,.68)] backdrop-blur-xl">
+          <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-blue-400/16 blur-3xl" />
+          <div className="pointer-events-none absolute bottom-0 left-16 h-40 w-40 rounded-full bg-emerald-300/14 blur-3xl" />
           <div className="grid gap-0 lg:grid-cols-[1.25fr_0.75fr]">
-            <div className="p-5 md:p-7">
+            <div className="relative p-5 md:p-7">
               <div className="mb-4 inline-flex items-center gap-2 rounded-xl border border-[hsl(var(--p-primary))]/20 bg-[hsl(var(--p-primary))]/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-[hsl(var(--p-primary))]">
                 <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
                 Agendamento seguro
@@ -355,7 +357,7 @@ const DoctorSearch = () => {
                   { label: "Consulta por vídeo", icon: Calendar },
                   { label: "Atendimento hoje", icon: Zap },
                 ].map((item) => (
-                  <div key={item.label} className="flex items-center gap-2 rounded-2xl border border-border/45 bg-muted/35 px-3 py-2 text-sm font-bold text-foreground">
+                  <div key={item.label} className="flex items-center gap-2 rounded-2xl border border-white/65 bg-white/72 px-3 py-2 text-sm font-bold text-foreground shadow-sm">
                     <item.icon className="h-4 w-4 text-[hsl(var(--p-primary))]" aria-hidden="true" />
                     {item.label}
                   </div>
@@ -367,7 +369,7 @@ const DoctorSearch = () => {
             </div>
           </div>
         </section>
-        <div className="mb-5 flex flex-col gap-3 rounded-[24px] border border-border/45 bg-card/82 p-3 shadow-sm backdrop-blur md:flex-row md:items-center">
+        <div className="mb-5 flex flex-col gap-3 rounded-[26px] border border-border/45 bg-card/90 p-3 shadow-sm backdrop-blur md:flex-row md:items-center">
         {/* Doctor type segmented control */}
         <div className="inline-flex p-1 rounded-2xl bg-muted/60 border border-border/30 w-full md:w-auto">
           {([
@@ -406,7 +408,7 @@ const DoctorSearch = () => {
               onFocus={() => { if (!search && recentSearches.length > 0) setShowRecent(true); }}
               onBlur={() => setTimeout(() => setShowRecent(false), 200)}
               onKeyDown={e => { if (e.key === "Enter" && search.trim()) { saveRecentSearch(search.trim()); setRecentSearches(getRecentSearches()); } }}
-              className="pl-12 h-12 rounded-2xl text-base bg-muted/50 border-transparent focus:border-[hsl(var(--p-primary))]/30"
+              className="pl-10 h-12 rounded-2xl bg-muted/50 text-sm border-transparent focus:border-[hsl(var(--p-primary))]/30"
             />
             {showRecent && recentSearches.length > 0 && (
               <div className="absolute top-14 left-0 right-0 bg-card border border-border rounded-2xl shadow-[var(--p-shadow-elevated)] z-20 overflow-hidden">
@@ -448,7 +450,7 @@ const DoctorSearch = () => {
             </div>
 
             {/* Frequent searches */}
-            <div className="mb-6 rounded-[24px] border border-border/45 bg-card/80 p-4 shadow-sm">
+            <div className="mb-6 rounded-[26px] border border-border/45 bg-card/90 p-4 shadow-sm">
               <p className="text-[10px] text-muted-foreground uppercase tracking-[0.12em] font-bold mb-3">Buscas frequentes</p>
               <div className="flex gap-2 flex-wrap">
                 {FREQUENT_SEARCHES.map(term => (
@@ -466,7 +468,7 @@ const DoctorSearch = () => {
             {/* Specialty grid */}
             <div className="mb-6">
               <h2 className="text-lg font-extrabold text-foreground mb-4 font-[Manrope]">Navegar por Especialidades</h2>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                 {specialties.slice(0, 6).map((spec, i) => (
                   <motion.button
                     key={spec.id}
@@ -475,9 +477,9 @@ const DoctorSearch = () => {
                     transition={{ delay: i * 0.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => { setSelectedSpecialty(spec.name); setViewMode("results"); }}
-                    className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-card border border-border/30 hover:border-[hsl(var(--p-primary))]/30 hover:shadow-[var(--p-shadow-elevated)] transition-all shadow-[var(--p-shadow-card)]"
+                    className="group flex flex-col items-center gap-3 rounded-[24px] border border-border/35 bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--p-primary))]/30 hover:shadow-[var(--p-shadow-card)]"
                   >
-                    <div className="w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/50 transition-transform group-hover:scale-105">
                       {SPECIALTY_ICONS[spec.name] || <Stethoscope className="w-6 h-6 text-[hsl(var(--p-primary))]" />}
                     </div>
                     <span className="text-sm font-semibold text-foreground">{spec.name}</span>
@@ -492,7 +494,8 @@ const DoctorSearch = () => {
             </div>
 
             {/* CTA banner */}
-            <div className="rounded-2xl bg-[hsl(var(--p-primary))] p-6 text-white">
+            <div className="relative overflow-hidden rounded-[28px] bg-[linear-gradient(135deg,hsl(var(--p-primary))_0%,hsl(var(--p-primary-mid))_100%)] p-6 text-white shadow-[0_22px_60px_-38px_rgba(0,112,243,.8)]">
+              <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-white/12 blur-2xl" />
               <h3 className="text-lg font-bold mb-1 font-[Manrope]">Não encontrou o que precisava?</h3>
               <p className="text-sm text-white/70 mb-4">
                 Nossa equipe de suporte está disponível para te ajudar a encontrar o especialista ideal.
@@ -529,8 +532,8 @@ const DoctorSearch = () => {
             <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide snap-x -mx-1 px-1">
               <button
                 className={cn(
-                  "shrink-0 h-9 px-4 text-sm rounded-full snap-start active:scale-95 transition-all font-semibold",
-                  selectedSpecialty === null ? "bg-[hsl(var(--p-primary))] text-white" : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                  "shrink-0 h-10 px-4 text-sm rounded-full snap-start active:scale-95 transition-all font-bold",
+                  selectedSpecialty === null ? "bg-[hsl(var(--p-primary))] text-white shadow-[var(--p-shadow-btn)]" : "border border-border/35 bg-card text-muted-foreground hover:bg-muted"
                 )}
                 onClick={() => setSelectedSpecialty(null)}
               >
@@ -540,8 +543,8 @@ const DoctorSearch = () => {
                 <button
                   key={s.id}
                   className={cn(
-                    "shrink-0 h-9 px-4 text-sm rounded-full snap-start active:scale-95 transition-all font-semibold",
-                    selectedSpecialty === s.name ? "bg-[hsl(var(--p-primary))] text-white" : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                    "shrink-0 h-10 px-4 text-sm rounded-full snap-start active:scale-95 transition-all font-bold",
+                    selectedSpecialty === s.name ? "bg-[hsl(var(--p-primary))] text-white shadow-[var(--p-shadow-btn)]" : "border border-border/35 bg-card text-muted-foreground hover:bg-muted"
                   )}
                   onClick={() => setSelectedSpecialty(selectedSpecialty === s.name ? null : s.name)}
                 >
@@ -557,7 +560,7 @@ const DoctorSearch = () => {
             {loading ? (
               <div className="grid gap-3 lg:grid-cols-2">
                 {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="p-4 rounded-2xl border border-border/20 bg-card">
+                  <div key={i} className="p-4 rounded-[26px] border border-border/30 bg-card shadow-sm">
                     <div className="flex items-center gap-3">
                       <Skeleton className="w-14 h-14 rounded-2xl shrink-0" />
                       <div className="flex-1 space-y-2"><Skeleton className="h-4 w-36" /><Skeleton className="h-3 w-24" /></div>
@@ -579,17 +582,17 @@ const DoctorSearch = () => {
                     <motion.div key={doctor.id} custom={i} variants={fadeUp} initial="hidden" animate="show"
                       whileTap={{ scale: 0.97 }}
                       className={cn(
-                        "relative p-4 rounded-2xl border bg-card cursor-pointer group shadow-[var(--p-shadow-card)] hover:shadow-[var(--p-shadow-elevated)] transition-shadow",
-                        doctor.available_now ? "border-secondary/40" : "border-border/30"
+                        "relative overflow-hidden rounded-[28px] border bg-card p-4 cursor-pointer group shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-[var(--p-shadow-card)]",
+                        doctor.available_now ? "border-secondary/40 bg-[linear-gradient(135deg,#ffffff_0%,#f4fff9_100%)]" : "border-border/35"
                       )}
                       onClick={() => navigate(`/dashboard/schedule/${doctor.id}`)}
                     >
                       {/* UI: aria-label + aria-pressed so screen readers announce the favorite toggle state */}
-                      <button onClick={(e) => toggleFavorite(doctor.id, e)} aria-label={favoriteIds.has(doctor.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"} aria-pressed={favoriteIds.has(doctor.id)} className="absolute top-3 right-3 p-2 rounded-full hover:bg-muted/50 transition-colors z-10">
+                      <button onClick={(e) => toggleFavorite(doctor.id, e)} aria-label={favoriteIds.has(doctor.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"} aria-pressed={favoriteIds.has(doctor.id)} className="absolute top-3 right-3 z-10 rounded-full bg-background/80 p-2 shadow-sm transition-colors hover:bg-muted/70">
                         <Heart aria-hidden="true" className={`w-5 h-5 transition-colors ${favoriteIds.has(doctor.id) ? "fill-destructive text-destructive" : "text-muted-foreground/40"}`} />
                       </button>
                       <div className="flex items-start gap-3">
-                        <Avatar className="w-14 h-14 rounded-2xl shrink-0 ring-2 ring-[hsl(var(--p-primary))]/15">
+                        <Avatar className="w-16 h-16 rounded-3xl shrink-0 ring-4 ring-[hsl(var(--p-primary))]/10 shadow-sm">
                           {doctor.profile?.avatar_url && <AvatarImage src={doctor.profile.avatar_url} alt={`Dr(a). ${doctor.profile?.first_name}`} className="rounded-2xl object-cover" loading="lazy" decoding="async" />}
                           <AvatarFallback className="rounded-2xl bg-gradient-to-br from-[hsl(var(--p-primary))] to-[hsl(var(--p-primary-mid))] text-white font-bold text-base">{(doctor.display_name?.[0] || doctor.profile?.first_name?.[0] || "?")}{doctor.profile?.last_name?.[0] ?? ""}</AvatarFallback>
                         </Avatar>
@@ -641,7 +644,7 @@ const DoctorSearch = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex flex-col gap-3 mt-3 pt-3 border-t border-border/30 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="mt-4 flex flex-col gap-3 rounded-3xl border border-border/30 bg-muted/20 p-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="min-w-0">
                           <span className="text-xl font-extrabold text-foreground font-[Manrope]">R$ {doctor.consultation_price.toFixed(2).replace(".", ",")}</span>
                           <span className="text-xs text-muted-foreground ml-1">/consulta</span>
@@ -652,7 +655,7 @@ const DoctorSearch = () => {
                             onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/doctor-profile/${doctor.id}`); }}>
                             <ExternalLink className="w-3.5 h-3.5 mr-1" /> Perfil
                           </Button>
-                          <Button size="sm" className="h-10 flex-1 px-5 rounded-full bg-[hsl(var(--p-primary))] text-white text-sm font-bold gap-1.5 shadow-[var(--p-shadow-btn)] sm:flex-none"
+                          <Button size="sm" className="h-11 flex-1 px-5 rounded-full bg-[hsl(var(--p-primary))] text-white text-sm font-black gap-1.5 shadow-[var(--p-shadow-btn)] sm:flex-none"
                             onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/schedule/${doctor.id}`); }}>
                             <Calendar className="w-4 h-4" /> Agendar <ChevronRight className="w-4 h-4 -mr-1" />
                           </Button>
