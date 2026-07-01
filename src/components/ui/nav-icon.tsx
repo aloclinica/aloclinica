@@ -28,10 +28,10 @@ export const NavIcon = ({ icon, color = "blue", active, className }: NavIconProp
   return (
     <span
       className={cn(
-        "nav-icon-wrapper inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[14px] border transition-all duration-300",
+        "nav-icon-wrapper relative inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[14px] border transition-all duration-300 active:scale-95 [&_svg]:relative [&_svg]:z-10 [&_svg]:transition-transform [&_svg]:duration-300 group-hover:[&_svg]:-rotate-3 group-hover:[&_svg]:scale-110",
         active
-          ? "scale-105 border-white/25 bg-white/18 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.22)]"
-          : `${c.bg} ${c.text} ${c.glow} ${c.border} group-hover:scale-105`,
+          ? "scale-105 border-white/30 bg-white/20 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.30),0_8px_18px_-12px_rgba(0,0,0,.45)] before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,.45),transparent_42%)]"
+          : `${c.bg} ${c.text} ${c.glow} ${c.border} group-hover:-translate-y-0.5 group-hover:scale-105 before:absolute before:inset-y-0 before:left-[-120%] before:w-full before:skew-x-[-18deg] before:bg-gradient-to-r before:from-transparent before:via-white/45 before:to-transparent before:transition-transform before:duration-700 group-hover:before:translate-x-[250%]`,
         className
       )}
     >

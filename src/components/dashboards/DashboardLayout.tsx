@@ -364,15 +364,20 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
 
     return (
       <Link to={item.href} onClick={onClick}
-        className={`nav-item group relative flex min-h-[50px] items-center gap-3 rounded-[18px] px-3 text-[14px] transition-all duration-300 ${
+        className={`nav-item group relative flex min-h-[50px] items-center gap-3 overflow-hidden rounded-[18px] px-3 text-[14px] transition-all duration-300 ${
           item.active
-            ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-extrabold shadow-[0_14px_30px_-20px_hsl(var(--primary))]"
-            : "text-muted-foreground hover:text-foreground hover:bg-muted/55"
+            ? "bg-gradient-to-r from-primary via-primary to-primary/90 text-primary-foreground font-extrabold shadow-[0_14px_30px_-20px_hsl(var(--primary))]"
+            : "text-muted-foreground hover:text-foreground hover:bg-muted/55 hover:shadow-sm"
         }`}
       >
-        {item.active && <span className="absolute left-1 top-1/2 h-7 w-1 -translate-y-1/2 rounded-full bg-white/70" />}
+        {item.active && (
+          <>
+            <span className="absolute inset-0 bg-gradient-to-r from-white/12 via-transparent to-transparent" />
+            <span className="absolute left-1 top-1/2 h-7 w-1 -translate-y-1/2 rounded-full bg-white/75" />
+          </>
+        )}
         <span className="shrink-0">{icon}</span>
-        <span className="flex-1 truncate leading-tight tracking-[-0.01em]">{item.label}</span>
+        <span className="relative flex-1 truncate leading-tight">{item.label}</span>
         {(item.badge ?? 0) > 0 && (
           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none min-w-[18px] text-center tabular-nums ${
             item.active ? "bg-white/25 text-white" : "bg-destructive text-white"
