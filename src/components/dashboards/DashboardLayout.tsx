@@ -364,16 +364,15 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
 
     return (
       <Link to={item.href} onClick={onClick}
-        className={`nav-item group relative flex min-h-[48px] items-center gap-3 rounded-[18px] px-3 text-[14px] transition-all duration-300 ${
+        className={`nav-item group relative flex min-h-[50px] items-center gap-3 rounded-[18px] px-3 text-[14px] transition-all duration-300 ${
           item.active
-            ? "bg-gradient-to-r from-primary to-primary/85 text-primary-foreground font-extrabold shadow-[0_14px_26px_-18px_hsl(var(--primary))]"
+            ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-extrabold shadow-[0_14px_30px_-20px_hsl(var(--primary))]"
             : "text-muted-foreground hover:text-foreground hover:bg-muted/55"
         }`}
       >
-        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl transition-transform duration-200 ${
-          item.active ? "bg-white/20 text-white" : "bg-background/70 text-current shadow-sm group-hover:scale-105"
-        }`}>{icon}</span>
-        <span className="flex-1 truncate leading-tight">{item.label}</span>
+        {item.active && <span className="absolute left-1 top-1/2 h-7 w-1 -translate-y-1/2 rounded-full bg-white/70" />}
+        <span className="shrink-0">{icon}</span>
+        <span className="flex-1 truncate leading-tight tracking-[-0.01em]">{item.label}</span>
         {(item.badge ?? 0) > 0 && (
           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none min-w-[18px] text-center tabular-nums ${
             item.active ? "bg-white/25 text-white" : "bg-destructive text-white"
@@ -556,7 +555,7 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
                    <List size={20} weight="bold" className="text-foreground/90" />
                  </Button>
                </SheetTrigger>
-               <SheetContent side="left" className="p-0 w-[min(88vw,330px)] border-r border-white/30 bg-background/95 flex flex-col h-full overflow-hidden rounded-r-[30px] shadow-[24px_0_70px_-34px_rgba(15,23,42,.75)] backdrop-blur-2xl">
+               <SheetContent side="left" className="p-0 w-[min(88vw,330px)] border-r border-white/30 bg-background flex flex-col h-full overflow-hidden rounded-r-[30px] shadow-[24px_0_70px_-34px_rgba(15,23,42,.75)]">
                  <SidebarContent onItemClick={() => setSidebarOpen(false)} />
                </SheetContent>
              </Sheet>
@@ -590,19 +589,6 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
             <div className={`absolute -top-24 left-1/4 h-40 w-[40rem] rounded-full opacity-[0.08] blur-3xl bg-gradient-to-r ${grad}`} />
             <div className="absolute -bottom-24 right-1/4 h-32 w-[28rem] rounded-full opacity-[0.06] blur-3xl bg-primary" />
           </div>
-          {nav && nav.length > 0 && (
-            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative lg:hidden h-9 w-9 rounded-xl" aria-label="Abrir menu">
-                  <List className="w-4.5 h-4.5" aria-hidden="true" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-[300px] border-border/20 bg-background/95 flex flex-col h-full overflow-hidden rounded-r-[26px] backdrop-blur-2xl">
-                <SidebarContent onItemClick={() => setSidebarOpen(false)} />
-              </SheetContent>
-            </Sheet>
-          )}
-
           <Link to="/" className="relative flex items-center gap-2.5 shrink-0 group">
             <div className="relative">
               <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${grad} blur-md opacity-50 group-hover:opacity-80 transition-opacity`} />

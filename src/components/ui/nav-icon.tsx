@@ -28,10 +28,10 @@ export const NavIcon = ({ icon, color = "blue", active, className }: NavIconProp
   return (
     <span
       className={cn(
-        "nav-icon-wrapper inline-flex items-center justify-center w-8 h-8 rounded-xl shrink-0 transition-all duration-300 border",
+        "nav-icon-wrapper inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[14px] border transition-all duration-300",
         active
-          ? "bg-background/20 text-background shadow-md border-background/30 scale-105"
-          : `${c.bg} ${c.text} ${c.glow} ${c.border}`,
+          ? "scale-105 border-white/25 bg-white/18 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.22)]"
+          : `${c.bg} ${c.text} ${c.glow} ${c.border} group-hover:scale-105`,
         className
       )}
     >
