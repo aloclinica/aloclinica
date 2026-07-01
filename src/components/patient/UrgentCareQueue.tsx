@@ -307,12 +307,12 @@ const UrgentCareQueue = () => {
 
   return (
     <DashboardLayout title="Paciente" nav={getPatientNav("urgent-care")}>
-      <div className="max-w-2xl mx-auto pb-24 md:pb-6">
+      <div className="w-full max-w-5xl mx-auto pb-24 md:pb-6">
         {loading ? <div className="shimmer-v2 h-5 rounded w-32 inline-block" aria-label="Carregando" /> : myEntry ? (
           /* ═══ IN QUEUE ═══ */
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
             {/* Queue position card - amber tinted */}
-            <div className="rounded-2xl bg-[hsl(var(--p-warning-soft))] border border-warning/20 p-6 text-center">
+            <div className="relative overflow-hidden rounded-[30px] border border-warning/25 bg-[linear-gradient(135deg,#fff7df_0%,#ffffff_52%,#eef7ff_100%)] p-6 text-center shadow-[0_24px_70px_-46px_rgba(15,42,90,.72)]">
               {myEntry.status === "waiting" && (
                 <>
                   <Clock className="w-10 h-10 mx-auto text-warning mb-3 animate-pulse" />
@@ -340,8 +340,8 @@ const UrgentCareQueue = () => {
         ) : showPayment ? (
           /* ═══ PAYMENT ═══ */
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <Card className="mb-6 rounded-2xl border-border/20 shadow-[var(--p-shadow-elevated)]">
-              <CardContent className="p-6">
+            <Card className="mb-6 overflow-hidden rounded-[30px] border-white/60 bg-[linear-gradient(135deg,#f7fbff_0%,#ffffff_58%,#fff6f7_100%)] shadow-[0_24px_70px_-46px_rgba(15,42,90,.72)]">
+              <CardContent className="p-5 md:p-6">
                 <div className="text-center mb-6">
                   <Lock className="w-5 h-5 mx-auto text-muted-foreground mb-2" />
                   <h2 className="text-lg font-bold text-foreground font-[Manrope]">Pagamento — Plantão 24h</h2>
@@ -350,7 +350,7 @@ const UrgentCareQueue = () => {
                 <div className="grid grid-cols-3 gap-2 mb-5">
                   {([{ id: "pix" as PaymentMethod, label: "PIX", icon: QrCode, badge: "Instantâneo" }, { id: "card" as PaymentMethod, label: "Cartão", icon: CreditCard, badge: null }, { id: "boleto" as PaymentMethod, label: "Boleto", icon: FileBarChart, badge: null }]).map(method => (
                     <motion.button key={method.id} whileTap={{ scale: 0.97 }} onClick={() => setPaymentMethod(method.id)}
-                      className={`relative flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all ${paymentMethod === method.id ? "border-[hsl(var(--p-primary))] bg-[hsl(var(--p-primary))]/5" : "border-border bg-card hover:border-[hsl(var(--p-primary))]/30"}`}>
+                      className={`relative flex flex-col items-center gap-1.5 p-3 rounded-3xl border transition-all ${paymentMethod === method.id ? "border-[hsl(var(--p-primary))] bg-white shadow-sm ring-4 ring-primary/10" : "border-white/70 bg-white/70 hover:border-[hsl(var(--p-primary))]/30"}`}>
                       <method.icon className={`w-5 h-5 ${paymentMethod === method.id ? "text-[hsl(var(--p-primary))]" : "text-muted-foreground"}`} />
                       <span className={`text-xs font-semibold ${paymentMethod === method.id ? "text-[hsl(var(--p-primary))]" : "text-foreground"}`}>{method.label}</span>
                       {method.badge && <Badge className="absolute -top-2 -right-2 text-[10px] px-1.5 py-0 bg-secondary text-secondary-foreground border-0">{method.badge}</Badge>}
@@ -430,7 +430,8 @@ const UrgentCareQueue = () => {
           /* ═══ MAIN VIEW ═══ */
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
             {/* Red gradient urgency banner */}
-            <div className="relative rounded-2xl bg-gradient-to-br from-[#A32D2D] to-[#E24B4A] p-6 overflow-hidden">
+            <div className="relative overflow-hidden rounded-[32px] border border-white/15 bg-[linear-gradient(135deg,#9f1f32_0%,#f05a56_55%,#ffb35f_100%)] p-5 text-white shadow-[0_28px_80px_-44px_rgba(163,45,45,.78)] md:p-7">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,.22),transparent_30%),radial-gradient(circle_at_92%_18%,rgba(255,255,255,.16),transparent_24%)]" />
               <div className="relative z-10">
                 <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-sm px-3 py-1 mb-3">
                   <Zap className="w-3 h-3 text-white" />
@@ -447,20 +448,19 @@ const UrgentCareQueue = () => {
                   </p>
                 )}
                 <Button
-                  className="rounded-full bg-white text-[#A32D2D] font-bold shadow-[0_4px_14px_rgba(163,45,45,0.4)] hover:bg-white/90 gap-2"
+                  className="h-12 rounded-full bg-white px-5 font-black text-[#A32D2D] shadow-[0_12px_34px_rgba(80,10,18,.22)] hover:bg-white/90 gap-2"
                   onClick={handleEnterQueue}
                 >
                   <Zap className="w-4 h-4" /> Entrar na Fila
                 </Button>
               </div>
-              <img src={mascotWave} alt="Pingo" className="absolute right-2 bottom-0 w-28 h-28 object-contain opacity-90" loading="lazy" decoding="async" width={112} height={112} />
-              <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/[0.06] blur-[40px]" />
+              <img src={mascotWave} alt="Pingo" className="absolute right-0 bottom-0 w-36 h-36 object-contain drop-shadow-2xl md:w-44 md:h-44" loading="lazy" decoding="async" width={176} height={176} />
             </div>
 
             {/* Pricing tiers */}
-            <div className="rounded-2xl border border-border/20 bg-card p-4">
-              <p className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider">Tabela de valores por turno</p>
-              <div className="space-y-2">
+            <div className="rounded-[28px] border border-border/45 bg-card/95 p-4 shadow-sm">
+              <p className="text-xs font-black text-muted-foreground mb-3 uppercase tracking-[0.16em]">Tabela de valores por turno</p>
+              <div className="grid gap-2 md:grid-cols-3">
                 {[
                   { label: "Diurno", range: "07–19h", price: 75 },
                   { label: "Noturno", range: "19–00h", price: 100 },
@@ -470,7 +470,7 @@ const UrgentCareQueue = () => {
                   return (
                     <div
                       key={tier.label}
-                      className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-sm transition-colors ${isActive ? "bg-primary/10 border border-primary/20" : "bg-muted/30"}`}
+                      className={`flex items-center justify-between rounded-2xl border px-3 py-3 text-sm transition-colors ${isActive ? "border-primary/25 bg-primary/10" : "border-border/30 bg-muted/25"}`}
                     >
                       <span className={`font-semibold ${isActive ? "text-primary" : "text-foreground"}`}>{`${tier.label} ${tier.range}`}</span>
                       <span className={`font-bold tabular-nums ${isActive ? "text-primary" : "text-foreground"}`}>{`R$ ${tier.price}`}</span>
@@ -486,21 +486,21 @@ const UrgentCareQueue = () => {
             </div>
 
             {/* Nearby clinics count */}
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1 rounded-full border border-secondary/15 bg-secondary/5 px-3 py-2">
               <span className="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse" />
-              <span className="text-sm font-medium text-foreground">
+              <span className="text-sm font-bold text-foreground">
                 {hospitalsLoading ? "Buscando hospitais..." : `${nearbyHospitals.length} Hospitais Próximos`}
               </span>
             </div>
 
             {/* Emergency triage */}
-            <div className="rounded-2xl bg-[hsl(var(--p-warning-soft))] border border-warning/20 p-5">
+            <div className="rounded-[28px] border border-warning/25 bg-[linear-gradient(135deg,#fff8e6_0%,#ffffff_100%)] p-5 shadow-sm">
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="w-5 h-5 text-warning" />
                 <h3 className="font-bold text-foreground font-[Manrope]">Relatar Emergência</h3>
               </div>
               <p className="text-sm text-muted-foreground mb-3">Responda 3 perguntas rápidas para triagem imediata.</p>
-              <Button className="rounded-full bg-[#A32D2D] text-white w-full shadow-[0_4px_14px_rgba(163,45,45,0.28)]" onClick={handleStartPayment}>
+              <Button className="h-12 rounded-full bg-[#A32D2D] text-white w-full font-bold shadow-[0_12px_30px_rgba(163,45,45,0.20)]" onClick={handleStartPayment}>
                 Iniciar Triagem
               </Button>
             </div>

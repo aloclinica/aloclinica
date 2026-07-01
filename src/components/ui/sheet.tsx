@@ -57,6 +57,7 @@ const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Con
     <SheetPortal>
       <SheetOverlay />
       <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
+        <SheetPrimitive.Title className="sr-only">Menu</SheetPrimitive.Title>
         {children}
         {/* UI: aria-label + localized sr text so the icon-only close button is announced in PT-BR */}
         <SheetPrimitive.Close aria-label="Fechar" className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/40 bg-background text-muted-foreground shadow-sm ring-offset-background transition-all hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">

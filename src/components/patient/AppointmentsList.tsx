@@ -358,19 +358,26 @@ const AppointmentsList = () => {
 
   return (
     <DashboardLayout title="Paciente" nav={getPatientNav("appointments")}>
-      <div className="w-full max-w-2xl mx-auto pb-24 md:pb-6">
+      <div className="w-full max-w-5xl mx-auto pb-24 md:pb-6">
         {/* Back */}
         <button
           onClick={() => navigate("/dashboard?role=patient")}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 active:scale-95"
+          className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-background/70 px-3 py-1.5 text-sm font-semibold text-muted-foreground shadow-sm transition-colors hover:text-foreground active:scale-95"
         >
           <ArrowLeft className="w-4 h-4" /> Voltar ao painel
         </button>
 
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 mb-5">
+        <section className="relative mb-5 overflow-hidden rounded-[30px] border border-white/55 bg-[linear-gradient(135deg,#eef7ff_0%,#ffffff_48%,#fff1f4_100%)] p-5 shadow-[0_24px_70px_-44px_rgba(15,42,90,.65)]">
+          <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-blue-400/16 blur-3xl" />
+          <div className="pointer-events-none absolute bottom-0 left-10 h-40 w-40 rounded-full bg-rose-300/12 blur-3xl" />
+        <div className="relative flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-xl font-extrabold text-foreground font-[Manrope]">Minhas Consultas</h1>
+            <span className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-white/75 px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-primary shadow-sm">
+              <CalendarIcon className="h-3.5 w-3.5" />
+              Agenda
+            </span>
+            <h1 className="font-[Manrope] text-2xl font-black tracking-tight text-foreground md:text-3xl">Minhas Consultas</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               {filtered.length} consulta{filtered.length !== 1 ? "s" : ""} · {upcoming.length} próxima{upcoming.length !== 1 ? "s" : ""}
             </p>
@@ -379,7 +386,7 @@ const AppointmentsList = () => {
           {/* Export menu */}
           <Sheet>
             <SheetTrigger asChild>
-              <Button size="icon" variant="outline" className="rounded-2xl h-10 w-10 shrink-0" aria-label="Mais opções">
+              <Button size="icon" variant="outline" className="h-11 w-11 shrink-0 rounded-2xl border-white/70 bg-white/80 shadow-sm" aria-label="Mais opções">
                 <MoreHorizontal className="w-5 h-5" />
               </Button>
             </SheetTrigger>
@@ -398,9 +405,9 @@ const AppointmentsList = () => {
         </div>
 
         {/* KPI strip */}
-        {!loading && appointments.length > 0 && (
-          <div className="grid grid-cols-3 gap-2 mb-5">
-            <div className="rounded-2xl border border-border/30 bg-card p-3">
+        {!loading && (
+          <div className="relative mt-5 grid grid-cols-3 gap-2">
+            <div className="rounded-2xl border border-white/65 bg-white/82 p-3 shadow-sm">
               <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--p-primary))]">
                 <Clock className="w-3 h-3" /> Próxima
               </div>
@@ -408,15 +415,15 @@ const AppointmentsList = () => {
                 {nextAppt ? format(new Date(nextAppt.scheduled_at), "dd/MM HH:mm", { locale: ptBR }) : "—"}
               </p>
             </div>
-            <div className="rounded-2xl border border-border/30 bg-card p-3">
+            <div className="rounded-2xl border border-white/65 bg-white/82 p-3 shadow-sm">
               <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-600">
                 <CheckCircle2 className="w-3 h-3" /> Concluídas
               </div>
               <p className="text-sm font-extrabold text-foreground mt-1">{completedCount}</p>
             </div>
             <div className={cn(
-              "rounded-2xl border p-3",
-              paymentPendingCount > 0 ? "border-warning/40 bg-warning/5" : "border-border/30 bg-card"
+              "rounded-2xl border p-3 shadow-sm",
+              paymentPendingCount > 0 ? "border-warning/40 bg-warning/10" : "border-white/65 bg-white/82"
             )}>
               <div className={cn(
                 "flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider",
@@ -428,9 +435,10 @@ const AppointmentsList = () => {
             </div>
           </div>
         )}
+        </section>
 
         {/* Search */}
-        <div className="flex gap-2 mb-4">
+        <div className="mb-4 flex gap-2 rounded-[24px] border border-border/45 bg-card p-2 shadow-sm">
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -438,7 +446,7 @@ const AppointmentsList = () => {
               aria-label="Buscar consulta por médico"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="pl-10 h-11 rounded-2xl text-sm bg-muted/50 border-transparent focus:border-[hsl(var(--p-primary))]/30"
+              className="pl-10 h-11 rounded-2xl text-sm bg-muted/35 border-transparent focus:border-[hsl(var(--p-primary))]/30"
             />
           </div>
           <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
@@ -538,11 +546,12 @@ const AppointmentsList = () => {
               ))}
             </div>
           ) : upcoming.length === 0 ? (
-            <div className="text-center py-8 rounded-2xl border border-dashed border-border/40 bg-muted/10">
-              <img src={mascotWelcome} alt="Pingo" className="w-20 h-20 object-contain mx-auto drop-shadow-md mb-3 select-none" loading="lazy" decoding="async" width={80} height={80} />
+            <div className="relative overflow-hidden rounded-[28px] border border-border/45 bg-card px-5 py-8 text-center shadow-sm">
+              <div className="pointer-events-none absolute inset-x-10 top-6 h-24 rounded-full bg-primary/10 blur-3xl" />
+              <img src={mascotWelcome} alt="Pingo" className="relative w-24 h-24 object-contain mx-auto drop-shadow-md mb-3 select-none" loading="lazy" decoding="async" width={96} height={96} />
               <p className="text-[13px] font-semibold text-foreground mb-1">Nenhuma consulta próxima</p>
               <p className="text-[11px] text-muted-foreground mb-3">Agende agora e cuide da sua saúde</p>
-              <Button size="sm" className="rounded-full bg-[hsl(var(--p-primary))] text-white shadow-[var(--p-shadow-btn)]" onClick={() => navigate("/dashboard/schedule")}>
+              <Button size="sm" className="relative rounded-full bg-[hsl(var(--p-primary))] px-5 text-white shadow-[var(--p-shadow-btn)]" onClick={() => navigate("/dashboard/schedule")}>
                 Agendar consulta
               </Button>
             </div>
@@ -569,8 +578,9 @@ const AppointmentsList = () => {
               ))}
             </div>
           ) : past.length === 0 ? (
-            <div className="text-center py-8 rounded-2xl border border-dashed border-border/40 bg-muted/10">
-              <img src={mascotReading} alt="Pingo" className="w-20 h-20 object-contain mx-auto drop-shadow-md mb-3 select-none" loading="lazy" decoding="async" width={80} height={80} />
+            <div className="relative overflow-hidden rounded-[28px] border border-border/45 bg-card px-5 py-8 text-center shadow-sm">
+              <div className="pointer-events-none absolute inset-x-10 top-6 h-24 rounded-full bg-muted blur-3xl" />
+              <img src={mascotReading} alt="Pingo" className="relative w-24 h-24 object-contain mx-auto drop-shadow-md mb-3 select-none" loading="lazy" decoding="async" width={96} height={96} />
               <p className="text-[13px] font-semibold text-foreground mb-1">Nenhuma consulta no histórico</p>
               <p className="text-[11px] text-muted-foreground">Suas consultas realizadas aparecerão aqui</p>
             </div>

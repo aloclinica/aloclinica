@@ -217,7 +217,7 @@ const PatientDashboard = () => {
           appt={waitingAppt ?? nextAppt}
           role="patient"
         />
-        <PatientHomeReference
+        <PatientHomeModern
           firstName={firstName}
           stats={stats}
           nextAppt={nextAppt}
@@ -226,6 +226,180 @@ const PatientDashboard = () => {
         />
       </div>
     </DashboardLayout>
+  );
+};
+
+const PatientHomeModern = ({ firstName, stats, nextAppt, timelineEvents, navigate }: any) => {
+  const scheduledAt = nextAppt ? new Date(nextAppt.scheduled_at) : null;
+  const activities = (timelineEvents ?? []).slice(0, 3);
+  const actionCards = [
+    { label: "Agendar", sub: "Consulta", icon: CalendarCheck, path: "/dashboard/schedule?role=patient", tone: "from-blue-500 to-cyan-500", soft: "bg-blue-500/10 text-blue-600" },
+    { label: "Urgência", sub: "Agora", icon: Lightning, path: "/dashboard/urgent-care?role=patient", tone: "from-rose-500 to-orange-500", soft: "bg-rose-500/10 text-rose-600" },
+    { label: "Receitas", sub: "Histórico", icon: FileText, path: "/dashboard/history?role=patient", tone: "from-teal-500 to-emerald-500", soft: "bg-teal-500/10 text-teal-600" },
+    { label: "Exames", sub: "Documentos", icon: Pill, path: "/dashboard/patient/documents?role=patient", tone: "from-violet-500 to-indigo-500", soft: "bg-violet-500/10 text-violet-600" },
+  ];
+  const healthItems = [
+    { label: "Consultas", value: stats?.total ?? 0, icon: CalendarCheck, color: "text-blue-600", bg: "bg-blue-500/10" },
+    { label: "Receitas", value: stats?.prescriptions ?? 0, icon: FileText, color: "text-teal-600", bg: "bg-teal-500/10" },
+    { label: "Exames", value: stats?.documents ?? 0, icon: Pill, color: "text-indigo-600", bg: "bg-indigo-500/10" },
+  ];
+
+  return (
+    <div className="mx-auto w-full max-w-[1080px] space-y-4 md:space-y-6">
+      <motion.section
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        className="relative overflow-hidden rounded-[32px] border border-white/50 bg-[linear-gradient(135deg,#eef7ff_0%,#ffffff_45%,#e9fbff_100%)] p-4 shadow-[0_24px_70px_-42px_rgba(15,42,90,.55)] md:p-7"
+      >
+        <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-blue-400/20 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-10 h-40 w-40 rounded-full bg-teal-300/18 blur-3xl" />
+        <div className="relative grid gap-5 md:grid-cols-[1fr_310px] md:items-center">
+          <div className="min-w-0">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-500/15 bg-white/70 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-blue-700 shadow-sm">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Dados seguros
+            </div>
+            <h1 className="font-[Manrope] text-[28px] font-black leading-tight tracking-tight text-slate-950 md:text-[42px]">
+              Olá, {firstName}
+            </h1>
+            <p className="mt-2 max-w-xl text-sm font-medium leading-6 text-slate-600 md:text-base">
+              Seu cuidado em um app simples, rápido e organizado para consultas, receitas e exames.
+            </p>
+
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {actionCards.map((item, index) => (
+                <motion.button
+                  key={item.label}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.08 + index * 0.04 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigate(item.path)}
+                  className="group rounded-[22px] border border-white bg-white p-3 text-left shadow-[0_14px_34px_-28px_rgba(15,42,90,.65)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-28px_rgba(15,42,90,.75)]"
+                >
+                  <div className={cn("mb-3 grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br text-white shadow-lg transition group-hover:scale-105", item.tone)}>
+                    <item.icon size={22} weight="bold" />
+                  </div>
+                  <p className="text-sm font-black text-slate-950">{item.label}</p>
+                  <p className="mt-0.5 text-[11px] font-bold text-slate-500">{item.sub}</p>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative min-h-[176px] overflow-hidden rounded-[28px] border border-white/70 bg-white/86 p-4 shadow-[0_18px_48px_-34px_rgba(15,42,90,.8)] backdrop-blur">
+            <div className="absolute -right-8 -top-10 h-32 w-32 rounded-full bg-blue-500/10 blur-2xl" />
+            <div className="relative flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">Assistente Pingo</p>
+                <h2 className="mt-1 text-xl font-black text-slate-950">Como posso ajudar?</h2>
+                <p className="mt-1 text-xs leading-5 text-slate-500">Atendimento, exames e orientação sempre à mão.</p>
+              </div>
+              <PingoMascot variant="wave" size={82} animate bounce className="shrink-0 drop-shadow-[0_16px_28px_rgba(15,42,90,.18)]" />
+            </div>
+            <Button
+              onClick={() => navigate("/dashboard/chat?role=patient")}
+              className="relative mt-4 h-11 w-full rounded-2xl font-black"
+            >
+              Falar com suporte
+              <ArrowRight size={16} weight="bold" />
+            </Button>
+          </div>
+        </div>
+      </motion.section>
+
+      <div className="grid gap-4 lg:grid-cols-[1.05fr_.95fr]">
+        <section className="rounded-[28px] border border-border/55 bg-card p-4 shadow-sm md:p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-muted-foreground">Próxima consulta</p>
+              <h2 className="mt-1 text-lg font-black text-foreground">{nextAppt ? "Consulta agendada" : "Agenda livre"}</h2>
+            </div>
+            <span className={cn(
+              "rounded-full px-3 py-1 text-[11px] font-black",
+              nextAppt ? "bg-emerald-500/10 text-emerald-700" : "bg-blue-500/10 text-blue-700"
+            )}>
+              {nextAppt ? "Confirmada" : "Disponível"}
+            </span>
+          </div>
+          <div className="flex gap-4 rounded-[24px] bg-muted/25 p-3">
+            <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/15">
+              <VideoCamera size={30} weight="fill" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-base font-black text-foreground">{nextAppt?.doctor_name ?? "Nenhuma consulta marcada"}</p>
+              <p className="text-sm font-medium text-muted-foreground">{nextAppt?.specialty ?? "Escolha um médico para começar"}</p>
+              <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-black">
+                <span className="rounded-full bg-background px-2.5 py-1 text-primary">{scheduledAt ? format(scheduledAt, "dd MMM", { locale: ptBR }) : "Sem data"}</span>
+                <span className="rounded-full bg-background px-2.5 py-1 text-primary">{scheduledAt ? format(scheduledAt, "HH:mm") : "--:--"}</span>
+                <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-emerald-700">Online</span>
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <Button variant="outline" onClick={() => navigate("/dashboard/appointments?role=patient")} className="h-11 rounded-2xl font-black">
+              Detalhes
+            </Button>
+            <Button onClick={() => navigate(nextAppt ? `/dashboard/consultation/${nextAppt.id}` : "/dashboard/schedule?role=patient")} className="h-11 rounded-2xl font-black">
+              {nextAppt ? "Entrar" : "Agendar"}
+            </Button>
+          </div>
+        </section>
+
+        <section className="rounded-[28px] border border-border/55 bg-card p-4 shadow-sm md:p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-muted-foreground">Resumo</p>
+              <h2 className="mt-1 text-lg font-black text-foreground">Sua saúde</h2>
+            </div>
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-orange-500/10 text-orange-500">
+              <Heartbeat size={25} weight="fill" />
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {healthItems.map((item) => (
+              <div key={item.label} className="rounded-2xl border border-border/40 bg-background p-3">
+                <div className={cn("mb-3 grid h-9 w-9 place-items-center rounded-xl", item.bg, item.color)}>
+                  <item.icon size={19} weight="bold" />
+                </div>
+                <p className={cn("text-2xl font-black leading-none", item.color)}>{item.value}</p>
+                <p className="mt-1 text-[11px] font-bold text-muted-foreground">{item.label}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <section className="rounded-[28px] border border-border/55 bg-card p-4 shadow-sm md:p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-base font-black text-foreground">Atividade recente</h2>
+          <button onClick={() => navigate("/dashboard/history?role=patient")} className="flex items-center gap-1 text-xs font-black text-primary">
+            Ver histórico <ArrowRight size={13} weight="bold" />
+          </button>
+        </div>
+        <div className="grid gap-2">
+          {(activities.length ? activities : [
+            { title: "Receita emitida", subtitle: "Seu histórico ficará disponível aqui", status: "Ativa", icon: FileText },
+            { title: "Exame enviado", subtitle: "Documentos recentes aparecem nesta área", status: "Concluído", icon: Pill },
+          ]).map((item: any, index: number) => {
+            const Icon = item.icon ?? (index === 0 ? FileText : Pill);
+            return (
+              <button key={item.id ?? item.title ?? index} onClick={() => navigate("/dashboard/history?role=patient")} className="group flex w-full items-center gap-3 rounded-2xl border border-border/40 bg-background p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm">
+                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-600 transition group-hover:scale-105">
+                  <Icon size={20} weight="bold" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-black text-foreground">{item.title ?? item.type ?? "Atividade"}</p>
+                  <p className="truncate text-xs text-muted-foreground">{item.subtitle ?? item.description ?? "Atualização recente"}</p>
+                </div>
+                <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black text-emerald-700">{item.status ?? "Ativa"}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+    </div>
   );
 };
 
