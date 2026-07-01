@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 
 export interface PillAction {
   label: string;
-  icon: string;
+  icon: ReactNode;
   iconBg: string;
   path: string;
   badge?: number;
@@ -20,7 +21,7 @@ export function ActionPills({ actions, title }: ActionPillsProps) {
   return (
     <div>
       {title && <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/60">{title}</p>}
-      <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none md:flex-wrap md:overflow-visible md:pb-0 -mx-1 px-1">
+      <div className="flex flex-wrap gap-2.5 pb-1.5 md:pb-0 -mx-1 px-1">
         {actions.map((a, i) => (
           <motion.button
             key={a.label}
@@ -30,7 +31,7 @@ export function ActionPills({ actions, title }: ActionPillsProps) {
             whileTap={{ scale: 0.9 }}
             whileHover={{ y: -2, scale: 1.03 }}
             onClick={() => navigate(a.path)}
-            className="relative flex shrink-0 items-center gap-2.5 rounded-[24px] border border-border/20 bg-card px-3.5 py-3 shadow-[0_4px_12px_-4px_rgba(0,0,0,0.08)] transition-all duration-300 hover:shadow-lg hover:border-border/40 active:scale-95 dark:hover:shadow-[0_4px_16px_rgba(0,0,0,.2)]"
+            className="app-card group relative flex shrink-0 items-center gap-2.5 rounded-[24px] px-3.5 py-3 active:scale-95"
           >
             <div className={cn(
               "flex h-8 w-8 items-center justify-center rounded-[12px] text-[15px] flex-shrink-0 transition-transform duration-200 group-hover:scale-110",

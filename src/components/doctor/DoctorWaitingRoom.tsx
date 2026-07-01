@@ -6,11 +6,11 @@ import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getDoctorNav } from "./doctorNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
- import { UserPlus, UserCheck, AlertTriangle, Video, Clock, Bell, RefreshCw, HeartPulse, ChevronRight, Zap } from "lucide-react";
+ import { UserPlus, UserCheck, AlertTriangle, Video, Clock, Bell, RefreshCw, HeartPulse, Zap } from "lucide-react";
  import { format, formatDistanceToNow } from "date-fns";
  import { ptBR } from "date-fns/locale";
- import { toast } from "sonner";
- import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+import DoctorAppHeader from "./DoctorAppHeader";
 
 const typeLabel: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   first_visit: { label: "1ª Consulta", icon: <UserPlus className="w-3 h-3" />, color: "bg-blue-500/10 text-blue-700 border-blue-200" },
@@ -207,9 +207,31 @@ const DoctorWaitingRoom = () => {
 
   return (
     <DashboardLayout title="Médico" nav={getDoctorNav("waiting-room")}>
-      <div className="w-full mx-auto max-w-3xl pb-24 md:pb-6 space-y-5">
+      <div className="w-full mx-auto max-w-4xl pb-24 md:pb-6 space-y-5">
+        <DoctorAppHeader
+          eyebrow="Sala ao vivo"
+          title="Sala de espera"
+          description="Priorize pacientes, acompanhe triagem e entre na consulta com um toque."
+          icon={Zap}
+          stats={[
+            { label: "Aguardando", value: waitingCount },
+            { label: "Em atendimento", value: inProgressCount },
+            { label: "Media", value: `~${avgDuration}m` },
+            { label: "Alertas", value: criticalCount },
+          ]}
+          actions={
+            <Button
+              size="sm"
+              onClick={() => doctorId && fetchWaitingPatients(doctorId)}
+              className="h-10 rounded-2xl bg-emerald-600 px-4 text-xs font-black text-white hover:bg-emerald-700"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Atualizar
+            </Button>
+          }
+        />
         {/* Premium header */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 p-5 text-white" style={{ boxShadow: "0 8px 32px rgba(180,100,0,0.25)" }}>
+        <div className="hidden">
           <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
           <div className="relative z-10 flex items-start justify-between gap-3">
             <div>

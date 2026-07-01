@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, Camera, Save, Trash2, AlertTriangle, ChevronRight, User, Clock, Bell, HelpCircle, LogOut, Shield, Heart, Pencil, ShieldCheck, Upload } from "lucide-react";
+import { ArrowLeft, Camera, Save, Trash2, AlertTriangle, ChevronRight, User, Bell, HelpCircle, LogOut, Shield, Heart, Pencil, ShieldCheck, Stethoscope, BadgeCheck, Wallet, Video, Globe2, CalendarDays, Sparkles, Timer, ClipboardCheck } from "lucide-react";
 import KycCrossDevice from "@/components/kyc/KycCrossDevice";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getDoctorNav } from "@/components/doctor/doctorNav";
@@ -37,6 +39,12 @@ function getNavForRole(role: string) {
     default: return [];
   }
 }
+
+const doctorTypeLabels: Record<string, string> = {
+  telemedicina: "Telemedicina",
+  oftalmologia: "Oftalmologia",
+  laudista: "Laudista",
+};
 
 const KYC_PENDING_KEY = "aloclinica_kyc_pending";
 
@@ -86,9 +94,19 @@ const UserProfile = () => {
   // Doctor fields
   const [bio, setBio] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [shortDescription, setShortDescription] = useState("");
   const [education, setEducation] = useState("");
+  const [crm, setCrm] = useState("");
+  const [crmState, setCrmState] = useState("");
+  const [crmVerified, setCrmVerified] = useState(false);
+  const [doctorType, setDoctorType] = useState("telemedicina");
   const [experienceYears, setExperienceYears] = useState(0);
   const [consultationPrice, setConsultationPrice] = useState(89);
+  const [consultationDuration, setConsultationDuration] = useState(30);
+  const [availableForTelemedicine, setAvailableForTelemedicine] = useState(true);
+  const [availableNow, setAvailableNow] = useState(false);
+  const [showInDirectory, setShowInDirectory] = useState(true);
+  const [autoConfirmBookings, setAutoConfirmBookings] = useState(true);
   const [priceMin, setPriceMin] = useState<number | null>(null);
   const [priceMax, setPriceMax] = useState<number | null>(null);
   const [doctorCareAreas, setDoctorCareAreas] = useState<string[]>([]);
@@ -130,14 +148,27 @@ const UserProfile = () => {
   }, [user]);
 
   const fetchDoctorProfile = async () => {
-    const { data } = await db.from("doctor_profiles").select("id, bio, education, experience_years, consultation_price, display_name, mp_user_id, mp_connected_at").eq("user_id", user!.id).single();
+    const { data } = await db.from("doctor_profiles")
+      .select("id, bio, education, experience_years, consultation_price, display_name, crm, crm_state, crm_verified, doctor_type, short_description, consultation_duration_min, available_for_telemedicine, available_now, show_in_directory, auto_confirm_bookings, mp_user_id, mp_connected_at")
+      .eq("user_id", user!.id)
+      .single();
     if (data) {
       setDoctorProfileId(data.id);
       setMpUserId((data as any).mp_user_id ?? null);
       setMpConnectedAt((data as any).mp_connected_at ?? null);
       setBio(data.bio || ""); setEducation(data.education || "");
       setDisplayName((data as any).display_name || "");
+      setShortDescription((data as any).short_description || "");
+      setCrm((data as any).crm || "");
+      setCrmState((data as any).crm_state || "");
+      setCrmVerified(!!(data as any).crm_verified);
+      setDoctorType((data as any).doctor_type || "telemedicina");
       setExperienceYears(data.experience_years || 0); setConsultationPrice(Number(data.consultation_price) || 89);
+      setConsultationDuration(Number((data as any).consultation_duration_min) || 30);
+      setAvailableForTelemedicine((data as any).available_for_telemedicine ?? true);
+      setAvailableNow(!!(data as any).available_now);
+      setShowInDirectory((data as any).show_in_directory ?? true);
+      setAutoConfirmBookings((data as any).auto_confirm_bookings ?? true);
       const [specRes, careRes] = await Promise.all([
         db.from("doctor_specialties").select("specialty_id").eq("doctor_id", data.id),
         db.from("doctor_care_areas" as any).select("area_name").eq("doctor_id", data.id),
@@ -184,7 +215,20 @@ const UserProfile = () => {
     if (isDoctor) {
       if (priceMin !== null && consultationPrice < priceMin) { toast.error(`Preço mínimo: R$ ${priceMin.toFixed(0)}`); setSaving(false); return; }
       if (priceMax !== null && consultationPrice > priceMax) { toast.error(`Preço máximo: R$ ${priceMax.toFixed(0)}`); setSaving(false); return; }
-      await db.from("doctor_profiles").update({ bio, education, experience_years: experienceYears, consultation_price: consultationPrice, display_name: displayName.trim() || null } as any).eq("user_id", user.id);
+      await db.from("doctor_profiles").update({
+        bio: bio.trim() || null,
+        education: education.trim() || null,
+        experience_years: experienceYears,
+        consultation_price: consultationPrice,
+        display_name: displayName.trim() || null,
+        short_description: shortDescription.trim() || null,
+        doctor_type: doctorType,
+        consultation_duration_min: consultationDuration,
+        available_for_telemedicine: availableForTelemedicine,
+        available_now: availableNow,
+        show_in_directory: showInDirectory,
+        auto_confirm_bookings: autoConfirmBookings,
+      } as any).eq("user_id", user.id);
     }
     setSaving(false);
     if (error) toast.error("Erro ao salvar", { description: error.message });
@@ -211,6 +255,13 @@ const UserProfile = () => {
 
   const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase();
   const isPatient = activeRole === "patient";
+  const doctorPublicName = displayName || `Dr(a). ${firstName} ${lastName}`.trim();
+  const doctorSummary = shortDescription || bio || "Complete sua apresentação para aumentar a confiança dos pacientes.";
+  const doctorBadges = [
+    { icon: BadgeCheck, label: crm ? `CRM ${crm}/${crmState || "--"}` : "CRM pendente", tone: crmVerified ? "text-emerald-600 bg-emerald-500/10 border-emerald-500/20" : "text-amber-600 bg-amber-500/10 border-amber-500/20" },
+    { icon: Video, label: availableForTelemedicine ? "Teleconsulta ativa" : "Teleconsulta desativada", tone: availableForTelemedicine ? "text-sky-700 bg-sky-500/10 border-sky-500/20" : "text-muted-foreground bg-muted border-border" },
+    { icon: Globe2, label: showInDirectory ? "Visível no app" : "Oculto no app", tone: showInDirectory ? "text-primary bg-primary/10 border-primary/20" : "text-muted-foreground bg-muted border-border" },
+  ];
 
   const handleKycSessionCreated = () => {
     localStorage.removeItem(KYC_PENDING_KEY);
@@ -231,13 +282,14 @@ const UserProfile = () => {
   if (!editMode) {
     return (
       <DashboardLayout title={roleLabels[activeRole] ?? "Perfil"} nav={nav} role={activeRole}>
-        <div className="max-w-2xl mx-auto pb-24 md:pb-6">
+        <div className="max-w-5xl mx-auto pb-24 md:pb-6">
           <button onClick={() => navigate(`/dashboard?role=${activeRole}`)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
             <ArrowLeft className="w-4 h-4" /> Voltar
           </button>
           {/* Profile Header Card */}
-          <div className="rounded-2xl bg-gradient-to-b from-primary/5 to-transparent p-6 pb-8 text-center mb-6">
-            <div className="relative inline-block mb-4">
+          <div className="relative overflow-hidden rounded-[2rem] border border-border/50 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.16),transparent_34%),linear-gradient(135deg,hsl(var(--card)),hsl(var(--muted)/0.55))] p-6 shadow-sm mb-6">
+            <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
+            <div className="relative inline-block shrink-0">
               <Avatar className="w-24 h-24 border-4 border-background shadow-lg">
                 <AvatarImage src={avatarUrl ?? undefined} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">{initials}</AvatarFallback>
@@ -247,7 +299,8 @@ const UserProfile = () => {
                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploading} />
               </label>
             </div>
-          <h2 className="text-xl font-extrabold text-foreground font-[Manrope] flex items-center justify-center gap-2">
+            <div className="min-w-0 flex-1">
+          <h2 className="text-2xl font-extrabold text-foreground font-[Manrope] flex items-center justify-center gap-2 sm:justify-start">
               {firstName} {lastName}
             </h2>
             <p className="text-sm text-muted-foreground mb-2">{user?.email}</p>
@@ -274,7 +327,7 @@ const UserProfile = () => {
               </motion.button>
             )}
             {isPatient && (
-              <div className="flex justify-center gap-3 mt-4">
+              <div className="flex justify-center gap-3 mt-4 sm:justify-start">
                 {bloodType && (
                   <div className="px-4 py-2 rounded-xl bg-card border border-border/30 text-center">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Tipo Sanguíneo</p>
@@ -287,7 +340,52 @@ const UserProfile = () => {
                 </div>
               </div>
             )}
+            </div>
+            </div>
           </div>
+
+          {false && <div className="mb-6 grid gap-3 md:grid-cols-3">
+            <motion.button
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              onClick={() => setEditMode(true)}
+              className="group rounded-3xl border border-border/50 bg-card p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+                <Pencil className="h-5 w-5" />
+              </div>
+              <p className="font-[Manrope] text-base font-extrabold text-foreground">Dados do perfil</p>
+              <p className="mt-1 text-sm leading-5 text-muted-foreground">Atualize foto, telefone, cidade e informações principais.</p>
+            </motion.button>
+
+            <motion.button
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.04 }}
+              onClick={() => isPatient && !kycVerified ? setShowKyc(true) : navigate(`/dashboard/settings?role=${activeRole}&tab=security`)}
+              className="group rounded-3xl border border-border/50 bg-card p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-2xl transition ${kycVerified ? "bg-emerald-500/10 text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white" : "bg-amber-500/10 text-amber-600 group-hover:bg-amber-500 group-hover:text-white"}`}>
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <p className="font-[Manrope] text-base font-extrabold text-foreground">{kycVerified ? "Conta verificada" : "Verificação pendente"}</p>
+              <p className="mt-1 text-sm leading-5 text-muted-foreground">{kycVerified ? "Sua identidade está validada para usar os recursos." : "Complete a validação para liberar toda a experiência."}</p>
+            </motion.button>
+
+            <motion.button
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 }}
+              onClick={() => navigate(`/dashboard/settings?role=${activeRole}&tab=notifications`)}
+              className="group rounded-3xl border border-border/50 bg-card p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-600 transition group-hover:bg-sky-500 group-hover:text-white">
+                <Bell className="h-5 w-5" />
+              </div>
+              <p className="font-[Manrope] text-base font-extrabold text-foreground">Preferências</p>
+              <p className="mt-1 text-sm leading-5 text-muted-foreground">Configure notificações, segurança e alertas do app.</p>
+            </motion.button>
+          </div>}
 
           {/* KYC via Didit */}
           {showKyc && isPatient && (
@@ -302,9 +400,105 @@ const UserProfile = () => {
             </motion.div>
           )}
 
+          {isDoctor && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 overflow-hidden rounded-[1.75rem] border border-border/50 bg-card shadow-sm"
+            >
+              <div className="grid gap-0 lg:grid-cols-[1.25fr_0.75fr]">
+                <div className="p-5 sm:p-6">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-bold text-primary">
+                        <Stethoscope className="h-3.5 w-3.5" />
+                        Perfil médico
+                      </div>
+                      <h3 className="font-[Manrope] text-2xl font-extrabold tracking-tight text-foreground">
+                        {doctorPublicName}
+                      </h3>
+                      <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                        {doctorSummary}
+                      </p>
+                    </div>
+                    <Button onClick={() => setEditMode(true)} className="h-11 rounded-2xl gap-2">
+                      <Pencil className="h-4 w-4" />
+                      Editar dados
+                    </Button>
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {doctorBadges.map((item) => (
+                      <span key={item.label} className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold ${item.tone}`}>
+                        <item.icon className="h-3.5 w-3.5" />
+                        {item.label}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-2xl border border-border/50 bg-muted/20 p-4">
+                      <Wallet className="mb-3 h-5 w-5 text-primary" />
+                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">Consulta</p>
+                      <p className="mt-1 text-xl font-extrabold text-foreground">R$ {consultationPrice}</p>
+                    </div>
+                    <div className="rounded-2xl border border-border/50 bg-muted/20 p-4">
+                      <Timer className="mb-3 h-5 w-5 text-primary" />
+                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">Duração</p>
+                      <p className="mt-1 text-xl font-extrabold text-foreground">{consultationDuration} min</p>
+                    </div>
+                    <div className="rounded-2xl border border-border/50 bg-muted/20 p-4">
+                      <CalendarDays className="mb-3 h-5 w-5 text-primary" />
+                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">Agendamento</p>
+                      <p className="mt-1 text-sm font-bold text-foreground">{autoConfirmBookings ? "Confirmação automática" : "Aprovação manual"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-border/50 bg-gradient-to-br from-primary/8 via-background to-emerald-500/8 p-5 sm:p-6 lg:border-l lg:border-t-0">
+                  <div className="rounded-3xl border border-background/80 bg-background/80 p-4 shadow-sm backdrop-blur">
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary text-primary-foreground">
+                        <Sparkles className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-extrabold text-foreground">Checklist do perfil</p>
+                        <p className="text-xs text-muted-foreground">Itens que melhoram a conversão no app.</p>
+                      </div>
+                    </div>
+                    <div className="mt-4 space-y-3">
+                      {[
+                        { label: "Foto profissional", done: !!avatarUrl },
+                        { label: "Descrição curta", done: !!shortDescription },
+                        { label: "Bio detalhada", done: !!bio },
+                        { label: "Áreas atendidas", done: doctorCareAreas.length > 0 },
+                        { label: "Recebimento conectado", done: !!mpUserId },
+                      ].map((item) => (
+                        <div key={item.label} className="flex items-center justify-between gap-3 rounded-2xl bg-muted/30 px-3 py-2">
+                          <span className="text-sm font-medium text-foreground">{item.label}</span>
+                          <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full ${item.done ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"}`}>
+                            <ClipboardCheck className="h-3.5 w-3.5" />
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <Button variant="outline" onClick={() => navigate(`/dashboard/doctor/calendar?role=doctor`)} className="mt-4 h-11 w-full rounded-2xl gap-2">
+                      <CalendarDays className="h-4 w-4" />
+                      Configurar agenda
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           {/* Menu Items */}
-          <div className="rounded-2xl bg-card border border-border/30 overflow-hidden mb-6">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60 px-5 pt-4 pb-2">
+          <div className="rounded-[1.75rem] bg-card border border-border/50 overflow-hidden mb-6 shadow-sm">
+            <div className="border-b border-border/40 px-5 py-4">
+              <h3 className="font-[Manrope] text-lg font-extrabold text-foreground">Ações da conta</h3>
+              <p className="text-sm text-muted-foreground">Edite seus dados, alertas, segurança e suporte em um só lugar.</p>
+            </div>
+            <h3 className="hidden text-xs font-bold uppercase tracking-widest text-muted-foreground/60 px-5 pt-4 pb-2">
               {isPatient ? "Configurações e Segurança" : "Minha Conta"}
             </h3>
             {menuItems.map((item, i) => (
@@ -314,16 +508,18 @@ const UserProfile = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.04 }}
                 onClick={item.action}
-                className="w-full flex items-center gap-4 px-5 py-4 hover:bg-muted/30 transition-colors text-left"
+                className="group w-full flex items-center gap-4 px-5 py-4 hover:bg-muted/40 transition-colors text-left border-t border-border/40 first:border-t-0"
               >
-                <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
                   <item.icon className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground">{item.label}</p>
-                  <p className="text-xs text-muted-foreground">{item.desc}</p>
+                  <p className="text-sm font-extrabold text-foreground">{item.label}</p>
+                  <p className="text-xs leading-5 text-muted-foreground">{item.desc}</p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground/30 shrink-0" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground transition group-hover:bg-primary group-hover:text-primary-foreground">
+                  <ChevronRight className="w-4 h-4 shrink-0" />
+                </div>
               </motion.button>
             ))}
           </div>
@@ -342,12 +538,49 @@ const UserProfile = () => {
             </div>
           </button>
 
+          <motion.section
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.18 }}
+            className="mb-6 rounded-[1.75rem] border border-border/50 bg-card p-5 shadow-sm"
+          >
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h3 className="font-[Manrope] text-lg font-extrabold text-foreground">Conta e segurança</h3>
+                <p className="text-sm text-muted-foreground">Resumo dos dados usados para acesso, validação e suporte.</p>
+              </div>
+              <Button variant="outline" size="sm" className="rounded-2xl" onClick={() => navigate(`/dashboard/settings?role=${activeRole}&tab=security`)}>
+                Segurança
+              </Button>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-2xl border border-border/50 bg-muted/20 p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Membro desde</p>
+                <p className="mt-2 text-sm font-extrabold text-foreground">{user?.created_at ? new Date(user.created_at).toLocaleDateString("pt-BR", { month: "long", year: "numeric" }) : "Não informado"}</p>
+              </div>
+              <div className="rounded-2xl border border-border/50 bg-muted/20 p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Perfil atual</p>
+                <p className="mt-2 text-sm font-extrabold text-foreground">{roleLabels[activeRole] ?? activeRole}</p>
+              </div>
+              <div className="rounded-2xl border border-border/50 bg-muted/20 p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">CPF</p>
+                <p className="mt-2 font-mono text-sm font-extrabold text-foreground">{cpf ? `***.***.***-${cpf.replace(/\D/g, "").slice(-2)}` : "Não informado"}</p>
+              </div>
+              <div className="rounded-2xl border border-border/50 bg-muted/20 p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Validação</p>
+                <p className={`mt-2 text-sm font-extrabold ${kycVerified ? "text-emerald-600" : "text-amber-600"}`}>
+                  {kycVerified ? "Verificado" : "Pendente"}
+                </p>
+              </div>
+            </div>
+          </motion.section>
+
           {/* Account Info Card */}
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="rounded-2xl border border-border/30 bg-card p-5 mb-6"
+            className="hidden rounded-2xl border border-border/30 bg-card p-5 mb-6"
           >
             <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60 mb-3">
               Informações da Conta
@@ -386,7 +619,41 @@ const UserProfile = () => {
           </motion.div>
 
           {/* Saúde em Foco Card */}
-          <motion.div
+          {isPatient && (
+            <motion.section
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.24 }}
+              className="mb-6 overflow-hidden rounded-[1.75rem] border border-primary/15 bg-primary text-primary-foreground shadow-lg shadow-primary/15"
+            >
+              <div className="grid gap-0 md:grid-cols-[1fr_auto]">
+                <div className="p-5">
+                  <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary-foreground/10 px-3 py-1 text-xs font-bold">
+                    <Heart className="h-3.5 w-3.5" />
+                    Próximos passos
+                  </div>
+                  <h3 className="font-[Manrope] text-xl font-extrabold">Deixe seu perfil pronto para atendimento</h3>
+                  <p className="mt-2 max-w-xl text-sm leading-6 text-primary-foreground/75">
+                    Complete a verificação e mantenha seus dados atualizados para agilizar consultas, pagamentos e suporte.
+                  </p>
+                </div>
+                <div className="grid min-w-[260px] gap-2 border-t border-primary-foreground/10 p-5 md:border-l md:border-t-0">
+                  {[
+                    { label: "Identidade", done: kycVerified },
+                    { label: "Telefone", done: !!phone },
+                    { label: "Cidade", done: !!city && !!state },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center justify-between rounded-2xl bg-primary-foreground/10 px-3 py-2">
+                      <span className="text-sm font-bold">{item.label}</span>
+                      <span className="text-xs font-bold">{item.done ? "Completo" : "Pendente"}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.section>
+          )}
+
+          {false && isPatient && <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
@@ -411,7 +678,7 @@ const UserProfile = () => {
                 className="h-full rounded-full bg-primary-foreground"
               />
             </div>
-          </motion.div>
+          </motion.div>}
 
           {/* Version footer */}
           <p className="text-center text-[10px] font-medium text-muted-foreground/30 tracking-[0.2em] uppercase mb-2">
@@ -547,16 +814,52 @@ const UserProfile = () => {
 
         {/* Doctor fields */}
         {isDoctor && (
-          <Card className="mb-6">
-            <CardHeader><CardTitle className="text-lg">Perfil Profissional</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
+          <Card className="mb-6 overflow-hidden rounded-[1.75rem] border-border/60 shadow-sm">
+            <CardHeader className="border-b border-border/50 bg-muted/20">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Stethoscope className="h-5 w-5 text-primary" />
+                Configurações do app médico
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">Defina como seu perfil aparece para pacientes e como sua agenda opera.</p>
+            </CardHeader>
+            <CardContent className="space-y-5 p-5 sm:p-6">
               <div>
                 <Label>Nome de exibição</Label>
                 <Input value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Ex: Dr. João, Dra. Maria" className="mt-1 h-11 rounded-xl" />
                 <p className="text-[11px] text-muted-foreground mt-0.5">Nome que pacientes verão ao buscar médicos.</p>
               </div>
-              <div><Label>Bio</Label><textarea value={bio} onChange={e => setBio(e.target.value)} className="mt-1 w-full rounded-xl border border-input bg-muted/30 px-3 py-2 text-sm" rows={3} /></div>
-              <div><Label>Formação</Label><Input value={education} onChange={e => setEducation(e.target.value)} className="mt-1 h-11 rounded-xl" /></div>
+              <div>
+                <Label>Bio</Label>
+                <Textarea value={bio} onChange={e => setBio(e.target.value)} className="mt-1 min-h-28 rounded-xl bg-muted/30" placeholder="Conte sua experiência, sua forma de atendimento e os principais cuidados que oferece." />
+              </div>
+              <div>
+                <Label>Formação</Label>
+                <Textarea value={education} onChange={e => setEducation(e.target.value)} className="mt-1 min-h-20 rounded-xl bg-muted/30" placeholder="Universidade, residência, pós-graduação, certificações e cursos relevantes." />
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <Label>Registro profissional</Label>
+                  <div className="mt-1 grid grid-cols-[1fr_76px] gap-2">
+                    <Input value={crm} disabled className="h-11 rounded-xl bg-muted/30" />
+                    <Input value={crmState} disabled className="h-11 rounded-xl bg-muted/30 text-center uppercase" />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{crmVerified ? "CRM validado pela plataforma." : "CRM em validação pela plataforma."}</p>
+                </div>
+                <div>
+                  <Label>Tipo de atuação</Label>
+                  <select value={doctorType} onChange={e => setDoctorType(e.target.value)} className="mt-1 h-11 w-full rounded-xl border border-input bg-muted/30 px-3 text-sm">
+                    <option value="telemedicina">Telemedicina</option>
+                    <option value="oftalmologia">Oftalmologia</option>
+                    <option value="laudista">Laudista</option>
+                  </select>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{doctorTypeLabels[doctorType] ?? "Atuação médica"}</p>
+                </div>
+              </div>
+              <div>
+                <Label>Chamada curta</Label>
+                <Input value={shortDescription} onChange={e => setShortDescription(e.target.value)} placeholder="Ex: Atendimento rápido, claro e humanizado" className="mt-1 h-11 rounded-xl" maxLength={140} />
+                <p className="text-[11px] text-muted-foreground mt-0.5">{shortDescription.length}/140 caracteres exibidos no cartão do médico.</p>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div><Label>Anos de Experiência</Label><Input type="number" value={experienceYears} onChange={e => setExperienceYears(Number(e.target.value))} className="mt-1 h-11 rounded-xl" min={0} /></div>
                 <div>
@@ -564,6 +867,31 @@ const UserProfile = () => {
                   <Input type="number" value={consultationPrice} onChange={e => setConsultationPrice(Number(e.target.value))} className="mt-1 h-11 rounded-xl" min={priceMin ?? 0} max={priceMax ?? undefined} />
                   {(priceMin !== null || priceMax !== null) && <p className="text-xs text-muted-foreground mt-1">R$ {priceMin?.toFixed(0) ?? "—"} ~ R$ {priceMax?.toFixed(0) ?? "—"}</p>}
                 </div>
+              </div>
+              <div>
+                <Label>Duração padrão da consulta</Label>
+                <Input type="number" value={consultationDuration} onChange={e => setConsultationDuration(Number(e.target.value))} className="mt-1 h-11 rounded-xl" min={10} step={5} />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  { label: "Aparecer no app dos pacientes", desc: "Exibe seu perfil na busca e nas recomendações.", checked: showInDirectory, onChange: setShowInDirectory, icon: Globe2 },
+                  { label: "Atender por teleconsulta", desc: "Permite consultas online dentro da plataforma.", checked: availableForTelemedicine, onChange: setAvailableForTelemedicine, icon: Video },
+                  { label: "Entrar no plantão agora", desc: "Mostra disponibilidade imediata quando houver demanda.", checked: availableNow, onChange: setAvailableNow, icon: Sparkles },
+                  { label: "Confirmar agenda automaticamente", desc: "Reduz etapas quando o paciente agenda um horário livre.", checked: autoConfirmBookings, onChange: setAutoConfirmBookings, icon: CalendarDays },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center justify-between gap-4 rounded-2xl border border-border/50 bg-muted/20 p-4">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                        <item.icon className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-foreground">{item.label}</p>
+                        <p className="text-xs leading-5 text-muted-foreground">{item.desc}</p>
+                      </div>
+                    </div>
+                    <Switch checked={item.checked} onCheckedChange={item.onChange} />
+                  </div>
+                ))}
               </div>
               {/* Care Areas */}
               <div>

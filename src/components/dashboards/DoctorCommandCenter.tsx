@@ -39,21 +39,26 @@ const DoctorCommandCenter = memo(({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="relative overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 shadow-[0_24px_50px_-12px_rgba(15,23,42,0.6),inset_0_1px_1px_rgba(255,255,255,0.05)] text-white"
+      className="relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 shadow-[0_28px_72px_-34px_rgba(15,23,42,0.86),inset_0_1px_1px_rgba(255,255,255,0.08)] text-white"
     >
-      {/* Animated mesh background */}
       <div className="pointer-events-none absolute inset-0">
         <div className={cn(
-          "absolute -top-24 -right-16 h-72 w-72 rounded-full blur-3xl transition-colors duration-700",
-          isOnline ? "bg-emerald-500/25" : "bg-slate-700/30"
+          "absolute inset-0 transition-colors duration-700",
+          isOnline
+            ? "bg-[linear-gradient(120deg,rgba(16,185,129,0.16)_0%,transparent_36%,rgba(34,211,238,0.12)_100%)]"
+            : "bg-[linear-gradient(120deg,rgba(148,163,184,0.12)_0%,transparent_44%,rgba(51,65,85,0.16)_100%)]"
         )} />
-        <div className="absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-40 w-[60%] rounded-full bg-cyan-400/10 blur-3xl" />
+        <motion.div
+          className="absolute inset-y-0 -left-1/3 w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/8 to-transparent blur-sm"
+          animate={{ x: ["0%", "285%"] }}
+          transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 2 }}
+        />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/45 to-transparent" />
       </div>
       {/* grid overlay */}
       <div className="pointer-events-none absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "24px 24px" }} />
       {/* top live bar */}
-      <div className="relative flex items-center gap-2 px-5 py-2 border-b border-white/10 bg-white/[0.02]">
+      <div className="relative flex items-center gap-2 px-4 py-2.5 border-b border-white/10 bg-white/[0.03] md:px-5">
         <span className="relative flex h-2 w-2">
           <span className={cn("absolute inline-flex h-full w-full animate-ping rounded-full opacity-75", isOnline ? "bg-emerald-400" : "bg-slate-500")} />
           <span className={cn("relative inline-flex h-2 w-2 rounded-full", isOnline ? "bg-emerald-400" : "bg-slate-400")} />
@@ -68,7 +73,7 @@ const DoctorCommandCenter = memo(({
         <div className="p-4 md:p-5 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className={cn(
-              "relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all backdrop-blur-md ring-1",
+              "relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-all backdrop-blur-md ring-1 md:h-12 md:w-12",
               isOnline
                 ? "bg-emerald-500/20 text-emerald-300 ring-emerald-400/30 shadow-[0_0_24px_-4px_rgba(16,185,129,0.6)]"
                 : "bg-white/5 text-white/60 ring-white/10"
@@ -119,7 +124,7 @@ const DoctorCommandCenter = memo(({
               <p className="font-extrabold text-sm text-white truncate">{nextAppt.patient_name}</p>
               <div className="flex items-baseline gap-1.5 mt-0.5">
                 <span className={cn(
-                  "text-2xl font-black tabular-nums leading-none tracking-tight",
+                  "text-xl font-black tabular-nums leading-none tracking-tight md:text-2xl",
                   imminent ? "text-amber-300" : "text-cyan-300"
                 )}>{countdown}</span>
                 <span className="text-[11px] text-white/60 font-medium">
@@ -170,7 +175,7 @@ const DoctorCommandCenter = memo(({
             <div>
               <div className="flex items-baseline gap-1">
                 <span className={cn(
-                  "text-3xl font-black tabular-nums leading-none tracking-tight",
+                  "text-2xl font-black tabular-nums leading-none tracking-tight md:text-3xl",
                   waitingCount > 0 ? "text-emerald-300" : "text-white/40"
                 )}>{waitingCount}</span>
                 <span className="text-[11px] text-white/60 font-medium">aguardando</span>

@@ -40,15 +40,19 @@ export function HeroBanner({
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-b-[42px] md:rounded-[48px] bg-gradient-to-br ring-1 ring-white/10",
+        "relative overflow-hidden rounded-b-[34px] md:rounded-[34px] bg-gradient-to-br ring-1 ring-white/10",
         gradient, className
       )}
-      style={{ boxShadow: "0 30px 80px -24px rgba(15, 42, 90, 0.45), inset 0 1px 0 rgba(255,255,255,.22)" }}
+      style={{ boxShadow: "0 22px 54px -28px rgba(15, 42, 90, 0.45), inset 0 1px 0 rgba(255,255,255,.22)" }}
     >
-      {/* Mesh light orbs */}
-      <div className="pointer-events-none absolute -right-24 -top-24 h-[460px] w-[460px] rounded-full bg-[hsl(168,70%,55%)]/30 blur-[130px]" />
-      <div className="pointer-events-none absolute -left-20 -bottom-28 h-[360px] w-[360px] rounded-full bg-white/12 blur-[110px]" />
-      <div className="pointer-events-none absolute right-1/3 top-1/4 h-44 w-44 rounded-full bg-white/[0.07] blur-[44px]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,rgba(255,255,255,0.18)_0%,transparent_38%,rgba(255,255,255,0.08)_100%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-white/14 to-transparent" />
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-sm"
+        animate={{ x: ["0%", "280%"] }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", repeatDelay: 2 }}
+      />
       {/* Top shine */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
       {/* Soft bottom fade for legibility */}
@@ -60,7 +64,7 @@ export function HeroBanner({
           backgroundSize: "28px 28px"
         }} />
 
-      <div className="relative z-10 px-6 pt-7 pb-1 md:px-9 md:pt-9">
+      <div className="relative z-10 px-5 pt-5 pb-1 md:px-8 md:pt-7">
         {/* Top actions row */}
         <div className="flex items-center justify-between gap-2 mb-2">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/90 shadow-sm">
@@ -85,8 +89,8 @@ export function HeroBanner({
                 initial={{ opacity: 0, y: -12, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                className="relative mb-5 inline-block rounded-[28px] rounded-bl-[8px] border border-white/40 bg-white/95 dark:bg-white/95 backdrop-blur-xl px-6 py-4 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)]"
-                style={{ maxWidth: "min(280px, 72vw)" }}
+                className="relative mb-4 inline-block rounded-[22px] rounded-bl-[8px] border border-white/45 bg-white/95 dark:bg-white/95 backdrop-blur-xl px-4 py-3 shadow-[0_16px_42px_-20px_rgba(0,0,0,0.38)]"
+                style={{ maxWidth: "min(340px, 74vw)" }}
               >
                 {bubble.greeting && (
                   <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-[hsl(215,75%,32%)] leading-none">
@@ -94,12 +98,12 @@ export function HeroBanner({
                   </p>
                 )}
                 {bubble.name && (
-                  <p className="mt-1.5 text-[18px] font-black tracking-[-0.01em] text-[hsl(215,80%,16%)] leading-[1.15] md:text-[21px]">
+                  <p className="mt-1.5 text-[17px] font-black tracking-[-0.01em] text-[hsl(215,80%,16%)] leading-[1.15] md:text-[21px]">
                     {bubble.name}
                   </p>
                 )}
                 {bubble.sub && (
-                  <p className="mt-2.5 flex items-center gap-1.5 text-[11.5px] text-slate-600/90 font-bold">
+                  <p className="mt-2 flex items-center gap-1.5 text-[11.5px] text-slate-600/90 font-bold">
                     {liveDot && <LiveDotEl />}
                     {bubble.sub}
                   </p>
@@ -120,13 +124,13 @@ export function HeroBanner({
             )}
           </div>
 
-          {/* RIGHT: Pingo mascot with halo */}
+          {/* RIGHT: Pingo mascot */}
           <motion.div className="relative shrink-0 -mb-2">
-            <div className="pointer-events-none absolute inset-0 -z-0 m-auto h-[140px] w-[140px] rounded-full bg-white/15 blur-2xl md:h-[180px] md:w-[180px]" />
+            <div className="pointer-events-none absolute inset-x-3 bottom-3 h-px bg-white/40" />
             <motion.img
               src={pingoSrc} alt={pingoAlt} draggable={false}
-              className="relative select-none object-contain w-[120px] h-[120px] md:w-[160px] md:h-[160px]"
-              style={{ filter: "drop-shadow(0 18px 36px rgba(0,0,0,.35))" }}
+              className="relative select-none object-contain w-[96px] h-[96px] md:w-[138px] md:h-[138px]"
+              style={{ filter: "drop-shadow(0 14px 28px rgba(0,0,0,.32))" }}
               initial={{ opacity: 0, scale: 0.6, y: 24 }}
               animate={{ opacity: 1, scale: 1, y: [0, -10, 0] }}
               transition={{
@@ -144,17 +148,25 @@ export function HeroBanner({
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-4 -mx-1 flex overflow-x-auto rounded-[28px] border border-white/30 bg-white/[0.15] backdrop-blur-2xl scrollbar-none md:grid md:overflow-visible"
+            className="mt-3 -mx-1 flex overflow-x-auto rounded-[22px] border border-white/28 bg-white/[0.14] backdrop-blur-2xl scrollbar-none md:grid md:overflow-visible"
             style={{
               gridTemplateColumns: kpis.length > 3 ? `repeat(${kpis.length}, 1fr)` : undefined,
               boxShadow: "0 20px 48px -12px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.4), inset 0 -1px 0 rgba(0,0,0,.05)"
             }}
           >
             {loading
-              ? Array.from({ length: kpis.length }).map((_, i) => (
-                  <div key={i} className="flex-shrink-0 flex-1 animate-pulse px-4 py-4 min-w-[78px]">
-                    <div className="mx-auto h-6 w-12 rounded-lg bg-white/20" />
-                    <div className="mx-auto mt-1.5 h-2 w-10 rounded bg-white/15" />
+              ? kpis.map((k, i) => (
+                  <div
+                    key={k.label}
+                    className={cn(
+                      "flex flex-shrink-0 flex-1 flex-col items-center px-4 py-3.5 min-w-[78px] md:min-w-0",
+                      i < kpis.length - 1 && "border-r border-white/20"
+                    )}
+                  >
+                    <div className="h-6 min-w-8 rounded-lg bg-white/18 px-2 text-center text-[18px] font-black leading-6 text-white/70">--</div>
+                    <p className="mt-2 text-[9px] font-extrabold uppercase tracking-[0.22em] text-white/65 md:text-[10px]">
+                      {k.label}
+                    </p>
                   </div>
                 ))
               : kpis.map((k, i) => (
@@ -164,11 +176,11 @@ export function HeroBanner({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 + i * 0.08, duration: 0.4 }}
                     className={cn(
-                      "flex flex-1 flex-col items-center px-4 py-5 flex-shrink-0 min-w-[78px] md:min-w-0 transition-colors hover:bg-white/10 group/kpi",
+                      "flex flex-1 flex-col items-center px-4 py-3.5 flex-shrink-0 min-w-[78px] md:min-w-0 transition-colors hover:bg-white/10 group/kpi",
                       i < kpis.length - 1 && "border-r border-white/20"
                     )}
                   >
-                    <p className="text-[22px] font-black leading-none tabular-nums text-white tracking-[-0.02em] md:text-[28px] drop-shadow-[0_2px_12px_rgba(0,0,0,0.3)] transition-transform duration-300 group-hover/kpi:scale-110">
+                    <p className="text-[20px] font-black leading-none tabular-nums text-white tracking-[-0.02em] md:text-[26px] drop-shadow-[0_2px_12px_rgba(0,0,0,0.3)] transition-transform duration-300 group-hover/kpi:scale-110">
                       {k.value}
                     </p>
                     <p className="mt-2 text-[9px] font-extrabold uppercase tracking-[0.22em] text-white/75 md:text-[10px]">
@@ -179,7 +191,7 @@ export function HeroBanner({
           </motion.div>
         )}
 
-        <div className="h-5 md:h-7" />
+        <div className="h-4 md:h-6" />
       </div>
     </section>
   );

@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import NoShowBadge from "./NoShowBadge";
+import DoctorAppHeader from "./DoctorAppHeader";
 
 const statusColor: Record<string, string> = {
   scheduled: "bg-primary/10 text-primary border-primary/20",
@@ -200,8 +201,31 @@ const DoctorConsultations = () => {
   return (
     <DashboardLayout title="Médico" nav={getDoctorNav("consultations")}>
       <div className="w-full mx-auto max-w-5xl space-y-5 pb-24 md:pb-6">
+        <DoctorAppHeader
+          eyebrow="Consultas"
+          title="Central de consultas"
+          description="Encontre atendimentos, exporte relatorios e retome consultas com rapidez."
+          icon={Video}
+          stats={[
+            { label: "Agendadas", value: scheduledCount },
+            { label: "Concluidas", value: completedCount },
+            { label: "Total", value: appointments.length },
+            { label: "Filtradas", value: filtered.length },
+          ]}
+          actions={
+            <>
+              <Button variant="outline" size="sm" onClick={exportCSV} className="h-10 rounded-2xl px-4 text-xs font-black">
+                <Download className="mr-2 h-4 w-4" /> CSV
+              </Button>
+              <Button size="sm" onClick={exportPDF} className="h-10 rounded-2xl bg-emerald-600 px-4 text-xs font-black text-white hover:bg-emerald-700">
+                <FileText className="mr-2 h-4 w-4" /> PDF
+              </Button>
+            </>
+          }
+        />
+
         {/* Modern Header Section */}
-        <div className="flex flex-col gap-6">
+        <div className="hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button 

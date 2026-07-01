@@ -10,6 +10,7 @@ import { FileText, ArrowLeft, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import DoctorAppHeader from "./DoctorAppHeader";
 
 import type { Json } from "@/integrations/supabase/types";
 
@@ -73,8 +74,25 @@ const DoctorPrescriptions = () => {
   return (
     <DashboardLayout title="Médico" nav={getDoctorNav("prescriptions")}>
       <div className="w-full mx-auto max-w-4xl space-y-6 pb-24 md:pb-6">
+        <DoctorAppHeader
+          eyebrow="Prescricoes"
+          title="Receitas digitais"
+          description="Emita, acompanhe e consulte prescricoes com uma experiencia mais rapida."
+          icon={FileText}
+          stats={[
+            { label: "Receitas", value: prescriptions.length },
+            { label: "Medicamentos", value: prescriptions.reduce((total, p) => total + p.medications.length, 0) },
+          ]}
+          actions={
+            <Button onClick={() => navigate("/dashboard/prescribe")} className="h-11 rounded-2xl bg-emerald-600 px-5 text-sm font-black text-white hover:bg-emerald-700">
+              <Plus className="mr-2 h-5 w-5" />
+              Nova receita
+            </Button>
+          }
+        />
+
         {/* Modern Header */}
-        <div className="flex items-center justify-between">
+        <div className="hidden">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="rounded-full" aria-label="Voltar ao painel">
               <ArrowLeft className="w-5 h-5" />

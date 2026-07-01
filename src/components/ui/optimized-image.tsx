@@ -26,6 +26,7 @@ const OptimizedImage = ({
   const [error, setError] = useState(false);
   const [inView, setInView] = useState(priority);
   const imgRef = useRef<HTMLImageElement>(null);
+  const priorityProps = { fetchpriority: priority ? "high" : "auto" };
 
   useEffect(() => {
     if (priority || !imgRef.current) return;
@@ -54,10 +55,10 @@ const OptimizedImage = ({
       <img
         ref={imgRef}
         {...props}
+        {...priorityProps}
         alt={alt}
         loading={priority ? "eager" : "lazy"}
         decoding="async"
-        fetchPriority={priority ? "high" : "auto"}
         src={!inView ? undefined : error ? fallback : props.src}
         className={cn(
           "transition-all duration-500 w-full h-full object-cover",

@@ -334,10 +334,42 @@ const DoctorSearch = () => {
   );
 
   return (
-    <DashboardLayout title="Paciente" nav={getPatientNav("doctors")}>
-      <div className="w-full max-w-2xl mx-auto pb-24 md:pb-6">
+    <DashboardLayout title="Paciente" nav={getPatientNav("doctors")} role="patient">
+      <div className="w-full max-w-6xl mx-auto pb-24 md:pb-6">
+        <section className="mb-5 overflow-hidden rounded-[28px] border border-border/50 bg-background/82 shadow-sm backdrop-blur-xl">
+          <div className="grid gap-0 lg:grid-cols-[1.25fr_0.75fr]">
+            <div className="p-5 md:p-7">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-xl border border-[hsl(var(--p-primary))]/20 bg-[hsl(var(--p-primary))]/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-[hsl(var(--p-primary))]">
+                <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                Agendamento seguro
+              </div>
+              <h1 className="max-w-2xl text-2xl font-black tracking-tight text-foreground md:text-3xl">
+                Encontre o médico certo para sua consulta
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                Busque por especialidade, nome ou necessidade de cuidado. Você escolhe o profissional, confere a disponibilidade e agenda em poucos passos.
+              </p>
+              <div className="mt-5 grid gap-2 sm:grid-cols-3">
+                {[
+                  { label: "CRM verificado", icon: BadgeCheck },
+                  { label: "Consulta por vídeo", icon: Calendar },
+                  { label: "Atendimento hoje", icon: Zap },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center gap-2 rounded-2xl border border-border/45 bg-muted/35 px-3 py-2 text-sm font-bold text-foreground">
+                    <item.icon className="h-4 w-4 text-[hsl(var(--p-primary))]" aria-hidden="true" />
+                    {item.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="hidden min-h-full border-l border-border/40 bg-gradient-to-br from-[hsl(var(--p-primary))]/10 to-secondary/10 p-6 lg:flex lg:items-end lg:justify-center">
+              <img src={mascotWave} alt="Pingo" className="h-40 w-auto object-contain drop-shadow-xl" loading="lazy" decoding="async" />
+            </div>
+          </div>
+        </section>
+        <div className="mb-5 flex flex-col gap-3 rounded-[24px] border border-border/45 bg-card/82 p-3 shadow-sm backdrop-blur md:flex-row md:items-center">
         {/* Doctor type segmented control */}
-        <div className="mb-4 inline-flex p-1 rounded-2xl bg-muted/60 border border-border/30 w-full sm:w-auto">
+        <div className="inline-flex p-1 rounded-2xl bg-muted/60 border border-border/30 w-full md:w-auto">
           {([
             { value: "telemedicina", label: "Telemedicina", icon: Stethoscope },
             { value: "oftalmologia", label: "Oftalmologia", icon: EyeIcon },
@@ -363,7 +395,7 @@ const DoctorSearch = () => {
         </div>
 
         {/* Search bar */}
-        <div className="flex gap-2 mb-5">
+        <div className="flex flex-1 gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -402,12 +434,13 @@ const DoctorSearch = () => {
             </SheetContent>
           </Sheet>
         </div>
+        </div>
 
         {/* Specialties grid view (default) */}
         {viewMode === "specialties" && !loading && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             {/* Pingo speech bubble */}
-            <div className="flex items-start gap-3 mb-6 p-4 rounded-2xl bg-[hsl(var(--p-primary))]/10 border border-[hsl(var(--p-primary))]/20">
+            <div className="hidden">
               <img src={mascotWave} alt="Pingo" className="w-12 h-12 rounded-full object-cover shrink-0" loading="lazy" decoding="async" width={48} height={48} />
               <p className="text-sm text-foreground leading-relaxed">
                 "Olá! Eu posso te ajudar a encontrar o melhor especialista para você hoje."
@@ -415,8 +448,8 @@ const DoctorSearch = () => {
             </div>
 
             {/* Frequent searches */}
-            <div className="mb-6">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-[0.12em] font-bold mb-2">Buscas frequentes</p>
+            <div className="mb-6 rounded-[24px] border border-border/45 bg-card/80 p-4 shadow-sm">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-[0.12em] font-bold mb-3">Buscas frequentes</p>
               <div className="flex gap-2 flex-wrap">
                 {FREQUENT_SEARCHES.map(term => (
                   <button
@@ -464,7 +497,7 @@ const DoctorSearch = () => {
               <p className="text-sm text-white/70 mb-4">
                 Nossa equipe de suporte está disponível para te ajudar a encontrar o especialista ideal.
               </p>
-              <Button className="rounded-full bg-white text-[hsl(var(--p-primary))] font-bold shadow-[var(--p-shadow-btn)]" onClick={() => navigate("/dashboard/support")}>
+              <Button className="rounded-full bg-white text-[hsl(var(--p-primary))] font-bold shadow-[var(--p-shadow-btn)]" onClick={() => navigate("/dashboard/patient/support?role=patient")}>
                 Falar com Atendente
               </Button>
             </div>
@@ -522,7 +555,7 @@ const DoctorSearch = () => {
 
             {/* Loading / Empty / Results */}
             {loading ? (
-              <div className="space-y-3">
+              <div className="grid gap-3 lg:grid-cols-2">
                 {[1, 2, 3, 4].map(i => (
                   <div key={i} className="p-4 rounded-2xl border border-border/20 bg-card">
                     <div className="flex items-center gap-3">
@@ -608,18 +641,18 @@ const DoctorSearch = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30 gap-2">
+                      <div className="flex flex-col gap-3 mt-3 pt-3 border-t border-border/30 sm:flex-row sm:items-center sm:justify-between">
                         <div className="min-w-0">
                           <span className="text-xl font-extrabold text-foreground font-[Manrope]">R$ {doctor.consultation_price.toFixed(2).replace(".", ",")}</span>
                           <span className="text-xs text-muted-foreground ml-1">/consulta</span>
                           <span className="block text-[11px] text-muted-foreground/80 flex items-center gap-1"><Clock className="w-3 h-3" /> {doctor.consultation_duration ?? 30} min</span>
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
+                        <div className="flex items-center gap-1.5 shrink-0 sm:justify-end">
                           <Button size="sm" variant="ghost" className="h-9 px-2.5 rounded-full text-xs text-muted-foreground hover:text-foreground"
                             onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/doctor-profile/${doctor.id}`); }}>
                             <ExternalLink className="w-3.5 h-3.5 mr-1" /> Perfil
                           </Button>
-                          <Button size="sm" className="h-10 px-5 rounded-full bg-[hsl(var(--p-primary))] text-white text-sm font-bold gap-1.5 shadow-[var(--p-shadow-btn)]"
+                          <Button size="sm" className="h-10 flex-1 px-5 rounded-full bg-[hsl(var(--p-primary))] text-white text-sm font-bold gap-1.5 shadow-[var(--p-shadow-btn)] sm:flex-none"
                             onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/schedule/${doctor.id}`); }}>
                             <Calendar className="w-4 h-4" /> Agendar <ChevronRight className="w-4 h-4 -mr-1" />
                           </Button>

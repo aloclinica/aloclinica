@@ -19,6 +19,9 @@ import {
 import { ptBR } from "date-fns/locale";
 import { useIsMobile } from "@/hooks/use-mobile";
 import LazyAvatar from "@/components/ui/lazy-avatar";
+import { motion } from "framer-motion";
+import AppPromotionalBanners from "@/components/dashboards/AppPromotionalBanners";
+import DoctorAppHeader from "./DoctorAppHeader";
 
 const typeLabel: Record<string, { label: string; icon: React.ReactNode; color: string; bg: string }> = {
   first_visit: { label: "1ª Consulta", icon: <UserPlus className="w-3 h-3" />, color: "text-primary", bg: "bg-primary/15 border-primary/30" },
@@ -146,6 +149,9 @@ const DoctorCalendar = () => {
     : view === "week"
     ? `${format(dateRange.start, "dd MMM", { locale: ptBR })} — ${format(dateRange.end, "dd MMM yyyy", { locale: ptBR })}`
     : format(currentDate, "MMMM yyyy", { locale: ptBR });
+  const waitingCount = appointments.filter(a => a.status === "waiting").length;
+  const completedCount = appointments.filter(a => a.status === "completed").length;
+  const activeDays = new Set(appointments.map(a => a.scheduled_at ? format(new Date(a.scheduled_at), "yyyy-MM-dd") : "")).size;
 
   /* ── Time Grid Event Card ── */
   const TimeGridEvent = ({ appt, colCount }: { appt: any; colCount: number }) => {
@@ -161,7 +167,7 @@ const DoctorCalendar = () => {
       <Popover>
         <PopoverTrigger asChild>
           <div
-            className={`absolute left-0.5 right-0.5 rounded-md border px-1.5 py-0.5 cursor-pointer overflow-hidden transition-all hover:shadow-md hover:z-20 ${t.bg}`}
+            className={`absolute left-1 right-1 rounded-xl border px-2 py-1 cursor-pointer overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg hover:z-20 ${t.bg}`}
             style={{ top: `${topOffset}px`, height: `${height}px`, zIndex: 10 }}
           >
             {isSmall ? (
@@ -216,9 +222,9 @@ const DoctorCalendar = () => {
 
   /* ── Week Time Grid (desktop) ── */
   const WeekTimeGrid = () => (
-    <div className="border border-border rounded-xl overflow-hidden bg-card">
+    <div className="app-card rounded-[28px] overflow-hidden">
       {/* Day headers */}
-      <div className="grid grid-cols-[56px_repeat(7,1fr)] border-b border-border bg-muted/30">
+      <div className="grid grid-cols-[56px_repeat(7,1fr)] border-b border-border/45 bg-muted/35">
         <div className="p-2 text-[10px] text-muted-foreground" />
         {days.map(day => {
           const isToday = isSameDay(day, new Date());
@@ -238,7 +244,7 @@ const DoctorCalendar = () => {
       </div>
 
       {/* Time grid body */}
-      <div ref={gridRef} className="overflow-y-auto max-h-[50vh] sm:max-h-[600px]">
+      <div ref={gridRef} className="overflow-y-auto max-h-[50vh] sm:max-h-[600px] bg-card/50">
         <div className="grid grid-cols-[56px_repeat(7,1fr)] relative" style={{ height: `${HOURS.length * HOUR_HEIGHT}px` }}>
           {/* Hour labels */}
           <div className="relative">
@@ -301,7 +307,7 @@ const DoctorCalendar = () => {
     const dayAppts = appointments.filter(a => isSameDay(new Date(a.scheduled_at ?? ""), currentDate));
     const isAbsent = absences.includes(format(currentDate, "yyyy-MM-dd"));
     return (
-      <div className={`border border-border rounded-xl overflow-hidden bg-card ${isAbsent ? "bg-destructive/5" : ""}`}>
+      <div className={`app-card rounded-[28px] overflow-hidden ${isAbsent ? "bg-destructive/5" : ""}`}>
         {isAbsent && (
           <div className="px-3 py-1.5 bg-destructive/10 text-destructive text-xs font-medium text-center">
             📅 Dia bloqueado (ausência)
@@ -330,6 +336,7 @@ const DoctorCalendar = () => {
 
   /* ── Month Grid ── */
   const MonthGrid = () => (
+    <div className="app-card rounded-[28px] p-3">
     <div className="grid grid-cols-7 gap-1">
       {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map(d => (
         <div key={d} className="text-xs font-medium text-muted-foreground text-center py-2">{d}</div>
@@ -344,8 +351,8 @@ const DoctorCalendar = () => {
         return (
           <div
             key={day.toISOString()}
-            className={`min-h-[80px] rounded border p-1 cursor-pointer hover:bg-accent/30 transition-colors ${
-              isAbsent ? "bg-destructive/5 border-destructive/20" : isToday ? "border-primary bg-primary/5" : "border-border"
+            className={`min-h-[86px] rounded-2xl border p-2 cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md ${
+              isAbsent ? "bg-destructive/5 border-destructive/20" : isToday ? "border-primary bg-primary/5 shadow-sm" : "border-border/45 bg-card/65"
             }`}
             onClick={() => { setCurrentDate(day); setView("day"); }}
           >
@@ -367,6 +374,7 @@ const DoctorCalendar = () => {
         );
       })}
     </div>
+    </div>
   );
 
   /* ── Mobile Week (stacked cards) ── */
@@ -377,7 +385,7 @@ const DoctorCalendar = () => {
         const isToday = isSameDay(day, new Date());
         const isAbsent = absences.includes(format(day, "yyyy-MM-dd"));
         return (
-          <div key={day.toISOString()} className={`rounded-xl border p-3 ${isAbsent ? "border-destructive/30 bg-destructive/5" : isToday ? "border-primary bg-primary/5" : "border-border"}`}>
+          <div key={day.toISOString()} className={`app-card rounded-[24px] p-3 ${isAbsent ? "border-destructive/30 bg-destructive/5" : isToday ? "border-primary bg-primary/5" : ""}`}>
             <div className="flex items-center justify-between mb-2">
               <p className={`text-sm font-semibold capitalize ${isToday ? "text-primary" : "text-foreground"}`}>
                 {format(day, "EEEE, dd", { locale: ptBR })}
@@ -417,40 +425,102 @@ const DoctorCalendar = () => {
   );
 
   return (
-    <DashboardLayout title="Médico" nav={getDoctorNav("calendar")}>
+    <DashboardLayout title="Médico" nav={getDoctorNav("calendar")} role="doctor">
       <div className="w-full mx-auto max-w-6xl pb-24 md:pb-6">
+        <div className="mb-5">
+          <DoctorAppHeader
+            eyebrow="Agenda clinica"
+            title="Calendario medico"
+            description="Organize consultas, fila e ausencias com leitura rapida por periodo."
+            icon={CalendarDays}
+            stats={[
+              { label: "Consultas", value: appointments.length },
+              { label: "Aguardando", value: waitingCount },
+              { label: "Concluidas", value: completedCount },
+              { label: "Dias ativos", value: activeDays },
+            ]}
+            actions={
+              <>
+                <IcalSyncButton />
+                <Button size="sm" onClick={() => navigate("/dashboard/doctor/waiting-room?role=doctor")} className="h-10 rounded-2xl bg-emerald-600 px-4 text-xs font-black text-white hover:bg-emerald-700">
+                  <Video className="mr-1.5 h-3.5 w-3.5" />
+                  Sala
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setCurrentDate(new Date())} className="h-10 rounded-2xl text-xs font-bold">
+                  Hoje
+                </Button>
+              </>
+            }
+          />
+        </div>
         {/* Header */}
-        <div className="flex flex-col gap-3 mb-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
-                <CalendarDays className="w-5 h-5 text-primary" /> Calendário
-              </h1>
-              <p className="text-xs text-muted-foreground mt-0.5">Visualize e gerencie sua agenda completa</p>
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          className="hidden"
+        >
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
+              <div className="mb-2 inline-flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">
+                <CalendarDays className="h-3.5 w-3.5" />
+                Agenda clínica
+              </div>
+              <h1 className="text-2xl font-black tracking-tight text-foreground sm:text-3xl">Calendário médico</h1>
+              <p className="mt-1 text-sm text-muted-foreground">Visualize consultas, fila e ausências com leitura rápida por período.</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <IcalSyncButton />
-              <Button size="sm" variant="outline" onClick={() => setCurrentDate(new Date())} className="h-8 text-xs">
+              <Button size="sm" variant="outline" onClick={() => setCurrentDate(new Date())} className="h-9 rounded-xl text-xs font-bold">
                 Hoje
               </Button>
             </div>
           </div>
+          <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto] md:items-center">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {[
+                { label: "Consultas", value: appointments.length, tone: "text-primary" },
+                { label: "Aguardando", value: waitingCount, tone: "text-warning" },
+                { label: "Concluídas", value: completedCount, tone: "text-success" },
+                { label: "Dias ativos", value: activeDays, tone: "text-foreground" },
+              ].map(item => (
+                <div key={item.label} className="rounded-2xl border border-border/45 bg-background/62 px-3 py-2.5">
+                  <p className={`text-xl font-black leading-none tabular-nums ${item.tone}`}>{item.value}</p>
+                  <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{item.label}</p>
+                </div>
+              ))}
+            </div>
+            <Tabs value={view} onValueChange={(v) => setView(v as "day" | "week" | "month")}>
+              <TabsList className="grid h-10 w-full grid-cols-3 rounded-2xl border border-border/45 bg-muted/45 p-1 md:w-[280px]">
+                <TabsTrigger value="day" className="rounded-xl text-xs font-bold">Dia</TabsTrigger>
+                <TabsTrigger value="week" className="rounded-xl text-xs font-bold">Semana</TabsTrigger>
+                <TabsTrigger value="month" className="rounded-xl text-xs font-bold">Mês</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        </motion.section>
+
+        <div className="mb-5">
+          <AppPromotionalBanners role="doctor" placement="schedule" />
+        </div>
+
+        <div className="mb-4">
           <Tabs value={view} onValueChange={(v) => setView(v as "day" | "week" | "month")}>
-            <TabsList className="w-full grid grid-cols-3 h-9">
-              <TabsTrigger value="day" className="text-xs">Dia</TabsTrigger>
-              <TabsTrigger value="week" className="text-xs">Semana</TabsTrigger>
-              <TabsTrigger value="month" className="text-xs">Mês</TabsTrigger>
+            <TabsList className="grid h-11 w-full grid-cols-3 rounded-2xl border border-border/55 bg-card p-1 shadow-sm md:w-[320px]">
+              <TabsTrigger value="day" className="rounded-xl text-xs font-bold">Dia</TabsTrigger>
+              <TabsTrigger value="week" className="rounded-xl text-xs font-bold">Semana</TabsTrigger>
+              <TabsTrigger value="month" className="rounded-xl text-xs font-bold">Mes</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
 
         {/* Navigation */}
-        <div className="flex items-center justify-between mb-4">
-          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Período anterior" onClick={() =>  navigateDate(-1)}>
+        <div className="mb-4 flex items-center justify-between rounded-[28px] border border-border/45 bg-card/82 px-2.5 py-2 shadow-sm backdrop-blur-xl">
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-2xl" aria-label="Período anterior" onClick={() =>  navigateDate(-1)}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <h2 className="text-sm sm:text-lg font-semibold text-foreground capitalize">{headerLabel}</h2>
-          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Próximo período" onClick={() =>  navigateDate(1)}>
+          <h2 className="px-2 text-center text-sm font-black capitalize text-foreground sm:text-lg">{headerLabel}</h2>
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-2xl" aria-label="Próximo período" onClick={() =>  navigateDate(1)}>
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>

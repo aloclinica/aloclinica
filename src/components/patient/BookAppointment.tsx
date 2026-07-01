@@ -42,6 +42,7 @@ import { usePixCountdown } from "@/hooks/usePixCountdown";
 import QuickPatientCheckoutDialog, { isProfileComplete } from "./QuickPatientCheckoutDialog";
 import ConsentDialog from "@/components/legal/ConsentDialog";
 import type { LegalKind } from "@/lib/legal-docs";
+import AppPromotionalBanners from "@/components/dashboards/AppPromotionalBanners";
 
 const patientNav = getPatientNav("schedule");
 
@@ -722,7 +723,7 @@ const BookAppointment = () => {
   );
 
   if (loading) return (
-    <DashboardLayout title="Paciente" nav={patientNav}>
+    <DashboardLayout title="Paciente" nav={patientNav} role="patient">
       <div className="w-full max-w-lg mx-auto space-y-4 pb-24 md:pb-6">
         <div className="h-6 w-20 rounded-lg shimmer-v2" />
         <div className="flex items-center gap-3 p-4 rounded-2xl border border-border/30">
@@ -742,7 +743,7 @@ const BookAppointment = () => {
   );
 
   if (!doctor) return (
-    <DashboardLayout title="Paciente" nav={patientNav}>
+    <DashboardLayout title="Paciente" nav={patientNav} role="patient">
       <div className="text-center py-20">
         <Stethoscope className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
         <p className="text-muted-foreground">Médico não encontrado</p>
@@ -752,7 +753,7 @@ const BookAppointment = () => {
 
   if (kycPending) {
     return (
-      <DashboardLayout title="Paciente" nav={patientNav}>
+      <DashboardLayout title="Paciente" nav={patientNav} role="patient">
         <div className="w-full max-w-lg mx-auto text-center py-20 space-y-4">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-destructive/10 flex items-center justify-center">
             <Lock className="w-8 h-8 text-destructive" />
@@ -770,8 +771,8 @@ const BookAppointment = () => {
   }
 
   return (
-    <DashboardLayout title="Paciente" nav={patientNav}>
-      <div className="w-full max-w-lg mx-auto pb-24 md:pb-6">
+    <DashboardLayout title="Paciente" nav={patientNav} role="patient">
+      <div className="w-full max-w-2xl mx-auto pb-24 md:pb-6">
         {/* Back */}
         <button onClick={() => {
           if (paymentStep) { setPaymentStep(false); return; }
@@ -780,8 +781,12 @@ const BookAppointment = () => {
           <ArrowLeft className="w-4 h-4" /> Voltar
         </button>
 
+        <div className="mb-5">
+          <AppPromotionalBanners role="patient" placement="schedule" />
+        </div>
+
         {/* Doctor card */}
-        <div className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border/50 mb-5 hover:shadow-lg transition-shadow">
+        <div className="app-card mb-5 flex items-center gap-3 rounded-[30px] p-4">
           <Avatar className="w-14 h-14 rounded-xl shrink-0">
             <AvatarFallback className="rounded-xl bg-gradient-to-br from-primary to-secondary text-white font-bold text-lg">
               {doctor.first_name[0]}{doctor.last_name[0]}
@@ -815,7 +820,7 @@ const BookAppointment = () => {
         </div>
 
         {/* Step indicator */}
-        <div className="flex items-center justify-between px-2 mb-6">
+        <div className="app-glass-panel mb-6 flex items-center justify-between rounded-[28px] px-3 py-3">
           {STEPS.map((step, i) => {
             const Icon = step.icon;
             const isActive = i === currentStep;
@@ -866,7 +871,7 @@ const BookAppointment = () => {
           {/* Step 1: Date */}
           {currentStep === 0 && (
             <motion.div key="date" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-              className="bg-card rounded-2xl border border-border p-4">
+              className="app-card rounded-[28px] p-4">
               <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                 <CalendarDays className="w-4 h-4 text-primary" /> Escolha a data
               </h3>
@@ -891,7 +896,7 @@ const BookAppointment = () => {
                 <span className="text-primary/50 ml-1">✕</span>
               </button>
 
-              <div className="bg-card rounded-2xl border border-border p-4">
+              <div className="app-card rounded-[28px] p-4">
                 <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                   <Clock className="w-4 h-4 text-primary" /> Horários disponíveis
                 </h3>
@@ -944,7 +949,7 @@ const BookAppointment = () => {
                 </button>
               </div>
 
-              <div className="bg-card rounded-2xl border-2 border-primary/20 p-5">
+              <div className="app-card rounded-[30px] border-primary/20 p-5">
                 <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-primary" /> Confirmar Agendamento
                 </h3>
@@ -1138,7 +1143,7 @@ const BookAppointment = () => {
           {/* Step 4: Premium Payment Checkout */}
           {currentStep === 3 && paymentStep && (
             <motion.div key="payment" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6">
-              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-secondary p-8 text-primary-foreground shadow-2xl">
+              <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-primary via-primary/90 to-secondary p-8 text-primary-foreground shadow-2xl">
                 <div className="absolute top-0 right-0 p-4 opacity-10 rotate-12">
                   <Shield className="w-32 h-32" />
                 </div>
@@ -1158,7 +1163,7 @@ const BookAppointment = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 p-1 bg-muted/30 rounded-2xl border border-border/40">
+              <div className="app-glass-panel grid grid-cols-3 gap-3 rounded-[24px] p-1">
                 {(["pix", "card", "boleto"] as const).map((method) => {
                   const Icon = method === "pix" ? QrCode : method === "card" ? CreditCard : FileBarChart;
                   const active = paymentMethod === method;

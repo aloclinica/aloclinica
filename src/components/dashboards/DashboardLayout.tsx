@@ -12,7 +12,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
    SignOut, User, GearSix, List, MagnifyingGlass, ShieldCheck as ShieldCheckIcon,
    CaretDown, DownloadSimple, X as XIcon, DeviceMobile, SidebarSimple, ArrowLineLeft,
-    House, Bell, ChatCircleText, UserCircle, Timer, VideoCamera,
+    House, Bell, ChatCircleText, UserCircle, Timer, VideoCamera, CalendarDots, Users,
 } from "@phosphor-icons/react";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -224,6 +224,8 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
   // Detectar role: se passado via props, use; se admin, use "admin"; senão detecte pela query string ou padrão
   const role = propsRole || (isAdmin ? "admin" : forceRole || "patient");
   const grad = ROLE_GRADIENT[role] ?? ROLE_GRADIENT.patient;
+  const service = SERVICE_MAP[role] || SERVICE_MAP.patient;
+  const roleLabel = ROLE_LABELS[role] ?? title;
   const ROLE_RING: Record<string, string> = {
     patient: "ring-blue-400", doctor: "ring-emerald-400",
     admin: "ring-purple-400", clinic: "ring-orange-400", receptionist: "ring-amber-400",
@@ -262,22 +264,45 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
        active: currentPath === "/dashboard" && (!forceRole || forceRole === role)
      });
  
-     // 2. Core Operational Item (Role-based)
-     if (role === "patient") {
-       items.push({
-         label: "Agendar",
-         href: "/dashboard/schedule?role=patient",
+    if (role === "doctor") {
+      items.push(
+        {
+          label: "Agenda",
+          href: "/dashboard/doctor/calendar?role=doctor",
+          icon: <CalendarDots size={22} weight={currentPath.includes("calendar") ? "fill" : "regular"} />,
+          active: currentPath.includes("calendar")
+        },
+        {
+          label: "Sala",
+          href: "/dashboard/doctor/waiting-room?role=doctor",
+          icon: <Timer size={22} weight={currentPath.includes("waiting-room") ? "fill" : "regular"} />,
+          active: currentPath.includes("waiting-room")
+        },
+        {
+          label: "Pacientes",
+          href: "/dashboard/patients?role=doctor",
+          icon: <Users size={22} weight={currentPath.includes("patients") ? "fill" : "regular"} />,
+          active: currentPath.includes("patients")
+        },
+        {
+          label: "Perfil",
+          href: "/dashboard/profile?role=doctor",
+          icon: <UserCircle size={22} weight={currentPath.includes("profile") ? "fill" : "regular"} />,
+          active: currentPath.includes("profile")
+        }
+      );
+      return items;
+    }
+
+    // 2. Core Operational Item (Role-based)
+    if (role === "patient") {
+      items.push({
+        label: "Agendar",
+        href: "/dashboard/schedule?role=patient",
          icon: <MagnifyingGlass size={22} weight={currentPath.includes("schedule") ? "fill" : "regular"} />,
          active: currentPath.includes("schedule")
        });
-     } else if (role === "doctor") {
-       items.push({
-         label: "Espera",
-         href: "/dashboard/doctor/waiting-room?role=doctor",
-         icon: <Timer size={22} weight={currentPath.includes("waiting-room") ? "fill" : "regular"} />,
-         active: currentPath.includes("waiting-room")
-       });
-     } else if (role === "admin") {
+    } else if (role === "admin") {
        items.push({
          label: "Ao Vivo",
          href: "/dashboard/admin/live?role=admin",
@@ -508,7 +533,7 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 flex flex-col">
+    <div className="dashboard-shell min-h-screen flex flex-col overflow-hidden" data-panel-role={role}>
 
       {/* ═══ Mobile Header — app-like blue gradient ═══ */}
       <header ref={headerRef}
@@ -678,9 +703,9 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
       </header>
 
       {/* Body */}
-      <div className="flex flex-1 min-h-0 relative h-[calc(100vh-4rem)]">
+      <div className="relative z-[1] flex flex-1 min-h-0 h-[calc(100vh-4rem)]">
         {nav && nav.length > 0 && (
-          <aside className={`relative hidden md:flex shrink-0 flex-col bg-gradient-to-b from-background via-background to-muted/20 border-r border-border/30 shadow-[2px_0_18px_rgba(0,0,0,.05)] h-full overflow-hidden transition-all duration-300 ${
+          <aside className={`relative hidden md:flex shrink-0 flex-col app-glass-panel border-r border-border/30 h-full overflow-hidden transition-all duration-300 ${
             sidebarCollapsed ? "w-[52px]" : "w-56 lg:w-64 xl:w-72"
           }`}>
             {/* role accent rail */}
@@ -704,14 +729,37 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
             </div>
           </aside>
         )}
-        <main className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto pb-[max(104px,calc(88px+env(safe-area-inset-bottom,0px)))] md:pb-10 scroll-smooth">
+        <main className="relative flex-1 min-w-0 overflow-x-hidden overflow-y-auto pb-[max(104px,calc(88px+env(safe-area-inset-bottom,0px)))] md:pb-10 scroll-smooth">
           <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-6 min-h-0 max-w-[1400px] mx-auto w-full"
             style={{ paddingLeft: "max(0.75rem, env(safe-area-inset-left, 0px))", paddingRight: "max(0.75rem, env(safe-area-inset-right, 0px))" }}>
+            <div className="hidden md:flex items-center justify-between gap-3 mb-4 rounded-[24px] app-glass-panel px-4 py-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${grad} text-white shadow-sm`}>
+                  <ShieldCheckIcon className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-[11px] font-black uppercase tracking-[0.16em] text-muted-foreground">{service.name}</p>
+                  <p className="truncate text-sm font-semibold text-foreground">{roleLabel}</p>
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <span className="rounded-full border border-border/50 bg-muted/45 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                  {service.description}
+                </span>
+                {isAdminViewingOtherPanel && (
+                  <span className="rounded-full border border-destructive/25 bg-destructive/10 px-3 py-1 text-[11px] font-bold text-destructive">
+                    Visão admin
+                  </span>
+                )}
+              </div>
+            </div>
             <div className="hidden md:block"><DashboardBreadcrumbs /></div>
             <motion.div
+              key={`${role}-${location.pathname}`}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="app-page-enter"
             >
               {children}
             </motion.div>

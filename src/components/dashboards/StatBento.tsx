@@ -5,7 +5,7 @@ import { ReactNode } from "react";
 export interface BentoItem {
   label: string;
   value: string | number;
-  icon: string;
+  icon: ReactNode;
   iconBg: string;
   valueClass: string;
   accentClass?: string;
@@ -42,10 +42,8 @@ export function StatBento({ stats, loading = false }: { stats: BentoItem[]; load
           whileHover={{ y: -3, scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
           className={cn(
-            "group relative overflow-hidden rounded-[28px] border border-border/15 bg-card",
-            "transition-all duration-300 cursor-default",
-            "hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,.1)] hover:border-border/40",
-            "dark:hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,.3)]",
+            "app-card group relative overflow-hidden rounded-[24px]",
+            "cursor-default",
             s.wide && "col-span-2"
           )}
         >
@@ -55,14 +53,13 @@ export function StatBento({ stats, loading = false }: { stats: BentoItem[]; load
           )}
           {!s.accentClass && <div className="h-[3px] w-full bg-border/20" />}
 
-          {/* Subtle hover glow */}
-          <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/[0.04] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-primary/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
           <div className="p-3.5 md:p-4">
             <div className="flex items-start justify-between">
               <div className={cn(
                 "flex h-9 w-9 items-center justify-center rounded-[14px] text-[16px] md:h-11 md:w-11 md:text-[20px]",
-                "transition-all duration-300 group-hover:scale-110 group-hover:shadow-sm",
+                "transition-all duration-300 group-hover:scale-110 group-hover:shadow-sm group-hover:rotate-[-2deg]",
                 s.iconBg
               )}>
                 {s.icon}

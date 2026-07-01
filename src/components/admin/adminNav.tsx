@@ -5,7 +5,7 @@ import {
    Key, Tag, ClockCounterClockwise, WhatsappLogo, Sliders, Pulse,
     PaintBrush, Image as ImageIcon, Heart, CreditCard
     , TestTube, Handshake, Layout, Browser, Shield, Graph,
-    Database, FileText
+    Database, FileText, DeviceMobile
  } from "@phosphor-icons/react";
 import { NavIcon } from "@/components/ui/nav-icon";
 
@@ -34,6 +34,7 @@ export const getAdminNav = (active: string) => [
   // ── Conteúdo ──
   { label: "Especialidades", href: "/dashboard/admin/specialties?role=admin",  icon: <NavIcon icon={<ShieldStar size={16} weight="fill" />} color="cyan"   />, active: active === "specialties",  group: "Conteúdo" },
   { label: "Studio",         href: "/dashboard/admin/studio?role=admin",       icon: <NavIcon icon={<PaintBrush size={16} weight="fill" />}  color="purple" />, active: active === "studio", group: "Conteúdo" },
+  { label: "Editor Apps",    href: "/dashboard/admin/app-editor?role=admin",   icon: <NavIcon icon={<DeviceMobile size={16} weight="fill" />} color="cyan"   />, active: active === "app-editor", group: "Conteúdo" },
   { label: "Cupons",         href: "/dashboard/admin/coupons?role=admin",      icon: <NavIcon icon={<Tag size={16} weight="fill" />}         color="orange" />, active: active === "coupons",      group: "Conteúdo" },
 
   // ── Comunicação ──

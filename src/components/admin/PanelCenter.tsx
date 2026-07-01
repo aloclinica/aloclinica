@@ -256,17 +256,16 @@ const PanelCenter = () => {
 
         {/* ─────── HERO HEADER ─────── */}
         <motion.section variants={fadeUp}>
-          <Card className="relative overflow-hidden border-border/40 bg-gradient-to-br from-primary/[0.08] via-card to-card">
-            {/* Decorative blobs */}
-            <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full bg-gradient-to-br from-primary/20 to-purple-500/10 blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-32 left-1/3 w-80 h-80 rounded-full bg-gradient-to-tr from-emerald-500/10 to-blue-500/10 blur-3xl pointer-events-none" />
+          <Card className="relative overflow-hidden border-border/40 bg-gradient-to-br from-primary/[0.08] via-card to-card shadow-sm">
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,hsl(var(--primary)/0.10)_0%,transparent_38%,hsl(var(--secondary)/0.08)_100%)]" />
+            <div className="pointer-events-none absolute inset-0 opacity-[0.035]" style={{ backgroundImage: "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
             {/* Top accent line */}
             <div className="h-[3px] bg-gradient-to-r from-emerald-500 via-primary to-purple-500" />
 
             <div className="relative grid lg:grid-cols-[1fr_auto] gap-0 min-w-0">
               <div className="p-4 sm:p-6 md:p-8 flex flex-col justify-center min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 ring-1 ring-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-primary/10 ring-1 ring-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
                     <LayoutGrid className="w-3 h-3" />
                     Centro de Controle
                   </span>
@@ -290,7 +289,7 @@ const PanelCenter = () => {
                     size="sm"
                     onClick={() => fetchPresence(true)}
                     disabled={refreshing}
-                    className="gap-2 bg-gradient-to-br from-primary to-blue-700 hover:opacity-90 shadow-md shadow-primary/20"
+                    className="gap-2 rounded-xl bg-gradient-to-br from-primary to-blue-700 hover:opacity-90 shadow-md shadow-primary/20"
                   >
                     <RefreshCw className={cn("w-3.5 h-3.5", refreshing && "animate-spin")} />
                     Atualizar agora
@@ -299,7 +298,7 @@ const PanelCenter = () => {
                     size="sm"
                     variant="outline"
                     onClick={() => navigate("/dashboard/admin/live?role=admin")}
-                    className="gap-2 backdrop-blur-sm bg-background/50"
+                    className="gap-2 rounded-xl backdrop-blur-sm bg-background/50"
                   >
                     <Activity className="w-3.5 h-3.5" />
                     Ver ao vivo
@@ -758,8 +757,8 @@ const PanelCenter = () => {
               { label: "Logs de Erro", icon: ShieldAlert, color: "text-rose-500", bg: "bg-rose-500/10", route: "/dashboard/admin/logs?role=admin" },
               { label: "Site Config", icon: FileText, color: "text-blue-500", bg: "bg-blue-500/10", route: "/dashboard/admin/site-config?role=admin" },
               { label: "Relatórios", icon: PieChart, color: "text-amber-500", bg: "bg-amber-500/10", route: "/dashboard/admin/reports?role=admin" },
-              { label: "Banco Dados", icon: Database, color: "text-emerald-500", bg: "bg-emerald-500/10", route: "/dashboard/admin/system-health?role=admin" },
-              { label: "Auditoria", icon: ShieldCheck, color: "text-indigo-500", bg: "bg-indigo-500/10", route: "/dashboard/admin/audit?role=admin" },
+              { label: "Banco Dados", icon: Database, color: "text-emerald-500", bg: "bg-emerald-500/10", route: "/dashboard/admin/health?role=admin" },
+              { label: "Auditoria", icon: ShieldCheck, color: "text-indigo-500", bg: "bg-indigo-500/10", route: "/dashboard/admin/logs?role=admin" },
               { label: "Usuários", icon: UserPlus, color: "text-orange-500", bg: "bg-orange-500/10", route: "/dashboard/admin/users?role=admin" },
             ].map((action) => (
               <Button

@@ -328,6 +328,128 @@
 }
 
 @layer utilities {
+  .dashboard-shell {
+    position: relative;
+    background:
+      linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted) / 0.62) 46%, hsl(var(--background)) 100%),
+      linear-gradient(110deg, hsl(var(--primary) / 0.06) 0%, transparent 34%, hsl(var(--secondary) / 0.05) 100%);
+  }
+
+  .dashboard-shell::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      linear-gradient(to right, hsl(var(--foreground) / 0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--foreground) / 0.025) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: linear-gradient(to bottom, black 0%, transparent 62%);
+  }
+
+  .dashboard-shell::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 42rem 22rem at 18% 0%, hsl(var(--primary) / 0.12), transparent 62%),
+      radial-gradient(ellipse 36rem 20rem at 92% 18%, hsl(var(--secondary) / 0.10), transparent 58%);
+  }
+
+  .dashboard-shell[data-panel-role="patient"] {
+    background:
+      linear-gradient(180deg, hsl(210 45% 98%) 0%, hsl(205 50% 95%) 48%, hsl(var(--background)) 100%),
+      linear-gradient(115deg, hsl(215 80% 42% / 0.08) 0%, transparent 42%, hsl(168 55% 42% / 0.07) 100%);
+  }
+
+  .dashboard-shell[data-panel-role="doctor"] {
+    background:
+      linear-gradient(180deg, hsl(155 32% 98%) 0%, hsl(152 38% 94%) 48%, hsl(var(--background)) 100%),
+      linear-gradient(115deg, hsl(152 60% 34% / 0.08) 0%, transparent 45%, hsl(190 55% 44% / 0.06) 100%);
+  }
+
+  .app-glass-panel {
+    background: hsl(var(--card) / 0.78);
+    border: 1px solid hsl(var(--border) / 0.52);
+    box-shadow:
+      0 18px 60px -34px hsl(215 45% 12% / 0.40),
+      inset 0 1px 0 hsl(0 0% 100% / 0.45);
+    backdrop-filter: blur(20px) saturate(150%);
+  }
+
+  .app-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid hsl(var(--border) / 0.45);
+    background:
+      linear-gradient(135deg, hsl(var(--card) / 0.92), hsl(var(--card) / 0.76));
+    box-shadow: 0 10px 34px -24px hsl(215 45% 12% / 0.35);
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease, background-color 220ms ease;
+  }
+
+  .app-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(120deg, hsl(var(--primary) / 0.07), transparent 40%, hsl(var(--secondary) / 0.06));
+    transition: opacity 220ms ease;
+  }
+
+  .app-card:hover {
+    transform: translateY(-2px);
+    border-color: hsl(var(--primary) / 0.24);
+    box-shadow: 0 22px 52px -30px hsl(215 45% 12% / 0.45);
+  }
+
+  .app-card:hover::before {
+    opacity: 1;
+  }
+
+  .app-page-enter {
+    animation: app-page-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .app-soft-pulse {
+    animation: app-soft-pulse 3.4s ease-in-out infinite;
+  }
+
+  @keyframes app-page-enter {
+    from { opacity: 0; transform: translateY(10px) scale(0.992); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @keyframes app-soft-pulse {
+    0%, 100% { opacity: 0.72; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.025); }
+  }
+
+  .dashboard-shell[data-panel-role="admin"] {
+    background:
+      linear-gradient(180deg, hsl(0 28% 98%) 0%, hsl(350 36% 95%) 45%, hsl(var(--background)) 100%),
+      linear-gradient(115deg, hsl(0 70% 45% / 0.08) 0%, transparent 42%, hsl(265 58% 48% / 0.07) 100%);
+  }
+
+  .dashboard-shell[data-panel-role="clinic"],
+  .dashboard-shell[data-panel-role="receptionist"] {
+    background:
+      linear-gradient(180deg, hsl(225 32% 98%) 0%, hsl(38 38% 95%) 52%, hsl(var(--background)) 100%),
+      linear-gradient(115deg, hsl(225 65% 42% / 0.07) 0%, transparent 40%, hsl(38 85% 48% / 0.08) 100%);
+  }
+
+  .dashboard-shell[data-panel-role="support"],
+  .dashboard-shell[data-panel-role="partner"],
+  .dashboard-shell[data-panel-role="ai"],
+  .dashboard-shell[data-panel-role="cartao_beneficios"] {
+    background:
+      linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--accent) / 0.55) 46%, hsl(var(--background)) 100%),
+      linear-gradient(115deg, hsl(var(--secondary) / 0.08) 0%, transparent 44%, hsl(var(--primary) / 0.06) 100%);
+  }
+
   .text-gradient {
     @apply bg-clip-text text-transparent;
     background-image: var(--gradient-hero);

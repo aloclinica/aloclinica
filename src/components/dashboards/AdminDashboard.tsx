@@ -266,7 +266,7 @@ const AdminDashboard = () => {
 
   return (
     <DashboardLayout title="Administração" nav={getAdminNav("overview")}>
-      <motion.div variants={container} initial="hidden" animate="show" className="space-y-5 pb-24 md:pb-8 pb-24 md:pb-8">
+      <motion.div variants={container} initial="hidden" animate="show" className="space-y-5 pb-24 md:pb-8">
 
         {/* ── Premium Admin Hero ── */}
         <div className="-mx-4 -mt-5 md:-mx-6 md:-mt-5 lg:-mx-8 lg:-mt-6">
@@ -468,7 +468,7 @@ const AdminDashboard = () => {
           ) : (
             [
               { label: "Receita (MRR)", value: `R$ ${stats.total_revenue.toFixed(0)}`, icon: DollarSign, color: "text-success", bg: "bg-success/10", trend: stats.total_revenue > 0 ? "↑" : null },
-              { label: "Assinaturas", value: stats.active_subs, icon: CreditCard, color: "text-primary", bg: "bg-primary/10", path: "/dashboard/admin/subscriptions", trend: stats.active_subs > 0 ? "↑" : null },
+              { label: "Assinaturas", value: stats.active_subs, icon: CreditCard, color: "text-primary", bg: "bg-primary/10", path: "/dashboard/admin/financial?role=admin", trend: stats.active_subs > 0 ? "↑" : null },
               { label: "Inadimplentes", value: stats.overdue_subs, icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10", trend: stats.overdue_subs > 0 ? "⚠" : "✓" },
               { label: "Pacientes", value: stats.total_patients, icon: Users, color: "text-secondary", bg: "bg-secondary/10", path: "/dashboard/admin/patients", trend: "↑" },
               { label: "Médicos", value: stats.total_doctors, icon: FileText, color: "text-warning", bg: "bg-warning/10", path: "/dashboard/admin/doctors" },
@@ -589,7 +589,7 @@ const AdminDashboard = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold">Assinaturas Recentes</CardTitle>
-                <Button size="sm" variant="ghost" className="text-xs text-primary" onClick={() => navigate("/dashboard/admin/subscriptions")}>
+                <Button size="sm" variant="ghost" className="text-xs text-primary" onClick={() => navigate("/dashboard/admin/financial?role=admin")}>
                   Ver todas →
                 </Button>
               </div>

@@ -64,7 +64,7 @@ const getNavItems = (role: string): NavItem[] => {
     { label: "Clínicas", href: "/dashboard/admin/clinics", icon: <Building2 className="w-4 h-4" />, group: "Admin" },
     { label: "Agendamentos", href: "/dashboard/admin/appointments", icon: <Calendar className="w-4 h-4" />, group: "Admin" },
     { label: "Financeiro", href: "/dashboard/admin/financial", icon: <DollarSign className="w-4 h-4" />, group: "Admin" },
-    { label: "KYC Review", href: "/dashboard/admin/kyc", icon: <ScanFace className="w-4 h-4" />, group: "Admin" },
+    { label: "KYC Review", href: "/dashboard/admin/kyc-review?role=admin", icon: <ScanFace className="w-4 h-4" />, group: "Admin" },
     { label: "Logs", href: "/dashboard/admin/logs", icon: <FileText className="w-4 h-4" />, group: "Admin" },
     { label: "Configurações da Plataforma", href: "/dashboard/admin/platform-settings", icon: <Settings className="w-4 h-4" />, group: "Admin" },
     ...base,
@@ -80,8 +80,8 @@ const getNavItems = (role: string): NavItem[] => {
   if (role === "clinic") return [
     { label: "Painel Clínica", href: "/dashboard", icon: <Building2 className="w-4 h-4" />, group: "Clínica", shortcut: "G D" },
     { label: "Médicos da Clínica", href: "/dashboard/clinic/doctors", icon: <Stethoscope className="w-4 h-4" />, group: "Clínica" },
-    { label: "Agenda", href: "/dashboard/clinic/agenda", icon: <Calendar className="w-4 h-4" />, group: "Clínica" },
-    { label: "Financeiro", href: "/dashboard/clinic/financial", icon: <DollarSign className="w-4 h-4" />, group: "Clínica" },
+    { label: "Agenda", href: "/dashboard/clinic/schedules?role=clinic", icon: <Calendar className="w-4 h-4" />, group: "Clínica" },
+    { label: "Financeiro", href: "/dashboard/clinic/finance?role=clinic", icon: <DollarSign className="w-4 h-4" />, group: "Clínica" },
     ...base,
   ];
 

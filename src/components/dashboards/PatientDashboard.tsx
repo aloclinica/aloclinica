@@ -35,6 +35,7 @@ import { Input } from "@/components/ui/input";
 import FirstConsultationTour from "@/components/patient/FirstConsultationTour";
 import ImminentConsultationBar from "./ImminentConsultationBar";
 import { HeroBanner } from "./HeroBanner";
+import AppPromotionalBanners from "./AppPromotionalBanners";
 import mascotWave from "@/assets/mascot-wave.png";
 
 /* ── Constants ── */
@@ -48,7 +49,7 @@ const getQuickActions = (serviceType: ServiceType) => [
   { label: "Urgência", icon: Lightning,       path: "/dashboard/urgent-care?role=patient",                   color: "hsl(0,72%,48%)",   bg: "hsl(0,72%,48%,0.08)"   },
   { label: "Pingo IA", icon: Robot,           path: "/dashboard/ai-assistant?role=patient&tab=triagem",      color: "hsl(195,70%,38%)", bg: "hsl(195,70%,38%,0.10)" },
   { label: "Chat",     icon: ChatCircleDots,  path: "/dashboard/chat?role=patient",                          color: "hsl(168,55%,35%)", bg: "hsl(168,55%,35%,0.10)" },
-  { label: "Exames",   icon: ClipboardText,   path: "/dashboard/patient/exam-results?role=patient",          color: "hsl(225,55%,40%)", bg: "hsl(225,55%,40%,0.08)" },
+  { label: "Exames",   icon: ClipboardText,   path: "/dashboard/patient/documents?role=patient",             color: "hsl(225,55%,40%)", bg: "hsl(225,55%,40%,0.08)" },
 ];
 
 const getGreeting = () => {
@@ -245,6 +246,7 @@ const PatientDashboard = () => {
                 loading={loading}
               />
             </div>
+            <AppPromotionalBanners role="patient" placement="dashboard" />
             <DoctorSearchHero navigate={navigate} hasNextAppt={!!nextAppt} />
             <UrgentAlerts nextAppt={nextAppt} minutesUntilNext={minutesUntilNext} waitingAppt={waitingAppt} sections={sections} navigate={navigate} />
             <section>
@@ -433,7 +435,7 @@ const DoctorSearchHero = ({ navigate, hasNextAppt }: { navigate: any; hasNextApp
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="rounded-3xl border border-primary/15 bg-gradient-to-br from-primary/[0.06] via-card to-card p-5 md:p-6 shadow-sm"
+              className="app-card rounded-[30px] border-primary/15 bg-gradient-to-br from-primary/[0.07] via-card to-card p-5 md:p-6"
     >
       <div className="flex items-start gap-3 mb-4">
         <div className="hidden sm:flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 shrink-0">
@@ -458,14 +460,14 @@ const DoctorSearchHero = ({ navigate, hasNextAppt }: { navigate: any; hasNextApp
             value={term}
             onChange={(e) => setTerm(e.target.value)}
             placeholder="Especialidade, sintoma ou nome do médico"
-            className="h-12 pl-11 rounded-2xl bg-card border-border/50 text-sm md:text-base"
+            className="h-12 pl-11 rounded-2xl bg-card/90 border-border/50 text-sm md:text-base shadow-inner transition-all focus-visible:ring-primary/25"
             aria-label="Buscar médico ou especialidade"
           />
         </div>
         <Button
           type="submit"
           size="lg"
-          className="h-12 rounded-2xl px-6 font-bold shadow-sm gap-1.5"
+          className="h-12 rounded-2xl px-6 font-bold shadow-sm gap-1.5 transition-all hover:-translate-y-0.5"
         >
           Buscar <ArrowRight size={16} weight="bold" />
         </Button>
@@ -477,7 +479,7 @@ const DoctorSearchHero = ({ navigate, hasNextAppt }: { navigate: any; hasNextApp
             key={s.label}
             type="button"
             onClick={() => submit(s.query)}
-            className="h-8 px-3 rounded-full text-[12px] font-semibold bg-muted/60 hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground"
+            className="h-8 px-3 rounded-full text-[12px] font-semibold bg-muted/60 hover:bg-primary/10 hover:text-primary transition-all text-muted-foreground hover:-translate-y-0.5"
           >
             {s.label}
           </button>
@@ -503,7 +505,7 @@ const UrgentAlerts = ({ nextAppt, minutesUntilNext, waitingAppt, sections, navig
 );
 
 const ReturnAppointments = ({ items, navigate }: any) => (
-  <div className="overflow-hidden rounded-2xl border border-warning/15 bg-warning/[0.04] p-4">
+  <div className="app-card overflow-hidden rounded-[26px] border-warning/15 bg-warning/[0.04] p-4">
     <div className="mb-3 flex items-center gap-2"><div className="flex h-7 w-7 items-center justify-center rounded-xl bg-warning/12"><Gift size={14} weight="fill" className="text-warning" /></div><p className="text-[11px] font-bold text-warning uppercase tracking-wide">Retorno Grátis</p></div>
     {items.map((ra: any) => (
       <div key={ra.id} className="card-interactive mb-2 flex items-center justify-between rounded-xl border border-border/10 bg-card p-3 last:mb-0 shadow-sm">
@@ -519,7 +521,7 @@ const ReturnAppointments = ({ items, navigate }: any) => (
 const NextAppointmentCard = ({ appt, navigate }: any) => {
   const scheduledAt = new Date(appt.scheduled_at);
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-[32px] border border-border/40 bg-card p-6 shadow-sm flex flex-col md:flex-row items-center gap-6 relative group overflow-hidden">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="app-card rounded-[32px] p-6 flex flex-col md:flex-row items-center gap-6 relative group overflow-hidden">
       <div aria-hidden="true" className="absolute top-0 right-0 p-4 opacity-30 group-hover:opacity-100 transition-opacity pointer-events-none"><DotsThreeVertical size={24} className="text-muted-foreground" /></div>
       <div className="flex items-center gap-5 w-full md:w-auto">
         <div className="relative"><LazyAvatar src={appt.doctor_avatar} name={appt.doctor_name} className="h-20 w-20 rounded-full border-4 border-white dark:border-muted shadow-lg" /><div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-emerald-500 border-2 border-white dark:border-muted flex items-center justify-center"><VideoCamera size={12} weight="fill" className="text-white" /></div></div>
@@ -539,7 +541,7 @@ const NextAppointmentCard = ({ appt, navigate }: any) => {
 };
 
 const EmptyAppointmentCard = ({ navigate }: any) => (
-  <div className="relative rounded-[32px] border border-border/40 bg-gradient-to-br from-card via-card to-blue-500/[0.04] p-6 md:p-8 overflow-hidden flex flex-col md:flex-row items-center gap-6">
+  <div className="app-card relative rounded-[32px] bg-gradient-to-br from-card via-card to-blue-500/[0.04] p-6 md:p-8 flex flex-col md:flex-row items-center gap-6">
     <div className="flex-1 text-center md:text-left">
       <div className="inline-flex p-3 rounded-2xl bg-primary/10 mb-3">
         <CalendarCheck size={24} weight="fill" className="text-primary" />
