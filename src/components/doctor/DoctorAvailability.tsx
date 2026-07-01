@@ -271,9 +271,10 @@ const DoctorAvailability = () => {
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="text-[11px] font-bold text-muted-foreground px-1 mb-1.5 block">DIA</label>
+                  {/* UI: associate label with select trigger for a11y */}
+                  <label htmlFor="avail-day" className="text-[11px] font-bold text-muted-foreground px-1 mb-1.5 block">DIA</label>
                   <Select value={newDay} onValueChange={setNewDay}>
-                    <SelectTrigger className="h-12 rounded-2xl border-border/50 bg-muted/30"><SelectValue /></SelectTrigger>
+                    <SelectTrigger id="avail-day" className="h-12 rounded-2xl border-border/50 bg-muted/30"><SelectValue /></SelectTrigger>
                     <SelectContent className="rounded-2xl">
                       {daysOfWeek.map((d, i) => (
                         <SelectItem key={i} value={String(i)}>{d}</SelectItem>
@@ -282,16 +283,18 @@ const DoctorAvailability = () => {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-muted-foreground px-1 mb-1.5 block">INÍCIO</label>
+                  {/* UI: associate label with select trigger for a11y */}
+                  <label htmlFor="avail-start" className="text-[11px] font-bold text-muted-foreground px-1 mb-1.5 block">INÍCIO</label>
                   <Select value={newStart} onValueChange={setNewStart}>
-                    <SelectTrigger className="h-12 rounded-2xl border-border/50 bg-muted/30"><SelectValue /></SelectTrigger>
+                    <SelectTrigger id="avail-start" className="h-12 rounded-2xl border-border/50 bg-muted/30"><SelectValue /></SelectTrigger>
                     <SelectContent className="rounded-2xl">{timeOptions.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-muted-foreground px-1 mb-1.5 block">FIM</label>
+                  {/* UI: associate label with select trigger for a11y */}
+                  <label htmlFor="avail-end" className="text-[11px] font-bold text-muted-foreground px-1 mb-1.5 block">FIM</label>
                   <Select value={newEnd} onValueChange={setNewEnd}>
-                    <SelectTrigger className="h-12 rounded-2xl border-border/50 bg-muted/30"><SelectValue /></SelectTrigger>
+                    <SelectTrigger id="avail-end" className="h-12 rounded-2xl border-border/50 bg-muted/30"><SelectValue /></SelectTrigger>
                     <SelectContent className="rounded-2xl">{timeOptions.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
@@ -350,16 +353,19 @@ const DoctorAvailability = () => {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-[auto_auto_1fr_auto] gap-4 items-end mb-6">
                 <div>
-                  <label className="text-[11px] font-bold text-muted-foreground px-1 mb-1.5 block uppercase">DE</label>
-                  <Input type="date" value={absenceDate} onChange={e => setAbsenceDate(e.target.value)} min={new Date().toISOString().split("T")[0]} className="h-12 rounded-2xl border-border/50 bg-muted/30" />
+                  {/* UI: associate label with input for a11y */}
+                  <label htmlFor="absence-from" className="text-[11px] font-bold text-muted-foreground px-1 mb-1.5 block uppercase">DE</label>
+                  <Input id="absence-from" type="date" value={absenceDate} onChange={e => setAbsenceDate(e.target.value)} min={new Date().toISOString().split("T")[0]} className="h-12 rounded-2xl border-border/50 bg-muted/30" />
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-muted-foreground px-1 mb-1.5 block uppercase">ATÉ <span className="text-muted-foreground/50 normal-case">(opcional)</span></label>
-                  <Input type="date" value={absenceEnd} onChange={e => setAbsenceEnd(e.target.value)} min={absenceDate || new Date().toISOString().split("T")[0]} className="h-12 rounded-2xl border-border/50 bg-muted/30" />
+                  {/* UI: associate label with input for a11y */}
+                  <label htmlFor="absence-to" className="text-[11px] font-bold text-muted-foreground px-1 mb-1.5 block uppercase">ATÉ <span className="text-muted-foreground/50 normal-case">(opcional)</span></label>
+                  <Input id="absence-to" type="date" value={absenceEnd} onChange={e => setAbsenceEnd(e.target.value)} min={absenceDate || new Date().toISOString().split("T")[0]} className="h-12 rounded-2xl border-border/50 bg-muted/30" />
                 </div>
                 <div className="flex-1">
-                  <label className="text-[11px] font-bold text-muted-foreground px-1 mb-1.5 block uppercase">MOTIVO</label>
-                  <Input placeholder="Ex: Feriado, Congresso..." value={absenceReason} onChange={e => setAbsenceReason(e.target.value)} className="h-12 rounded-2xl border-border/50 bg-muted/30" />
+                  {/* UI: associate label with input for a11y */}
+                  <label htmlFor="absence-reason" className="text-[11px] font-bold text-muted-foreground px-1 mb-1.5 block uppercase">MOTIVO</label>
+                  <Input id="absence-reason" placeholder="Ex: Feriado, Congresso..." value={absenceReason} onChange={e => setAbsenceReason(e.target.value)} className="h-12 rounded-2xl border-border/50 bg-muted/30" />
                 </div>
                 <Button onClick={addAbsence} variant="outline" className="h-12 rounded-2xl border-destructive/30 text-destructive hover:bg-destructive/10 font-bold text-[11px] px-6 gap-2">
                   <CalendarOff className="w-4 h-4" /> MARCAR
@@ -371,7 +377,7 @@ const DoctorAvailability = () => {
                     <motion.div key={a.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="flex items-center gap-2 py-1.5 px-3.5 rounded-xl border border-destructive/20 bg-destructive/5 text-destructive text-[11px] font-bold">
                       <CalendarOff className="w-3 h-3" />
                       {format(parseISO(a.absence_date), "dd MMM", { locale: ptBR })}
-                      <button onClick={() => removeAbsence(a.id)} className="ml-1 hover:scale-125 transition-transform"><Trash2 className="w-3 h-3" /></button>
+                      <button onClick={() => removeAbsence(a.id)} aria-label={`Remover ausência de ${format(parseISO(a.absence_date), "dd MMM", { locale: ptBR })}`} className="ml-1 hover:scale-125 transition-transform"><Trash2 className="w-3 h-3" /></button>
                     </motion.div>
                   ))}
                 </AnimatePresence>

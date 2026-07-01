@@ -107,7 +107,7 @@ const PaymentHistory = () => {
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#00347F] to-[#1A4BA1] p-6 text-white"
+            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[hsl(var(--p-primary))] to-[hsl(var(--p-primary-mid))] p-6 text-white"
           >
             <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/[0.06] blur-[40px]" />
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
@@ -129,7 +129,7 @@ const PaymentHistory = () => {
               )}
               <div className="flex justify-end mt-4">
                 <Button
-                  className="rounded-full bg-white text-[#00347F] gap-2 font-bold text-sm shadow-[var(--p-shadow-btn)] hover:bg-white/90"
+                  className="rounded-full bg-white text-[hsl(var(--p-primary))] gap-2 font-bold text-sm shadow-[var(--p-shadow-btn)] hover:bg-white/90"
                   onClick={() => navigate("/dashboard/plans")}
                 >
                   <CreditCard className="w-4 h-4" /> Gerenciar
@@ -225,7 +225,7 @@ const PaymentHistory = () => {
             </div>
             <p className="font-bold text-foreground mb-1 font-[Manrope]">Nenhum pagamento</p>
             <p className="text-[13px] text-muted-foreground mb-5">Seus pagamentos aparecerão aqui</p>
-            <Button className="rounded-full shadow-[var(--p-shadow-btn)] bg-[#00347F] text-white" onClick={() => navigate("/dashboard/plans")}>
+            <Button className="rounded-full shadow-[var(--p-shadow-btn)] bg-[hsl(var(--p-primary))] text-white" onClick={() => navigate("/dashboard/plans")}>
               Ver planos disponíveis
             </Button>
           </div>

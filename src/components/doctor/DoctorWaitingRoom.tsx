@@ -224,7 +224,7 @@ const DoctorWaitingRoom = () => {
                 </p>
               )}
             </div>
-            <Button size="sm" variant="ghost" onClick={() => doctorId && fetchWaitingPatients(doctorId)} className="text-white/70 hover:text-white hover:bg-white/15 rounded-xl h-9">
+            <Button size="sm" variant="ghost" aria-label="Atualizar sala de espera" onClick={() => doctorId && fetchWaitingPatients(doctorId)} className="text-white/70 hover:text-white hover:bg-white/15 rounded-xl h-9">
               <RefreshCw className="w-4 h-4" />
             </Button>
           </div>

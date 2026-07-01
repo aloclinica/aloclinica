@@ -326,7 +326,7 @@ const DoctorSearch = () => {
       </div>
       <div className="flex gap-3 pt-2">
         <Button variant="outline" className="flex-1 h-11 rounded-full" onClick={clearFilters}><X className="w-4 h-4 mr-1" /> Limpar</Button>
-        <Button className="flex-1 h-11 bg-[#00347F] text-white rounded-full" onClick={() => setFiltersOpen(false)}>
+        <Button className="flex-1 h-11 bg-[hsl(var(--p-primary))] text-white rounded-full" onClick={() => setFiltersOpen(false)}>
           Ver {filtered.length} resultado{filtered.length !== 1 ? "s" : ""}
         </Button>
       </div>
@@ -368,6 +368,7 @@ const DoctorSearch = () => {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Qual especialidade você procura?"
+              aria-label="Buscar especialidade ou médico"
               value={search}
               onChange={e => { setSearch(e.target.value); setShowRecent(false); }}
               onFocus={() => { if (!search && recentSearches.length > 0) setShowRecent(true); }}
@@ -391,7 +392,7 @@ const DoctorSearch = () => {
               <Button variant="outline" size="icon" className="h-12 w-12 rounded-2xl shrink-0 relative" aria-label="Filtros">
                 <SlidersHorizontal className="w-5 h-5" />
                 {activeFilters > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#00347F] text-white text-[10px] flex items-center justify-center font-bold">{activeFilters}</span>
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[hsl(var(--p-primary))] text-white text-[10px] flex items-center justify-center font-bold">{activeFilters}</span>
                 )}
               </Button>
             </SheetTrigger>
@@ -458,12 +459,12 @@ const DoctorSearch = () => {
             </div>
 
             {/* CTA banner */}
-            <div className="rounded-2xl bg-[#00347F] p-6 text-white">
+            <div className="rounded-2xl bg-[hsl(var(--p-primary))] p-6 text-white">
               <h3 className="text-lg font-bold mb-1 font-[Manrope]">Não encontrou o que precisava?</h3>
               <p className="text-sm text-white/70 mb-4">
                 Nossa equipe de suporte está disponível para te ajudar a encontrar o especialista ideal.
               </p>
-              <Button className="rounded-full bg-white text-[#00347F] font-bold shadow-[var(--p-shadow-btn)]" onClick={() => navigate("/dashboard/support")}>
+              <Button className="rounded-full bg-white text-[hsl(var(--p-primary))] font-bold shadow-[var(--p-shadow-btn)]" onClick={() => navigate("/dashboard/support")}>
                 Falar com Atendente
               </Button>
             </div>
@@ -496,7 +497,7 @@ const DoctorSearch = () => {
               <button
                 className={cn(
                   "shrink-0 h-9 px-4 text-sm rounded-full snap-start active:scale-95 transition-all font-semibold",
-                  selectedSpecialty === null ? "bg-[#00347F] text-white" : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                  selectedSpecialty === null ? "bg-[hsl(var(--p-primary))] text-white" : "bg-muted/50 text-muted-foreground hover:bg-muted"
                 )}
                 onClick={() => setSelectedSpecialty(null)}
               >
@@ -507,7 +508,7 @@ const DoctorSearch = () => {
                   key={s.id}
                   className={cn(
                     "shrink-0 h-9 px-4 text-sm rounded-full snap-start active:scale-95 transition-all font-semibold",
-                    selectedSpecialty === s.name ? "bg-[#00347F] text-white" : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                    selectedSpecialty === s.name ? "bg-[hsl(var(--p-primary))] text-white" : "bg-muted/50 text-muted-foreground hover:bg-muted"
                   )}
                   onClick={() => setSelectedSpecialty(selectedSpecialty === s.name ? null : s.name)}
                 >
@@ -550,13 +551,14 @@ const DoctorSearch = () => {
                       )}
                       onClick={() => navigate(`/dashboard/schedule/${doctor.id}`)}
                     >
-                      <button onClick={(e) => toggleFavorite(doctor.id, e)} className="absolute top-3 right-3 p-2 rounded-full hover:bg-muted/50 transition-colors z-10">
-                        <Heart className={`w-5 h-5 transition-colors ${favoriteIds.has(doctor.id) ? "fill-destructive text-destructive" : "text-muted-foreground/40"}`} />
+                      {/* UI: aria-label + aria-pressed so screen readers announce the favorite toggle state */}
+                      <button onClick={(e) => toggleFavorite(doctor.id, e)} aria-label={favoriteIds.has(doctor.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"} aria-pressed={favoriteIds.has(doctor.id)} className="absolute top-3 right-3 p-2 rounded-full hover:bg-muted/50 transition-colors z-10">
+                        <Heart aria-hidden="true" className={`w-5 h-5 transition-colors ${favoriteIds.has(doctor.id) ? "fill-destructive text-destructive" : "text-muted-foreground/40"}`} />
                       </button>
                       <div className="flex items-start gap-3">
                         <Avatar className="w-14 h-14 rounded-2xl shrink-0 ring-2 ring-[hsl(var(--p-primary))]/15">
                           {doctor.profile?.avatar_url && <AvatarImage src={doctor.profile.avatar_url} alt={`Dr(a). ${doctor.profile?.first_name}`} className="rounded-2xl object-cover" loading="lazy" decoding="async" />}
-                          <AvatarFallback className="rounded-2xl bg-gradient-to-br from-[#00347F] to-[#2563EB] text-white font-bold text-base">{(doctor.display_name?.[0] || doctor.profile?.first_name?.[0] || "?")}{doctor.profile?.last_name?.[0] ?? ""}</AvatarFallback>
+                          <AvatarFallback className="rounded-2xl bg-gradient-to-br from-[hsl(var(--p-primary))] to-[hsl(var(--p-primary-mid))] text-white font-bold text-base">{(doctor.display_name?.[0] || doctor.profile?.first_name?.[0] || "?")}{doctor.profile?.last_name?.[0] ?? ""}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0 pr-8">
                           <div className="flex items-center gap-1.5 flex-wrap">
@@ -617,7 +619,7 @@ const DoctorSearch = () => {
                             onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/doctor-profile/${doctor.id}`); }}>
                             <ExternalLink className="w-3.5 h-3.5 mr-1" /> Perfil
                           </Button>
-                          <Button size="sm" className="h-10 px-5 rounded-full bg-[#00347F] text-white text-sm font-bold gap-1.5 shadow-[var(--p-shadow-btn)]"
+                          <Button size="sm" className="h-10 px-5 rounded-full bg-[hsl(var(--p-primary))] text-white text-sm font-bold gap-1.5 shadow-[var(--p-shadow-btn)]"
                             onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/schedule/${doctor.id}`); }}>
                             <Calendar className="w-4 h-4" /> Agendar <ChevronRight className="w-4 h-4 -mr-1" />
                           </Button>

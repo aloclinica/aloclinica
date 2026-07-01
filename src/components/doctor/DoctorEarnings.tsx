@@ -243,12 +243,14 @@ const DoctorEarnings = () => {
                   </div>
                   <div className="space-y-3">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-muted-foreground uppercase px-1">Valor do Saque</label>
-                      <Input type="number" placeholder={`Mínimo R$ ${MIN_WITHDRAWAL}`} value={withdrawAmount} onChange={e => setWithdrawAmount(e.target.value)} className="rounded-2xl h-12" />
+                      {/* UI: associate label with input for a11y */}
+                      <label htmlFor="withdraw-amount" className="text-xs font-bold text-muted-foreground uppercase px-1">Valor do Saque</label>
+                      <Input id="withdraw-amount" type="number" placeholder={`Mínimo R$ ${MIN_WITHDRAWAL}`} value={withdrawAmount} onChange={e => setWithdrawAmount(e.target.value)} className="rounded-2xl h-12" />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-muted-foreground uppercase px-1">Chave PIX</label>
-                      <Input placeholder="CPF, e-mail ou telefone" value={pixKey} onChange={e => setPixKey(e.target.value)} className="rounded-2xl h-12" />
+                      {/* UI: associate label with input for a11y */}
+                      <label htmlFor="withdraw-pix" className="text-xs font-bold text-muted-foreground uppercase px-1">Chave PIX</label>
+                      <Input id="withdraw-pix" placeholder="CPF, e-mail ou telefone" value={pixKey} onChange={e => setPixKey(e.target.value)} className="rounded-2xl h-12" />
                     </div>
                   </div>
                   <Button className="w-full h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold" onClick={requestWithdrawal} disabled={submitting || !withdrawAmount || !pixKey.trim()}>

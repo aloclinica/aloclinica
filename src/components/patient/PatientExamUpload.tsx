@@ -149,12 +149,13 @@ const PatientExamUpload = () => {
               <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
                 <Input
                   placeholder="Descrição (ex: Hemograma completo)"
+                  aria-label="Descrição do documento"
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                   className="max-w-xs"
                 />
                 <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-[140px]" aria-label="Categoria do documento"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="exam">🔬 Exame</SelectItem>
                     <SelectItem value="prescription">💊 Receita</SelectItem>
@@ -177,7 +178,7 @@ const PatientExamUpload = () => {
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <div className="relative flex-1">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Buscar documentos..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9" />
+            <Input placeholder="Buscar documentos..." aria-label="Buscar documentos" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9" />
           </div>
           <Select value={filterCategory} onValueChange={setFilterCategory}>
             <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
@@ -217,8 +218,8 @@ const PatientExamUpload = () => {
                   <Button size="sm" variant="outline" className="h-8 rounded-xl text-xs" onClick={() => viewDocument(d)}>
                     <Eye className="w-3 h-3 mr-1" /> Ver
                   </Button>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive" onClick={() => deleteDocument(d)}>
-                    <Trash2 className="w-3 h-3" />
+                  <Button size="sm" variant="ghost" aria-label="Excluir documento" className="h-8 w-8 p-0 text-destructive" onClick={() => deleteDocument(d)}>
+                    <Trash2 aria-hidden="true" className="w-3 h-3" />
                   </Button>
                 </div>
               </div>

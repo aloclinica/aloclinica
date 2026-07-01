@@ -225,11 +225,11 @@ const PrescriptionRenewalForm = () => {
               <div>
                 <Label className="text-sm font-medium">2. Questionário de saúde</Label>
                 <div className="space-y-3 mt-2">
-                  <div><Label className="text-xs text-muted-foreground">Alergias conhecidas</Label><Input value={allergies} onChange={e => setAllergies(e.target.value)} placeholder="Ex: Dipirona, Penicilina..." /></div>
-                  <div><Label className="text-xs text-muted-foreground">Condições crônicas</Label><Input value={conditions} onChange={e => setConditions(e.target.value)} placeholder="Ex: Hipertensão, Diabetes..." /></div>
-                  <div><Label className="text-xs text-muted-foreground">Medicamentos atuais</Label><Textarea value={medications} onChange={e => setMedications(e.target.value)} placeholder="Liste os medicamentos" rows={2} /></div>
-                  <div><Label className="text-xs text-muted-foreground">Efeitos colaterais</Label><Input value={sideEffects} onChange={e => setSideEffects(e.target.value)} placeholder="Algum efeito colateral?" /></div>
-                  <div><Label className="text-xs text-muted-foreground">Observações</Label><Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Informações extras" rows={2} /></div>
+                  <div><Label htmlFor="rx-allergies" className="text-xs text-muted-foreground">Alergias conhecidas</Label><Input id="rx-allergies" value={allergies} onChange={e => setAllergies(e.target.value)} placeholder="Ex: Dipirona, Penicilina..." /></div>
+                  <div><Label htmlFor="rx-conditions" className="text-xs text-muted-foreground">Condições crônicas</Label><Input id="rx-conditions" value={conditions} onChange={e => setConditions(e.target.value)} placeholder="Ex: Hipertensão, Diabetes..." /></div>
+                  <div><Label htmlFor="rx-medications" className="text-xs text-muted-foreground">Medicamentos atuais</Label><Textarea id="rx-medications" value={medications} onChange={e => setMedications(e.target.value)} placeholder="Liste os medicamentos" rows={2} /></div>
+                  <div><Label htmlFor="rx-side-effects" className="text-xs text-muted-foreground">Efeitos colaterais</Label><Input id="rx-side-effects" value={sideEffects} onChange={e => setSideEffects(e.target.value)} placeholder="Algum efeito colateral?" /></div>
+                  <div><Label htmlFor="rx-notes" className="text-xs text-muted-foreground">Observações</Label><Textarea id="rx-notes" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Informações extras" rows={2} /></div>
                 </div>
               </div>
 

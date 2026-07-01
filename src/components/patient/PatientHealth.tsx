@@ -375,8 +375,8 @@ const PatientHealth = () => {
                   <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
                     <defs>
                       <linearGradient id="metricGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#185FA5" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#185FA5" stopOpacity={0.02} />
+                        <stop offset="0%" stopColor="hsl(var(--p-primary))" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="hsl(var(--p-primary))" stopOpacity={0.02} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} vertical={false} />
@@ -395,11 +395,11 @@ const PatientHealth = () => {
                     <Area
                       type="monotone"
                       dataKey="value"
-                      stroke="#185FA5"
+                      stroke="hsl(var(--p-primary))"
                       strokeWidth={2.5}
                       fill="url(#metricGradient)"
-                      dot={{ r: 3, fill: "#185FA5", strokeWidth: 0 }}
-                      activeDot={{ r: 5, fill: "#185FA5", stroke: "hsl(var(--background))", strokeWidth: 2 }}
+                      dot={{ r: 3, fill: "hsl(var(--p-primary))", strokeWidth: 0 }}
+                      activeDot={{ r: 5, fill: "hsl(var(--p-primary))", stroke: "hsl(var(--background))", strokeWidth: 2 }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -421,7 +421,7 @@ const PatientHealth = () => {
         {/* Search */}
         <div className="relative mb-3">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Buscar por médico..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10 h-11 rounded-2xl bg-muted/30 border-border/40" />
+          <Input placeholder="Buscar por médico..." aria-label="Buscar no histórico por médico" value={search} onChange={e => setSearch(e.target.value)} className="pl-10 h-11 rounded-2xl bg-muted/30 border-border/40" />
         </div>
 
         {/* Tabs for history */}
