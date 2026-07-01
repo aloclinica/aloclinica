@@ -8,7 +8,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileText, Trash2, Eye, Plus, Search, FolderLock } from "lucide-react";
+import {
+  ClipboardList,
+  Eye,
+  FileImage,
+  FileText,
+  FolderLock,
+  Paperclip,
+  Pill,
+  Plus,
+  Search,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -24,7 +36,9 @@ const PatientExamUpload = () => {
   const [filterCategory, setFilterCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => { if (user) fetchDocuments(); }, [user]);
+  useEffect(() => {
+    if (user) fetchDocuments();
+  }, [user]);
 
   const fetchDocuments = async () => {
     const { data } = await db.from("patient_documents")
@@ -40,7 +54,7 @@ const PatientExamUpload = () => {
     if (!file || !user) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("Arquivo muito grande", { description: "O tamanho máximo é 10MB." });
+      toast.error("Arquivo muito grande", { description: "O tamanho maximo e 10MB." });
       return;
     }
 
@@ -57,8 +71,6 @@ const PatientExamUpload = () => {
       return;
     }
 
-    const { data: urlData } = db.storage.from("patient-documents").getPublicUrl(filePath);
-
     const { error: dbError } = await db.from("patient_documents").insert({
       patient_id: user.id,
       uploaded_by: user.id,
@@ -73,7 +85,7 @@ const PatientExamUpload = () => {
     if (dbError) {
       toast.error("Erro ao salvar", { description: dbError.message });
     } else {
-      toast.success("Documento enviado! ✅");
+      toast.success("Documento enviado");
       setDescription("");
       setCategory("exam");
       fetchDocuments();
@@ -95,19 +107,18 @@ const PatientExamUpload = () => {
     fetchDocuments();
   };
 
-  const fileIcon = (type: string) => {
-    if (type?.includes("image")) return "🖼️";
-    if (type?.includes("pdf")) return "📄";
-    return "📎";
-  };
-
-  const categoryIcon = (cat: string) => {
-    switch (cat) {
-      case "exam": return "🔬";
-      case "prescription": return "💊";
-      case "certificate": return "📋";
-      case "history": return "📁";
-      default: return "📎";
+  const CategoryIcon = ({ type }: { type: string }) => {
+    switch (type) {
+      case "exam":
+        return <FileImage className="h-5 w-5" />;
+      case "prescription":
+        return <Pill className="h-5 w-5" />;
+      case "certificate":
+        return <ClipboardList className="h-5 w-5" />;
+      case "history":
+        return <FolderLock className="h-5 w-5" />;
+      default:
+        return <Paperclip className="h-5 w-5" />;
     }
   };
 
@@ -116,7 +127,7 @@ const PatientExamUpload = () => {
       case "exam": return "Exame";
       case "prescription": return "Receita";
       case "certificate": return "Atestado";
-      case "history": return "Histórico";
+      case "history": return "Historico";
       default: return "Outro";
     }
   };
@@ -135,91 +146,111 @@ const PatientExamUpload = () => {
 
   return (
     <DashboardLayout title="Paciente" nav={getPatientNav("documents")}>
-      <div className="w-full mx-auto max-w-4xl pb-24 md:pb-6">
-        <h1 className="text-2xl font-bold text-foreground mb-1 flex items-center gap-2"><FolderLock className="w-6 h-6" /> Cofre de Documentos</h1>
-        <p className="text-muted-foreground text-sm mb-6">Guarde exames, receitas e documentos médicos com segurança</p>
+      <div className="w-full mx-auto max-w-5xl pb-24 md:pb-6">
+        <section className="relative mb-6 overflow-hidden rounded-[32px] border border-white/60 bg-[linear-gradient(135deg,#eef7ff_0%,#ffffff_52%,#f8fff6_100%)] p-5 shadow-[0_24px_70px_-46px_rgba(15,42,90,.68)] md:p-6">
+          <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-blue-400/16 blur-3xl" />
+          <div className="pointer-events-none absolute bottom-0 left-16 h-40 w-40 rounded-full bg-emerald-300/14 blur-3xl" />
+          <div className="relative flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/85 shadow-sm">
+                <FolderLock className="h-6 w-6 text-[hsl(var(--p-primary))]" />
+              </div>
+              <div>
+                <div className="mb-1 inline-flex items-center rounded-full border border-primary/15 bg-white/75 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-primary">
+                  Documentos seguros
+                </div>
+                <h1 className="font-[Manrope] text-2xl font-black text-foreground">Cofre de Documentos</h1>
+                <p className="text-sm text-muted-foreground">Guarde exames, receitas e documentos medicos em um so lugar.</p>
+              </div>
+            </div>
+            <div className="hidden rounded-2xl border border-white/65 bg-white/75 p-3 text-center shadow-sm sm:block">
+              <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Arquivos</p>
+              <p className="mt-1 text-lg font-black text-foreground">{documents.length}</p>
+            </div>
+          </div>
+        </section>
 
-        {/* Upload area */}
-        <Card className="border-border border-dashed mb-6">
-          <CardContent className="p-6">
+        <Card className="mb-6 overflow-hidden rounded-[30px] border border-dashed border-[hsl(var(--p-primary))]/25 bg-card/95 shadow-sm">
+          <CardContent className="p-5 md:p-6">
             <div className="text-center">
-              <Upload className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
-              <p className="text-sm font-medium text-foreground mb-1">Enviar novo documento</p>
-              <p className="text-xs text-muted-foreground mb-4">PDF, imagens (JPG, PNG) — máx. 10MB</p>
-              <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-3xl bg-primary/10">
+                <Upload className="h-7 w-7 text-primary" />
+              </div>
+              <p className="mb-1 text-sm font-black text-foreground">Enviar novo documento</p>
+              <p className="mb-4 text-xs text-muted-foreground">PDF, imagens JPG e PNG, ate 10MB.</p>
+              <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Input
-                  placeholder="Descrição (ex: Hemograma completo)"
-                  aria-label="Descrição do documento"
+                  placeholder="Descricao (ex: Hemograma completo)"
+                  aria-label="Descricao do documento"
                   value={description}
                   onChange={e => setDescription(e.target.value)}
-                  className="max-w-xs"
+                  className="h-11 max-w-xs rounded-2xl border-border/40 bg-muted/35"
                 />
                 <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger className="w-[140px]" aria-label="Categoria do documento"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-11 w-[160px] rounded-2xl" aria-label="Categoria do documento"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="exam">🔬 Exame</SelectItem>
-                    <SelectItem value="prescription">💊 Receita</SelectItem>
-                    <SelectItem value="certificate">📋 Atestado</SelectItem>
-                    <SelectItem value="history">📁 Histórico</SelectItem>
-                    <SelectItem value="other">📎 Outro</SelectItem>
+                    <SelectItem value="exam">Exame</SelectItem>
+                    <SelectItem value="prescription">Receita</SelectItem>
+                    <SelectItem value="certificate">Atestado</SelectItem>
+                    <SelectItem value="history">Historico</SelectItem>
+                    <SelectItem value="other">Outro</SelectItem>
                   </SelectContent>
                 </Select>
                 <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden" onChange={handleUpload} />
-                <Button onClick={() => fileRef.current?.click()} disabled={uploading} className="bg-gradient-hero text-primary-foreground">
-                  <Plus className="w-4 h-4 mr-1" /> {uploading ? "Enviando..." : "Escolher Arquivo"}
+                <Button onClick={() => fileRef.current?.click()} disabled={uploading} className="h-11 rounded-full bg-[hsl(var(--p-primary))] px-5 font-bold text-white shadow-[var(--p-shadow-btn)]">
+                  <Plus className="mr-1 h-4 w-4" /> {uploading ? "Enviando..." : "Escolher Arquivo"}
                 </Button>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Documents list */}
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <div className="mb-4 flex flex-col gap-3 rounded-[24px] border border-border/45 bg-card/90 p-2 shadow-sm sm:flex-row">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Buscar documentos..." aria-label="Buscar documentos" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input placeholder="Buscar documentos..." aria-label="Buscar documentos" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="h-11 rounded-2xl border-transparent bg-muted/35 pl-9" />
           </div>
           <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-11 w-full rounded-2xl sm:w-[180px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos ({documents.length})</SelectItem>
-              <SelectItem value="exam">🔬 Exames</SelectItem>
-              <SelectItem value="prescription">💊 Receitas</SelectItem>
-              <SelectItem value="certificate">📋 Atestados</SelectItem>
-              <SelectItem value="history">📁 Histórico</SelectItem>
-              <SelectItem value="other">📎 Outros</SelectItem>
+              <SelectItem value="exam">Exames</SelectItem>
+              <SelectItem value="prescription">Receitas</SelectItem>
+              <SelectItem value="certificate">Atestados</SelectItem>
+              <SelectItem value="history">Historico</SelectItem>
+              <SelectItem value="other">Outros</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {loading ? <div className="shimmer-v2 h-5 rounded w-32 inline-block" aria-label="Carregando" /> : (
+        {loading ? <div className="shimmer-v2 inline-block h-5 w-32 rounded" aria-label="Carregando" /> : (
           <div className="space-y-3">
             {filteredDocs.length === 0 ? (
-              <div className="text-center py-12 rounded-2xl border border-dashed border-border/40 bg-muted/10">
-                <FileText className="w-10 h-10 mx-auto text-muted-foreground/20 mb-3" />
-                <p className="text-sm font-semibold text-foreground mb-1">Nenhum exame enviado ainda</p>
-                <p className="text-xs text-muted-foreground">Envie seus exames usando o botão acima.</p>
+              <div className="relative overflow-hidden rounded-[28px] border border-dashed border-border/45 bg-card px-5 py-12 text-center shadow-sm">
+                <div className="pointer-events-none absolute inset-x-10 top-0 h-20 rounded-full bg-primary/10 blur-3xl" />
+                <FileText className="relative mx-auto mb-3 h-12 w-12 text-primary/45" />
+                <p className="relative mb-1 text-sm font-black text-foreground">Nenhum exame enviado ainda</p>
+                <p className="relative text-xs text-muted-foreground">Envie seus exames usando o botao acima.</p>
               </div>
             ) : filteredDocs.map(d => (
-              <div key={d.id} className="card-interactive flex items-center gap-4 rounded-2xl border border-border/30 bg-card p-4">
-                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-xl shrink-0">
-                  {categoryIcon(d.category || "exam")}
+              <div key={d.id} className="card-interactive flex items-center gap-4 rounded-[26px] border border-border/35 bg-card/95 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-[var(--p-shadow-card)]">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <CategoryIcon type={d.category || "exam"} />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate">{d.description || d.file_name}</p>
-                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">{categoryLabel(d.category || "exam")}</Badge>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold text-foreground">{d.description || d.file_name}</p>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-2">
+                    <Badge variant="outline" className="px-1.5 py-0 text-[10px]">{categoryLabel(d.category || "exam")}</Badge>
                     <span className="text-[10px] text-muted-foreground">{format(new Date(d.created_at), "dd/MM/yyyy", { locale: ptBR })}</span>
                     <span className="text-[10px] text-muted-foreground">{formatSize(d.file_size || 0)}</span>
                   </div>
                 </div>
-                <div className="flex gap-1 shrink-0">
-                  <Button size="sm" variant="outline" className="h-8 rounded-xl text-xs" onClick={() => viewDocument(d)}>
-                    <Eye className="w-3 h-3 mr-1" /> Ver
+                <div className="flex shrink-0 gap-1">
+                  <Button size="sm" variant="outline" className="h-9 rounded-full text-xs" onClick={() => viewDocument(d)}>
+                    <Eye className="mr-1 h-3 w-3" /> Ver
                   </Button>
-                  <Button size="sm" variant="ghost" aria-label="Excluir documento" className="h-8 w-8 p-0 text-destructive" onClick={() => deleteDocument(d)}>
-                    <Trash2 aria-hidden="true" className="w-3 h-3" />
+                  <Button size="sm" variant="ghost" aria-label="Excluir documento" className="h-9 w-9 rounded-full p-0 text-destructive" onClick={() => deleteDocument(d)}>
+                    <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </div>
