@@ -34,9 +34,8 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import FirstConsultationTour from "@/components/patient/FirstConsultationTour";
 import ImminentConsultationBar from "./ImminentConsultationBar";
-import { HeroBanner } from "./HeroBanner";
 import AppPromotionalBanners from "./AppPromotionalBanners";
-import mascotWave from "@/assets/mascot-wave.png";
+import patientHomeHero from "@/assets/patient-home-hero.png";
 
 /* ── Constants ── */
 const HEALTH_TIPS = [
@@ -220,36 +219,18 @@ const PatientDashboard = () => {
         />
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start min-w-0">
           <div className="lg:col-span-8 space-y-6 min-w-0">
-            <div className="-mx-4 -mt-5 md:-mx-6 md:-mt-5 lg:-mx-8 lg:-mt-6">
-              <HeroBanner
-                gradient="from-[hsl(215,75%,28%)] via-[hsl(195,70%,32%)] to-[hsl(168,55%,38%)]"
-                pingoSrc={mascotWave}
-                pingoAlt="Pingo"
-                liveDot={!!nextAppt}
-                liveColor={nextAppt && minutesUntilNext !== null && minutesUntilNext <= 60 ? "red" : "green"}
-                bubble={{
-                  greeting: `${getGreeting()} · ${firstName}`,
-                  name: "Sua saúde em um só lugar",
-                  sub: getContextualSubtitle(upcoming, stats),
-                }}
-                topRight={
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/25 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.18em] text-white shadow-sm">
-                    <ShieldCheck className="w-3 h-3" /> CFM verificado
-                  </div>
-                }
-                kpis={[
-                  { label: "Consultas", value: stats?.total ?? 0 },
-                  { label: "Receitas", value: stats?.prescriptions ?? 0 },
-                  { label: "Exames", value: stats?.documents ?? 0 },
-                  { label: "Avaliação", value: "4.9★" },
-                ]}
-                loading={loading}
-              />
-            </div>
+            <PatientHomeCommandCenter
+              firstName={firstName}
+              stats={stats}
+              nextAppt={nextAppt}
+              upcoming={upcoming}
+              minutesUntilNext={minutesUntilNext}
+              navigate={navigate}
+            />
             <AppPromotionalBanners role="patient" placement="dashboard" />
             <DoctorSearchHero navigate={navigate} hasNextAppt={!!nextAppt} />
             <UrgentAlerts nextAppt={nextAppt} minutesUntilNext={minutesUntilNext} waitingAppt={waitingAppt} sections={sections} navigate={navigate} />
-            <section>
+            {false && <section>
               <div className="flex items-center justify-between mb-4 px-1">
                 <div className="flex items-center gap-2">
                   <div className="h-5 w-1 rounded-full bg-gradient-to-b from-primary to-primary/40" />
@@ -279,7 +260,7 @@ const PatientDashboard = () => {
                   </motion.button>
                 ))}
               </div>
-            </section>
+            </section>}
             {sections.kpis && (
               <section>
                 <div className="flex items-center gap-2 mb-4 px-1">
@@ -380,6 +361,265 @@ const PatientDashboard = () => {
         </div>
       </div>
     </DashboardLayout>
+  );
+};
+
+const PatientHomeCommandCenter = ({ firstName, stats, nextAppt, upcoming, minutesUntilNext, navigate }: any) => {
+  const consultationSoon = nextAppt && minutesUntilNext !== null && minutesUntilNext <= 60;
+  const scheduledAt = nextAppt ? new Date(nextAppt.scheduled_at) : null;
+  const statusLabel = upcoming?.length ? "Consulta programada" : "Agenda livre";
+  const actionItems = [
+    {
+      label: "Agendar",
+      desc: "Buscar médico",
+      icon: CalendarCheck,
+      path: "/dashboard/schedule?role=patient",
+      className: "bg-primary text-primary-foreground border-primary/20",
+      iconClass: "bg-white/16 text-white",
+    },
+    {
+      label: "Urgência",
+      desc: "Atendimento agora",
+      icon: Lightning,
+      path: "/dashboard/urgent-care?role=patient",
+      className: "bg-red-500/8 text-foreground border-red-500/16",
+      iconClass: "bg-red-500/12 text-red-600",
+    },
+    {
+      label: "Receitas",
+      desc: "Histórico",
+      icon: FileText,
+      path: "/dashboard/history?role=patient",
+      className: "bg-card text-foreground border-border/55",
+      iconClass: "bg-emerald-500/12 text-emerald-600",
+    },
+    {
+      label: "Exames",
+      desc: "Documentos",
+      icon: ClipboardText,
+      path: "/dashboard/patient/documents?role=patient",
+      className: "bg-card text-foreground border-border/55",
+      iconClass: "bg-sky-500/12 text-sky-600",
+    },
+  ];
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      className="rounded-[28px] border border-border/55 bg-card p-4 shadow-sm sm:p-5"
+    >
+      <div className="grid gap-4 xl:grid-cols-[1fr_270px]">
+        <div className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-sm font-bold text-muted-foreground">{getGreeting()}, {firstName}</p>
+              <h1 className="mt-1 font-[Manrope] text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+                Início
+              </h1>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Dados seguros
+              </span>
+              <span className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.14em]",
+                consultationSoon
+                  ? "border-red-500/20 bg-red-500/10 text-red-600"
+                  : "border-primary/15 bg-primary/8 text-primary"
+              )}>
+                <span className={cn("h-2 w-2 rounded-full", consultationSoon ? "animate-pulse bg-red-500" : "bg-primary")} />
+                {statusLabel}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid gap-3 lg:grid-cols-[1fr_0.9fr]">
+            <div className="rounded-3xl border border-border/55 bg-muted/18 p-4">
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-muted-foreground">Próxima consulta</p>
+                  <h2 className="mt-1 font-[Manrope] text-xl font-extrabold text-foreground">
+                    {nextAppt ? nextAppt.doctor_name : "Nenhuma consulta marcada"}
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {nextAppt
+                      ? `${nextAppt.specialty || "Atendimento médico"} · ${format(scheduledAt!, "dd/MM 'às' HH:mm")}`
+                      : "Agende em poucos passos ou entre no atendimento imediato."}
+                  </p>
+                </div>
+                <div className={cn("grid h-11 w-11 shrink-0 place-items-center rounded-2xl", consultationSoon ? "bg-red-500/12 text-red-600" : "bg-primary/10 text-primary")}>
+                  <VideoCamera size={22} weight="fill" />
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button
+                  onClick={() => navigate(nextAppt ? "/dashboard/appointments?role=patient" : "/dashboard/schedule?role=patient")}
+                  className="h-11 rounded-2xl font-extrabold"
+                >
+                  {nextAppt ? "Ver consulta" : "Agendar consulta"}
+                  <ArrowRight size={16} weight="bold" />
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/dashboard/urgent-care?role=patient")}
+                  className="h-11 rounded-2xl font-extrabold"
+                >
+                  Atendimento agora
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              {[
+                { label: "Consultas", value: stats?.total ?? 0, icon: CalendarCheck },
+                { label: "Receitas", value: stats?.prescriptions ?? 0, icon: FileText },
+                { label: "Exames", value: stats?.documents ?? 0, icon: ClipboardText },
+                { label: "Próximo", value: nextAppt ? format(scheduledAt!, "HH:mm") : "Livre", icon: Clock },
+              ].map((item) => (
+                <div key={item.label} className="rounded-2xl border border-border/50 bg-background p-3">
+                  <item.icon size={18} weight="fill" className="mb-2 text-primary" />
+                  <p className="text-xl font-black leading-none text-foreground">{item.value}</p>
+                  <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.13em] text-muted-foreground">{item.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
+            {actionItems.map((item) => (
+              <button
+                key={item.label}
+                onClick={() => navigate(item.path)}
+                className={cn("group rounded-2xl border p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md", item.className)}
+              >
+                <div className={cn("mb-3 grid h-10 w-10 place-items-center rounded-2xl", item.iconClass)}>
+                  <item.icon size={20} weight="fill" />
+                </div>
+                <p className="text-sm font-extrabold">{item.label}</p>
+                <p className={cn("mt-1 text-xs leading-5", item.className.includes("bg-primary") ? "text-primary-foreground/75" : "text-muted-foreground")}>{item.desc}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="hidden xl:block">
+          <div className="relative h-full min-h-[300px] overflow-hidden rounded-[24px] border border-border/50 bg-muted/20">
+            <img src={patientHomeHero} alt="" className="h-full w-full object-cover object-[69%_center]" aria-hidden="true" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/72 via-transparent to-transparent" />
+            <div className="absolute bottom-3 left-3 right-3 rounded-2xl border border-white/60 bg-white/78 p-3 shadow-sm backdrop-blur dark:border-white/10 dark:bg-slate-950/72">
+              <div className="flex items-center gap-3">
+                <PingoMascot variant="wave" size={42} animate />
+                <div>
+                  <p className="text-sm font-extrabold text-foreground">Tudo em um painel</p>
+                  <p className="text-xs text-muted-foreground">{getContextualSubtitle(upcoming, stats)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.section>
+  );
+};
+
+const PatientHomeHero = ({ firstName, stats, nextAppt, upcoming, minutesUntilNext, navigate }: any) => {
+  const consultationSoon = nextAppt && minutesUntilNext !== null && minutesUntilNext <= 60;
+  const statusText = upcoming?.length ? "Consulta programada" : "Pronto para agendar";
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      className="relative -mx-4 -mt-5 overflow-hidden rounded-b-[34px] border border-border/50 bg-card shadow-[0_18px_55px_-28px_rgba(15,42,90,0.5)] md:-mx-6 md:-mt-5 md:rounded-[2rem] lg:-mx-8 lg:-mt-6"
+    >
+      <div className="absolute inset-0">
+        <img
+          src={patientHomeHero}
+          alt=""
+          className="h-full w-full object-cover object-center"
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-white/35 dark:from-slate-950 dark:via-slate-950/88 dark:to-slate-950/35" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background to-transparent" />
+      </div>
+
+      <div className="relative grid min-h-[360px] gap-6 px-5 py-7 sm:px-7 md:grid-cols-[1.08fr_0.92fr] md:px-8 md:py-9">
+        <div className="flex max-w-2xl flex-col justify-between gap-7">
+          <div>
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-primary/10 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-primary">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Cuidado verificado
+              </span>
+              <span className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em]",
+                consultationSoon
+                  ? "border-red-500/20 bg-red-500/10 text-red-600"
+                  : "border-emerald-500/20 bg-emerald-500/10 text-emerald-600"
+              )}>
+                <span className={cn("h-2 w-2 rounded-full", consultationSoon ? "animate-pulse bg-red-500" : "bg-emerald-500")} />
+                {statusText}
+              </span>
+            </div>
+
+            <p className="mb-2 text-sm font-bold text-muted-foreground">{getGreeting()}, {firstName}</p>
+            <h1 className="font-[Manrope] text-3xl font-extrabold leading-[1.04] tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+              Sua saúde organizada em uma experiência simples.
+            </h1>
+            <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
+              Agende consultas, acompanhe receitas, exames e histórico médico com segurança e atendimento online quando precisar.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button
+              onClick={() => navigate("/dashboard/schedule?role=patient")}
+              className="h-12 rounded-2xl px-6 font-extrabold shadow-lg shadow-primary/20 transition hover:-translate-y-0.5"
+            >
+              Agendar consulta
+              <ArrowRight size={17} weight="bold" />
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/dashboard/urgent-care?role=patient")}
+              className="h-12 rounded-2xl border-border/70 bg-background/70 px-6 font-extrabold backdrop-blur transition hover:-translate-y-0.5"
+            >
+              Atendimento agora
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex items-end justify-stretch md:justify-end">
+          <div className="w-full max-w-md rounded-[2rem] border border-white/70 bg-white/72 p-4 shadow-[0_22px_70px_-36px_rgba(15,42,90,0.65)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/65">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.16em] text-muted-foreground">Painel de hoje</p>
+                <p className="mt-1 text-sm font-bold text-foreground">{getContextualSubtitle(upcoming, stats)}</p>
+              </div>
+              <PingoMascot variant="wave" size={58} animate />
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
+              {[
+                { label: "Consultas", value: stats?.total ?? 0, icon: CalendarCheck },
+                { label: "Receitas", value: stats?.prescriptions ?? 0, icon: FileText },
+                { label: "Exames", value: stats?.documents ?? 0, icon: ClipboardText },
+                { label: "Próximo", value: nextAppt ? format(new Date(nextAppt.scheduled_at), "HH:mm") : "Livre", icon: Clock },
+              ].map((item) => (
+                <div key={item.label} className="rounded-2xl border border-border/45 bg-background/70 p-3">
+                  <item.icon size={18} weight="fill" className="mb-2 text-primary" />
+                  <p className="text-xl font-black leading-none text-foreground">{item.value}</p>
+                  <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.13em] text-muted-foreground">{item.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.section>
   );
 };
 
@@ -564,3 +804,4 @@ const EmptyAppointmentCard = ({ navigate }: any) => (
 );
 
 export default PatientDashboard;
+
