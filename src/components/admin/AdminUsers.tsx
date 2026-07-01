@@ -404,11 +404,11 @@ const AdminUsers = () => {
                         aria-label="Selecionar todos"
                       />
                     </TableHead>
-                    <TableHead>Usuário</TableHead>
-                    <TableHead>Telefone</TableHead>
-                    <TableHead>Roles</TableHead>
-                    <TableHead>Cadastro</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    <TableHead scope="col">Usuário</TableHead>
+                    <TableHead scope="col">Telefone</TableHead>
+                    <TableHead scope="col">Roles</TableHead>
+                    <TableHead scope="col">Cadastro</TableHead>
+                    <TableHead scope="col" className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

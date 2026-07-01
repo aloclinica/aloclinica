@@ -591,7 +591,7 @@ const AdminWhatsApp = () => {
                       <Smartphone className="w-4 h-4" />
                       Instâncias ({instances.length})
                     </span>
-                    <Button size="sm" variant="ghost" onClick={fetchInstances}>
+                    <Button size="sm" variant="ghost" aria-label="Atualizar instâncias" onClick={fetchInstances}>
                       <RefreshCw className="w-4 h-4" />
                     </Button>
                   </CardTitle>

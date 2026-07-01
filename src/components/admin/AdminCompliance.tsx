@@ -186,12 +186,12 @@ export default function AdminCompliance() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Data/Hora</TableHead>
-                      <TableHead>Usuário</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Versão</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>IP</TableHead>
+                      <TableHead scope="col">Data/Hora</TableHead>
+                      <TableHead scope="col">Usuário</TableHead>
+                      <TableHead scope="col">Tipo</TableHead>
+                      <TableHead scope="col">Versão</TableHead>
+                      <TableHead scope="col">Status</TableHead>
+                      <TableHead scope="col">IP</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -235,11 +235,11 @@ export default function AdminCompliance() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Data/Hora</TableHead>
-                      <TableHead>Ação</TableHead>
-                      <TableHead>Entidade</TableHead>
-                      <TableHead>Usuário</TableHead>
-                      <TableHead>IP</TableHead>
+                      <TableHead scope="col">Data/Hora</TableHead>
+                      <TableHead scope="col">Ação</TableHead>
+                      <TableHead scope="col">Entidade</TableHead>
+                      <TableHead scope="col">Usuário</TableHead>
+                      <TableHead scope="col">IP</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -296,12 +296,12 @@ export default function AdminCompliance() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Criado em</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Paciente</TableHead>
-                      <TableHead>Médico</TableHead>
-                      <TableHead>Bloqueado</TableHead>
-                      <TableHead>Reter até</TableHead>
+                      <TableHead scope="col">Criado em</TableHead>
+                      <TableHead scope="col">Tipo</TableHead>
+                      <TableHead scope="col">Paciente</TableHead>
+                      <TableHead scope="col">Médico</TableHead>
+                      <TableHead scope="col">Bloqueado</TableHead>
+                      <TableHead scope="col">Reter até</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

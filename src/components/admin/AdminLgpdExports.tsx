@@ -155,13 +155,13 @@ const AdminLgpdExports = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Quando</TableHead>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Tabelas</TableHead>
-                  <TableHead className="text-right">Tamanho</TableHead>
-                  <TableHead>Expira</TableHead>
-                  <TableHead className="text-right">Download</TableHead>
+                  <TableHead scope="col">Quando</TableHead>
+                  <TableHead scope="col">Usuário</TableHead>
+                  <TableHead scope="col">Status</TableHead>
+                  <TableHead scope="col">Tabelas</TableHead>
+                  <TableHead scope="col" className="text-right">Tamanho</TableHead>
+                  <TableHead scope="col">Expira</TableHead>
+                  <TableHead scope="col" className="text-right">Download</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

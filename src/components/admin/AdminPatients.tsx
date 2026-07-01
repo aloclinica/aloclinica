@@ -216,11 +216,11 @@ const AdminPatients = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Paciente</TableHead>
-                    <TableHead className="hidden sm:table-cell">Telefone</TableHead>
-                    <TableHead className="hidden md:table-cell">CPF</TableHead>
-                    <TableHead className="hidden md:table-cell">Cadastro</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    <TableHead scope="col">Paciente</TableHead>
+                    <TableHead scope="col" className="hidden sm:table-cell">Telefone</TableHead>
+                    <TableHead scope="col" className="hidden md:table-cell">CPF</TableHead>
+                    <TableHead scope="col" className="hidden md:table-cell">Cadastro</TableHead>
+                    <TableHead scope="col" className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

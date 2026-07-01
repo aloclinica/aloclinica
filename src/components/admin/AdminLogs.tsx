@@ -216,12 +216,12 @@ const AdminLogs = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[150px]">Data</TableHead>
-                  <TableHead>Ação</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead className="hidden lg:table-cell">Entity ID</TableHead>
-                  <TableHead className="hidden md:table-cell">Detalhes</TableHead>
-                  <TableHead className="text-right">—</TableHead>
+                  <TableHead scope="col" className="w-[150px]">Data</TableHead>
+                  <TableHead scope="col">Ação</TableHead>
+                  <TableHead scope="col">Tipo</TableHead>
+                  <TableHead scope="col" className="hidden lg:table-cell">Entity ID</TableHead>
+                  <TableHead scope="col" className="hidden md:table-cell">Detalhes</TableHead>
+                  <TableHead scope="col" className="text-right">—</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -11,6 +11,8 @@ import { getAdminNav } from "./adminNav";
 import { AdminPageHeader } from "./AdminPageHeader";
 import { Plus, Trash2, ShieldCheck } from "lucide-react";
 import type { SpecialtyRow } from "@/types/domain";
+// UI: accessible confirm dialog (replaces silent delete)
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 const AdminSpecialties = () => {
   const [specialties, setSpecialties] = useState<SpecialtyRow[]>([]);
@@ -19,6 +21,7 @@ const AdminSpecialties = () => {
   const [newPriceMin, setNewPriceMin] = useState("");
   const [newPriceMax, setNewPriceMax] = useState("");
   const [loading, setLoading] = useState(true);
+  const confirm = useConfirm();
 
   useEffect(() => { fetchSpecialties(); }, []);
 
@@ -53,7 +56,15 @@ const AdminSpecialties = () => {
     }
   };
 
-  const removeSpecialty = async (id: string) => {
+  const removeSpecialty = async (id: string, name: string) => {
+    // UI: confirm destructive delete with accessible dialog
+    const ok = await confirm({
+      title: "Excluir especialidade?",
+      description: `"${name}" será removida. Esta ação não pode ser desfeita.`,
+      confirmLabel: "Excluir",
+      destructive: true,
+    });
+    if (!ok) return;
     await db.from("specialties").delete().eq("id", id);
     fetchSpecialties();
   };
@@ -109,11 +120,11 @@ const AdminSpecialties = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead className="text-center">Mín (R$)</TableHead>
-                <TableHead className="text-center">Máx (R$)</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                <TableHead scope="col">Nome</TableHead>
+                <TableHead scope="col">Descrição</TableHead>
+                <TableHead scope="col" className="text-center">Mín (R$)</TableHead>
+                <TableHead scope="col" className="text-center">Máx (R$)</TableHead>
+                <TableHead scope="col" className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -127,6 +138,13 @@ const AdminSpecialties = () => {
                     <TableCell><div className="shimmer-v2 h-4 rounded" /></TableCell>
                   </TableRow>
                 ))
+              ) : specialties.length === 0 ? (
+                <TableRow>
+                  {/* UI: empty state when no specialties exist */}
+                  <TableCell colSpan={5} className="text-center text-muted-foreground py-10">
+                    Nenhuma especialidade cadastrada ainda.
+                  </TableCell>
+                </TableRow>
               ) : specialties.map(s => (
                 <TableRow key={s.id}>
                   <TableCell data-label="Nome" className="font-medium text-foreground">{s.name}</TableCell>
@@ -148,7 +166,7 @@ const AdminSpecialties = () => {
                     />
                   </TableCell>
                   <TableCell data-label="" className="text-right">
-                    <Button size="sm" variant="ghost" onClick={() => removeSpecialty(s.id)}>
+                    <Button size="sm" variant="ghost" aria-label={`Excluir ${s.name}`} onClick={() => removeSpecialty(s.id, s.name)}>
                       <Trash2 className="w-4 h-4 text-destructive" />
                     </Button>
                   </TableCell>

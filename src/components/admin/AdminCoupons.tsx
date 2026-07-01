@@ -17,10 +17,13 @@ import { Plus, Tag, Copy, Check, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { CouponRow } from "@/types/domain";
+// UI: accessible confirm dialog for destructive delete
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 const AdminCoupons = () => {
   
   const nav = getAdminNav("coupons");
+  const confirm = useConfirm();
   const [coupons, setCoupons] = useState<CouponRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -70,6 +73,14 @@ const AdminCoupons = () => {
   };
 
   const deleteCoupon = async (id: string) => {
+    // UI: confirm before destructive delete
+    const ok = await confirm({
+      title: "Excluir cupom?",
+      description: "O cupom deixará de ser válido imediatamente. Esta ação não pode ser desfeita.",
+      confirmLabel: "Excluir",
+      destructive: true,
+    });
+    if (!ok) return;
     await db.from("coupons").delete().eq("id", id);
     toast.success("Cupom excluído");
     fetchCoupons();
@@ -112,12 +123,12 @@ const AdminCoupons = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Código</TableHead>
-                  <TableHead>Desconto</TableHead>
-                  <TableHead>Usos</TableHead>
-                  <TableHead>Expira em</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Ações</TableHead>
+                  <TableHead scope="col">Código</TableHead>
+                  <TableHead scope="col">Desconto</TableHead>
+                  <TableHead scope="col">Usos</TableHead>
+                  <TableHead scope="col">Expira em</TableHead>
+                  <TableHead scope="col">Status</TableHead>
+                  <TableHead scope="col">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
