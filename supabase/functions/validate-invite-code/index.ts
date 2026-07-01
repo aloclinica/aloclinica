@@ -25,40 +25,31 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // SECURITY/SCHEMA: live doctor_invite_codes uses max_uses/current_uses/is_active.
+    // This endpoint ONLY validates — it does NOT consume the code. The single source
+    // of truth for consumption is the atomic claim in `assign-role` (compare-and-swap
+    // on current_uses), so a code can't be double-spent between validate and redeem.
     const { data, error } = await supabase
       .from("doctor_invite_codes")
-      .select("id, code, is_used, expires_at")
+      .select("id, code, max_uses, current_uses, is_active")
       .eq("code", code.trim().toUpperCase())
-      .eq("is_used", false)
       .maybeSingle();
 
-    if (error || !data) {
-      return new Response(JSON.stringify({ valid: false, error: "Código não encontrado ou já utilizado" }), {
+    if (error || !data || data.is_active !== true) {
+      return new Response(JSON.stringify({ valid: false, error: "Código não encontrado ou inativo" }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Check expiration
-    if (data.expires_at && new Date(data.expires_at) < new Date()) {
-      return new Response(JSON.stringify({ valid: false, error: "Código expirado" }), {
+    if (data.max_uses != null && (data.current_uses ?? 0) >= data.max_uses) {
+      return new Response(JSON.stringify({ valid: false, error: "Código esgotado" }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Mark code as used (issue #15)
-    if (user_id) {
-      await supabase
-        .from("doctor_invite_codes")
-        .update({
-          is_used: true,
-          used_at: new Date().toISOString(),
-          used_by: user_id,
-        })
-        .eq("id", data.id);
-    }
-
+    // Do NOT mark as used here (consumption happens atomically at redemption).
     return new Response(JSON.stringify({ valid: true, code_id: data.id }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

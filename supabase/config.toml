@@ -1,1 +1,76 @@
 project_id = "pwxvvimdtmvziynbspgx"
+
+# ---------------------------------------------------------------------------
+# Edge Function auth model (security hardening 2026-07)
+#
+# IMPORTANT: `verify_jwt = true` (the platform default, applied to every
+# function NOT listed below) is NOT real authorization — the anon/publishable
+# key is public (it ships in the frontend bundle) and satisfies the gateway.
+# Real authorization is enforced IN-CODE by each function via the helpers in
+# functions/_shared/auth.ts:
+#   - getCaller(req)            -> authenticate the user + resolve role/ownership
+#   - isInternalOrService(req)  -> gate cron/trigger-only functions
+#   - safeEqual(...)            -> constant-time secret/signature checks
+#
+# Only the functions below are set to `verify_jwt = false`, because they are
+# called by EXTERNAL systems/browsers that cannot present a Supabase JWT. Each
+# of them performs its OWN authentication (webhook signature, OAuth state,
+# API key, or an unguessable URL token). Everything else stays at the secure
+# default and must authorize the caller in code.
+# ---------------------------------------------------------------------------
+
+# Mercado Pago server-to-server webhook — authenticated by HMAC x-signature.
+[functions.mercadopago-webhook]
+verify_jwt = false
+
+# DocuSeal webhook — authenticated by the shared x-docuseal-secret header.
+[functions.docuseal-webhook]
+verify_jwt = false
+
+# Mercado Pago OAuth redirect target — authenticated by server-side state (CSRF).
+[functions.mp-oauth-callback]
+verify_jwt = false
+
+# Public partner API — authenticated by hashed API key (see public-api).
+[functions.public-api]
+verify_jwt = false
+
+# Doctor calendar (iCal) feed — authenticated by the unguessable ical_token in the URL.
+[functions.doctor-ical-feed]
+verify_jwt = false
+
+# robots.txt — public static content, no auth needed.
+[functions.robots-txt]
+verify_jwt = false
+
+# ---------------------------------------------------------------------------
+# Cron / trigger-only (internal) functions.
+# These are invoked by pg_cron / DB triggers via public.invoke_edge_function(),
+# which sends EITHER a service-role bearer OR an x-internal-secret header (no
+# end-user JWT). They are set to verify_jwt = false so the internal-secret path
+# is not blocked at the gateway, and are protected IN-CODE by isInternalOrService()
+# — a public/anon caller is rejected with 401 even though the gateway lets it in.
+# ---------------------------------------------------------------------------
+[functions.daily-backup]
+verify_jwt = false
+
+[functions.scheduled-tasks]
+verify_jwt = false
+
+[functions.appointment-confirmed]
+verify_jwt = false
+
+[functions.appointment-reminders]
+verify_jwt = false
+
+[functions.lembrete-consultas]
+verify_jwt = false
+
+[functions.generate-sweepstake-tickets]
+verify_jwt = false
+
+[functions.notify-expired-prescriptions]
+verify_jwt = false
+
+[functions.post-consultation-survey]
+verify_jwt = false

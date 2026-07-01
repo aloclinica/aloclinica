@@ -1,23 +1,13 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// SECURITY: createClient is now imported dynamically only inside the triage block below.
 import { streamClaudeAsOpenAI, DEFAULT_CLAUDE_MODEL } from "../_shared/anthropic.ts";
+// SECURITY: use shared helpers so the rate limit can key on the authenticated user id (spoof-resistant).
+import { getCaller, checkRateLimit } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
-
-async function checkRateLimit(identifier: string, endpoint: string, maxReqs: number, windowMin: number): Promise<boolean> {
-  try {
-    const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const since = new Date(Date.now() - windowMin * 60000).toISOString();
-    const { count } = await sb.from("rate_limits").select("id", { count: "exact", head: true })
-      .eq("identifier", identifier).eq("endpoint", endpoint).gte("window_start", since);
-    if ((count ?? 0) >= maxReqs) return false;
-    await sb.from("rate_limits").insert({ identifier, endpoint, window_start: new Date().toISOString() });
-    return true;
-  } catch { return true; }
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -25,9 +15,12 @@ serve(async (req) => {
   try {
     const { messages, context, ticket_id, user_id } = await req.json();
 
-    // Rate limit: 20 messages per 5 minutes per IP
+    // SECURITY: rate limit — prefer the authenticated user id (x-forwarded-for is spoofable),
+    // fall back to the client IP for anonymous callers. 20 messages / 5 minutes.
+    const caller = await getCaller(req);
     const clientIP = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-    const allowed = await checkRateLimit(clientIP, "pingo-chat", 20, 5);
+    const rlKey = caller.user?.id ?? clientIP;
+    const allowed = await checkRateLimit(rlKey, "pingo-chat", 20, 5);
     if (!allowed) {
       return new Response(JSON.stringify({ error: "Muitas mensagens! Aguarde um momento." }), {
         status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },

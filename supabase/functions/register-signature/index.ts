@@ -46,9 +46,6 @@ serve(async (req) => {
       document_id,
       document_type,
       related_record_id,
-      doctor_name,
-      doctor_crm,
-      doctor_cpf,
       patient_name,
       document_hash,
       signature_data,
@@ -56,15 +53,71 @@ serve(async (req) => {
       pdf_base64,
     } = body;
 
-    // Validações obrigatórias
+    // SECURITY: The signer's identity must NOT be taken from the request body — that
+    // let any authenticated user forge a signature attributed to any doctor with
+    // is_valid=true. We authorize the caller as a doctor/laudista by requiring their
+    // own doctor_profiles row and derive doctor_name/crm/cpf from that trusted row.
+    const { data: docProfile } = await supabase
+      .from("doctor_profiles")
+      .select("id, full_name, crm, cpf")
+      .eq("user_id", userData.user.id)
+      .maybeSingle();
+
+    if (!docProfile) {
+      return new Response(
+        JSON.stringify({ error: "Apenas médicos/laudistas podem registrar assinaturas" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const doctor_name = docProfile.full_name;
+    const doctor_crm = docProfile.crm;
+    const doctor_cpf = docProfile.cpf;
+
+    // Validações obrigatórias (identity now comes from the trusted profile, not body)
     if (!document_id || !document_type || !doctor_name || !doctor_crm || !doctor_cpf || !document_hash) {
       return new Response(
         JSON.stringify({
           error: "Campos obrigatórios faltando",
-          required: ["document_id", "document_type", "doctor_name", "doctor_crm", "doctor_cpf", "document_hash"],
+          required: ["document_id", "document_type", "document_hash"],
+          detail: (!doctor_name || !doctor_crm || !doctor_cpf)
+            ? "Complete seu cadastro médico (nome, CRM, CPF) antes de assinar"
+            : undefined,
         }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // SECURITY: When a source record is referenced, verify the caller OWNS it — the
+    // record's doctor must be this doctor. Prevents signing documents belonging to
+    // another doctor. The owning column varies by document_type.
+    if (related_record_id) {
+      const ownershipMap: Record<string, { table: string; column: string }> = {
+        prescription: { table: "prescriptions", column: "doctor_id" },
+        exam: { table: "exam_requests", column: "requesting_doctor_id" },
+        report: { table: "exam_reports", column: "reporter_id" },
+        laudo: { table: "exam_reports", column: "reporter_id" },
+        certificate: { table: "medical_records", column: "doctor_id" },
+      };
+      const map = ownershipMap[document_type];
+      if (!map) {
+        return new Response(
+          JSON.stringify({ error: "document_type inválido" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const { data: ownedRecord } = await supabase
+        .from(map.table)
+        .select("id")
+        .eq("id", related_record_id)
+        .eq(map.column, docProfile.id)
+        .maybeSingle();
+      if (!ownedRecord) {
+        return new Response(
+          JSON.stringify({ error: "Você não é o autor do documento referenciado" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // Upload do PDF assinado para Storage (se fornecido)
@@ -88,10 +141,12 @@ serve(async (req) => {
         if (uploadErr) {
           console.error("Storage upload error:", uploadErr);
         } else {
-          const { data: urlData } = supabase.storage
+          // SECURITY: Signed prescription PDFs are sensitive medical documents; never
+          // expose a permanent public URL. Issue a short-lived signed URL (1h TTL).
+          const { data: urlData } = await supabase.storage
             .from("prescriptions")
-            .getPublicUrl(storagePath);
-          publicUrl = urlData?.publicUrl ?? null;
+            .createSignedUrl(storagePath, 60 * 60);
+          publicUrl = urlData?.signedUrl ?? null;
         }
       } catch (e) {
         console.error("PDF upload failed:", e);

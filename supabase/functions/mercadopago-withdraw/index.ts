@@ -96,16 +96,27 @@ Deno.serve(async (req) => {
     const amount = Number(wd.amount);
     if (!amount || amount <= 0) return json({ error: "Valor inválido" }, 400);
 
-    // Marca processando
-    await admin.from("withdrawal_requests").update({
+    // SECURITY: atomically CLAIM the withdrawal (flip to 'processing') before
+    // calling MP. Only one request can transition a non-completed/non-processing
+    // row, so a double-submit cannot trigger a second real payout.
+    const { data: claimed } = await admin.from("withdrawal_requests").update({
       status: "processing",
       payout_gateway: "mercadopago",
-    } as any).eq("id", withdrawal_id);
+    } as any)
+      .eq("id", withdrawal_id)
+      .not("status", "in", "(completed,processing)")
+      .select("id");
+
+    if (!claimed || claimed.length === 0) {
+      return json({ error: "Saque já processado ou em processamento" }, 409);
+    }
 
     // Mercado Pago Money Request (PIX out)
     // Documentação: o endpoint pode exigir habilitação na conta. Caso a conta
     // não tenha Money Out habilitado, marca como pending_manual e admin paga
     // manualmente no painel MP.
+    // SECURITY: stable idempotency key per withdrawal id so a gateway retry
+    // dedupes to a single payout instead of paying twice.
     const moneyOut = await mpRequest<any>("POST", "/v1/money_requests", {
       amount,
       currency_id: "BRL",
@@ -114,7 +125,7 @@ Deno.serve(async (req) => {
       pix_key: wd.pix_key,
       pix_key_type: pixKeyType,
       external_reference: `withdrawal_${withdrawal_id}`,
-    });
+    }, { idempotencyKey: `withdrawal_${withdrawal_id}` });
 
     if (!moneyOut.ok) {
       // Se a conta não tem Money Out habilitado, marca pra processamento manual

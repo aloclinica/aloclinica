@@ -1,9 +1,21 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// SECURITY: authenticate the caller before returning patient PII (full_name + CPF).
+import { getCaller } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// SECURITY: escape any user/DB-controlled value before embedding it in HTML to prevent XSS.
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -17,6 +29,15 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "prescription_id is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // SECURITY: require an authenticated caller (JWT). No token => 401.
+    const caller = await getCaller(req);
+    if (!caller.user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -41,6 +62,21 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Prescription not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // SECURITY: authorize — allow only the prescribing doctor (owner) or the patient.
+    const { data: callerDoctor } = await supabase
+      .from("doctor_profiles")
+      .select("id")
+      .eq("user_id", caller.user.id)
+      .maybeSingle();
+    const isDoctorOwner = !!callerDoctor && callerDoctor.id === prescription.doctor_id;
+    const isPatientOwner = prescription.patient_id === caller.user.id;
+    if (!isDoctorOwner && !isPatientOwner) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -238,19 +274,19 @@ function generatePrescriptionHTML(prescription: any): string {
     <div class="patient-info">
       <div class="info-item">
         <label>Paciente:</label>
-        <value>${prescription.patient?.full_name || "—"}</value>
+        <value>${escapeHtml(prescription.patient?.full_name || "—")}</value>
       </div>
       <div class="info-item">
         <label>CPF:</label>
-        <value>${prescription.patient?.cpf || "—"}</value>
+        <value>${escapeHtml(prescription.patient?.cpf || "—")}</value>
       </div>
       <div class="info-item">
         <label>Data da Prescrição:</label>
-        <value>${prescribedDate}</value>
+        <value>${escapeHtml(prescribedDate)}</value>
       </div>
       <div class="info-item">
         <label>Validade:</label>
-        <value>${expiryDate}</value>
+        <value>${escapeHtml(expiryDate)}</value>
       </div>
     </div>
 
@@ -258,7 +294,7 @@ function generatePrescriptionHTML(prescription: any): string {
     <div class="prescription-section">
       <h2>Tipo de Prescrição</h2>
       <div style="padding: 10px; font-size: 14px; font-weight: bold;">
-        ${typeLabel}
+        ${escapeHtml(typeLabel)}
       </div>
     </div>
 
@@ -269,19 +305,19 @@ function generatePrescriptionHTML(prescription: any): string {
         <div class="eye-label">Olho Direito (OD)</div>
         <div class="prescription-value">
           <label>Esfera (D)</label>
-          <value>${prescription.od_sphere !== null ? (prescription.od_sphere > 0 ? "+" : "") + prescription.od_sphere : "—"}</value>
+          <value>${escapeHtml(prescription.od_sphere !== null ? (prescription.od_sphere > 0 ? "+" : "") + prescription.od_sphere : "—")}</value>
         </div>
         <div class="prescription-value">
           <label>Cilindro (D)</label>
-          <value>${prescription.od_cylinder !== null ? (prescription.od_cylinder > 0 ? "+" : "") + prescription.od_cylinder : "—"}</value>
+          <value>${escapeHtml(prescription.od_cylinder !== null ? (prescription.od_cylinder > 0 ? "+" : "") + prescription.od_cylinder : "—")}</value>
         </div>
         <div class="prescription-value">
           <label>Eixo (°)</label>
-          <value>${prescription.od_axis || "—"}</value>
+          <value>${escapeHtml(prescription.od_axis || "—")}</value>
         </div>
         <div class="prescription-value">
           <label>Adição (D)</label>
-          <value>${prescription.od_add !== null ? "+" + prescription.od_add : "—"}</value>
+          <value>${escapeHtml(prescription.od_add !== null ? "+" + prescription.od_add : "—")}</value>
         </div>
       </div>
 
@@ -289,19 +325,19 @@ function generatePrescriptionHTML(prescription: any): string {
         <div class="eye-label">Olho Esquerdo (OS)</div>
         <div class="prescription-value">
           <label>Esfera (D)</label>
-          <value>${prescription.os_sphere !== null ? (prescription.os_sphere > 0 ? "+" : "") + prescription.os_sphere : "—"}</value>
+          <value>${escapeHtml(prescription.os_sphere !== null ? (prescription.os_sphere > 0 ? "+" : "") + prescription.os_sphere : "—")}</value>
         </div>
         <div class="prescription-value">
           <label>Cilindro (D)</label>
-          <value>${prescription.os_cylinder !== null ? (prescription.os_cylinder > 0 ? "+" : "") + prescription.os_cylinder : "—"}</value>
+          <value>${escapeHtml(prescription.os_cylinder !== null ? (prescription.os_cylinder > 0 ? "+" : "") + prescription.os_cylinder : "—")}</value>
         </div>
         <div class="prescription-value">
           <label>Eixo (°)</label>
-          <value>${prescription.os_axis || "—"}</value>
+          <value>${escapeHtml(prescription.os_axis || "—")}</value>
         </div>
         <div class="prescription-value">
           <label>Adição (D)</label>
-          <value>${prescription.os_add !== null ? "+" + prescription.os_add : "—"}</value>
+          <value>${escapeHtml(prescription.os_add !== null ? "+" + prescription.os_add : "—")}</value>
         </div>
       </div>
     </div>
@@ -312,10 +348,10 @@ function generatePrescriptionHTML(prescription: any): string {
       <div class="additional-info">
         ${
           prescription.pupillary_distance
-            ? `<p><strong>Distância Pupilar:</strong> ${prescription.pupillary_distance} mm</p>`
+            ? `<p><strong>Distância Pupilar:</strong> ${escapeHtml(prescription.pupillary_distance)} mm</p>`
             : ""
         }
-        <p><strong>Recomendação de Uso:</strong> ${prescription.recommended_use || "—"}</p>
+        <p><strong>Recomendação de Uso:</strong> ${escapeHtml(prescription.recommended_use || "—")}</p>
         ${
           prescription.recommended_use === "Progressiva" || prescription.od_add || prescription.os_add
             ? `<p><strong>Tipo:</strong> Lente Progressiva/Multifocal</p>`
@@ -330,7 +366,7 @@ function generatePrescriptionHTML(prescription: any): string {
         ? `
     <div class="observations">
       <strong>Observações:</strong>
-      <p>${prescription.observations.replace(/\n/g, "<br>")}</p>
+      <p>${escapeHtml(prescription.observations).replace(/\n/g, "<br>")}</p>
     </div>
     `
         : ""
@@ -340,18 +376,18 @@ function generatePrescriptionHTML(prescription: any): string {
     <div class="signature-area">
       <div class="signature-line">
         <p style="margin-bottom: 20px;"></p>
-        <p><strong>${prescription.doctor?.full_name || "Oftalmologista"}</strong></p>
-        <p>CRM: ${prescription.doctor?.crm || "—"}/${prescription.doctor?.crm_state || "—"}</p>
+        <p><strong>${escapeHtml(prescription.doctor?.full_name || "Oftalmologista")}</strong></p>
+        <p>CRM: ${escapeHtml(prescription.doctor?.crm || "—")}/${escapeHtml(prescription.doctor?.crm_state || "—")}</p>
       </div>
       <div class="signature-line">
-        <p style="margin-bottom: 20px;">Data: ${prescribedDate}</p>
+        <p style="margin-bottom: 20px;">Data: ${escapeHtml(prescribedDate)}</p>
       </div>
     </div>
 
     <!-- Footer -->
     <div class="footer">
       <p>Esta prescrição foi emitida por Telemedicina</p>
-      <p style="margin-top: 10px; font-size: 10px;">Prescrição ID: ${prescription.id}</p>
+      <p style="margin-top: 10px; font-size: 10px;">Prescrição ID: ${escapeHtml(prescription.id)}</p>
     </div>
   </div>
 </body>

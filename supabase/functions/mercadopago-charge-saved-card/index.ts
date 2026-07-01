@@ -21,6 +21,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { mpRequest, mpCorsHeaders, mapMpStatus } from "../_shared/mercadopago.ts";
+import { getCaller } from "../_shared/auth.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: mpCorsHeaders });
@@ -31,37 +32,35 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Pode ser invocado via service-role (cron) ou via user auth
-    const authHeader = req.headers.get("Authorization");
-    let resolvedUserId: string | null = null;
-    if (authHeader?.startsWith("Bearer ") && !authHeader.includes(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!)) {
-      const userClient = createClient(
-        Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_ANON_KEY")!,
-        { global: { headers: { Authorization: authHeader } } }
-      );
-      const { data: { user } } = await userClient.auth.getUser();
-      resolvedUserId = user?.id ?? null;
-    }
+    // SECURITY: require a valid user JWT. This endpoint charges a saved card, so
+    // it must NOT be callable unauthenticated. The caller's own id is the only
+    // trusted identity — any body `user_id` is ignored.
+    const caller = await getCaller(req);
+    if (!caller.user) return json({ error: "Unauthorized" }, 401);
+    const userId = caller.user.id;
 
     const body = await req.json();
     const {
       saved_card_id,
-      amount,
+      // SECURITY: body.amount is IGNORED — resolved server-side from the resource.
       reference_id,
       description,
       security_code,
       installments = 1,
-      user_id: bodyUserId,  // opcional, usado quando chamado por cron
     } = body;
 
     if (!saved_card_id) return json({ error: "saved_card_id obrigatório" }, 400);
-    if (!amount || amount <= 0) return json({ error: "amount inválido" }, 400);
     if (!reference_id) return json({ error: "reference_id obrigatório" }, 400);
 
-    // Resolve user_id (do auth ou do body se for service-role)
-    const userId = resolvedUserId || bodyUserId;
-    if (!userId) return json({ error: "user_id não resolvido" }, 401);
+    // SECURITY: derive the authoritative amount server-side and verify the caller
+    // OWNS the referenced resource. Never trust a client-supplied amount.
+    let amount: number;
+    try {
+      amount = await resolveServerAmount(admin, reference_id, userId);
+    } catch (e) {
+      const status = e instanceof AmountError ? e.status : 400;
+      return json({ error: (e as Error).message }, status);
+    }
 
     // Busca cartão
     const { data: card } = await admin
@@ -114,7 +113,9 @@ Deno.serve(async (req) => {
           identification: profile?.cpf ? { type: "CPF", number: profile.cpf.replace(/\D/g, "") } : undefined,
         },
       },
-      { idempotencyKey: `${userId}-${reference_id}-${Math.floor(Date.now() / 60000)}` }
+      // SECURITY: stable idempotency key per (user, resource) — not time-bucketed —
+      // so a retry reuses the same MP payment instead of double-charging.
+      { idempotencyKey: `${userId}-${reference_id}` }
     );
 
     if (!payment.ok) {
@@ -153,6 +154,82 @@ Deno.serve(async (req) => {
     return json({ error: (e as Error).message }, 500);
   }
 });
+
+// SECURITY: typed error to map ownership → 403 and resolution failures → 400.
+class AmountError extends Error {
+  status: number;
+  constructor(message: string, status = 400) {
+    super(message);
+    this.status = status;
+  }
+}
+
+/**
+ * SECURITY: resolves the AUTHORITATIVE charge amount (reais) for a reference_id,
+ * reading the resource with the service-role client and verifying the caller
+ * OWNS it. Client-supplied amounts are never used.
+ */
+async function resolveServerAmount(admin: any, referenceId: string, callerId: string): Promise<number> {
+  const idx = referenceId.indexOf("_");
+  const prefix = idx === -1 ? "" : referenceId.slice(0, idx);
+  const resourceId = idx === -1 ? "" : referenceId.slice(idx + 1);
+  if (!resourceId) throw new AmountError(`reference_id inválido: ${referenceId}`, 400);
+
+  const requireOwner = (ownerId: string | null | undefined) => {
+    if (!ownerId || ownerId !== callerId) {
+      throw new AmountError("Sem permissão para pagar este recurso", 403);
+    }
+  };
+  const requirePrice = (price: unknown): number => {
+    const n = Number(price);
+    if (!Number.isFinite(n) || n <= 0) {
+      throw new AmountError("Não foi possível determinar o valor a cobrar", 400);
+    }
+    return n;
+  };
+
+  if (prefix === "appointment") {
+    const { data, error } = await admin
+      .from("appointments").select("patient_id, price_at_booking").eq("id", resourceId).maybeSingle();
+    if (error || !data) throw new AmountError("Consulta não encontrada", 404);
+    requireOwner(data.patient_id);
+    return requirePrice(data.price_at_booking);
+  }
+  if (prefix === "queue") {
+    const { data, error } = await admin
+      .from("on_demand_queue").select("patient_id, price").eq("id", resourceId).maybeSingle();
+    if (error || !data) throw new AmountError("Item da fila não encontrado", 404);
+    requireOwner(data.patient_id);
+    return requirePrice(data.price);
+  }
+  if (prefix === "renewal") {
+    const { data, error } = await admin
+      .from("prescription_renewals").select("patient_id, price").eq("id", resourceId).maybeSingle();
+    if (error || !data) throw new AmountError("Renovação não encontrada", 404);
+    requireOwner(data.patient_id);
+    return requirePrice(data.price);
+  }
+  if (prefix === "sub") {
+    const { data: sub } = await admin
+      .from("subscriptions").select("user_id, plan_id").eq("id", resourceId).maybeSingle();
+    if (sub) {
+      requireOwner(sub.user_id);
+      const { data: plan } = await admin.from("plans").select("price").eq("id", sub.plan_id).maybeSingle();
+      return requirePrice(plan?.price);
+    }
+    const { data: pcSub } = await admin
+      .from("pingo_card_subscriptions").select("user_id, plan_id, billing_cycle").eq("id", resourceId).maybeSingle();
+    if (pcSub) {
+      requireOwner(pcSub.user_id);
+      const { data: pcPlan } = await admin
+        .from("pingo_card_plans").select("price_monthly, price_yearly").eq("id", pcSub.plan_id).maybeSingle();
+      const price = pcSub.billing_cycle === "yearly" ? pcPlan?.price_yearly : pcPlan?.price_monthly;
+      return requirePrice(price);
+    }
+    throw new AmountError("Assinatura não encontrada", 404);
+  }
+  throw new AmountError(`Tipo de referência desconhecido: ${referenceId}`, 400);
+}
 
 function extractResourceId(reference: string): string {
   const idx = reference.indexOf("_");

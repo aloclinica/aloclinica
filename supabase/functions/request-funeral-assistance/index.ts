@@ -53,6 +53,33 @@ serve(async (req) => {
       }
     }
 
+    // SECURITY: input validation.
+    const bad = (msg: string) =>
+      new Response(JSON.stringify({ error: msg }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+
+    // Length-limit free-text fields.
+    if (String(body.deceased_name).length > 200) return bad("deceased_name too long");
+    if (String(body.relationship).length > 200) return bad("relationship too long");
+    if (String(body.city).length > 200) return bad("city too long");
+    if ((body as any).reason && String((body as any).reason).length > 2000) return bad("reason too long");
+
+    // CPF must be exactly 11 digits after stripping non-digits (when provided).
+    if (body.deceased_cpf) {
+      const cpfDigits = String(body.deceased_cpf).replace(/\D/g, "");
+      if (cpfDigits.length !== 11) return bad("Invalid deceased_cpf");
+      body.deceased_cpf = cpfDigits;
+    }
+
+    // death_certificate_url (when provided) must be an https URL — reject
+    // javascript:/data:/http: and any non-parseable value.
+    if (body.death_certificate_url) {
+      let parsed: URL | null = null;
+      try { parsed = new URL(String(body.death_certificate_url)); } catch { parsed = null; }
+      if (!parsed || parsed.protocol !== "https:") return bad("death_certificate_url must be an https URL");
+    }
+
     // Active subscription with funeral coverage
     const { data: sub } = await supabase
       .from("pingo_card_subscriptions")

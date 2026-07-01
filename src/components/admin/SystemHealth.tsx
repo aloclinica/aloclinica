@@ -166,9 +166,12 @@ const SystemHealth = () => {
     }
 
     // 6–10. VPS Services
+    // SECURITY: use HTTPS endpoints (via domínio) — chamar http://IP a partir de
+    // uma página HTTPS é bloqueado pelo navegador (mixed content) e falha no app
+    // mobile (Capacitor android allowMixedContent:false). URLs configuráveis por env.
     const vpsServices = [
-      { name: "CompreFace (Biometria)", url: "http://72.62.138.208:8000", icon: <Shield className="w-5 h-5" /> },
-      { name: "DocuSeal (Assinaturas)", url: "http://72.62.138.208:3200", icon: <FileText className="w-5 h-5" /> },
+      { name: "CompreFace (Biometria)", url: import.meta.env.VITE_COMPREFACE_URL ?? "https://face.aloclinica.com.br", icon: <Shield className="w-5 h-5" /> },
+      { name: "DocuSeal (Assinaturas)", url: import.meta.env.VITE_DOCUSEAL_URL ?? "https://sign.aloclinica.com.br", icon: <FileText className="w-5 h-5" /> },
       { name: "Jitsi Meet (Vídeo)", url: "https://meet.telemedicinaaloclinica.sbs", icon: <Video className="w-5 h-5" /> },
     ];
 

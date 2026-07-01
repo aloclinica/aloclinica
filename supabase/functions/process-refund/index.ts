@@ -83,10 +83,30 @@ Deno.serve(async (req) => {
       return json({ error: "Transação sem mp_payment_id — não é possível estornar via MP" }, 422);
     }
 
+    // SECURITY: block if already refunded/refunding (normalize legacy spellings).
+    const REFUND_TERMINAL = new Set(["refunded", "partially_refunded", "partial_refund", "refunding"]);
+    if (REFUND_TERMINAL.has(String(tx.status))) {
+      return json({ ok: false, skipped: true, reason: "already_refunded" }, 200);
+    }
+
     const refundAmountCents =
       refundType === "full"
         ? tx.amount_cents
         : Math.min(requestedAmountCents ?? tx.amount_cents, tx.amount_cents);
+
+    // SECURITY: atomically CLAIM the transaction (flip to 'refunding') before
+    // calling MP. Prevents a duplicate trigger/cron run from issuing a second
+    // real refund at the gateway.
+    const { data: claimed } = await admin
+      .from("payment_transactions")
+      .update({ status: "refunding" })
+      .eq("id", tx.id)
+      .not("status", "in", "(refunded,partially_refunded,partial_refund,refunding)")
+      .select("id");
+
+    if (!claimed || claimed.length === 0) {
+      return json({ ok: false, skipped: true, reason: "already_refunded" }, 200);
+    }
 
     // Build MP refund body. If refund_type=full, omit amount for total refund.
     const mpBody: Record<string, unknown> = {};
@@ -94,14 +114,23 @@ Deno.serve(async (req) => {
       mpBody.amount = Number((refundAmountCents / 100).toFixed(2));
     }
 
+    // SECURITY: stable idempotency key derived from the MP payment id (+ amount
+    // for partial) — never Date.now() — so gateway retries dedupe to one refund.
+    const idempotencyKey =
+      refundType === "partial"
+        ? `refund-${tx.mp_payment_id}-${refundAmountCents}`
+        : `refund-${tx.mp_payment_id}-full`;
+
     const mpRes = await mpRequest(
       "POST",
       `/v1/payments/${tx.mp_payment_id}/refunds`,
       Object.keys(mpBody).length ? mpBody : undefined,
-      { idempotencyKey: `refund-${appointmentId}-${Date.now()}` },
+      { idempotencyKey },
     );
 
     if (!mpRes.ok) {
+      // SECURITY: release the claim so a legitimate retry can proceed.
+      await admin.from("payment_transactions").update({ status: tx.status }).eq("id", tx.id);
       console.error("[process-refund] MP refund failed", mpRes.status, mpRes.data);
       await admin.from("activity_logs").insert({
         action: "refund_failed",

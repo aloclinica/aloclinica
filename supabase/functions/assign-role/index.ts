@@ -56,26 +56,55 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Doctor-type roles grant access to patient medical data — a non-admin must
-    // present a valid, unused invite code (validated here, not trusted from client).
+    // SECURITY: Doctor-type roles grant access to patient medical data. A non-admin
+    // must present the SECRET invite CODE STRING (never a UUID id read via RLS) and we
+    // atomically CLAIM it with the service-role client. Only exactly-one claimed row —
+    // that was unused and not expired — authorizes the grant. This closes the privilege
+    // escalation where any authenticated user could self-grant `doctor` from a leaked id.
     const doctorTypeRoles = ["doctor", "laudista", "ophthalmologist"];
+    let claimedInviteId: string | null = null;
     if (!caller.isAdmin && doctorTypeRoles.includes(role)) {
-      const inviteId = profile_data?.invite_code_id;
-      let validInvite = false;
-      if (inviteId) {
-        const { data: code } = await supabase
-          .from("doctor_invite_codes")
-          .select("id, is_used")
-          .eq("id", inviteId)
-          .maybeSingle();
-        validInvite = !!code && code.is_used !== true;
-      }
-      if (!validInvite) {
+      const inviteCode = profile_data?.invite_code;
+      if (!inviteCode || typeof inviteCode !== "string") {
         return new Response(JSON.stringify({ error: "Valid invite code required" }), {
           status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      // SECURITY: atomic claim against the LIVE schema (doctor_invite_codes uses
+      // max_uses / current_uses / is_active — NOT is_used/expires_at). We read the
+      // row by secret code, verify it is active and has remaining uses, then do an
+      // optimistic compare-and-swap: increment current_uses only if it is unchanged
+      // and the code is still active. If we lose the race (0 rows), the claim fails.
+      const normalizedCode = inviteCode.trim().toUpperCase();
+      const { data: codeRow, error: codeErr } = await supabase
+        .from("doctor_invite_codes")
+        .select("id, current_uses, max_uses, is_active")
+        .eq("code", normalizedCode)
+        .maybeSingle();
+      if (
+        codeErr || !codeRow || codeRow.is_active !== true ||
+        (codeRow.max_uses != null && (codeRow.current_uses ?? 0) >= codeRow.max_uses)
+      ) {
+        return new Response(JSON.stringify({ error: "Valid invite code required" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: claimed, error: claimErr } = await supabase
+        .from("doctor_invite_codes")
+        .update({ current_uses: (codeRow.current_uses ?? 0) + 1 })
+        .eq("id", codeRow.id)
+        .eq("current_uses", codeRow.current_uses ?? 0) // CAS guard
+        .eq("is_active", true)
+        .select("id");
+      if (claimErr || !claimed || claimed.length !== 1) {
+        return new Response(JSON.stringify({ error: "Valid invite code required" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      claimedInviteId = codeRow.id;
     }
 
     // Insert role (ignore conflict if already exists)
@@ -136,14 +165,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Mark invite code as used if provided
-    if (profile_data?.invite_code_id) {
-      await supabase.from("doctor_invite_codes").update({
-        is_used: true,
-        used_by: user_id,
-        used_at: new Date().toISOString(),
-      }).eq("id", profile_data.invite_code_id);
-    }
+    // SECURITY: The invite code is already atomically claimed above (by secret code
+    // string, not by a client-supplied id). We intentionally do NOT re-mark any code
+    // by `invite_code_id` from the body here — trusting that id let a caller flip the
+    // used-state of arbitrary codes. `claimedInviteId` records which code was consumed.
+    void claimedInviteId;
 
     // Fire welcome email based on role (non-blocking)
     try {

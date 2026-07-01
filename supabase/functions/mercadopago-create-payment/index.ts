@@ -56,7 +56,9 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const {
-      amount,
+      // SECURITY: body.amount is IGNORED — the authoritative price is resolved
+      // server-side from the referenced resource. Kept out of destructuring to
+      // ensure it can never flow into the MP payload / DB.
       payment_method,
       reference_id,
       description,
@@ -67,9 +69,19 @@ Deno.serve(async (req) => {
       payer_doc,
     } = body;
 
-    if (!amount || amount <= 0) return jsonResponse({ error: "amount obrigatório (em reais)" }, 400);
     if (!payment_method) return jsonResponse({ error: "payment_method obrigatório" }, 400);
     if (!reference_id) return jsonResponse({ error: "reference_id obrigatório" }, 400);
+
+    // SECURITY: resolve the authoritative amount server-side and verify the
+    // caller OWNS the referenced resource. NEVER trust a client-supplied amount
+    // (prevents "pay-what-you-want"). Throws AmountError → mapped to 400/403.
+    let amount: number;
+    try {
+      amount = await resolveServerAmount(admin, reference_id, user.id);
+    } catch (e) {
+      const status = e instanceof AmountError ? e.status : 400;
+      return jsonResponse({ error: (e as Error).message }, status);
+    }
 
     // Busca profile pra montar payer
     const { data: profile } = await admin
@@ -172,8 +184,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Idempotency: por reference_id + timestamp arredondado (evita double-charge em retry)
-    const idempotencyKey = `${user.id}-${reference_id}-${Math.floor(Date.now() / 60000)}`;
+    // SECURITY: idempotency key is STABLE per (user, resource) — NOT time-bucketed.
+    // A retry (same resource) reuses the same MP payment instead of double-charging.
+    const idempotencyKey = `${user.id}-${reference_id}`;
 
     const mpRes = await mpRequest<any>("POST", "/v1/payments", mpPayload, {
       idempotencyKey,
@@ -181,12 +194,14 @@ Deno.serve(async (req) => {
     });
 
     if (!mpRes.ok) {
+      // SECURITY: log the full MP response server-side but return only a
+      // sanitized message to the client (no gateway internals / raw payload).
+      console.error("[mercadopago-create-payment] MP payment failed", mpRes.status, mpRes.data);
       const errMessage = mpRes.data?.message || mpRes.data?.error || `Mercado Pago ${mpRes.status}`;
       const errCause = mpRes.data?.cause?.[0]?.description;
       return jsonResponse({
         error: errCause || errMessage,
         gateway_status: mpRes.status,
-        gateway_response: mpRes.data,
       }, 400);
     }
 
@@ -267,6 +282,117 @@ async function tokenizeSavedCard(cardId: string): Promise<string> {
     throw new Error(`Falha ao tokenizar cartão salvo: ${tk.data.error || JSON.stringify(tk.data)}`);
   }
   return tk.data.id;
+}
+
+// SECURITY: typed error so the handler can map ownership failures to 403 and
+// resolution failures to 400.
+class AmountError extends Error {
+  status: number;
+  constructor(message: string, status = 400) {
+    super(message);
+    this.status = status;
+  }
+}
+
+/**
+ * SECURITY: resolves the AUTHORITATIVE charge amount (in reais) for a
+ * reference_id, reading the resource with the service-role client and
+ * verifying the caller OWNS it. The client-supplied amount is never used.
+ *
+ * Prefixes:
+ *   appointment_<uuid> → appointments.price_at_booking (owner: patient_id)
+ *   queue_<uuid>       → on_demand_queue.price          (owner: patient_id)
+ *   renewal_<uuid>     → prescription_renewals.price     (owner: patient_id)
+ *   sub_<uuid>         → plan price via subscriptions/pingo_card_subscriptions
+ *                        (owner: user_id)
+ */
+async function resolveServerAmount(admin: any, referenceId: string, callerId: string): Promise<number> {
+  const idx = referenceId.indexOf("_");
+  const prefix = idx === -1 ? "" : referenceId.slice(0, idx);
+  const resourceId = idx === -1 ? "" : referenceId.slice(idx + 1);
+  if (!resourceId) throw new AmountError(`reference_id inválido: ${referenceId}`, 400);
+
+  const requireOwner = (ownerId: string | null | undefined) => {
+    if (!ownerId || ownerId !== callerId) {
+      throw new AmountError("Sem permissão para pagar este recurso", 403);
+    }
+  };
+  const requirePrice = (price: unknown): number => {
+    const n = Number(price);
+    if (!Number.isFinite(n) || n <= 0) {
+      throw new AmountError("Não foi possível determinar o valor a cobrar", 400);
+    }
+    return n;
+  };
+
+  if (prefix === "appointment") {
+    const { data, error } = await admin
+      .from("appointments")
+      .select("patient_id, price_at_booking")
+      .eq("id", resourceId)
+      .maybeSingle();
+    if (error || !data) throw new AmountError("Consulta não encontrada", 404);
+    requireOwner(data.patient_id);
+    return requirePrice(data.price_at_booking);
+  }
+
+  if (prefix === "queue") {
+    const { data, error } = await admin
+      .from("on_demand_queue")
+      .select("patient_id, price")
+      .eq("id", resourceId)
+      .maybeSingle();
+    if (error || !data) throw new AmountError("Item da fila não encontrado", 404);
+    requireOwner(data.patient_id);
+    return requirePrice(data.price);
+  }
+
+  if (prefix === "renewal") {
+    const { data, error } = await admin
+      .from("prescription_renewals")
+      .select("patient_id, price")
+      .eq("id", resourceId)
+      .maybeSingle();
+    if (error || !data) throw new AmountError("Renovação não encontrada", 404);
+    requireOwner(data.patient_id);
+    return requirePrice(data.price);
+  }
+
+  if (prefix === "sub") {
+    // Try the generic subscriptions table first (plan price), then pingo_card.
+    const { data: sub } = await admin
+      .from("subscriptions")
+      .select("user_id, plan_id")
+      .eq("id", resourceId)
+      .maybeSingle();
+    if (sub) {
+      requireOwner(sub.user_id);
+      const { data: plan } = await admin
+        .from("plans")
+        .select("price")
+        .eq("id", sub.plan_id)
+        .maybeSingle();
+      return requirePrice(plan?.price);
+    }
+    const { data: pcSub } = await admin
+      .from("pingo_card_subscriptions")
+      .select("user_id, plan_id, billing_cycle")
+      .eq("id", resourceId)
+      .maybeSingle();
+    if (pcSub) {
+      requireOwner(pcSub.user_id);
+      const { data: pcPlan } = await admin
+        .from("pingo_card_plans")
+        .select("price_monthly, price_yearly")
+        .eq("id", pcSub.plan_id)
+        .maybeSingle();
+      const price = pcSub.billing_cycle === "yearly" ? pcPlan?.price_yearly : pcPlan?.price_monthly;
+      return requirePrice(price);
+    }
+    throw new AmountError("Assinatura não encontrada", 404);
+  }
+
+  throw new AmountError(`Tipo de referência desconhecido: ${referenceId}`, 400);
 }
 
 function extractResourceId(reference: string): string {

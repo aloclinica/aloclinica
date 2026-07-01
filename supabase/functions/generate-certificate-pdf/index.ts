@@ -1,6 +1,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
 import { PDFDocument, StandardFonts, rgb } from 'https://esm.sh/pdf-lib@1.17.1'
+// SECURITY: authenticate the caller before issuing a medical certificate with service-role.
+import { getCaller } from '../_shared/auth.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -8,8 +10,21 @@ Deno.serve(async (req) => {
     const { appointment_id, days_off, cid_code, reason } = await req.json()
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
+    // SECURITY: require an authenticated caller (JWT). No token => 401.
+    const caller = await getCaller(req)
+    if (!caller.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
     const { data: appt } = await supabase.from('appointments').select('*').eq('id', appointment_id).maybeSingle()
     if (!appt) throw new Error('Appointment not found')
+
+    // SECURITY: only the doctor assigned to this appointment may issue the certificate.
+    const { data: callerDoctor } = await supabase.from('doctor_profiles').select('id').eq('user_id', caller.user.id).maybeSingle()
+    if (!callerDoctor || callerDoctor.id !== appt.doctor_id) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
     const { data: patient } = await supabase.from('profiles').select('first_name,last_name,cpf').eq('user_id', appt.patient_id).maybeSingle()
     const { data: doctor } = await supabase.from('doctor_profiles').select('crm,crm_state,user_id').eq('id', appt.doctor_id).maybeSingle()
     const { data: dProf } = doctor ? await supabase.from('profiles').select('first_name,last_name').eq('user_id', doctor.user_id).maybeSingle() : { data: null }

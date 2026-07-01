@@ -43,8 +43,10 @@ Deno.serve(async (req) => {
     const from = new Date(now - 30 * DAY_MS).toISOString();
     const to   = new Date(now + 90 * DAY_MS).toISOString();
 
+    // SECURITY: do not select free-text `notes` — it is PHI and this feed is
+    // reachable with only a URL token.
     const { data: appts } = await sb.from("appointments")
-      .select("id, scheduled_at, duration_minutes, status, patient_id, notes")
+      .select("id, scheduled_at, duration_minutes, status, patient_id")
       .eq("doctor_id", (doc as any).id)
       .gte("scheduled_at", from).lte("scheduled_at", to)
       .order("scheduled_at", { ascending: true })
@@ -53,8 +55,13 @@ Deno.serve(async (req) => {
     const patientIds = [...new Set((appts ?? []).map((a: any) => a.patient_id).filter(Boolean))] as string[];
     let nameMap = new Map<string, string>();
     if (patientIds.length) {
+      // SECURITY: minimize PHI — expose first name + last-name initial only.
       const { data: profs } = await sb.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds);
-      nameMap = new Map<string, string>((profs ?? []).map((p: any) => [p.user_id, `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim()]));
+      nameMap = new Map<string, string>((profs ?? []).map((p: any) => {
+        const first = (p.first_name ?? "").trim();
+        const initial = (p.last_name ?? "").trim().charAt(0);
+        return [p.user_id, [first, initial ? `${initial}.` : ""].filter(Boolean).join(" ")];
+      }));
     }
 
     const lines: string[] = [
@@ -80,7 +87,8 @@ Deno.serve(async (req) => {
       lines.push(`DTSTART:${icsDate(start)}`);
       lines.push(`DTEND:${icsDate(end)}`);
       lines.push(`SUMMARY:${esc(`Consulta — ${name}`)}`);
-      lines.push(`DESCRIPTION:${esc(`Status: ${a.status}${a.notes ? `\n${a.notes}` : ""}\n\nAcessar: https://aloclinica.com.br/dashboard/consultation/${a.id}`)}`);
+      // SECURITY: no free-text notes in the feed; keep name + status + link only.
+      lines.push(`DESCRIPTION:${esc(`Status: ${a.status}\n\nAcessar: https://aloclinica.com.br/dashboard/consultation/${a.id}`)}`);
       lines.push(`URL:https://aloclinica.com.br/dashboard/consultation/${a.id}`);
       lines.push(`STATUS:${isCancelled ? "CANCELLED" : "CONFIRMED"}`);
       lines.push("END:VEVENT");
@@ -94,7 +102,8 @@ Deno.serve(async (req) => {
       headers: {
         "Content-Type": "text/calendar; charset=utf-8",
         "Content-Disposition": "inline; filename=aloclinica.ics",
-        "Cache-Control": "private, max-age=300",
+        // SECURITY: token-in-URL PHI feed must not be cached by proxies/CDNs.
+        "Cache-Control": "no-store",
       },
     });
   } catch (e: any) {

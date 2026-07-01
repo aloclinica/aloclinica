@@ -1,4 +1,6 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
+// SECURITY: IP-based rate limiting for this public contact form
+import { checkRateLimit } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,6 +27,15 @@ const escapeHtml = (value: string) =>
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  // SECURITY: public contact form — rate limit by client IP (5 req / 10 min)
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (!await checkRateLimit(ip, "b2b-lead-notification", 5, 10)) {
+    return new Response(JSON.stringify({ error: "Too many requests" }), {
+      status: 429,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
   try {
     const { company_name, contact_name, email, phone, company_type, services_interested, message } = (await req.json()) as B2BLeadPayload;

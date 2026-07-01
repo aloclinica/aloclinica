@@ -29,29 +29,34 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { subscription_id, table = "subscriptions", mp_preapproval_id: directPreapprovalId } = await req.json();
-    if (!subscription_id && !directPreapprovalId) {
-      return json({ error: "subscription_id ou mp_preapproval_id obrigatório" }, 400);
+    // SECURITY: cancellation is ALWAYS keyed by a subscription row we own — a raw
+    // body `mp_preapproval_id` is never trusted (was an IDOR: any user could
+    // cancel another user's subscription). subscription_id is now required.
+    const { subscription_id, table = "subscriptions" } = await req.json();
+    if (!subscription_id) {
+      return json({ error: "subscription_id obrigatório" }, 400);
     }
 
     const ALLOWED_TABLES = new Set(["subscriptions", "pingo_card_subscriptions"]);
     if (!ALLOWED_TABLES.has(table)) return json({ error: `table inválida: ${table}` }, 400);
 
-    let preapprovalId = directPreapprovalId;
-    let gateway = "mercadopago";
+    // SECURITY: resolve the subscription and require ownership (or admin) before
+    // touching Mercado Pago. Admins can cancel any subscription; users only their own.
+    const { data: sub } = await (admin as any)
+      .from(table)
+      .select("id, user_id, mp_preapproval_id, gateway")
+      .eq("id", subscription_id)
+      .maybeSingle();
+    if (!sub) return json({ error: "Assinatura não encontrada" }, 404);
 
-    if (subscription_id) {
-      const { data: sub } = await (admin as any)
-        .from(table)
-        .select("id, user_id, mp_preapproval_id, gateway")
-        .eq("id", subscription_id)
-        .eq("user_id", user.id)
-        .single();
-
-      if (!sub) return json({ error: "Assinatura não encontrada" }, 404);
-      preapprovalId = sub.mp_preapproval_id;
-      gateway = sub.gateway ?? "mercadopago";
+    const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", user.id);
+    const isAdmin = (roles ?? []).some((r: any) => r.role === "admin");
+    if (sub.user_id !== user.id && !isAdmin) {
+      return json({ error: "Sem permissão" }, 403);
     }
+
+    const preapprovalId = sub.mp_preapproval_id;
+    const gateway = sub.gateway ?? "mercadopago";
 
     if (gateway === "mercadopago" && preapprovalId) {
       const cancel = await mpRequest("PUT", `/preapproval/${preapprovalId}`, { status: "cancelled" });
@@ -61,16 +66,14 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (subscription_id) {
-      await (admin as any)
-        .from(table)
-        .update({
-          status: "cancelled",
-          cancelled_at: new Date().toISOString(),
-          next_charge_at: null,
-        })
-        .eq("id", subscription_id);
-    }
+    await (admin as any)
+      .from(table)
+      .update({
+        status: "cancelled",
+        cancelled_at: new Date().toISOString(),
+        next_charge_at: null,
+      })
+      .eq("id", subscription_id);
 
     return json({ ok: true });
   } catch (e) {
