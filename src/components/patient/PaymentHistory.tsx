@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { CreditCard, CheckCircle2, Clock, XCircle, Shield, Wifi, Sparkles, ArrowRight } from "lucide-react";
+import { CreditCard, CheckCircle2, Clock, XCircle, Shield, Sparkles, ArrowRight, ReceiptText, WalletCards, Download } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -31,9 +31,9 @@ interface SubscriptionEntry {
 }
 
 const statusConfig: Record<string, { label: string; icon: React.ReactNode; className: string }> = {
-  active: { label: "Ativa", icon: <CheckCircle2 className="w-3.5 h-3.5" />, className: "bg-[hsl(var(--p-success-soft))] text-success border-success/20" },
-  cancelled: { label: "Cancelada", icon: <XCircle className="w-3.5 h-3.5" />, className: "bg-[hsl(var(--p-danger-soft))] text-destructive border-destructive/20" },
-  expired: { label: "Vencida", icon: <Clock className="w-3.5 h-3.5" />, className: "bg-muted text-muted-foreground border-border" },
+  active: { label: "Ativa", icon: <CheckCircle2 className="h-3.5 w-3.5" />, className: "bg-[hsl(var(--p-success-soft))] text-success border-success/20" },
+  cancelled: { label: "Cancelada", icon: <XCircle className="h-3.5 w-3.5" />, className: "bg-[hsl(var(--p-danger-soft))] text-destructive border-destructive/20" },
+  expired: { label: "Vencida", icon: <Clock className="h-3.5 w-3.5" />, className: "bg-muted text-muted-foreground border-border" },
 };
 
 const PaymentHistory = () => {
@@ -42,7 +42,9 @@ const PaymentHistory = () => {
   const [subs, setSubs] = useState<SubscriptionEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { if (user) fetchPayments(); }, [user]);
+  useEffect(() => {
+    if (user) fetchPayments();
+  }, [user]);
 
   const fetchPayments = async () => {
     const { data: subsData } = await db
@@ -52,7 +54,10 @@ const PaymentHistory = () => {
       .order("created_at", { ascending: false })
       .limit(50);
 
-    if (!subsData || subsData.length === 0) { setLoading(false); return; }
+    if (!subsData || subsData.length === 0) {
+      setLoading(false);
+      return;
+    }
 
     const planIds = [...new Set(subsData.map((s) => s.plan_id))];
     const { data: plans } = await db
@@ -63,7 +68,7 @@ const PaymentHistory = () => {
 
     setSubs(subsData.map((s: any) => ({
       ...s,
-      plan_name: (planMap.get(s.plan_id) as any)?.name ?? "—",
+      plan_name: (planMap.get(s.plan_id) as any)?.name ?? "Plano",
       plan_price: (planMap.get(s.plan_id) as any)?.price ?? 0,
       plan_description: (planMap.get(s.plan_id) as any)?.description ?? "",
       plan_interval: (planMap.get(s.plan_id) as any)?.interval ?? "monthly",
@@ -73,22 +78,27 @@ const PaymentHistory = () => {
   };
 
   const activeSub = subs.find((s) => s.status === "active");
+  const totalPaid = subs.filter((s) => s.status === "active").reduce((sum, s) => sum + Number(s.plan_price || 0), 0);
 
   const generateReceipt = (s: SubscriptionEntry) => {
     const doc = new jsPDF();
     const w = doc.internal.pageSize.getWidth();
-    doc.setFillColor(0, 52, 127);
+    doc.setFillColor(0, 111, 207);
     doc.rect(0, 0, w, 40, "F");
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
-    doc.text("AloClínica", 20, 22);
+    doc.text("AloClinica", 20, 22);
     doc.setFontSize(10);
     doc.text("Recibo de Pagamento", 20, 32);
     doc.setTextColor(40, 40, 40);
     let y = 55;
     const line = (label: string, value: string) => {
-      doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.text(label, 20, y);
-      doc.setFont("helvetica", "bold"); doc.text(value, 90, y); y += 10;
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text(label, 20, y);
+      doc.setFont("helvetica", "bold");
+      doc.text(value, 90, y);
+      y += 10;
     };
     line("Plano:", s.plan_name);
     line("Valor:", `R$ ${Number(s.plan_price).toFixed(2)}`);
@@ -100,166 +110,137 @@ const PaymentHistory = () => {
 
   return (
     <DashboardLayout title="Paciente" nav={getPatientNav("payments")} role="patient">
-      <div className="w-full mx-auto max-w-2xl pb-24 md:pb-6 space-y-5">
-
-        {/* ═══ ACTIVE PLAN — Gradient Card ═══ */}
-        {!loading && activeSub && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[hsl(var(--p-primary))] to-[hsl(var(--p-primary-mid))] p-6 text-white"
-          >
-            <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/[0.06] blur-[40px]" />
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-
-            <div className="relative z-10">
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/60">
-                Plano Ativo
-              </p>
-              <p className="font-[Manrope] text-[34px] font-extrabold mt-1 tabular-nums">
-                R$ {Number(activeSub.plan_price).toFixed(2)}
-              </p>
-              <p className="text-[13px] text-white/60 mt-1">
-                {activeSub.plan_name} · {activeSub.plan_interval === "monthly" ? "Mensal" : activeSub.plan_interval}
-              </p>
-              {activeSub.expires_at && (
-                <p className="text-[12px] text-white/50 mt-0.5">
-                  Vencimento: {format(new Date(activeSub.expires_at), "dd/MM/yyyy", { locale: ptBR })}
-                </p>
-              )}
-              <div className="flex justify-end mt-4">
-                <Button
-                  className="rounded-full bg-white text-[hsl(var(--p-primary))] gap-2 font-bold text-sm shadow-[var(--p-shadow-btn)] hover:bg-white/90"
-                  onClick={() => navigate("/dashboard/plans")}
-                >
-                  <CreditCard className="w-4 h-4" /> Gerenciar
-                </Button>
+      <div className="mx-auto w-full max-w-5xl space-y-5 pb-24 md:pb-8">
+        <section className="relative overflow-hidden rounded-[34px] border border-white/60 bg-[linear-gradient(135deg,#eef7ff_0%,#ffffff_50%,#f2fff8_100%)] p-5 shadow-[0_26px_80px_-50px_rgba(8,47,73,.68)] md:p-6">
+          <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-blue-400/16 blur-3xl" />
+          <div className="pointer-events-none absolute bottom-0 left-20 h-44 w-44 rounded-full bg-emerald-300/14 blur-3xl" />
+          <div className="relative flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-xl">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/75 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-primary">
+                <Sparkles className="h-3.5 w-3.5" />
+                Financeiro seguro
               </div>
+              <h1 className="font-[Manrope] text-2xl font-black text-foreground md:text-3xl">Pagamentos</h1>
+              <p className="mt-1 text-sm text-muted-foreground">Acompanhe assinaturas, recibos e status financeiro da sua conta.</p>
             </div>
-          </motion.div>
-        )}
-
-        {/* ═══ CARD VISUAL ═══ */}
-        {!loading && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-[hsl(var(--p-primary))]/10 flex items-center justify-center">
-                  <CreditCard className="w-3.5 h-3.5 text-[hsl(var(--p-primary))]" />
-                </div>
-                <h2 className="text-base font-bold text-foreground font-[Manrope]">Meus Cartões</h2>
-              </div>
-              <button className="text-sm font-semibold text-[hsl(var(--p-primary))]">+ Novo</button>
-            </div>
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[hsl(240,30%,12%)] to-[hsl(240,25%,20%)] p-5 text-white shadow-[var(--p-shadow-elevated)]">
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent" />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-8">
-                  <Wifi className="w-6 h-6 text-white/50 rotate-90" />
-                  <Sparkles className="w-5 h-5 text-white/30" />
-                </div>
-                <p className="text-lg font-semibold tracking-[0.25em] font-mono">
-                  •••• •••• •••• 8821
-                </p>
-                <div className="flex items-center justify-between mt-4">
-                  <p className="text-xs text-white/50 uppercase tracking-wider">Titular</p>
-                  <p className="text-xs text-white/50">12/28</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ═══ PAYMENT HISTORY ═══ */}
-        {!loading && subs.length > 0 && (
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-lg bg-[hsl(var(--p-success-soft))] flex items-center justify-center">
-                <CheckCircle2 className="w-3.5 h-3.5 text-success" />
-              </div>
-              <h2 className="text-base font-bold text-foreground font-[Manrope]">Histórico de Pagamentos</h2>
-            </div>
-            <div className="space-y-2.5">
-              {subs.map((s, i) => {
-                const cfg = statusConfig[s.status] ?? statusConfig.expired;
-                return (
-                  <motion.div
-                    key={s.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.04 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="flex items-center gap-4 p-4 bg-card rounded-2xl border border-border/20 shadow-[var(--p-shadow-card)] hover:shadow-[var(--p-shadow-elevated)] transition-shadow"
-                  >
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${cfg.className}`}>
-                      {cfg.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[14px] font-semibold text-foreground">{s.plan_name}</p>
-                      <p className="text-[12px] text-muted-foreground mt-0.5">
-                        {format(new Date(s.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                        {s.payment_method && ` · ${s.payment_method === "credit_card" ? "Cartão" : s.payment_method === "pix" ? "PIX" : s.payment_method}`}
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-[15px] font-bold text-foreground tabular-nums font-[Manrope]">R$ {Number(s.plan_price).toFixed(2)}</p>
-                      <button
-                        className="text-[12px] font-semibold text-[hsl(var(--p-primary))] flex items-center gap-0.5 ml-auto"
-                        onClick={() => generateReceipt(s)}
-                      >
-                        Recibo <ArrowRight className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ═══ EMPTY STATE ═══ */}
-        {!loading && subs.length === 0 && (
-          <div className="text-center py-16 rounded-2xl border border-dashed border-border/40 bg-muted/10">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
-              <CreditCard className="w-7 h-7 text-muted-foreground/40" />
-            </div>
-            <p className="font-bold text-foreground mb-1 font-[Manrope]">Nenhum pagamento</p>
-            <p className="text-[13px] text-muted-foreground mb-5">Seus pagamentos aparecerão aqui</p>
-            <Button className="rounded-full shadow-[var(--p-shadow-btn)] bg-[hsl(var(--p-primary))] text-white" onClick={() => navigate("/dashboard/plans")}>
-              Ver planos disponíveis
+            <Button className="h-11 rounded-full bg-[hsl(var(--p-primary))] px-5 font-bold text-white shadow-[var(--p-shadow-btn)]" onClick={() => navigate("/dashboard/plans")}>
+              Ver planos <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </div>
-        )}
+        </section>
 
-        {/* ═══ SECURITY CARD ═══ */}
-        {!loading && subs.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="rounded-2xl p-5 flex items-center gap-4 bg-[hsl(var(--p-warning-soft))] border border-warning/15"
-          >
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1.5">
-                <Shield className="w-4 h-4 text-warning" />
-                <p className="text-[14px] font-bold text-foreground">Segurança em primeiro lugar</p>
-              </div>
-              <p className="text-[13px] text-muted-foreground leading-relaxed">
-                Todos os pagamentos são protegidos com criptografia de ponta a ponta.
-              </p>
-            </div>
-            <img src={mascotWave} alt="Pingo" className="w-20 h-20 object-contain shrink-0" loading="lazy" />
-          </motion.div>
-        )}
-
-        {/* ═══ LOADING ═══ */}
-        {loading && (
+        {loading ? (
           <div className="space-y-4">
-            <Skeleton className="h-44 rounded-3xl" />
-            <Skeleton className="h-36 rounded-2xl" />
-            <Skeleton className="h-20 rounded-2xl" />
-            <Skeleton className="h-20 rounded-2xl" />
+            <Skeleton className="h-36 rounded-[30px]" />
+            <Skeleton className="h-24 rounded-[26px]" />
+            <Skeleton className="h-24 rounded-[26px]" />
           </div>
+        ) : (
+          <>
+            <div className="grid gap-3 md:grid-cols-3">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-[28px] border border-border/40 bg-card/95 p-4 shadow-sm md:col-span-2">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Plano atual</p>
+                    <h2 className="mt-1 font-[Manrope] text-2xl font-black text-foreground">{activeSub?.plan_name ?? "Sem plano ativo"}</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {activeSub?.expires_at ? `Vence em ${format(new Date(activeSub.expires_at), "dd/MM/yyyy", { locale: ptBR })}` : "Escolha um plano para ativar os beneficios."}
+                    </p>
+                  </div>
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                    <WalletCards className="h-5 w-5" />
+                  </div>
+                </div>
+                <div className="mt-5 flex flex-wrap items-center gap-2">
+                  <span className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">
+                    {activeSub ? `R$ ${Number(activeSub.plan_price).toFixed(2).replace(".", ",")}` : "Aguardando escolha"}
+                  </span>
+                  {activeSub && (
+                    <span className="rounded-full bg-muted px-3 py-1.5 text-xs font-bold text-muted-foreground">
+                      {activeSub.plan_interval === "monthly" ? "Mensal" : activeSub.plan_interval}
+                    </span>
+                  )}
+                </div>
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 }} className="rounded-[28px] border border-border/40 bg-card/95 p-4 shadow-sm">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600">
+                  <ReceiptText className="h-5 w-5" />
+                </div>
+                <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Registros</p>
+                <p className="mt-1 text-2xl font-black text-foreground">{subs.length}</p>
+                <p className="text-xs text-muted-foreground">Total ativo: R$ {totalPaid.toFixed(2).replace(".", ",")}</p>
+              </motion.div>
+            </div>
+
+            {subs.length > 0 ? (
+              <div className="rounded-[30px] border border-border/40 bg-card/95 p-4 shadow-sm md:p-5">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="font-[Manrope] text-lg font-black text-foreground">Historico de pagamentos</h2>
+                    <p className="text-xs text-muted-foreground">Baixe recibos e acompanhe o status de cada cobranca.</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {subs.map((s, i) => {
+                    const cfg = statusConfig[s.status] ?? statusConfig.expired;
+                    return (
+                      <motion.div
+                        key={s.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.035 }}
+                        className="flex items-center gap-4 rounded-[24px] border border-border/35 bg-background/70 p-4 transition-all hover:-translate-y-0.5 hover:shadow-[var(--p-shadow-card)]"
+                      >
+                        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${cfg.className}`}>
+                          {cfg.icon}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-black text-foreground">{s.plan_name}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {format(new Date(s.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                            {s.payment_method && ` - ${s.payment_method === "credit_card" ? "Cartao" : s.payment_method === "pix" ? "PIX" : s.payment_method}`}
+                          </p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <p className="font-[Manrope] text-sm font-black text-foreground">R$ {Number(s.plan_price).toFixed(2).replace(".", ",")}</p>
+                          <button className="ml-auto mt-1 inline-flex items-center gap-1 text-xs font-bold text-primary" onClick={() => generateReceipt(s)}>
+                            <Download className="h-3 w-3" /> Recibo
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="relative overflow-hidden rounded-[30px] border border-dashed border-border/45 bg-card px-5 py-14 text-center shadow-sm">
+                <div className="pointer-events-none absolute inset-x-10 top-0 h-24 rounded-full bg-primary/10 blur-3xl" />
+                <CreditCard className="relative mx-auto mb-3 h-12 w-12 text-primary/45" />
+                <p className="relative font-[Manrope] text-base font-black text-foreground">Nenhum pagamento registrado</p>
+                <p className="relative mx-auto mt-1 max-w-sm text-sm text-muted-foreground">Seus pagamentos e recibos aparecerao aqui assim que houver uma assinatura ativa.</p>
+                <Button className="relative mt-5 h-11 rounded-full bg-[hsl(var(--p-primary))] px-5 font-bold text-white shadow-[var(--p-shadow-btn)]" onClick={() => navigate("/dashboard/plans")}>
+                  Ver planos disponiveis
+                </Button>
+              </div>
+            )}
+
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="flex items-center gap-4 rounded-[28px] border border-amber-300/25 bg-amber-50/70 p-5"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="mb-1.5 flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-amber-600" />
+                  <p className="text-sm font-black text-foreground">Seguranca em primeiro lugar</p>
+                </div>
+                <p className="text-sm leading-relaxed text-muted-foreground">Pagamentos protegidos, recibos gerados no dispositivo e historico acessivel pela sua conta.</p>
+              </div>
+              <img src={mascotWave} alt="Pingo" className="h-20 w-20 shrink-0 object-contain" loading="lazy" />
+            </motion.div>
+          </>
         )}
       </div>
     </DashboardLayout>
