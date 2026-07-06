@@ -56,6 +56,9 @@ window.addEventListener("error", (e) => {
 requestIdleCallback(() => {
   import("./lib/sentry").then(({ initSentry }) => initSentry()).catch(() => {});
 
+  // Bootstrap nativo Capacitor (no-op no web)
+  import("./lib/capacitor-init").then(({ initCapacitor }) => initCapacitor()).catch(() => {});
+
   const isPreviewEnvironment = window.location.hostname.startsWith("id-preview--");
   if ("serviceWorker" in navigator) {
     if (isPreviewEnvironment) {
