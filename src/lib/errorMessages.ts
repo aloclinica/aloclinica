@@ -103,6 +103,12 @@ const PATTERNS: Array<{
     result: { title: "Senha muito fraca",
               description: "Use ao menos 8 caracteres com maiúscula, minúscula e número." } },
 
+  // SMTP não configurado / GoTrue falhou ao enviar email de confirmação
+  { match: /error sending confirmation email|error sending recovery email|smtp|unexpected_failure/i,
+    context: ["signup", "login"],
+    result: { title: "Servidor de email indisponível",
+              description: "Não conseguimos enviar o email de confirmação agora. Fale com o suporte ou peça ao admin desabilitar a confirmação de email no Supabase (Auth → Providers → Email)." } },
+
   { match: /doctor_type.*check|check constraint.*doctor_type/i,
     context: ["signup"],
     result: { title: "Configuração incorreta",
