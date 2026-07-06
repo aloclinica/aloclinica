@@ -12,3 +12,9 @@
 
 /consulta/*
   X-Robots-Tag: noindex, nofollow
+
+/.well-known/assetlinks.json
+  Content-Type: application/json
+
+/.well-known/apple-app-site-association
+  Content-Type: application/json
