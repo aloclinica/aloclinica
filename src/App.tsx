@@ -70,7 +70,6 @@ const AuthClinica = lazy(() => import("./pages/AuthClinica"));
 const SignupPatient = lazy(() => import("./pages/SignupPatient"));
 const SignupDoctor = lazy(() => import("./pages/SignupDoctor"));
 const SignupClinic = lazy(() => import("./pages/SignupClinic"));
-const SignupSupport = lazy(() => import("./pages/SignupSupport"));
 const AwaitingApproval = lazy(() => import("./pages/AwaitingApproval"));
 
 // Landing pages
@@ -174,7 +173,7 @@ const AnimatedRoutes = () => {
       <Route path="/clinica/cadastro" element={<SignupClinic />} />
       <Route path="/admin" element={<AuthAdmin />} />
       <Route path="/suporte" element={<AuthSuporte />} />
-      <Route path="/suporte/cadastro" element={<SignupSupport />} />
+      {/* SECURITY: cadastro publico de suporte removido (PII sem aprovacao) */}
      <Route path="/aguardando-aprovacao" element={<AwaitingApproval />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
