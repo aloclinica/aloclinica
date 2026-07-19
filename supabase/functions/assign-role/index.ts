@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const validRoles = ["patient", "doctor", "clinic", "receptionist", "support", "partner", "affiliate", "laudista", "ophthalmologist", "optician"];
+    const validRoles = ["patient", "doctor", "clinic", "receptionist", "support", "partner", "affiliate", "laudista"];
     if (!validRoles.includes(role)) {
       // "admin" is intentionally excluded — it can never be granted here.
       return new Response(JSON.stringify({ error: "Invalid role" }), {
@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
     // atomically CLAIM it with the service-role client. Only exactly-one claimed row —
     // that was unused and not expired — authorizes the grant. This closes the privilege
     // escalation where any authenticated user could self-grant `doctor` from a leaked id.
-    const doctorTypeRoles = ["doctor", "laudista", "ophthalmologist"];
+    const doctorTypeRoles = ["doctor", "laudista"];
     let claimedInviteId: string | null = null;
     if (!caller.isAdmin && doctorTypeRoles.includes(role)) {
       const inviteCode = profile_data?.invite_code;
@@ -121,11 +121,10 @@ Deno.serve(async (req) => {
 
     // Create profile-specific records if needed
     // Doctor-like roles all get a doctor_profiles row tagged with doctor_type
-    const doctorRoles = ["doctor", "laudista", "ophthalmologist"];
+    const doctorRoles = ["doctor", "laudista"];
     if (doctorRoles.includes(role) && profile_data) {
       const doctorType =
         role === "laudista" ? "laudista"
-        : role === "ophthalmologist" ? "oftalmologia"
         : "telemedicina";
       await supabase.from("doctor_profiles").insert({
         user_id,
@@ -133,7 +132,7 @@ Deno.serve(async (req) => {
         crm_state: profile_data.crm_state || "SP",
         doctor_type: doctorType,
       });
-      // Laudistas and ophthalmologists also get the base "doctor" role for shared features
+      // Laudistas also get the base "doctor" role for shared features
       if (role !== "doctor") {
         await supabase.from("user_roles").insert({ user_id, role: "doctor" });
       }
@@ -184,7 +183,6 @@ Deno.serve(async (req) => {
           doctor: "welcome_doctor",
           clinic: "welcome_clinic",
           laudista: "welcome_laudista",
-          ophthalmologist: "welcome_ophthalmologist",
         };
         const emailType = typeMap[role];
         if (emailType) {

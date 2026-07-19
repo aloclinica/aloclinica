@@ -24,7 +24,6 @@ const panelOptions = [
   { label: "Suporte", role: "support", icon: Headphones, description: "Logs, usuários e chat de atendimento", tone: "bg-orange-500/10 text-orange-700 dark:text-orange-300", status: "Fila" },
   { label: "Clínica", role: "clinic", icon: Building2, description: "Gestão de médicos vinculados", tone: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300", status: "Rede" },
   { label: "Parceiro", role: "partner", icon: Handshake, description: "Validação de receitas e relatórios", tone: "bg-teal-500/10 text-teal-700 dark:text-teal-300", status: "Convênios" },
-  { label: "Oftalmologista", role: "ophthalmologist", icon: Eye, description: "Exames oftalmológicos e receitas", tone: "bg-violet-500/10 text-violet-700 dark:text-violet-300", status: "Especialidade" },
   { label: "Assistente IA", role: "ai-assistant", icon: Bot, description: "Chat inteligente com IA contextual", tone: "bg-cyan-500/10 text-cyan-700 dark:text-cyan-300", status: "IA" },
 ];
 

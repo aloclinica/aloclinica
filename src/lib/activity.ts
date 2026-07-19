@@ -1,8 +1,8 @@
 /**
  * Logger leve de atividade — alimenta a trilha LGPD ("Quem acessou meus dados").
  *
- * Use em pontos de leitura sensível (abrir prontuário/EMR, baixar receita,
- * abrir laudo) para que o paciente veja registros reais em
+ * Use em pontos de leitura sensível (abrir prontuário/EMR, baixar receita)
+ * para que o paciente veja registros reais em
  * /dashboard/patient/access-log. Falhas são silenciosas (não bloqueiam UX).
  */
 import { db } from "@/integrations/supabase/untyped";

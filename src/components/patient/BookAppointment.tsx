@@ -481,11 +481,11 @@ const BookAppointment = () => {
     let errorOccurred = false;
 
     for (const dt of datesToBook) {
-      // Use doctor_type as appointment_type if available (telemedicina/oftalmologia),
+      // Use doctor_type as appointment_type if available (telemedicina),
       // otherwise use appointmentType (first_visit/return)
       const apptType = firstApptId
         ? "return"
-        : (doctor.doctor_type && ["telemedicina", "oftalmologia"].includes(doctor.doctor_type))
+        : (doctor.doctor_type === "telemedicina")
           ? doctor.doctor_type
           : appointmentType;
 
@@ -998,12 +998,6 @@ const BookAppointment = () => {
                       <span>Subtotal</span>
                       <span className="tabular-nums">R$ {basePrice.toFixed(2)}</span>
                     </div>
-                    {cardDiscount > 0 && (
-                      <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
-                        <span>Cartão Pingo (-{cardDiscount}%)</span>
-                        <span className="tabular-nums">- R$ {discountAmount.toFixed(2)}</span>
-                      </div>
-                    )}
                     {couponCode && couponDiscount > 0 && (
                       <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
                         <span className="inline-flex items-center gap-1">

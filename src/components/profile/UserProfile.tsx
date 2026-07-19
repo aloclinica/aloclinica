@@ -42,8 +42,6 @@ function getNavForRole(role: string) {
 
 const doctorTypeLabels: Record<string, string> = {
   telemedicina: "Telemedicina",
-  oftalmologia: "Oftalmologia",
-  laudista: "Laudista",
 };
 
 const KYC_PENDING_KEY = "aloclinica_kyc_pending";
@@ -849,8 +847,6 @@ const UserProfile = () => {
                   <Label>Tipo de atuação</Label>
                   <select value={doctorType} onChange={e => setDoctorType(e.target.value)} className="mt-1 h-11 w-full rounded-xl border border-input bg-muted/30 px-3 text-sm">
                     <option value="telemedicina">Telemedicina</option>
-                    <option value="oftalmologia">Oftalmologia</option>
-                    <option value="laudista">Laudista</option>
                   </select>
                   <p className="text-[11px] text-muted-foreground mt-0.5">{doctorTypeLabels[doctorType] ?? "Atuação médica"}</p>
                 </div>

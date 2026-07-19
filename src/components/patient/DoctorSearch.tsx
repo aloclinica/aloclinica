@@ -68,21 +68,19 @@ const SPECIALTY_ICONS: Record<string, React.ReactNode> = {
   "Pediatria": <Baby className="w-6 h-6 text-[hsl(var(--p-primary))]" />,
   "Ortopedia": <Bone className="w-6 h-6 text-warning" />,
   "Ginecologia": <Activity className="w-6 h-6 text-secondary" />,
-  "Oftalmologia": <EyeIcon className="w-6 h-6 text-[hsl(var(--p-primary))]" />,
   "Neurologia": <Brain className="w-6 h-6 text-secondary" />,
 };
 
 const FREQUENT_SEARCHES = ["Check-up Geral", "Dermatologia", "Nutrição", "Saúde Mental"];
 
-type DoctorTypeFilter = "telemedicina" | "oftalmologia";
+type DoctorTypeFilter = "telemedicina";
 
 const DoctorSearch = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const isUrgency = searchParams.get("urgency") === "true";
   const initialQ = searchParams.get("q") ?? "";
-  const initialType: DoctorTypeFilter =
-    searchParams.get("type") === "oftalmologia" ? "oftalmologia" : "telemedicina";
+  const initialType: DoctorTypeFilter = "telemedicina";
   const [doctorType, setDoctorType] = useState<DoctorTypeFilter>(initialType);
   const [doctors, setDoctors] = useState<DoctorResult[]>([]);
   const [availableNowIds, setAvailableNowIds] = useState<Set<string>>(new Set());
@@ -374,7 +372,6 @@ const DoctorSearch = () => {
         <div className="inline-flex p-1 rounded-2xl bg-muted/60 border border-border/30 w-full md:w-auto">
           {([
             { value: "telemedicina", label: "Telemedicina", icon: Stethoscope },
-            { value: "oftalmologia", label: "Oftalmologia", icon: EyeIcon },
           ] as const).map(opt => {
             const Icon = opt.icon;
             const active = doctorType === opt.value;

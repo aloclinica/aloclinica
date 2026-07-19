@@ -17,7 +17,6 @@ const STATIC_PAGES = [
   "/para-profissionais",
   "/para-empresas",
   "/faq",
-  "/pingo-card",
   "/teleconsulta",
   "/terms",
   "/privacy",

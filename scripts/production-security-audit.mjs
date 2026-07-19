@@ -33,7 +33,6 @@ const expectedPublicFunctions = new Set([
   "guest-checkout",
   "guest-consultation",
   "validate-invite-code",
-  "validate-laudo",
   "validate-council",
   "b2b-lead-notification",
   "create-admin-account",

@@ -14,13 +14,12 @@ import ForDoctorsSection from "@/components/landing/ForDoctorsSection";
 import CTABanner from "@/components/landing/CTABanner";
 import ConsultaInfoBanner from "@/components/landing/ConsultaInfoBanner";
 import TrustBanner from "@/components/landing/TrustBanner";
-import PingoCardBanner from "@/components/landing/PingoCardBanner";
 import FAQSection from "@/components/landing/FAQSection";
 import TestimonialsMarquee from "@/components/landing/TestimonialsMarquee";
 import PingoCampaignShowcase from "@/components/landing/PingoCampaignShowcase";
 import PublicPageEnhancer from "@/components/landing/PublicPageEnhancer";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Building2, CalendarCheck, CreditCard, Star, Stethoscope, Video } from "lucide-react";
+import { ArrowRight, Building2, CalendarCheck, Star, Stethoscope, Video } from "lucide-react";
 import { useSiteSections } from "@/lib/site-sections";
 import { motion } from "framer-motion";
 import doctorTeleconsulta from "@/assets/doctor-phone-teleconsulta.png";
@@ -75,7 +74,6 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
             {[
               { icon: CalendarCheck, title: "Agendar consulta", desc: "Escolha horario e especialidade", href: "/agendar", tone: "from-blue-500 to-cyan-500" },
               { icon: Video, title: "Teleconsulta 24h", desc: "Atendimento online seguro", href: "/teleconsulta", tone: "from-emerald-500 to-teal-500" },
-              { icon: CreditCard, title: "Pingo Card", desc: "Beneficios para a familia", href: "/pingo-card", tone: "from-amber-400 to-orange-500" },
               { icon: Building2, title: "Empresas", desc: "Saude corporativa simples", href: "/para-empresas", tone: "from-indigo-500 to-violet-500" },
             ].map((item) => {
               const Icon = item.icon;
@@ -167,7 +165,6 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
       <TechnologySection config={sectionData.technology} />
       <ConsultaInfoBanner />
       {isOn("how_it_works") !== false && <HowItWorksSection />}
-      <PingoCardBanner />
       {isOn("benefits") !== false && <BenefitsGrid />}
       <TrustBanner />
 

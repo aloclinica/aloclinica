@@ -45,21 +45,18 @@ interface BeforeInstallPromptEvent extends Event {
 const SERVICE_MAP: Record<string, { name: string; emoji: string; color: string; description: string }> = {
   patient: { name: "Telemedicina", emoji: "🩺", color: "hsl(210,90%,45%)", description: "Consultoria médica online" },
   doctor: { name: "Telemedicina", emoji: "🩺", color: "hsl(160,55%,42%)", description: "Atendimento a pacientes" },
-  ophthalmologist: { name: "Oftalmologia", emoji: "👁️", color: "hsl(270,65%,50%)", description: "Exames e prescrições" },
   clinic: { name: "Clínica", emoji: "🏥", color: "hsl(175,60%,40%)", description: "Gestão da clínica" },
   receptionist: { name: "Recepção", emoji: "🏥", color: "hsl(30,88%,48%)", description: "Agendas e check-in" },
   support: { name: "Suporte", emoji: "🎧", color: "hsl(42,90%,48%)", description: "Atendimento ao cliente" },
   admin: { name: "Administração", emoji: "⚙️", color: "hsl(265,60%,52%)", description: "Controle do sistema" },
   partner: { name: "Parceria", emoji: "🤝", color: "hsl(148,60%,40%)", description: "Integrações e validações" },
   ai: { name: "Assistente IA", emoji: "🤖", color: "hsl(210,85%,48%)", description: "Chat inteligente" },
-  cartao_beneficios: { name: "Cartão Benefícios", emoji: "💳", color: "hsl(340,75%,50%)", description: "Carteirinha e descontos" },
 };
 
 const ROLE_LABELS: Record<string, string> = {
   patient:"Paciente", doctor:"Médico", admin:"Administrador",
   receptionist:"Recepção", support:"Suporte", clinic:"Clínica",
-  partner:"Parceiro", ai:"Assistente IA", ophthalmologist:"Oftalmologista",
-  cartao_beneficios:"Titular do Cartão",
+  partner:"Parceiro", ai:"Assistente IA",
 };
 const ROLE_COLORS: Record<string, string> = {
   patient:"bg-primary/10 text-primary border-primary/20",
@@ -70,12 +67,10 @@ const ROLE_COLORS: Record<string, string> = {
   clinic:"bg-primary/10 text-primary border-primary/20",
   partner:"bg-success/10 text-success border-success/20",
   ai:"bg-primary/10 text-primary border-primary/20",
-  cartao_beneficios:"bg-rose-500/10 text-rose-600 border-rose-500/20",
 };
 const ROLE_ICON: Record<string, string> = {
   patient:"👤", doctor:"🩺", admin:"⚙️", receptionist:"🏥",
   support:"🎧", clinic:"🏢", partner:"🤝", ai:"🤖",
-  cartao_beneficios:"💳",
 };
 const ROLE_GRADIENT: Record<string, string> = {
   patient:"from-[hsl(210,90%,45%)] to-[hsl(195,85%,50%)]",
@@ -86,7 +81,6 @@ const ROLE_GRADIENT: Record<string, string> = {
   clinic:"from-[hsl(210,90%,45%)] to-[hsl(230,70%,55%)]",
   partner:"from-[hsl(142,71%,45%)] to-[hsl(160,55%,45%)]",
   ai:"from-[hsl(200,80%,50%)] to-[hsl(210,90%,45%)]",
-  cartao_beneficios:"from-[hsl(340,75%,45%)] to-[hsl(355,65%,55%)]",
 };
 // Mobile header gradient per role — each role gets a unique color identity
 const ROLE_HEADER_GRADIENT: Record<string, string> = {
@@ -98,7 +92,6 @@ const ROLE_HEADER_GRADIENT: Record<string, string> = {
   clinic:"bg-gradient-to-r from-[hsl(215,75%,42%)] via-[hsl(225,70%,48%)] to-[hsl(235,65%,52%)]",
   partner:"bg-gradient-to-r from-[hsl(142,65%,38%)] via-[hsl(150,60%,42%)] to-[hsl(160,55%,45%)]",
   ai:"bg-gradient-to-r from-[hsl(200,80%,45%)] via-[hsl(210,85%,48%)] to-[hsl(220,80%,52%)]",
-  cartao_beneficios:"bg-gradient-to-r from-[hsl(340,75%,42%)] via-[hsl(345,72%,48%)] to-[hsl(355,65%,55%)]",
 };
 // Bottom nav active color per role
 const ROLE_ACTIVE_COLOR: Record<string, string> = {
@@ -110,7 +103,6 @@ const ROLE_ACTIVE_COLOR: Record<string, string> = {
   clinic:"text-[hsl(225,70%,48%)]",
   partner:"text-[hsl(148,60%,40%)]",
   ai:"text-[hsl(210,85%,48%)]",
-  cartao_beneficios:"text-[hsl(340,75%,50%)]",
 };
 const ROLE_ACTIVE_BG: Record<string, string> = {
   patient:"bg-[hsl(210,90%,45%,0.12)]",
@@ -121,7 +113,6 @@ const ROLE_ACTIVE_BG: Record<string, string> = {
   clinic:"bg-[hsl(225,70%,48%,0.12)]",
   partner:"bg-[hsl(148,60%,40%,0.12)]",
   ai:"bg-[hsl(210,85%,48%,0.12)]",
-  cartao_beneficios:"bg-[hsl(340,75%,50%,0.12)]",
 };
 
 
