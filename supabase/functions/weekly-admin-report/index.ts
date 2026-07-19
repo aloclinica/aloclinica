@@ -3,6 +3,8 @@
  * Cron: segunda 9h
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// SECURITY: gate cron/internal-only function against public callers
+import { isInternalOrService } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,6 +13,11 @@ const corsHeaders = {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  // SECURITY: cron/internal-only — reject public callers (anon key is public)
+  if (!isInternalOrService(req)) {
+    return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
 
   try {
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);

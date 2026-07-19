@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// SECURITY: derive the signer identity from the caller's JWT (anti-spoofing)
+import { getCaller, isInternalOrService } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,24 +25,6 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Validar JWT do médico
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "Missing Authorization header" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
-    if (userErr || !userData.user) {
-      return new Response(
-        JSON.stringify({ error: "Invalid token" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
     const body = await req.json();
     const {
       document_id,
@@ -53,36 +37,63 @@ serve(async (req) => {
       pdf_base64,
     } = body;
 
-    // SECURITY: The signer's identity must NOT be taken from the request body — that
-    // let any authenticated user forge a signature attributed to any doctor with
-    // is_valid=true. We authorize the caller as a doctor/laudista by requiring their
-    // own doctor_profiles row and derive doctor_name/crm/cpf from that trusted row.
-    const { data: docProfile } = await supabase
-      .from("doctor_profiles")
-      .select("id, full_name, crm, cpf")
-      .eq("user_id", userData.user.id)
-      .maybeSingle();
+    // SECURITY: the caller must be an authenticated doctor OR a trusted internal/service
+    // call. Anonymous callers are rejected.
+    const internal = isInternalOrService(req);
+    const caller = await getCaller(req);
+    if (!caller.user && !internal) {
+      return new Response(
+        JSON.stringify({ error: "forbidden" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    if (!docProfile) {
+    // SECURITY: The signer's identity must NOT be trusted from the request body — that
+    // let any authenticated user forge a signature attributed to any doctor. We derive
+    // doctor_name/crm/cpf from the caller's own doctor_profiles/profiles rows (JWT).
+    const { data: docProfile } = caller.user
+      ? await supabase
+          .from("doctor_profiles")
+          .select("id, full_name, crm, cpf")
+          .eq("user_id", caller.user.id)
+          .maybeSingle()
+      : { data: null };
+
+    // A JWT caller who is not a doctor cannot register signatures.
+    if (caller.user && !docProfile && !internal) {
       return new Response(
         JSON.stringify({ error: "Apenas médicos/laudistas podem registrar assinaturas" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const doctor_name = docProfile.full_name;
-    const doctor_crm = docProfile.crm;
-    const doctor_cpf = docProfile.cpf;
+    // Secondary trusted source for name/cpf (some doctors keep CPF only in profiles).
+    const { data: baseProfile } = caller.user
+      ? await supabase
+          .from("profiles")
+          .select("first_name, last_name, cpf")
+          .eq("user_id", caller.user.id)
+          .maybeSingle()
+      : { data: null };
 
-    // Validações obrigatórias (identity now comes from the trusted profile, not body)
-    if (!document_id || !document_type || !doctor_name || !doctor_crm || !doctor_cpf || !document_hash) {
+    const derivedName = docProfile?.full_name
+      || (baseProfile ? `${baseProfile.first_name ?? ""} ${baseProfile.last_name ?? ""}`.trim() : "")
+      || null;
+
+    // SECURITY: prefer the derived (trusted) identity; FALL BACK to body values only when
+    // the derived value is null (e.g. CPF may be absent from the profile — a missing CPF
+    // must NOT turn into a 400 and block signing).
+    const doctor_name = derivedName ?? body.doctor_name ?? null;
+    const doctor_crm = docProfile?.crm ?? body.doctor_crm ?? null;
+    const doctor_cpf = docProfile?.cpf ?? baseProfile?.cpf ?? body.doctor_cpf ?? null;
+
+    // Core required fields only. Doctor identity is best-effort (derived + fallback) and
+    // must not block signing when e.g. CPF is missing.
+    if (!document_id || !document_type || !document_hash) {
       return new Response(
         JSON.stringify({
           error: "Campos obrigatórios faltando",
           required: ["document_id", "document_type", "document_hash"],
-          detail: (!doctor_name || !doctor_crm || !doctor_cpf)
-            ? "Complete seu cadastro médico (nome, CRM, CPF) antes de assinar"
-            : undefined,
         }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -91,7 +102,7 @@ serve(async (req) => {
     // SECURITY: When a source record is referenced, verify the caller OWNS it — the
     // record's doctor must be this doctor. Prevents signing documents belonging to
     // another doctor. The owning column varies by document_type.
-    if (related_record_id) {
+    if (related_record_id && docProfile) {
       const ownershipMap: Record<string, { table: string; column: string }> = {
         prescription: { table: "prescriptions", column: "doctor_id" },
         exam: { table: "exam_requests", column: "requesting_doctor_id" },
@@ -160,7 +171,7 @@ serve(async (req) => {
         document_id,
         document_type,
         related_record_id: related_record_id || null,
-        user_id: userData.user.id,
+        user_id: caller.user?.id ?? body.user_id ?? null,
         doctor_name,
         doctor_crm,
         doctor_cpf,

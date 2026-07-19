@@ -67,6 +67,9 @@ Deno.serve(async (req) => {
       payment_method_id,
       saved_card_id,
       payer_doc,
+      // SECURITY: cupom é REVALIDADO no servidor (resolveCouponPercent) — o % enviado
+      // pelo cliente nunca é usado; só o código é aceito para relookup na tabela coupons.
+      coupon_code,
     } = body;
 
     if (!payment_method) return jsonResponse({ error: "payment_method obrigatório" }, 400);
@@ -77,7 +80,7 @@ Deno.serve(async (req) => {
     // (prevents "pay-what-you-want"). Throws AmountError → mapped to 400/403.
     let amount: number;
     try {
-      amount = await resolveServerAmount(admin, reference_id, user.id);
+      amount = await resolveServerAmount(admin, reference_id, user.id, coupon_code);
     } catch (e) {
       const status = e instanceof AmountError ? e.status : 400;
       return jsonResponse({ error: (e as Error).message }, status);
@@ -284,6 +287,10 @@ async function tokenizeSavedCard(cardId: string): Promise<string> {
   return tk.data.id;
 }
 
+// Preço fixo da renovação de receita (em reais). NUNCA derivado de coluna
+// escrita pelo cliente (prescription_renewals.price).
+const RENEWAL_PRICE_BRL = 80;
+
 // SECURITY: typed error so the handler can map ownership failures to 403 and
 // resolution failures to 400.
 class AmountError extends Error {
@@ -295,18 +302,45 @@ class AmountError extends Error {
 }
 
 /**
+ * SECURITY: revalida um cupom no SERVIDOR e retorna o percentual de desconto
+ * (0 se inválido/inativo/expirado/esgotado). O cliente só envia o CÓDIGO — o %
+ * é sempre relido da tabela `coupons`. Resultado clampeado em 0..100.
+ */
+async function resolveCouponPercent(admin: any, code: unknown): Promise<number> {
+  if (typeof code !== "string") return 0;
+  const normalized = code.trim().toUpperCase();
+  if (!normalized) return 0;
+
+  const { data, error } = await admin
+    .from("coupons")
+    .select("discount_percentage, max_uses, times_used, expires_at, is_active")
+    .eq("code", normalized)
+    .maybeSingle();
+
+  if (error || !data) return 0;
+  if (!data.is_active) return 0;
+  if (data.expires_at && new Date(data.expires_at) < new Date()) return 0;
+  if (data.max_uses && Number(data.times_used) >= Number(data.max_uses)) return 0;
+
+  const pct = Number(data.discount_percentage);
+  if (!Number.isFinite(pct)) return 0;
+  return Math.min(Math.max(pct, 0), 100);
+}
+
+/**
  * SECURITY: resolves the AUTHORITATIVE charge amount (in reais) for a
  * reference_id, reading the resource with the service-role client and
  * verifying the caller OWNS it. The client-supplied amount is never used.
  *
  * Prefixes:
- *   appointment_<uuid> → appointments.price_at_booking (owner: patient_id)
+ *   appointment_<uuid> → doctor_profiles.consultation_price (fonte do médico) − cupom
+ *                        (owner: patient_id — paciente NÃO escreve o preço-base)
  *   queue_<uuid>       → on_demand_queue.price          (owner: patient_id)
- *   renewal_<uuid>     → prescription_renewals.price     (owner: patient_id)
+ *   renewal_<uuid>     → RENEWAL_PRICE_BRL fixo          (owner: patient_id)
  *   sub_<uuid>         → plan price via subscriptions/pingo_card_subscriptions
  *                        (owner: user_id)
  */
-async function resolveServerAmount(admin: any, referenceId: string, callerId: string): Promise<number> {
+async function resolveServerAmount(admin: any, referenceId: string, callerId: string, couponCode?: string): Promise<number> {
   const idx = referenceId.indexOf("_");
   const prefix = idx === -1 ? "" : referenceId.slice(0, idx);
   const resourceId = idx === -1 ? "" : referenceId.slice(idx + 1);
@@ -328,12 +362,25 @@ async function resolveServerAmount(admin: any, referenceId: string, callerId: st
   if (prefix === "appointment") {
     const { data, error } = await admin
       .from("appointments")
-      .select("patient_id, price_at_booking")
+      .select("patient_id, doctor_id")
       .eq("id", resourceId)
       .maybeSingle();
     if (error || !data) throw new AmountError("Consulta não encontrada", 404);
     requireOwner(data.patient_id);
-    return requirePrice(data.price_at_booking);
+    // SECURITY: o preço-base vem da FONTE DO MÉDICO (doctor_profiles.consultation_price),
+    // que o paciente NÃO consegue escrever — jamais de appointments.price_at_booking
+    // (coluna gravada pelo cliente). Isso fecha o subfaturamento ("pague R$1").
+    const { data: doc, error: docErr } = await admin
+      .from("doctor_profiles")
+      .select("consultation_price")
+      .eq("id", data.doctor_id)
+      .maybeSingle();
+    if (docErr || !doc) throw new AmountError("Médico não encontrado", 404);
+    const base = Number(doc.consultation_price);
+    // Único desconto do produto: cupom (revalidado no servidor).
+    const pct = await resolveCouponPercent(admin, couponCode);
+    const final = Math.round(base * (1 - pct / 100) * 100) / 100;
+    return requirePrice(final);
   }
 
   if (prefix === "queue") {
@@ -344,18 +391,20 @@ async function resolveServerAmount(admin: any, referenceId: string, callerId: st
       .maybeSingle();
     if (error || !data) throw new AmountError("Item da fila não encontrado", 404);
     requireOwner(data.patient_id);
+    // TODO: derivar do calculate-shift-price no servidor
     return requirePrice(data.price);
   }
 
   if (prefix === "renewal") {
     const { data, error } = await admin
       .from("prescription_renewals")
-      .select("patient_id, price")
+      .select("patient_id")
       .eq("id", resourceId)
       .maybeSingle();
     if (error || !data) throw new AmountError("Renovação não encontrada", 404);
     requireOwner(data.patient_id);
-    return requirePrice(data.price);
+    // Preço fixo definido pela plataforma — não lê a coluna .price (client-writable).
+    return requirePrice(RENEWAL_PRICE_BRL);
   }
 
   if (prefix === "sub") {

@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// SECURITY: only trusted server-to-server callers or admins may trigger WhatsApp sends
+import { getCaller, isInternalOrService } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -42,6 +44,11 @@ const TEMPLATES: Record<NotificationType, (d: NotifyRequest["dados"]) => string>
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // SECURITY: only internal/service callers or admins may send WhatsApp messages
+  if (!isInternalOrService(req) && !(await getCaller(req)).isAdmin) {
+    return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   try {

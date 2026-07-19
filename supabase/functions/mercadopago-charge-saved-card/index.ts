@@ -47,6 +47,8 @@ Deno.serve(async (req) => {
       description,
       security_code,
       installments = 1,
+      // SECURITY: cupom REVALIDADO no servidor — só o código é aceito, o % é relido.
+      coupon_code,
     } = body;
 
     if (!saved_card_id) return json({ error: "saved_card_id obrigatório" }, 400);
@@ -56,7 +58,7 @@ Deno.serve(async (req) => {
     // OWNS the referenced resource. Never trust a client-supplied amount.
     let amount: number;
     try {
-      amount = await resolveServerAmount(admin, reference_id, userId);
+      amount = await resolveServerAmount(admin, reference_id, userId, coupon_code);
     } catch (e) {
       const status = e instanceof AmountError ? e.status : 400;
       return json({ error: (e as Error).message }, status);
@@ -155,6 +157,9 @@ Deno.serve(async (req) => {
   }
 });
 
+// Preço fixo da renovação de receita (em reais) — nunca de coluna client-writable.
+const RENEWAL_PRICE_BRL = 80;
+
 // SECURITY: typed error to map ownership → 403 and resolution failures → 400.
 class AmountError extends Error {
   status: number;
@@ -165,11 +170,38 @@ class AmountError extends Error {
 }
 
 /**
+ * SECURITY: revalida um cupom no SERVIDOR e retorna o percentual de desconto
+ * (0 se inválido/inativo/expirado/esgotado). O cliente só envia o CÓDIGO — o %
+ * é sempre relido da tabela `coupons`. Resultado clampeado em 0..100.
+ */
+async function resolveCouponPercent(admin: any, code: unknown): Promise<number> {
+  if (typeof code !== "string") return 0;
+  const normalized = code.trim().toUpperCase();
+  if (!normalized) return 0;
+
+  const { data, error } = await admin
+    .from("coupons")
+    .select("discount_percentage, max_uses, times_used, expires_at, is_active")
+    .eq("code", normalized)
+    .maybeSingle();
+
+  if (error || !data) return 0;
+  if (!data.is_active) return 0;
+  if (data.expires_at && new Date(data.expires_at) < new Date()) return 0;
+  if (data.max_uses && Number(data.times_used) >= Number(data.max_uses)) return 0;
+
+  const pct = Number(data.discount_percentage);
+  if (!Number.isFinite(pct)) return 0;
+  return Math.min(Math.max(pct, 0), 100);
+}
+
+/**
  * SECURITY: resolves the AUTHORITATIVE charge amount (reais) for a reference_id,
  * reading the resource with the service-role client and verifying the caller
- * OWNS it. Client-supplied amounts are never used.
+ * OWNS it. Client-supplied amounts are never used. Base da consulta vem de
+ * doctor_profiles.consultation_price (fonte do médico), não de price_at_booking.
  */
-async function resolveServerAmount(admin: any, referenceId: string, callerId: string): Promise<number> {
+async function resolveServerAmount(admin: any, referenceId: string, callerId: string, couponCode?: string): Promise<number> {
   const idx = referenceId.indexOf("_");
   const prefix = idx === -1 ? "" : referenceId.slice(0, idx);
   const resourceId = idx === -1 ? "" : referenceId.slice(idx + 1);
@@ -190,24 +222,34 @@ async function resolveServerAmount(admin: any, referenceId: string, callerId: st
 
   if (prefix === "appointment") {
     const { data, error } = await admin
-      .from("appointments").select("patient_id, price_at_booking").eq("id", resourceId).maybeSingle();
+      .from("appointments").select("patient_id, doctor_id").eq("id", resourceId).maybeSingle();
     if (error || !data) throw new AmountError("Consulta não encontrada", 404);
     requireOwner(data.patient_id);
-    return requirePrice(data.price_at_booking);
+    // SECURITY: base = fonte do médico (doctor_profiles.consultation_price), jamais
+    // price_at_booking (client-writable). Fecha o subfaturamento.
+    const { data: doc, error: docErr } = await admin
+      .from("doctor_profiles").select("consultation_price").eq("id", data.doctor_id).maybeSingle();
+    if (docErr || !doc) throw new AmountError("Médico não encontrado", 404);
+    const base = Number(doc.consultation_price);
+    const pct = await resolveCouponPercent(admin, couponCode);
+    const final = Math.round(base * (1 - pct / 100) * 100) / 100;
+    return requirePrice(final);
   }
   if (prefix === "queue") {
     const { data, error } = await admin
       .from("on_demand_queue").select("patient_id, price").eq("id", resourceId).maybeSingle();
     if (error || !data) throw new AmountError("Item da fila não encontrado", 404);
     requireOwner(data.patient_id);
+    // TODO: derivar do calculate-shift-price no servidor
     return requirePrice(data.price);
   }
   if (prefix === "renewal") {
     const { data, error } = await admin
-      .from("prescription_renewals").select("patient_id, price").eq("id", resourceId).maybeSingle();
+      .from("prescription_renewals").select("patient_id").eq("id", resourceId).maybeSingle();
     if (error || !data) throw new AmountError("Renovação não encontrada", 404);
     requireOwner(data.patient_id);
-    return requirePrice(data.price);
+    // Preço fixo da plataforma — não lê a coluna .price (client-writable).
+    return requirePrice(RENEWAL_PRICE_BRL);
   }
   if (prefix === "sub") {
     const { data: sub } = await admin

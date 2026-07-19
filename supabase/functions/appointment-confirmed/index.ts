@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-// SECURITY: gate cron/internal-only function against public callers
-import { isInternalOrService } from "../_shared/auth.ts";
+// SECURITY: gate against anonymous callers — accept internal/service or any authenticated user
+import { getCaller, isInternalOrService } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,9 +14,10 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // SECURITY: cron/internal-only — reject public callers (anon key is public)
-  if (req.method !== "OPTIONS" && !isInternalOrService(req)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  // SECURITY: called internally (cron/webhooks) OR by the app on confirmation, so accept
+  // trusted server-to-server calls OR any authenticated user. Reject anonymous callers.
+  if (!isInternalOrService(req) && !(await getCaller(req)).user) {
+    return new Response(JSON.stringify({ error: "forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   try {

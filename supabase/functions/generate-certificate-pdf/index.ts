@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
 import { PDFDocument, StandardFonts, rgb } from 'https://esm.sh/pdf-lib@1.17.1'
 // SECURITY: authenticate the caller before issuing a medical certificate with service-role.
-import { getCaller } from '../_shared/auth.ts'
+import { getCaller, isInternalOrService } from '../_shared/auth.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -10,19 +10,25 @@ Deno.serve(async (req) => {
     const { appointment_id, days_off, cid_code, reason } = await req.json()
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
-    // SECURITY: require an authenticated caller (JWT). No token => 401.
+    // SECURITY: trusted server-to-server callers (internal secret / service role) bypass
+    // the per-user check. Otherwise require an authenticated caller (JWT). No token => 401.
+    const internal = isInternalOrService(req)
     const caller = await getCaller(req)
-    if (!caller.user) {
+    if (!internal && !caller.user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const { data: appt } = await supabase.from('appointments').select('*').eq('id', appointment_id).maybeSingle()
     if (!appt) throw new Error('Appointment not found')
 
-    // SECURITY: only the doctor assigned to this appointment may issue the certificate.
-    const { data: callerDoctor } = await supabase.from('doctor_profiles').select('id').eq('user_id', caller.user.id).maybeSingle()
-    if (!callerDoctor || callerDoctor.id !== appt.doctor_id) {
-      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    // SECURITY (IDOR gate): allow internal/service, the doctor assigned to this
+    // appointment (owner), or an admin. Everyone else => 403.
+    const { data: callerDoctor } = caller.user
+      ? await supabase.from('doctor_profiles').select('id').eq('user_id', caller.user.id).maybeSingle()
+      : { data: null }
+    const isDoctorOwner = !!callerDoctor && callerDoctor.id === appt.doctor_id
+    if (!internal && !isDoctorOwner && !caller.isAdmin) {
+      return new Response(JSON.stringify({ error: 'forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const { data: patient } = await supabase.from('profiles').select('first_name,last_name,cpf').eq('user_id', appt.patient_id).maybeSingle()
@@ -50,7 +56,8 @@ Deno.serve(async (req) => {
     draw(`Dr(a). ${dProf?.first_name||''} ${dProf?.last_name||''}`, bold, 12)
     draw(`CRM ${doctor?.crm||''}/${doctor?.crm_state||''}`, font, 11)
     y -= 30
-    draw(`Assinatura digital: ${sigHash}`, font, 9)
+    draw(`Código de integridade (SHA-256): ${sigHash}`, font, 9)
+    draw('Documento emitido eletronicamente — sem assinatura digital ICP-Brasil.', font, 9)
     draw(`Código de verificação: ${code}`, font, 9)
     draw(`Verifique em: aloclinica.com.br/verify/${code}`, font, 9)
 

@@ -9,9 +9,17 @@ const corsHeaders = {
 
 // SECURITY: CompreFace endpoint and API keys must come from the environment, never
 // be hardcoded (the previous literals leaked a raw IP and two live keys in source).
-const COMPREFACE_URL = Deno.env.get("COMPREFACE_URL") ?? "https://face.aloclinica.com.br";
+const COMPREFACE_URL = Deno.env.get("COMPREFACE_URL") ?? "";
 const COMPREFACE_VERIFY_KEY = Deno.env.get("COMPREFACE_VERIFY_KEY") ?? "";
 const COMPREFACE_DETECT_KEY = Deno.env.get("COMPREFACE_DETECT_KEY") ?? "";
+
+// SECURITY: fail loudly (in logs) when CompreFace is unconfigured or would be reached
+// over an insecure (non-https) connection. No hardcoded fallback URL/keys.
+if (!COMPREFACE_URL || !COMPREFACE_VERIFY_KEY || !COMPREFACE_DETECT_KEY) {
+  console.warn("[didit-kyc] CompreFace não configurado — defina COMPREFACE_URL, COMPREFACE_VERIFY_KEY e COMPREFACE_DETECT_KEY.");
+} else if (!COMPREFACE_URL.startsWith("https://")) {
+  console.warn(`[didit-kyc] COMPREFACE_URL não usa https (${COMPREFACE_URL}) — conexão insegura.`);
+}
 
 // SECURITY: SHA-256 hash of a CPF so audit logs prove a match without storing the raw PII.
 async function sha256Hex(input: string): Promise<string> {
