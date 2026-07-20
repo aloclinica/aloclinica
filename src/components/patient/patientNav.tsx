@@ -2,10 +2,12 @@ import {
   Bell,
   BookOpen,
   CalendarCheck,
+  ClipboardList,
   CreditCard,
   Eye,
   FileText,
   FlaskConical,
+  Gift,
   HeartPulse,
   Home,
   LifeBuoy,
@@ -14,8 +16,10 @@ import {
   Search,
   ShieldCheck,
   SlidersHorizontal,
+  Syringe,
   UploadCloud,
   UserRound,
+  Users,
   Zap,
 } from "lucide-react";
 import { NavIcon } from "@/components/ui/nav-icon";
@@ -70,11 +74,16 @@ export const getPatientNav = (active: string, t: Translator = fallback) => {
     { label: t("patientNav.uploadExams"), href: "/dashboard/patient/documents?role=patient", icon: <NavIcon icon={<UploadCloud size={18} strokeWidth={2.4} />} color="cyan" />, active: active === "documents", group: health },
     { label: "Exames (laboratórios)", href: "/dashboard/patient/exams?role=patient", icon: <NavIcon icon={<FlaskConical size={18} strokeWidth={2.4} />} color="cyan" />, active: active === "exams", group: health },
     { label: t("patientNav.renewal"), href: "/dashboard/prescription-renewal?role=patient", icon: <NavIcon icon={<RefreshCw size={18} strokeWidth={2.4} />} color="emerald" />, active: active === "renewal", group: health },
+    { label: "Minha Família", href: "/dashboard/patient/family?role=patient", icon: <NavIcon icon={<Users size={18} strokeWidth={2.4} />} color="blue" />, active: active === "family", group: health },
+    { label: "Vacinação", href: "/dashboard/patient/vaccinations?role=patient", icon: <NavIcon icon={<Syringe size={18} strokeWidth={2.4} />} color="emerald" />, active: active === "vaccinations", group: health },
+    { label: "Diário de Sintomas", href: "/dashboard/patient/diary?role=patient", icon: <NavIcon icon={<BookOpen size={18} strokeWidth={2.4} />} color="rose" />, active: active === "diary", group: health },
+    { label: "Planos de Cuidado", href: "/dashboard/patient/care-plans?role=patient", icon: <NavIcon icon={<ClipboardList size={18} strokeWidth={2.4} />} color="cyan" />, active: active === "care-plans", group: health },
     // ── Financeiro & Notificações ──
     { label: t("patientNav.payments"), href: "/dashboard/payment-history?role=patient", icon: <NavIcon icon={<CreditCard size={18} strokeWidth={2.4} />} color="green" />, active: active === "payments", group: finance },
     { label: t("patientNav.notifications"), href: "/dashboard/notifications?role=patient", icon: <NavIcon icon={<Bell size={18} strokeWidth={2.4} />} color="blue" />, active: active === "notifications", group: finance },
     { label: t("patientNav.support"), href: "/dashboard/patient/support?role=patient", icon: <NavIcon icon={<LifeBuoy size={18} strokeWidth={2.4} />} color="emerald" />, active: active === "support", group: finance },
     { label: t("patientNav.chat"), href: "/dashboard/chat?role=patient", icon: <NavIcon icon={<MessageCircle size={18} strokeWidth={2.4} />} color="blue" />, active: active === "chat", group: finance },
+    { label: "Indique e Ganhe", href: "/dashboard/patient/referral?role=patient", icon: <NavIcon icon={<Gift size={18} strokeWidth={2.4} />} color="amber" />, active: active === "referral", group: finance },
 
     // ── Conta ──
     { label: t("patientNav.profile"), href: "/dashboard/profile?role=patient", icon: <NavIcon icon={<UserRound size={18} strokeWidth={2.4} />} color="blue" />, active: active === "profile", group: account },

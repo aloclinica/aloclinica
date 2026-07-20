@@ -24,6 +24,16 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // SECURITY (F1): endpoint DESATIVADO. Este fluxo legado (marca antiga "Alô Médico")
+  // criava uma consulta SEM cobrança e sem payment_status — consulta avulsa grátis.
+  // Não é usado pelo app atual. O agendamento passa por /book + mercadopago-create-payment
+  // (preço autoritativo no servidor). Reabrir só com fluxo de pagamento do convidado.
+  return new Response(
+    JSON.stringify({ error: "Guest checkout desativado. Use o agendamento com pagamento." }),
+    { status: 410, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+  );
+
+  // eslint-disable-next-line no-unreachable
   try {
     // Rate limit: 5 checkouts per 15 minutes per IP
     const clientIP = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
