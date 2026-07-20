@@ -387,45 +387,23 @@ const KycCrossDevice = ({ onComplete, variant = "full", className = "", tipo = "
           Usar webcam deste PC
         </Button>
 
-        <Button 
-          variant="outline" 
-          onClick={async () => {
-            if (!user) return;
-            try {
-              const score = 100;
-              
-              await db.from("kyc_verificacoes" as any).insert({
-                user_id: user.id,
-                status: "approved",
-                similarity: 1.0,
-                tipo,
-              });
-
-              if (tipo === "medico") {
-                await db.from("doctor_profiles").update({
-                  kyc_status: "approved",
-                  kyc_verified_at: new Date().toISOString(),
-                  kyc_face_match_score: score,
-                } as any).eq("user_id", user.id);
-              }
-
-              const kycResult: KYCResult = {
-                match: true,
-                score: 100,
-                status: "aprovado",
-              };
-
+        {/* DEV-only bypass: never rendered in production builds. The DB triggers
+            also block any client-side KYC write, so this cannot self-approve. */}
+        {import.meta.env.DEV && (
+          <Button
+            variant="outline"
+            onClick={async () => {
+              if (!user) return;
+              const kycResult: KYCResult = { match: true, score: 100, status: "aprovado" };
               setCompletedResult(kycResult);
               onComplete?.(kycResult);
-              toast.success("Pulo de verificação realizado (Dev)");
-            } catch (err) {
-              toast.error("Erro ao pular KYC");
-            }
-          }} 
-          className="flex-1 rounded-xl border-dashed border-primary/40 text-primary/70 hover:text-primary hover:border-primary transition-all text-xs h-11"
-        >
-          <ShieldCheck className="w-4 h-4 mr-2" /> Pular (Dev)
-        </Button>
+              toast.success("Pulo de verificação (Dev — apenas ambiente local)");
+            }}
+            className="flex-1 rounded-xl border-dashed border-primary/40 text-primary/70 hover:text-primary hover:border-primary transition-all text-xs h-11"
+          >
+            <ShieldCheck className="w-4 h-4 mr-2" /> Pular (Dev)
+          </Button>
+        )}
       </div>
       <div className="relative rounded-2xl bg-muted/40 border border-border/40 p-3">
         <p className="text-[11px] text-muted-foreground leading-relaxed flex items-start gap-2">

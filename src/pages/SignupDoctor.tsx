@@ -289,7 +289,8 @@ export default function SignupDoctor() {
           crm_state: formData.crm_state,
           doctor_type: docType,
           is_approved: false,
-          crm_verified: formData.council_type === "CRM" && crmStatus === "ok",
+          // crm_verified é definido apenas pelo servidor (verify-crm/admin), nunca
+          // pelo cliente — reforçado por trigger no banco (protect_crm_verified).
         })
         .select("id")
         .single();

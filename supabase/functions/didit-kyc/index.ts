@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { callClaudeVision } from "../_shared/anthropic.ts";
+import { checkRateLimit } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -146,6 +147,16 @@ Deno.serve(async (req) => {
       });
     }
     const userId = user.id;
+
+    // SECURITY: rate limit KYC — it is expensive and a common fraud/abuse target.
+    // Allows a few legit retries (bad photo) but blocks hammering. fraud_signals
+    // also flags >=3 attempts for admin review.
+    const withinLimit = await checkRateLimit(userId, "didit-kyc", 6, 30);
+    if (!withinLimit) {
+      return new Response(JSON.stringify({ error: "Muitas tentativas de verificação. Aguarde alguns minutos e tente novamente." }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { document_image, selfie_image, document_back, document_type } = await req.json();
     if (!document_image || !selfie_image) {
