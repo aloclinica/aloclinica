@@ -1,18 +1,10 @@
+# Mantém src/public/index.html/configs no contexto — o Dockerfile multi-stage
+# compila a partir do código-fonte. Só exclui o que não é necessário pro build.
 node_modules
 .git
 .github
-src
-public
-supabase
-scripts
+dist
+tests
 *.md
-*.lock
-*.config.*
-tsconfig*
-index.html
-capacitor.config.ts
-eslint.config.js
-postcss.config.js
-components.json
 bun.lock
 bun.lockb
