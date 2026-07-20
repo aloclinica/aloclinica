@@ -17,6 +17,7 @@ import CpfInput from "@/components/ui/cpf-input";
 import { getDoctorNav } from "./doctorNav";
 import { FileBadge, Download, History } from "lucide-react";
 import jsPDF from "jspdf";
+import QRCode from "qrcode";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { drawSafeText, safeQrBox } from "@/lib/pdf-layout";
@@ -34,15 +35,17 @@ const MedicalCertificate = () => {
   const [cid, setCid] = useState("");
   const [certType, setCertType] = useState<"absence" | "attendance" | "fitness">("absence");
   const [generating, setGenerating] = useState(false);
-  const [doctorInfo, setDoctorInfo] = useState<{ crm: string; crm_state: string; specialties: string[] } | null>(null);
+  const [doctorInfo, setDoctorInfo] = useState<{ id: string; crm: string; crm_state: string; specialties: string[] } | null>(null);
   const [history, setHistory] = useState<{ name: string; date: string; type: string }[]>([]);
 
   useEffect(() => {
     if (user) {
-      db.from("doctor_profiles").select("crm, crm_state").eq("user_id", user.id).single().then(({ data }) => {
+      db.from("doctor_profiles").select("id, crm, crm_state").eq("user_id", user.id).single().then(async ({ data }) => {
         if (data) {
-          db.from("doctor_specialties").select("specialties(name)").eq("doctor_id", data.crm).then(() => {});
-          setDoctorInfo({ crm: data.crm, crm_state: data.crm_state, specialties: [] });
+          // BUGFIX: buscar especialidades pelo id do perfil (não pelo número do CRM).
+          const { data: specs } = await db.from("doctor_specialties").select("specialties(name)").eq("doctor_id", data.id);
+          const specialties = (specs ?? []).map((s: any) => s.specialties?.name).filter(Boolean);
+          setDoctorInfo({ id: data.id, crm: data.crm, crm_state: data.crm_state, specialties });
         }
       });
     }
@@ -54,31 +57,13 @@ const MedicalCertificate = () => {
     fitness: { label: "Atestado de Aptidão", title: "ATESTADO DE APTIDÃO FÍSICA" },
   };
 
-  const drawQRCode = (doc: jsPDF, x: number, y: number, size: number) => {
-    const cellSize = size / 10;
-    const pattern = [
-      [1,1,1,0,1,0,1,1,1,0],
-      [1,0,1,0,0,1,1,0,1,0],
-      [1,1,1,0,1,1,1,1,1,0],
-      [0,0,0,0,1,0,0,0,0,1],
-      [1,0,1,1,0,1,0,1,0,1],
-      [0,1,0,0,1,0,1,0,1,0],
-      [1,1,1,0,0,0,1,1,1,0],
-      [1,0,1,0,1,1,1,0,1,1],
-      [1,1,1,0,1,0,1,1,1,0],
-      [0,0,0,1,0,1,0,0,0,1],
-    ];
-    doc.setFillColor(0, 0, 0);
-    pattern.forEach((row, ri) => {
-      row.forEach((cell, ci) => {
-        if (cell) doc.rect(x + ci * cellSize, y + ri * cellSize, cellSize, cellSize, "F");
-      });
-    });
-  };
-
   const generateCertificate = async () => {
     if (!patientName) {
       toast.error("Informe o nome do paciente");
+      return;
+    }
+    if (!doctorInfo?.id) {
+      toast.error("Carregando seus dados de médico — tente novamente em instantes.");
       return;
     }
     setGenerating(true);
@@ -108,9 +93,18 @@ const MedicalCertificate = () => {
     doc.setTextColor(120, 120, 120);
     doc.text("Plataforma de Telemedicina", 20, 28);
 
-    // QR code top-right (clampado às margens)
+    // QR code top-right — QR REAL escaneável apontando para a validação pública.
     const qr = safeQrBox(doc, { x: 165, y: 12, size: 25 }, MARGIN);
-    drawQRCode(doc, qr.x, qr.y, qr.size);
+    try {
+      const verifyUrl = `${window.location.origin}/validar/${verificationCode}`;
+      const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
+        width: 200, margin: 1, errorCorrectionLevel: "M",
+        color: { dark: "#15234B", light: "#ffffff" },
+      });
+      doc.addImage(qrDataUrl, "PNG", qr.x, qr.y, qr.size, qr.size);
+    } catch (e) {
+      logError("QR do atestado falhou", e);
+    }
     doc.setTextColor(100, 100, 100);
     drawSafeText(doc, `Verificação: ${verificationCode}`, {
       x: qr.x + qr.size / 2,
@@ -245,7 +239,7 @@ const MedicalCertificate = () => {
 
         const { error: insertErr } = await (db as any).from("medical_certificates").insert({
           appointment_id: appointmentId ?? null,
-          doctor_id: user.id,
+          doctor_id: doctorInfo.id,
           patient_id: patientUserId,
           type: certType,
           patient_name: patientName,

@@ -67,7 +67,24 @@ const DoctorOnDutyPanel = () => {
     if (!doctorProfileId || !user) return;
     setAccepting(true);
 
-    // Create appointment
+    // ATOMIC CLAIM: só tem efeito se o paciente ainda estiver "waiting". Se dois
+    // médicos clicam ao mesmo tempo, apenas UM consegue (o WHERE status='waiting'
+    // não casa para o segundo) — fim da corrida de "dois médicos, um paciente".
+    const { data: claimed, error: claimErr } = await db.from("on_demand_queue").update({
+      status: "in_progress",
+      assigned_doctor_id: doctorProfileId,
+      assigned_at: new Date().toISOString(),
+      started_at: new Date().toISOString(),
+    }).eq("id", entry.id).eq("status", "waiting").select("id");
+
+    if (claimErr || !claimed || claimed.length === 0) {
+      toast.error("Este paciente já foi atendido por outro médico.");
+      setAccepting(false);
+      fetchQueue();
+      return;
+    }
+
+    // Só depois de garantir o claim, cria a consulta.
     const { data: appt, error: apptError } = await db.from("appointments").insert({
       patient_id: entry.patient_id,
       doctor_id: doctorProfileId,
@@ -78,19 +95,16 @@ const DoctorOnDutyPanel = () => {
     }).select("id").single();
 
     if (apptError || !appt) {
+      // Falhou ao criar a consulta → devolve o paciente para a fila.
+      await db.from("on_demand_queue").update({
+        status: "waiting", assigned_doctor_id: null, assigned_at: null, started_at: null,
+      }).eq("id", entry.id);
       toast.error("Erro ao criar consulta: " + (apptError?.message || ""));
       setAccepting(false);
       return;
     }
 
-    // Update queue entry
-    await db.from("on_demand_queue").update({
-      status: "in_progress",
-      assigned_doctor_id: doctorProfileId,
-      assigned_at: new Date().toISOString(),
-      started_at: new Date().toISOString(),
-      appointment_id: appt.id,
-    }).eq("id", entry.id);
+    await db.from("on_demand_queue").update({ appointment_id: appt.id }).eq("id", entry.id);
 
     toast.success("Paciente aceito! Redirecionando...");
     setTimeout(() => {

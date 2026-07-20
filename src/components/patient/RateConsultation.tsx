@@ -46,26 +46,9 @@ const RateConsultation = ({ appointmentId, doctorId, onClose }: RateConsultation
     if (data && data.length > 0) setAlready(true);
   };
 
-  const updateDoctorRating = async () => {
-    const { data: surveys } = await db
-      .from("satisfaction_surveys")
-      .select("quality_score, nps_score")
-      .eq("doctor_id", doctorId);
-
-    if (!surveys || surveys.length === 0) return;
-
-    const ratings = surveys.map(s => {
-      const npsAs5 = (s.nps_score / 10) * 5;
-      const qual = s.quality_score ?? npsAs5;
-      return (npsAs5 + qual) / 2;
-    });
-    const avgRating = ratings.reduce((a, b) => a + b, 0) / ratings.length;
-
-    await db
-      .from("doctor_profiles")
-      .update({ rating: Math.round(avgRating * 10) / 10, total_reviews: surveys.length })
-      .eq("id", doctorId);
-  };
+  // SECURITY: a média/contagem do médico é recalculada no SERVIDOR por trigger
+  // (fn_recompute_doctor_rating em satisfaction_surveys). O cliente NÃO grava
+  // doctor_profiles.rating — antes o paciente podia manipular a nota do médico.
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev =>
@@ -97,7 +80,6 @@ const RateConsultation = ({ appointmentId, doctorId, onClose }: RateConsultation
     if (error) {
       toast.error("Erro ao enviar avaliação");
     } else {
-      await updateDoctorRating();
       toast.success("Obrigado pela sua avaliação! ⭐");
       onClose();
     }
