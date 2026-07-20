@@ -2,13 +2,14 @@ import { ReceiptText, Clock, XCircle, RefreshCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
 import InstitutionalHero from "@/components/landing/InstitutionalHero";
+import { COMPLIANCE } from "@/config/compliance";
 
 const RefundPolicy = () => (
   <div className="min-h-screen relative">
     <div className="fixed inset-0 -z-10 bg-gradient-to-br from-[hsl(10,55%,97%)] via-[hsl(15,45%,93%)] to-[hsl(20,40%,89%)] dark:from-[hsl(10,25%,8%)] dark:via-[hsl(15,20%,10%)] dark:to-[hsl(20,18%,12%)]" />
     <SEOHead title="Política de Reembolso" description="Conheça a política de cancelamento e reembolso da AloClinica." />
     
-    <InstitutionalHero title="Política de Reembolso e Cancelamento" icon={ReceiptText} lastUpdate="Fevereiro de 2026" />
+    <InstitutionalHero title="Política de Reembolso e Cancelamento" icon={ReceiptText} lastUpdate={COMPLIANCE.ultimaAtualizacaoLegal} />
 
     <div className="container mx-auto px-4 py-12 max-w-3xl">
       <div className="grid sm:grid-cols-3 gap-3 mb-8">
@@ -76,7 +77,7 @@ const RefundPolicy = () => (
         </ul>
 
         <h2 className="text-xl font-bold text-foreground mt-6">5. Consultas de Retorno</h2>
-        <p>Consultas de retorno (agendadas dentro de 60 dias da consulta original com o mesmo médico) têm desconto de 50% sobre o valor da consulta. Caso o paciente não compareça ao retorno, perde o direito ao desconto.</p>
+        <p>Consultas de retorno agendadas dentro do prazo definido pelo médico (padrão de 15 dias, contados da consulta original) e com o mesmo médico são <strong>gratuitas</strong> para o paciente. Após o término do prazo, um novo atendimento é cobrado normalmente como consulta avulsa.</p>
 
         <h2 className="text-xl font-bold text-foreground mt-6">6. Disputas e Chargebacks</h2>
         <p>Em caso de contestação junto à operadora do cartão (chargeback), a AloClinica utilizará os logs de presença em videoconsulta como evidência de realização do serviço. Chargebacks fraudulentos resultarão em suspensão imediata da conta.</p>
@@ -90,13 +91,13 @@ const RefundPolicy = () => (
 
         <h2 className="text-xl font-bold text-foreground mt-6">8. Contato</h2>
         <ul className="list-disc pl-6 space-y-1">
-          <li><strong>E-mail:</strong> contato@aloclinica.com.br</li>
-          <li><strong>Telefone:</strong> 0800 123 4567</li>
+          <li><strong>E-mail:</strong> {COMPLIANCE.emailContato}</li>
+          <li><strong>Suporte:</strong> {COMPLIANCE.emailSuporte}</li>
           <li><strong>Horário de atendimento:</strong> Seg-Sex, 8h-20h</li>
         </ul>
 
         <div className="mt-10 p-4 rounded-xl bg-muted text-xs text-muted-foreground">
-          <p>Esta Política está em conformidade com o Código de Defesa do Consumidor (Lei nº 8.078/1990) e as regulamentações do Banco Central para transações digitais.</p>
+          <p>{COMPLIANCE.razaoSocial} — CNPJ {COMPLIANCE.cnpj}. Esta Política está em conformidade com o Código de Defesa do Consumidor (Lei nº 8.078/1990) e as regulamentações do Banco Central para transações digitais.</p>
         </div>
       </div>
     </div>

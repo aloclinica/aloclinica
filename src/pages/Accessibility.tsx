@@ -76,7 +76,7 @@ const Accessibility = () => (
         <p>Se você encontrar qualquer barreira de acessibilidade na plataforma, ficaremos felizes em ajudar:</p>
         <ul className="list-disc pl-6 space-y-1">
           <li><strong>E-mail:</strong> acessibilidade@aloclinica.com.br</li>
-          <li><strong>Telefone:</strong> 0800 123 4567</li>
+          <li><strong>Suporte:</strong> suporte@aloclinica.com.br</li>
         </ul>
         <p>Responderemos a todas as solicitações de acessibilidade em até 5 dias úteis.</p>
 

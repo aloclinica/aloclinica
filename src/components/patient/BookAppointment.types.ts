@@ -44,5 +44,5 @@ export const RECURRENCE_WEEKS: Record<string, number> = {
 
 export const KYC_PENDING_KEY = "aloclinica_kyc_pending";
 
-/** Tempo de expiração do PIX (Asaas QR codes expiram em 30 min) */
+/** Tempo de expiração do PIX (Mercado Pago QR codes expiram em 30 min) */
 export const PIX_EXPIRY_SECONDS = 1800;

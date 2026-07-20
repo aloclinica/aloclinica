@@ -2,13 +2,14 @@ import { Link } from "react-router-dom";
 import { Stethoscope } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import InstitutionalHero from "@/components/landing/InstitutionalHero";
+import { COMPLIANCE } from "@/config/compliance";
 
 const DoctorTerms = () => (
   <div className="min-h-screen relative">
     <div className="fixed inset-0 -z-10 bg-gradient-to-br from-[hsl(190,50%,96%)] via-[hsl(200,45%,92%)] to-[hsl(210,40%,87%)] dark:from-[hsl(190,25%,8%)] dark:via-[hsl(200,22%,10%)] dark:to-[hsl(210,20%,12%)]" />
     <SEOHead title="Termos de Uso para Médicos" description="Termos e condições para médicos cadastrados na AloClinica." />
     
-    <InstitutionalHero title="Termos de Uso para Médicos" subtitle="Diretrizes para profissionais" icon={Stethoscope} lastUpdate="Fevereiro de 2026" />
+    <InstitutionalHero title="Termos de Uso para Médicos" subtitle="Diretrizes para profissionais" icon={Stethoscope} lastUpdate={COMPLIANCE.ultimaAtualizacaoLegal} />
 
     <div className="container mx-auto px-4 py-12 max-w-3xl">
       <div className="prose prose-sm max-w-none text-muted-foreground space-y-6">
@@ -62,7 +63,7 @@ const DoctorTerms = () => (
 
         <h2 className="text-xl font-bold text-foreground mt-6">7. Prontuário Eletrônico</h2>
         <p>7.1. O médico deve registrar todas as informações relevantes no prontuário eletrônico do paciente, incluindo: anamnese, diagnósticos, prescrições e orientações.</p>
-        <p>7.2. O prontuário é armazenado pela AloClinica pelo prazo mínimo de 20 anos conforme Resolução CFM nº 1.639/2002.</p>
+        <p>7.2. O prontuário é armazenado pela AloClínica pelo prazo mínimo de 20 anos conforme Resolução CFM nº 1.821/2007.</p>
         <p>7.3. O médico pode acessar prontuários apenas de pacientes que atendeu ou está atendendo.</p>
 
         <h2 className="text-xl font-bold text-foreground mt-6">8. Responsabilidade Profissional</h2>
@@ -89,8 +90,8 @@ const DoctorTerms = () => (
 
         <h2 className="text-xl font-bold text-foreground mt-6">11. Contato</h2>
         <ul className="list-disc pl-6 space-y-1">
-          <li><strong>Suporte ao médico:</strong> medicos@aloclinica.com.br</li>
-          <li><strong>Telefone:</strong> 0800 123 4567</li>
+          <li><strong>Suporte ao médico:</strong> {COMPLIANCE.emailMedicos}</li>
+          <li><strong>Responsável Técnico Médico:</strong> {COMPLIANCE.diretorTecnicoMedico} ({COMPLIANCE.diretorTecnicoCRM}) — {COMPLIANCE.contatoTecnico}</li>
         </ul>
 
         <div className="mt-10 p-4 rounded-xl bg-muted text-xs text-muted-foreground">

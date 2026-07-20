@@ -2,20 +2,21 @@ import { Link } from "react-router-dom";
 import { FileText } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import InstitutionalHero from "@/components/landing/InstitutionalHero";
+import { COMPLIANCE } from "@/config/compliance";
 
 const Terms = () => (
   <div className="min-h-screen relative">
     <div className="fixed inset-0 -z-10 bg-gradient-to-br from-[hsl(220,60%,96%)] via-[hsl(230,40%,93%)] to-[hsl(250,35%,90%)] dark:from-[hsl(220,30%,8%)] dark:via-[hsl(230,25%,10%)] dark:to-[hsl(250,20%,12%)]" />
-    <SEOHead title="Termos de Uso" description="Termos de uso da plataforma AloClinica de telemedicina." canonical="https://allo-medico-care.lovable.app/terms" />
-    
-    <InstitutionalHero title="Termos de Uso" icon={FileText} lastUpdate="Fevereiro de 2026" />
+    <SEOHead title="Termos de Uso" description="Termos de uso da plataforma AloClinica de telemedicina." canonical={`${COMPLIANCE.site}/termos`} />
+
+    <InstitutionalHero title="Termos de Uso" icon={FileText} lastUpdate={COMPLIANCE.ultimaAtualizacaoLegal} />
 
     <div className="container mx-auto px-4 py-12 max-w-3xl">
       <div className="prose prose-sm max-w-none text-muted-foreground space-y-6">
 
         <h2 className="text-xl font-bold text-foreground mt-8">1. Aceitação dos Termos</h2>
         <p>Ao acessar, cadastrar-se ou utilizar de qualquer forma a plataforma AloClinica (doravante "Plataforma"), disponível via web e aplicativos, você declara ter lido, compreendido e concordado integralmente com estes Termos de Uso. Caso não concorde com quaisquer condições aqui estabelecidas, deverá interromper imediatamente o uso da Plataforma.</p>
-        <p>Estes Termos constituem um contrato vinculante entre o usuário e a AloClinica Tecnologia em Saúde Ltda., inscrita no CNPJ sob nº 00.000.000/0001-00, com sede em São Paulo/SP.</p>
+        <p>Estes Termos constituem um contrato vinculante entre o usuário e a <strong>{COMPLIANCE.razaoSocial}</strong>, inscrita no CNPJ sob nº {COMPLIANCE.cnpj}, com sede em {COMPLIANCE.enderecoSede}. A responsabilidade técnica médica da Plataforma é da {COMPLIANCE.diretorTecnicoMedico} ({COMPLIANCE.diretorTecnicoCRM}).</p>
 
         <h2 className="text-xl font-bold text-foreground mt-6">2. Definições</h2>
         <ul className="list-disc pl-6 space-y-1">
@@ -69,7 +70,7 @@ const Terms = () => (
           <li><strong>Plano Familiar:</strong> cobertura para o titular e dependentes.</li>
         </ul>
         <p>7.2. Os valores dos planos e consultas avulsas são informados de forma clara antes da contratação, incluindo eventuais taxas e impostos aplicáveis.</p>
-        <p>7.3. Os pagamentos são processados por meio da plataforma de pagamento Asaas, estando sujeitos às políticas dessa plataforma.</p>
+        <p>7.3. Os pagamentos são processados por meio da plataforma de pagamento {COMPLIANCE.provedorPagamento} (instituição de pagamento autorizada pelo Banco Central), estando sujeitos às políticas dessa plataforma. O valor da consulta é sempre validado no servidor da AloClinica no momento da cobrança.</p>
         <p>7.4. A AloClinica se reserva o direito de alterar os preços dos planos a qualquer momento, garantindo que as alterações não afetarão assinaturas vigentes até a próxima renovação.</p>
 
         <h2 className="text-xl font-bold text-foreground mt-6">8. Política de Cancelamento e Reembolso</h2>
@@ -112,14 +113,15 @@ const Terms = () => (
 
         <h2 className="text-xl font-bold text-foreground mt-6">16. Legislação Aplicável e Foro</h2>
         <p>16.1. Estes Termos são regidos pelas leis da República Federativa do Brasil.</p>
-        <p>16.2. Fica eleito o Foro da Comarca de São Paulo/SP para dirimir quaisquer questões oriundas destes Termos, com renúncia a qualquer outro, por mais privilegiado que seja.</p>
+        <p>16.2. Fica eleito o Foro da {COMPLIANCE.foroComarca} para dirimir quaisquer questões oriundas destes Termos, com renúncia a qualquer outro, por mais privilegiado que seja.</p>
 
         <h2 className="text-xl font-bold text-foreground mt-6">17. Contato</h2>
         <p>Para dúvidas, sugestões ou reclamações sobre estes Termos:</p>
         <ul className="list-disc pl-6 space-y-1">
-          <li><strong>E-mail:</strong> contato@aloclinica.com.br</li>
-          <li><strong>Telefone:</strong> 0800 123 4567</li>
-          <li><strong>Encarregado de Dados (DPO):</strong> privacidade@aloclinica.com.br</li>
+          <li><strong>E-mail:</strong> {COMPLIANCE.emailContato}</li>
+          <li><strong>Suporte:</strong> {COMPLIANCE.emailSuporte}</li>
+          <li><strong>Encarregado de Dados (DPO):</strong> {COMPLIANCE.emailDpo}</li>
+          <li><strong>Responsável Técnico Médico:</strong> {COMPLIANCE.diretorTecnicoMedico} ({COMPLIANCE.diretorTecnicoCRM}) — {COMPLIANCE.contatoTecnico}</li>
         </ul>
 
         <div className="mt-10 p-4 rounded-xl bg-muted text-xs text-muted-foreground">

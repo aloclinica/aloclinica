@@ -2,6 +2,7 @@ import { Shield, Lock, Eye, FileCheck, UserCheck, Database, BookOpen } from "luc
 import { Card, CardContent } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
 import InstitutionalHero from "@/components/landing/InstitutionalHero";
+import { COMPLIANCE } from "@/config/compliance";
 
 const tocItems = [
   { id: "compromisso", label: "1. Compromisso com a LGPD" },
@@ -17,9 +18,9 @@ const tocItems = [
 const LGPD = () => (
   <div className="min-h-screen relative">
     <div className="fixed inset-0 -z-10 bg-gradient-to-br from-[hsl(270,45%,96%)] via-[hsl(280,35%,93%)] to-[hsl(290,30%,89%)] dark:from-[hsl(270,25%,8%)] dark:via-[hsl(280,20%,10%)] dark:to-[hsl(290,18%,12%)]" />
-    <SEOHead title="Conformidade LGPD" description="Como a AloClinica cumpre a Lei Geral de Proteção de Dados." canonical="https://allo-medico-care.lovable.app/lgpd" />
-    
-    <InstitutionalHero title="Conformidade LGPD" subtitle="Lei nº 13.709/2018" icon={Shield} lastUpdate="Fevereiro de 2026" />
+    <SEOHead title="Conformidade LGPD" description="Como a AloClinica cumpre a Lei Geral de Proteção de Dados." canonical={`${COMPLIANCE.site}/lgpd`} />
+
+    <InstitutionalHero title="Conformidade LGPD" subtitle="Lei nº 13.709/2018" icon={Shield} lastUpdate={COMPLIANCE.ultimaAtualizacaoLegal} />
 
     <div className="container mx-auto px-4 py-12 max-w-6xl grid lg:grid-cols-[240px_1fr] gap-10">
       {/* Sticky Table of Contents */}
@@ -75,9 +76,10 @@ const LGPD = () => (
         <h2 id="dpo" className="text-xl font-bold text-foreground mt-6 scroll-mt-24">2. Encarregado de Dados (DPO)</h2>
         <p>Nomeamos um Encarregado de Proteção de Dados (DPO) conforme Art. 41 da LGPD:</p>
         <div className="p-4 bg-muted rounded-xl">
-          <p className="text-sm text-foreground font-medium">Encarregado de Dados – AloClinica</p>
-          <p className="text-xs mt-1">E-mail: privacidade@aloclinica.com.br</p>
-          <p className="text-xs">Telefone: 0800 123 4567</p>
+          <p className="text-sm text-foreground font-medium">Encarregado de Dados – AloClínica</p>
+          <p className="text-xs mt-1">E-mail: {COMPLIANCE.emailDpo}</p>
+          <p className="text-xs">Controladora: {COMPLIANCE.razaoSocial} — CNPJ {COMPLIANCE.cnpj}</p>
+          <p className="text-xs">Sede: {COMPLIANCE.enderecoSede}</p>
           <p className="text-xs mt-2 italic">O DPO é responsável por receber reclamações, comunicar-se com a ANPD e orientar funcionários e contratados sobre práticas de proteção de dados.</p>
         </div>
 
@@ -132,7 +134,7 @@ const LGPD = () => (
             </div>
           ))}
         </div>
-        <p className="mt-3">Para exercer qualquer desses direitos, envie um e-mail para <strong>privacidade@aloclinica.com.br</strong>. O prazo para resposta é de até 15 dias úteis conforme Art. 18, §5º da LGPD.</p>
+        <p className="mt-3">Para exercer qualquer desses direitos, envie um e-mail para <strong>{COMPLIANCE.emailDpo}</strong>. O prazo para resposta é de até 15 dias úteis conforme Art. 18, §5º da LGPD.</p>
 
         <h2 id="incidentes" className="text-xl font-bold text-foreground mt-6 scroll-mt-24">6. Incidentes de Segurança</h2>
         <p>Em caso de incidente de segurança que possa acarretar risco ou dano relevante aos titulares, a AloClinica se compromete a:</p>
@@ -149,7 +151,7 @@ const LGPD = () => (
         <h2 id="contato" className="text-xl font-bold text-foreground mt-6 scroll-mt-24">8. Contato e Reclamações</h2>
         <p>Se você tiver dúvidas ou deseja apresentar reclamação sobre o tratamento de seus dados:</p>
         <ul className="list-disc pl-6 space-y-1">
-          <li><strong>DPO AloClinica:</strong> privacidade@aloclinica.com.br</li>
+          <li><strong>DPO AloClínica:</strong> {COMPLIANCE.emailDpo}</li>
           <li><strong>ANPD (Autoridade Nacional de Proteção de Dados):</strong> <a href="https://www.gov.br/anpd" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">www.gov.br/anpd</a></li>
         </ul>
 

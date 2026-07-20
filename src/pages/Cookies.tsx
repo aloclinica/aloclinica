@@ -1,13 +1,14 @@
 import { Cookie } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import InstitutionalHero from "@/components/landing/InstitutionalHero";
+import { COMPLIANCE } from "@/config/compliance";
 
 const Cookies = () => (
   <div className="min-h-screen relative">
     <div className="fixed inset-0 -z-10 bg-gradient-to-br from-[hsl(35,60%,96%)] via-[hsl(30,50%,93%)] to-[hsl(25,45%,89%)] dark:from-[hsl(35,25%,8%)] dark:via-[hsl(30,20%,10%)] dark:to-[hsl(25,18%,12%)]" />
     <SEOHead title="Política de Cookies" description="Saiba como a AloClinica utiliza cookies em sua plataforma." />
     
-    <InstitutionalHero title="Política de Cookies" subtitle="Transparência no uso de dados" icon={Cookie} lastUpdate="Fevereiro de 2026" />
+    <InstitutionalHero title="Política de Cookies" subtitle="Transparência no uso de dados" icon={Cookie} lastUpdate={COMPLIANCE.ultimaAtualizacaoLegal} />
 
     <div className="container mx-auto px-4 py-12 max-w-3xl">
       <div className="prose prose-sm max-w-none text-muted-foreground space-y-6">
@@ -76,7 +77,7 @@ const Cookies = () => (
         <p>Esta Política poderá ser atualizada periodicamente. Alterações significativas serão comunicadas por e-mail ou notificação na plataforma.</p>
 
         <h2 className="text-xl font-bold text-foreground mt-6">6. Contato</h2>
-        <p>Dúvidas sobre cookies: <strong>privacidade@aloclinica.com.br</strong></p>
+        <p>Dúvidas sobre cookies: <strong>{COMPLIANCE.emailDpo}</strong> ({COMPLIANCE.razaoSocial} — CNPJ {COMPLIANCE.cnpj})</p>
 
         <div className="mt-10 p-4 rounded-xl bg-muted text-xs text-muted-foreground">
           <p>Esta Política está em conformidade com a LGPD (Lei nº 13.709/2018) e a Diretiva de ePrivacy da União Europeia utilizada como referência de melhores práticas.</p>

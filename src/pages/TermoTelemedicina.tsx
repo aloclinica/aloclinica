@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShieldCheck, ArrowLeft } from "lucide-react";
+import { COMPLIANCE } from "@/config/compliance";
 
 export default function TermoTelemedicina() {
   return (
@@ -28,9 +29,12 @@ export default function TermoTelemedicina() {
             <h2 className="text-lg font-semibold mt-6">1. Identificação</h2>
             <p>
               <strong>Plataforma:</strong> AloClínica — Telemedicina Digital<br />
-              <strong>Site:</strong> https://aloclinica.com.br<br />
-              <strong>Contato DPO (LGPD):</strong> dpo@aloclinica.com.br<br />
-              <strong>Suporte:</strong> suporte@aloclinica.com.br
+              <strong>Mantenedora:</strong> {COMPLIANCE.razaoSocial} — CNPJ {COMPLIANCE.cnpj}<br />
+              <strong>Sede:</strong> {COMPLIANCE.enderecoSede}<br />
+              <strong>Responsável Técnica Médica:</strong> {COMPLIANCE.diretorTecnicoMedico} ({COMPLIANCE.diretorTecnicoCRM})<br />
+              <strong>Site:</strong> {COMPLIANCE.site}<br />
+              <strong>Contato DPO (LGPD):</strong> {COMPLIANCE.emailDpo}<br />
+              <strong>Suporte:</strong> {COMPLIANCE.emailSuporte}
             </p>
 
             <h2 className="text-lg font-semibold mt-6">2. Objeto</h2>
@@ -70,7 +74,7 @@ export default function TermoTelemedicina() {
             </ul>
             <p>
               <strong>Compartilhamento:</strong> dados podem ser compartilhados apenas com o médico atendente,
-              plataforma de pagamento (Asaas) e autoridades quando exigido por lei.
+              plataforma de pagamento ({COMPLIANCE.provedorPagamento}) e autoridades quando exigido por lei.
             </p>
             <p>
               <strong>Direito de negar (Art. 15, §único, CFM 2.314/2022):</strong> o paciente tem o direito de
@@ -91,7 +95,7 @@ export default function TermoTelemedicina() {
             <h2 className="text-lg font-semibold mt-6">7. Pagamento</h2>
             <ul className="list-disc pl-6 space-y-1">
               <li>Valores das consultas são informados antes de cada agendamento.</li>
-              <li>Pagamento processado pela <strong>Asaas</strong> (PSP licenciado pelo BACEN).</li>
+              <li>Pagamento processado pela <strong>{COMPLIANCE.provedorPagamento}</strong> (instituição de pagamento autorizada pelo Banco Central).</li>
               <li>No-show (sem cancelamento com 2h de antecedência): taxa de <strong>50%</strong> do valor.</li>
               <li>Reembolsos seguem o Código de Defesa do Consumidor.</li>
             </ul>

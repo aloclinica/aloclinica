@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Shield, BookOpen } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import InstitutionalHero from "@/components/landing/InstitutionalHero";
+import { COMPLIANCE } from "@/config/compliance";
 
 const tocItems = [
   { id: "dados-coletados", label: "1. Dados Coletados" },
@@ -19,9 +20,9 @@ const tocItems = [
 const Privacy = () => (
   <div className="min-h-screen relative">
     <div className="fixed inset-0 -z-10 bg-gradient-to-br from-[hsl(160,50%,96%)] via-[hsl(170,40%,92%)] to-[hsl(180,35%,88%)] dark:from-[hsl(160,30%,8%)] dark:via-[hsl(170,25%,10%)] dark:to-[hsl(180,20%,12%)]" />
-    <SEOHead title="Política de Privacidade" description="Saiba como a AloClinica coleta, usa e protege seus dados pessoais." canonical="https://allo-medico-care.lovable.app/privacy" />
-    
-    <InstitutionalHero title="Política de Privacidade" subtitle="Proteção de dados é prioridade" icon={Shield} lastUpdate="Fevereiro de 2026" />
+    <SEOHead title="Política de Privacidade" description="Saiba como a AloClinica coleta, usa e protege seus dados pessoais." canonical={`${COMPLIANCE.site}/privacidade`} />
+
+    <InstitutionalHero title="Política de Privacidade" subtitle="Proteção de dados é prioridade" icon={Shield} lastUpdate={COMPLIANCE.ultimaAtualizacaoLegal} />
 
     <div className="container mx-auto px-4 py-12 max-w-6xl grid lg:grid-cols-[240px_1fr] gap-10">
       <aside className="hidden lg:block">
@@ -47,7 +48,7 @@ const Privacy = () => (
       <div className="max-w-3xl">
       <div className="prose prose-sm max-w-none text-muted-foreground space-y-6">
 
-        <p>A AloClinica Tecnologia em Saúde Ltda. ("AloClinica", "nós") está comprometida com a proteção da sua privacidade e dos seus dados pessoais. Esta Política descreve como coletamos, usamos, armazenamos, compartilhamos e protegemos suas informações em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).</p>
+        <p>A <strong>{COMPLIANCE.razaoSocial}</strong> (CNPJ {COMPLIANCE.cnpj}, sede em {COMPLIANCE.enderecoSede}), operadora da plataforma AloClínica ("AloClínica", "nós"), está comprometida com a proteção da sua privacidade e dos seus dados pessoais. Esta Política descreve como coletamos, usamos, armazenamos, compartilhamos e protegemos suas informações em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018). Responsável Técnica Médica: {COMPLIANCE.diretorTecnicoMedico} ({COMPLIANCE.diretorTecnicoCRM}).</p>
 
         <h2 id="dados-coletados" className="text-xl font-bold text-foreground mt-8 scroll-mt-24">1. Dados Pessoais Coletados</h2>
         <p>Coletamos diferentes categorias de dados pessoais dependendo da sua interação com a Plataforma:</p>
@@ -107,8 +108,8 @@ const Privacy = () => (
         <p>Seus dados pessoais poderão ser compartilhados nas seguintes situações:</p>
         <ul className="list-disc pl-6 space-y-1">
           <li><strong>Médico ↔ Paciente:</strong> dados de saúde são compartilhados exclusivamente entre o paciente e o médico responsável pelo atendimento;</li>
-          <li><strong>Processadores de pagamento:</strong> dados transacionais são compartilhados com o Asaas para processamento;</li>
-          <li><strong>Infraestrutura em nuvem:</strong> dados são armazenados em servidores seguros (Supabase/AWS);</li>
+          <li><strong>Processadores de pagamento:</strong> dados transacionais são compartilhados com o {COMPLIANCE.provedorPagamento} (instituição de pagamento autorizada pelo Banco Central) para processamento;</li>
+          <li><strong>Infraestrutura em nuvem:</strong> dados são armazenados em servidores seguros do {COMPLIANCE.provedorInfra} (banco de dados, autenticação e arquivos);</li>
           <li><strong>Autoridades judiciais:</strong> mediante ordem judicial ou obrigação legal;</li>
           <li><strong>Clínicas parceiras:</strong> quando a consulta for intermediada por uma clínica cadastrada.</li>
         </ul>
@@ -136,7 +137,7 @@ const Privacy = () => (
             </tr>
           </thead>
           <tbody>
-            <tr><td className="border border-border p-2">Prontuário médico</td><td className="border border-border p-2">20 anos</td><td className="border border-border p-2">Resolução CFM nº 1.639/2002</td></tr>
+            <tr><td className="border border-border p-2">Prontuário médico</td><td className="border border-border p-2">20 anos</td><td className="border border-border p-2">Resolução CFM nº 1.821/2007</td></tr>
             <tr><td className="border border-border p-2">Dados de cadastro</td><td className="border border-border p-2">Enquanto a conta estiver ativa</td><td className="border border-border p-2">Execução de contrato</td></tr>
             <tr><td className="border border-border p-2">Dados de pagamento</td><td className="border border-border p-2">5 anos após a transação</td><td className="border border-border p-2">Legislação tributária</td></tr>
             <tr><td className="border border-border p-2">Logs de presença em vídeo</td><td className="border border-border p-2">5 anos</td><td className="border border-border p-2">Proteção contra disputas</td></tr>
@@ -156,7 +157,7 @@ const Privacy = () => (
           <li><strong>Revogação do consentimento:</strong> a qualquer momento, sem afetar tratamentos anteriores;</li>
           <li><strong>Oposição:</strong> ao tratamento realizado com fundamento em interesse legítimo.</li>
         </ul>
-        <p>Para exercer seus direitos, entre em contato com nosso Encarregado de Dados (DPO) pelo e-mail: <strong>privacidade@aloclinica.com.br</strong>. As solicitações serão atendidas em até 15 dias úteis.</p>
+        <p>Para exercer seus direitos, entre em contato com nosso Encarregado de Dados (DPO) pelo e-mail: <strong>{COMPLIANCE.emailDpo}</strong>. As solicitações serão atendidas em até 15 dias úteis.</p>
 
         <h2 id="transferencia" className="text-xl font-bold text-foreground mt-6 scroll-mt-24">7. Transferência Internacional de Dados</h2>
         <p>Alguns de nossos prestadores de serviço (infraestrutura em nuvem, processamento de pagamentos) podem estar localizados fora do Brasil. Nestes casos, garantimos que a transferência ocorre com proteções adequadas conforme Art. 33 da LGPD.</p>
@@ -169,8 +170,8 @@ const Privacy = () => (
 
         <h2 id="contato" className="text-xl font-bold text-foreground mt-6 scroll-mt-24">10. Contato do DPO</h2>
         <ul className="list-disc pl-6 space-y-1">
-          <li><strong>Encarregado de Dados (DPO):</strong> privacidade@aloclinica.com.br</li>
-          <li><strong>Telefone:</strong> 0800 123 4567</li>
+          <li><strong>Encarregado de Dados (DPO):</strong> {COMPLIANCE.emailDpo}</li>
+          <li><strong>Controladora:</strong> {COMPLIANCE.razaoSocial} — CNPJ {COMPLIANCE.cnpj} — {COMPLIANCE.enderecoSede}</li>
           <li><strong>Autoridade Nacional de Proteção de Dados (ANPD):</strong> <a href="https://www.gov.br/anpd" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">www.gov.br/anpd</a></li>
         </ul>
 

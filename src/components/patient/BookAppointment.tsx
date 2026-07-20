@@ -157,7 +157,7 @@ const BookAppointment = () => {
     if (selectedDate && doctorId) fetchBookedSlots();
   }, [selectedDate]);
 
-  // PIX expiry countdown (Asaas QR codes expire after 30 minutes)
+  // PIX expiry countdown (Mercado Pago QR codes expire after 30 minutes)
   const { secondsLeft: pixSecondsLeft, expired: pixExpired } = usePixCountdown(pixQrCode, () => {
     toast.error("PIX expirado", { description: "O QR Code expirou. Clique em 'Gerar novo PIX' para continuar." });
   });

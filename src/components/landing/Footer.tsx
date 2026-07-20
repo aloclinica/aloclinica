@@ -17,7 +17,7 @@ const Footer = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
   const copyright   = config?.copyright || `© ${new Date().getFullYear()} AloClínica. Todos os direitos reservados.`;
   const footerTag   = config?.footer_tagline || "Telemedicina segura e acessível para todo o Brasil.";
   const contactEmail = config?.contact_email || "contato@aloclinica.com.br";
-  const contactPhone = config?.contact_phone || "0800 123 4567";
+  const contactPhone = config?.contact_phone || "";
   
   const socialLinksConfig = config?.social_links || [];
   
@@ -116,14 +116,16 @@ const Footer = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
                   {contactEmail}
                 </a>
               </li>
-              <li>
-                <a href={`tel:${contactPhone}`} className="flex items-center gap-2.5 text-xs text-white/60 hover:text-white transition-colors group">
-                  <span className="w-7 h-7 rounded-lg bg-white/[0.04] flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                    <Phone className="w-3.5 h-3.5" weight="fill" />
-                  </span>
-                  {contactPhone}
-                </a>
-              </li>
+              {contactPhone && (
+                <li>
+                  <a href={`tel:${contactPhone}`} className="flex items-center gap-2.5 text-xs text-white/60 hover:text-white transition-colors group">
+                    <span className="w-7 h-7 rounded-lg bg-white/[0.04] flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      <Phone className="w-3.5 h-3.5" weight="fill" />
+                    </span>
+                    {contactPhone}
+                  </a>
+                </li>
+              )}
               <li className="flex items-center gap-2.5 text-xs text-white/60">
                 <span className="w-7 h-7 rounded-lg bg-white/[0.04] flex items-center justify-center">
                   <MapPin className="w-3.5 h-3.5" weight="fill" />
@@ -193,10 +195,10 @@ const Footer = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
       <div className="relative border-t border-white/[0.06]">
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-white/75 font-medium">
-            <span className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-400" weight="fill" /> Certificado CFM</span>
-            <span className="flex items-center gap-1.5"><Lock className="w-4 h-4 text-sky-400" weight="fill" /> LGPD Compliance</span>
-            <span className="flex items-center gap-1.5"><SealCheck className="w-4 h-4 text-violet-400" weight="fill" /> SSL 256-bit</span>
-            <span className="flex items-center gap-1.5"><Heart className="w-4 h-4 text-rose-400" weight="fill" /> Telemedicina ANS</span>
+            <span className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-400" weight="fill" /> Conforme CFM 2.314/2022</span>
+            <span className="flex items-center gap-1.5"><Lock className="w-4 h-4 text-sky-400" weight="fill" /> Conforme LGPD</span>
+            <span className="flex items-center gap-1.5"><SealCheck className="w-4 h-4 text-violet-400" weight="fill" /> Conexão SSL/TLS</span>
+            <span className="flex items-center gap-1.5"><Heart className="w-4 h-4 text-rose-400" weight="fill" /> Telemedicina regulamentada</span>
           </div>
           <div className="flex items-center gap-1.5 text-[10px] text-white/70">
             Pagamentos:
