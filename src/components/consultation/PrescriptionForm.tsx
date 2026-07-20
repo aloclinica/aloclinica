@@ -692,6 +692,10 @@ const PrescriptionForm = () => {
               patientName={data.patientName}
               patientCpf={data.patientCpf}
               patientId={data.patientId}
+              patientSex={data.patientSex || undefined}
+              patientDob={data.patientDob || undefined}
+              patientPhone={data.patientPhone || undefined}
+              patientEmail={data.patientEmail || undefined}
               onPrescriptionCreated={(data) => {
                 toast.success("Receita Memed salva! ✅", { description: "A receita digital foi emitida e registrada." });
               }}

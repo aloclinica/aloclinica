@@ -19,6 +19,17 @@ declare global {
   }
 }
 
+// Memed espera data_nascimento no formato DD/MM/AAAA. As datas vêm do banco como
+// "YYYY-MM-DD" (ou ISO). Normalizamos sem usar new Date() para evitar shift de
+// fuso em datas "date-only".
+const formatDobForMemed = (dob?: string): string | undefined => {
+  if (!dob) return undefined;
+  const iso = dob.slice(0, 10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(dob)) return dob; // já no formato esperado
+  return undefined;
+};
+
 interface MemedPrescriptionProps {
   appointmentId: string;
   patientName: string;
@@ -166,21 +177,26 @@ const MemedPrescription = ({
               moduleReadyRef.current = true;
               setStatus("ready");
 
-              // Set patient data
+              // Set patient data — Memed exige nome, CPF, telefone, data de
+              // nascimento e e-mail. Enviamos SEMPRE que o dado existir.
               try {
-                const nameParts = patientName.split(" ");
+                const dobFormatted = formatDobForMemed(patientDob);
+                const telefone = (patientPhone || "").replace(/\D/g, "");
+                const patientPayload: Record<string, unknown> = {
+                  idExterno: patientId,
+                  nome: patientName,
+                  cpf: (patientCpf || "").replace(/\D/g, ""),
+                  // Aceita "F", "f", "female", "feminino"; qualquer outro → Masculino.
+                  sexo: /^f/i.test((patientSex || "").trim()) ? "Feminino" : "Masculino",
+                };
+                if (dobFormatted) patientPayload.data_nascimento = dobFormatted;
+                if (telefone) patientPayload.telefone = telefone;
+                if (patientEmail) patientPayload.email = patientEmail;
+
                 await window.MdHub.command.send(
                   "plataforma.prescricao",
                   "setPaciente",
-                  {
-                    idExterno: patientId,
-                    nome: patientName,
-                    cpf: (patientCpf || "").replace(/\D/g, ""),
-                    sexo: patientSex === "F" ? "Feminino" : "Masculino",
-                    ...(patientDob && { data_nascimento: patientDob }),
-                    ...(patientPhone && { telefone: patientPhone.replace(/\D/g, "") }),
-                    ...(patientEmail && { email: patientEmail }),
-                  }
+                  patientPayload
                 );
                 // Patient set on Memed
               } catch {
@@ -194,7 +210,7 @@ const MemedPrescription = ({
                   // Prescription created via Memed
                   toast.success("Receita emitida via Memed! ✅");
 
-                  // Save prescription to our database
+                  // Save prescription to our database (prontuário)
                   try {
                     const medications =
                       prescriptionData?.medicamentos?.map((med: any) => ({
@@ -202,6 +218,14 @@ const MemedPrescription = ({
                         dosage: med.posologia || "",
                         instructions: med.observacao || "",
                       })) || [];
+
+                    // Memed prescription identifier (número da prescrição) — usado
+                    // para correlacionar o evento de exclusão posteriormente.
+                    const memedPrescriptionId =
+                      prescriptionData?.id ??
+                      prescriptionData?.prescricao?.id ??
+                      prescriptionData?.numero ??
+                      null;
 
                     const { data: doctorProfile } = await db
                       .from("doctor_profiles")
@@ -218,6 +242,10 @@ const MemedPrescription = ({
                         diagnosis: prescriptionData?.diagnostico || null,
                         observations: "Receita emitida via Memed Digital",
                         pdf_url: prescriptionData?.url_pdf || null,
+                        prescription_type: "memed",
+                        status: "finalized",
+                        memed_prescription_id:
+                          memedPrescriptionId != null ? String(memedPrescriptionId) : null,
                       } as any);
                     }
                   } catch {
@@ -228,10 +256,58 @@ const MemedPrescription = ({
                 }
               );
 
-              // Listen for prescription deleted
-              window.MdHub.event.add("prescricaoExcluida", () => {
-                // Prescription deleted on Memed
-              });
+              // Listen for prescription deleted — marca a receita como excluída
+              // no prontuário para que o prescritor não acesse um documento
+              // que a Memed já invalidou.
+              window.MdHub.event.add(
+                "prescricaoExcluida",
+                async (deletedData: any) => {
+                  try {
+                    const memedPrescriptionId =
+                      deletedData?.id ??
+                      deletedData?.prescricao?.id ??
+                      deletedData?.numero ??
+                      (typeof deletedData === "string" || typeof deletedData === "number"
+                        ? deletedData
+                        : null);
+
+                    const deletionPatch = {
+                      status: "deleted",
+                      pdf_url: null,
+                      updated_at: new Date().toISOString(),
+                    };
+
+                    if (memedPrescriptionId != null) {
+                      // Correlação precisa pelo id da prescrição Memed.
+                      await db
+                        .from("prescriptions")
+                        .update(deletionPatch)
+                        .eq("appointment_id", appointmentId)
+                        .eq("memed_prescription_id", String(memedPrescriptionId));
+                    } else {
+                      // Best-effort: sem id no evento, marca a última receita
+                      // Memed desta consulta.
+                      const { data: latest } = await db
+                        .from("prescriptions")
+                        .select("id")
+                        .eq("appointment_id", appointmentId)
+                        .eq("prescription_type", "memed")
+                        .order("created_at", { ascending: false })
+                        .limit(1)
+                        .maybeSingle();
+                      if (latest?.id) {
+                        await db
+                          .from("prescriptions")
+                          .update(deletionPatch)
+                          .eq("id", latest.id);
+                      }
+                    }
+                    toast.info("Receita Memed excluída — registro atualizado.");
+                  } catch {
+                    warn("Error handling Memed prescription deletion");
+                  }
+                }
+              );
             }
           }
         );

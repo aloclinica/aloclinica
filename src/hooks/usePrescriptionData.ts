@@ -25,6 +25,10 @@ export interface PrescriptionData {
   patientId: string;
   patientName: string;
   patientCpf: string;
+  patientDob: string;
+  patientPhone: string;
+  patientEmail: string;
+  patientSex: string;
   diagnosis: string;
   observations: string;
   medications: Medication[];
@@ -50,6 +54,10 @@ export function usePrescriptionData(appointmentId?: string) {
     patientId: "",
     patientName: "",
     patientCpf: "",
+    patientDob: "",
+    patientPhone: "",
+    patientEmail: "",
+    patientSex: "",
     diagnosis: "",
     observations: "",
     medications: [emptyMedication()],
@@ -86,30 +94,44 @@ export function usePrescriptionData(appointmentId?: string) {
           return;
         }
 
-        // 2. Fetch patient
+        // 2. Fetch patient — incl. contact data required by Memed (SetPaciente:
+        //    nome, cpf, telefone, data_nascimento, email).
         let patientName = "";
         let patientCpf = "";
+        let patientDob = "";
+        let patientPhone = "";
+        let patientEmail = "";
+        let patientSex = "";
         const patientId = appt.patient_id || appt.guest_patient_id;
 
         if (appt.patient_id) {
           const { data: profile } = await db
             .from("profiles")
-            .select("first_name, last_name, cpf")
+            .select("first_name, last_name, cpf, phone, date_of_birth, gender")
             .eq("user_id", appt.patient_id)
             .single();
           if (profile) {
             patientName = `${profile.first_name} ${profile.last_name}`;
             patientCpf = profile.cpf || "";
+            patientDob = profile.date_of_birth || "";
+            patientPhone = profile.phone || "";
+            patientSex = profile.gender || "";
+            // NOTE: a registered patient's e-mail lives in auth.users and is not
+            // readable client-side; it is delivered by the server-side flows
+            // (see send-prescription). Left empty here on purpose.
           }
         } else if (appt.guest_patient_id) {
           const { data: guest } = await db
             .from("guest_patients")
-            .select("full_name, cpf")
+            .select("full_name, cpf, phone, date_of_birth, email")
             .eq("id", appt.guest_patient_id)
             .single();
           if (guest) {
             patientName = guest.full_name;
             patientCpf = guest.cpf || "";
+            patientDob = guest.date_of_birth || "";
+            patientPhone = guest.phone || "";
+            patientEmail = guest.email || "";
           }
         }
 
@@ -149,6 +171,10 @@ export function usePrescriptionData(appointmentId?: string) {
           patientId: patientId || "",
           patientName,
           patientCpf,
+          patientDob,
+          patientPhone,
+          patientEmail,
+          patientSex,
           diagnosis: (existing as any)?.diagnosis || "",
           observations: (existing as any)?.observations || "",
           medications: (existing as any)?.medications || [emptyMedication()],

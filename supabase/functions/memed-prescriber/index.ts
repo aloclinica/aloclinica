@@ -77,6 +77,19 @@ serve(async (req) => {
       );
     }
 
+    // Fetch the prescriber's medical specialty (required by Memed certification).
+    // doctor_specialties -> specialties(name). A doctor may have several; Memed
+    // registers a single "especialidade", so we take the first. Fallback keeps
+    // registration from failing when the profile has no specialty linked yet.
+    let especialidade = "Clínico Geral";
+    const { data: specialtyRows } = await supabase
+      .from("doctor_specialties")
+      .select("specialties(name)")
+      .eq("doctor_id", doctorProfile.id)
+      .limit(1);
+    const specialtyName = specialtyRows?.[0]?.specialties?.name;
+    if (specialtyName) especialidade = specialtyName;
+
     // Try to get existing user from Memed first.
     // FIX: the identifier goes in the PATH (/usuarios/{external_id}), NOT a
     // ?filter[] query — that route/method combo returns 403 "Método inválido
@@ -124,6 +137,7 @@ serve(async (req) => {
           email: claims.claims.email || "",
           telefone: (profile.phone || "").replace(/\D/g, ""),
           data_nascimento: dobFormatted,
+          especialidade,
         },
       },
     };
