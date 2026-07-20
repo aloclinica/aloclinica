@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
     }
 
     const { data: patient } = await supabase.from('profiles').select('first_name,last_name,cpf,address_street,address_city,address_state,address_zip,city,state').eq('user_id', appt.patient_id).maybeSingle()
-    const { data: doctor } = await supabase.from('doctor_profiles').select('crm,crm_state,user_id').eq('id', appt.doctor_id).maybeSingle()
+    const { data: doctor } = await supabase.from('doctor_profiles').select('crm,crm_state,user_id,professional_address').eq('id', appt.doctor_id).maybeSingle()
     const { data: dProf } = doctor ? await supabase.from('profiles').select('first_name,last_name').eq('user_id', doctor.user_id).maybeSingle() : { data: null }
 
     // CFM 2.314/2022 Art. 13: endereço do paciente. doctor_profiles NÃO possui
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
       patient?.address_state || patient?.state,
       patient?.address_zip ? `CEP ${patient.address_zip}` : null,
     ].filter(Boolean).join(', ')
-    const doctorAddress = Deno.env.get('DOCTOR_PROFESSIONAL_ADDRESS') || '[Endereço profissional do médico não cadastrado]'
+    const doctorAddress = (doctor as any)?.professional_address || Deno.env.get('DOCTOR_PROFESSIONAL_ADDRESS') || '[Endereço profissional do médico não cadastrado]'
     const emittedAt = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' })
 
     const code = crypto.randomUUID().slice(0, 8).toUpperCase()

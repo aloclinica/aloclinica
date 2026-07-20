@@ -1,8 +1,7 @@
--- ============================================================
--- APLICAR NO SUPABASE (SQL Editor) — correções de segurança
--- Projeto: pwxvvimdtmvziynbspgx · rode ISTO inteiro, uma vez.
--- ============================================================
+-- APLICAR NO SUPABASE (SQL Editor) — idempotente, pode rodar de novo
+-- Projeto: pwxvvimdtmvziynbspgx
 
+-- ===== 20260719000000_security_hardening_critical =====
 -- =====================================================================
 -- SECURITY HARDENING CRÍTICO (pré-lançamento)
 -- Fecha as brechas exploráveis por qualquer anônimo. Idempotente.
@@ -141,7 +140,7 @@ DROP TRIGGER IF EXISTS assign_admin_on_signup_trigger ON auth.users;
 --     JOIN auth.users u ON u.id=ur.user_id WHERE ur.role IN ('admin','support');
 -- =====================================================================
 
--- ---------------------------------------------------------
+-- ===== 20260719010000_clinical_immutability =====
 -- =====================================================================
 -- Imutabilidade de registros clínicos (CFM): bloqueia DELETE via app.
 -- Política RESTRICTIVE afeta o role `authenticated` (médicos/pacientes).
@@ -172,7 +171,7 @@ END $$;
 -- Nota: imutabilidade de UPDATE de conteúdo pós-lançamento e retenção de 20
 -- anos (CFM 1.821/2007) exigem trigger/arquivamento adicional (trabalho futuro).
 
--- ---------------------------------------------------------
+-- ===== 20260719020000_unschedule_removed_crons =====
 -- =====================================================================
 -- Desagenda crons órfãos que invocam edge functions REMOVIDAS
 -- (senão falhariam em runtime). Não mexe em dados. Idempotente.
@@ -190,3 +189,13 @@ BEGIN
 EXCEPTION WHEN undefined_table OR undefined_function THEN
   NULL; -- pg_cron ausente: nada a fazer
 END $$;
+
+-- ===== 20260720000000_doctor_professional_address =====
+-- CFM 2.314/2022 Art. 13 alínea "a": documentos emitidos devem conter o
+-- endereço profissional do médico. Adiciona a coluna em doctor_profiles.
+ALTER TABLE public.doctor_profiles
+  ADD COLUMN IF NOT EXISTS professional_address text;
+
+COMMENT ON COLUMN public.doctor_profiles.professional_address IS
+  'Endereço profissional do médico — obrigatório em receitas/atestados (CFM 2.314/2022, Art. 13, a).';
+
