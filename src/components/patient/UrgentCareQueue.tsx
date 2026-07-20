@@ -20,6 +20,19 @@ import ConsentDialog from "@/components/legal/ConsentDialog";
 
 type PaymentMethod = "pix" | "card" | "boleto";
 
+// Sinais de alarme (red-flags): se algum for marcado, é emergência → SAMU 192,
+// NÃO a fila paga de teleconsulta.
+const RED_FLAGS = [
+  "Dor ou aperto no peito",
+  "Falta de ar intensa / dificuldade para respirar",
+  "Sinais de AVC (boca torta, fraqueza súbita, fala enrolada)",
+  "Desmaio ou perda de consciência",
+  "Sangramento intenso que não para",
+  "Dor de cabeça súbita e muito forte",
+  "Convulsão",
+  "Pensamentos de se machucar",
+];
+
 interface NearbyHospital {
   name: string;
   distance: string;
@@ -89,6 +102,10 @@ const UrgentCareQueue = () => {
   const [elapsed, setElapsed] = useState(0);
 
   const [showPayment, setShowPayment] = useState(false);
+  const [showTriage, setShowTriage] = useState(false);
+  const [emergency, setEmergency] = useState(false);
+  const [triageComplaint, setTriageComplaint] = useState("");
+  const [redFlags, setRedFlags] = useState<Set<string>>(new Set());
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
   const [processing, setProcessing] = useState(false);
   const [pixQrCode, setPixQrCode] = useState<string | null>(null);
@@ -234,6 +251,23 @@ const UrgentCareQueue = () => {
     : 0;
   const handleStartPayment = () => setShowPayment(true);
 
+  const toggleRedFlag = (f: string) =>
+    setRedFlags((prev) => {
+      const n = new Set(prev);
+      n.has(f) ? n.delete(f) : n.add(f);
+      return n;
+    });
+
+  // Após a triagem: se há sinal de alarme → tela de emergência (192); senão segue o pagamento.
+  const handleTriageContinue = () => {
+    if (redFlags.size > 0) {
+      setEmergency(true);
+      return;
+    }
+    setShowTriage(false);
+    handleStartPayment();
+  };
+
   // Aceite do termo de pronto-atendimento — bloqueia o "Entrar na Fila"
   const [consentOpen, setConsentOpen] = useState(false);
   const [consentDone, setConsentDone] = useState(false);
@@ -307,6 +341,52 @@ const UrgentCareQueue = () => {
 
   return (
     <DashboardLayout title="Paciente" nav={getPatientNav("urgent-care")}>
+      {showTriage && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" role="dialog" aria-modal="true">
+          <div className="w-full max-w-md rounded-3xl bg-card border border-border shadow-2xl max-h-[90vh] overflow-y-auto">
+            {emergency ? (
+              <div className="p-6 text-center">
+                <Ambulance className="w-12 h-12 mx-auto text-[#A32D2D] mb-3" />
+                <h3 className="text-xl font-extrabold text-foreground mb-2">Isto pode ser uma emergência</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Pelos sinais que você marcou, procure atendimento <b>presencial imediato</b>. A teleconsulta <b>não substitui</b> a emergência.
+                </p>
+                <a href="tel:192" className="w-full h-12 rounded-full bg-[#A32D2D] text-white font-bold flex items-center justify-center gap-2 mb-2 no-underline">
+                  <Phone className="w-4 h-4" /> Ligar 192 (SAMU)
+                </a>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Ou vá ao pronto-socorro mais próximo{nearbyHospitals[0] ? `: ${nearbyHospitals[0].name} (${nearbyHospitals[0].distance})` : ""}.
+                </p>
+                <Button variant="ghost" className="w-full rounded-full" onClick={() => { setShowTriage(false); setEmergency(false); setRedFlags(new Set()); }}>
+                  Voltar
+                </Button>
+              </div>
+            ) : (
+              <div className="p-6">
+                <div className="flex items-center gap-2 mb-1">
+                  <AlertTriangle className="w-5 h-5 text-warning" />
+                  <h3 className="font-bold text-foreground">Triagem rápida</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">Antes de entrar na fila, marque se você tem algum destes sinais graves:</p>
+                <div className="space-y-2 mb-4">
+                  {RED_FLAGS.map((f) => (
+                    <label key={f} className="flex items-start gap-3 rounded-xl border border-border p-3 cursor-pointer hover:bg-muted/40">
+                      <input type="checkbox" className="mt-1" checked={redFlags.has(f)} onChange={() => toggleRedFlag(f)} />
+                      <span className="text-sm text-foreground">{f}</span>
+                    </label>
+                  ))}
+                </div>
+                <Label className="text-sm">Qual o seu principal sintoma?</Label>
+                <Input value={triageComplaint} onChange={(e) => setTriageComplaint(e.target.value)} placeholder="Ex.: febre e dor de garganta" className="mt-1 mb-4" />
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1 rounded-full" onClick={() => { setShowTriage(false); setRedFlags(new Set()); }}>Cancelar</Button>
+                  <Button className="flex-1 rounded-full bg-primary text-primary-foreground font-bold" onClick={handleTriageContinue}>Continuar</Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       <div className="w-full max-w-5xl mx-auto pb-24 md:pb-6">
         {loading ? <div className="shimmer-v2 h-5 rounded w-32 inline-block" aria-label="Carregando" /> : myEntry ? (
           /* ═══ IN QUEUE ═══ */
@@ -499,8 +579,8 @@ const UrgentCareQueue = () => {
                 <AlertTriangle className="w-5 h-5 text-warning" />
                 <h3 className="font-bold text-foreground font-[Manrope]">Relatar Emergência</h3>
               </div>
-              <p className="text-sm text-muted-foreground mb-3">Responda 3 perguntas rápidas para triagem imediata.</p>
-              <Button className="h-12 rounded-full bg-[#A32D2D] text-white w-full font-bold shadow-[0_12px_30px_rgba(163,45,45,0.20)]" onClick={handleStartPayment}>
+              <p className="text-sm text-muted-foreground mb-3">Uma triagem rápida separa emergências (que precisam do 192) da teleconsulta.</p>
+              <Button className="h-12 rounded-full bg-[#A32D2D] text-white w-full font-bold shadow-[0_12px_30px_rgba(163,45,45,0.20)]" onClick={() => { setEmergency(false); setShowTriage(true); }}>
                 Iniciar Triagem
               </Button>
             </div>
