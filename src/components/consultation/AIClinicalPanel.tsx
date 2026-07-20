@@ -122,7 +122,7 @@ export default function AIClinicalPanel({ appointmentId, patientId, recentMessag
         const ids = (priorAppts ?? []).map((a: any) => a.id);
         if (ids.length) {
           const [{ data: priorNotes }, { data: priorRx }, { data: priorExams }] = await Promise.all([
-            db.from("consultation_notes").select("appointment_id, assessment, plan").in("appointment_id", ids),
+            (db as any).from("appointment_notes").select("appointment_id, content").eq("type", "soap").in("appointment_id", ids),
             db.from("prescriptions").select("created_at, medications").in("appointment_id", ids).limit(8),
             db.from("exam_requests").select("created_at, exam_name").in("appointment_id", ids).limit(8),
           ]);
@@ -130,7 +130,7 @@ export default function AIClinicalPanel({ appointmentId, patientId, recentMessag
           const hist = (priorAppts as any[]).map((a) => {
             const n = notesMap.get(a.id);
             const when = new Date(a.scheduled_at).toLocaleDateString("pt-BR");
-            return `  • ${when} — A: ${n?.assessment || "—"}; P: ${n?.plan || "—"}`;
+            return `  • ${when} — A: ${n?.content?.assessment || "—"}; P: ${n?.content?.plan || "—"}`;
           }).join("\n");
           if (hist) parts.push(`Histórico clínico recente do paciente:\n${hist}`);
           if (priorRx?.length) {

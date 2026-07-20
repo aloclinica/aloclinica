@@ -29,14 +29,28 @@ Deno.serve(async (req) => {
 
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: appt } = await admin.from("appointments").select("id, notes, doctor_id, patient_id").eq("id", appointment_id).single();
-    if (!appt?.notes) {
+
+    // O SOAP e gravado em appointment_notes (JSON). Fallback: appointments.notes (texto legado).
+    let notesText = "";
+    const { data: soap } = await admin.from("appointment_notes").select("content").eq("appointment_id", appointment_id).eq("type", "soap").maybeSingle();
+    const c: any = (soap as any)?.content;
+    if (c) {
+      notesText = [
+        c.subjective ? `Subjetivo: ${c.subjective}` : "",
+        c.objective ? `Objetivo: ${c.objective}` : "",
+        c.assessment ? `Avaliacao: ${c.assessment}` : "",
+        c.plan ? `Plano: ${c.plan}` : "",
+      ].filter(Boolean).join("\n");
+    }
+    if (!notesText && appt?.notes) notesText = String(appt.notes);
+    if (!notesText) {
       return new Response(JSON.stringify({ ok: false, reason: "no_notes" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const summary = await callClaude({
       model: FAST_CLAUDE_MODEL,
       system: "Você é um assistente médico. Gere um resumo SOAP estruturado (Subjetivo, Objetivo, Avaliação, Plano) a partir das notas. Seja conciso e técnico — destinado ao médico para arquivo. Máximo 300 palavras.",
-      messages: [{ role: "user", content: `Notas da consulta:\n${appt.notes}` }],
+      messages: [{ role: "user", content: `Notas da consulta:\n${notesText}` }],
       temperature: 0.2,
       max_tokens: 800,
     });

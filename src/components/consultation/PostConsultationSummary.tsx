@@ -59,7 +59,7 @@ const PostConsultationSummary = ({
   useEffect(() => {
     const load = async () => {
       const [notesRes, prescRes, certRes, apptRes] = await Promise.all([
-        db.from("consultation_notes").select("id").eq("appointment_id", appointmentId).limit(1),
+        (db as any).from("appointment_notes").select("id").eq("appointment_id", appointmentId).eq("type", "soap").limit(1),
         db.from("prescriptions").select("id").eq("appointment_id", appointmentId).limit(1),
         (db as any).from("medical_certificates").select("id").eq("appointment_id", appointmentId).limit(1),
         db.from("appointments").select("patient_id, doctor_id").eq("id", appointmentId).single(),
@@ -137,12 +137,12 @@ const PostConsultationSummary = ({
         db.from("pre_consultation_symptoms")
           .select("main_complaint, symptoms, severity, duration, additional_notes")
           .eq("appointment_id", appointmentId).maybeSingle(),
-        db.from("consultation_notes")
-          .select("subjective, objective, assessment, plan")
-          .eq("appointment_id", appointmentId).maybeSingle(),
+        (db as any).from("appointment_notes")
+          .select("content")
+          .eq("appointment_id", appointmentId).eq("type", "soap").maybeSingle(),
       ]);
       const s: any = sym || {};
-      const n: any = notes || {};
+      const n: any = (notes as any)?.content || {};
       const ctx = [
         `Paciente: ${otherPartyName || "—"}`,
         `Duração: ${formatDuration(elapsed)}`,
