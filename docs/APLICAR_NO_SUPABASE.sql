@@ -1,4 +1,4 @@
--- APLICAR NO SUPABASE (SQL Editor) — idempotente, pode rodar de novo
+-- APLICAR NO SUPABASE (SQL Editor) — idempotente
 -- Projeto: pwxvvimdtmvziynbspgx
 
 -- ===== 20260719000000_security_hardening_critical =====
@@ -198,4 +198,10 @@ ALTER TABLE public.doctor_profiles
 
 COMMENT ON COLUMN public.doctor_profiles.professional_address IS
   'Endereço profissional do médico — obrigatório em receitas/atestados (CFM 2.314/2022, Art. 13, a).';
+
+-- ===== 20260720010000_private_signed_doc_buckets =====
+-- Sigilo (CFM Art. 3 / LGPD): documentos clínicos assinados não podem ficar em
+-- bucket público (path enumerável). Torna privados. Idempotente.
+UPDATE storage.buckets SET public = false
+ WHERE id IN ('receitas-assinadas', 'laudos-assinados');
 

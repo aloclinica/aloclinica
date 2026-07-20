@@ -91,20 +91,22 @@ Deno.serve(async (req) => {
     const bytes = await pdf.save()
     const path = `${rx.patient_id}/${prescription_id}.pdf`
     await supabase.storage.from('prescriptions').upload(path, bytes, { contentType: 'application/pdf', upsert: true })
-    const { data: pub } = supabase.storage.from('prescriptions').getPublicUrl(path)
+    // Sigilo (CFM Art. 3 / LGPD): bucket privado + URL ASSINADA (não pública/enumerável).
+    const { data: signed } = await supabase.storage.from('prescriptions').createSignedUrl(path, 60 * 60 * 24 * 365)
+    const pdfUrl = signed?.signedUrl ?? null
 
     // SECURITY: persist only the generated PDF url + verification code. Do NOT set
     // is_signed / signature_hash / signed_at here — signing is done by register-signature
     // (ICP-Brasil). Generating a PDF must never mark a prescription as signed.
     await supabase.from('prescriptions').update({
-      pdf_url: pub.publicUrl, verification_code: code,
+      pdf_url: pdfUrl, verification_code: code,
     }).eq('id', prescription_id)
 
     // SECURITY: removed the document_verifications upsert that asserted is_valid=true.
     // A verification record must only be created by the real signing flow, otherwise
     // an unsigned PDF would appear "valid" at the public /verify endpoint.
 
-    return new Response(JSON.stringify({ ok: true, url: pub.publicUrl, code }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ ok: true, url: pdfUrl, code }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (e) {
     return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }

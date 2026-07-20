@@ -82,11 +82,13 @@ Deno.serve(async (req) => {
     const bytes = await pdf.save()
     const path = `${appt.patient_id}/${appointment_id}-${code}.pdf`
     await supabase.storage.from('prescriptions').upload(path, bytes, { contentType: 'application/pdf', upsert: true })
-    const { data: pub } = supabase.storage.from('prescriptions').getPublicUrl(path)
+    // Sigilo (CFM Art. 3 / LGPD): bucket privado + URL ASSINADA.
+    const { data: signed } = await supabase.storage.from('prescriptions').createSignedUrl(path, 60 * 60 * 24 * 365)
+    const pdfUrl = signed?.signedUrl ?? null
 
     const { data: cert } = await supabase.from('medical_certificates').insert({
       appointment_id, patient_id: appt.patient_id, doctor_id: appt.doctor_id,
-      days_off, cid_code, reason, pdf_url: pub.publicUrl,
+      days_off, cid_code, reason, pdf_url: pdfUrl,
       verification_code: code, signature_hash: sigHash, signed_at: new Date().toISOString(),
     }).select().maybeSingle()
 
@@ -102,10 +104,10 @@ Deno.serve(async (req) => {
     await supabase.from('notifications').insert({
       user_id: appt.patient_id, title: '📄 Atestado médico disponível',
       message: `${days_off} dia(s) de afastamento.`, type: 'document',
-      link: pub.publicUrl,
+      link: pdfUrl,
     })
 
-    return new Response(JSON.stringify({ ok: true, url: pub.publicUrl, code }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ ok: true, url: pdfUrl, code }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (e) {
     return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
