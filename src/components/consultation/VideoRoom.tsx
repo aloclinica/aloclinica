@@ -664,8 +664,12 @@ const VideoRoom = () => {
       .from("patient-documents")
       .upload(filePath, file, { contentType: file.type });
     if (uploadErr) throw uploadErr;
-    const { data: urlData } = db.storage.from("patient-documents").getPublicUrl(filePath);
-    return urlData.publicUrl;
+    // patient-documents é um bucket PRIVADO (PHI). Usa URL assinada (não pública).
+    const { data: urlData, error: signErr } = await db.storage
+      .from("patient-documents")
+      .createSignedUrl(filePath, 60 * 60 * 24 * 365);
+    if (signErr || !urlData?.signedUrl) throw signErr ?? new Error("Falha ao gerar URL do arquivo");
+    return urlData.signedUrl;
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -813,9 +817,8 @@ const VideoRoom = () => {
           .upload(filePath, pdfBlob, { contentType: "application/pdf", upsert: true });
 
         if (!uploadError) {
-          // Save reference in patient_documents table
-          const { data: urlData } = db.storage.from("patient-documents").getPublicUrl(filePath);
-          
+          // Save reference in patient_documents table. Store the PATH (file_url);
+          // signed URLs are generated on demand from the private bucket.
           await db.from("patient_documents").insert({
             patient_id: patientId || user!.id,
             uploaded_by: user!.id,

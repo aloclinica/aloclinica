@@ -79,16 +79,10 @@ export default function PrescriptionVerification() {
 
         setSignature(signatureData as SignatureData);
 
-        // Buscar URL do documento
-        if (signatureData.storage_path) {
-          const { data } = db.storage
-            .from("prescriptions")
-            .getPublicUrl(signatureData.storage_path);
-
-          if (data?.publicUrl) {
-            setDocumentUrl(data.publicUrl);
-          }
-        }
+        // O documento assinado fica em bucket PRIVADO (PHI). Esta página de
+        // verificação é PÚBLICA, então mostra apenas os metadados de validade
+        // (paciente, CRM, data, autenticidade) — NUNCA o PDF completo por URL
+        // pública. O titular acessa o documento autenticado no seu painel.
       } catch (err) {
         logError("Erro ao verificar documento:", err);
         toast.error("Erro ao verificar documento");

@@ -229,8 +229,11 @@ const MedicalCertificate = () => {
 
         let pdfUrl: string | null = null;
         if (!upErr) {
-          const { data: urlData } = db.storage.from("patient-documents").getPublicUrl(storagePath);
-          pdfUrl = urlData?.publicUrl ?? null;
+          // patient-documents é um bucket PRIVADO (PHI). URL assinada, não pública.
+          const { data: urlData } = await db.storage
+            .from("patient-documents")
+            .createSignedUrl(storagePath, 60 * 60 * 24 * 365);
+          pdfUrl = urlData?.signedUrl ?? null;
         }
 
         // Resolve patient_id se temos appointmentId
