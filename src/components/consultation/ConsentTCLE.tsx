@@ -16,20 +16,20 @@ interface ConsentTCLEProps {
   onConsented: () => void;
 }
 
-const TCLE_VERSION = "1.1";
+const TCLE_VERSION = "2.0";
 
 const TCLE_TEXT = `TERMO DE CONSENTIMENTO LIVRE E ESCLARECIDO PARA TELECONSULTA — versão ${TCLE_VERSION}
 
 Conforme Resolução CFM nº 2.314/2022 (telemedicina), Lei nº 14.510/2022 (Marco Legal), Resolução CFM nº 2.299/2021 (prescrição eletrônica), Lei nº 14.063/2020 (assinatura eletrônica) e Lei nº 13.709/2018 (LGPD), declaro que:
 
-1. NATUREZA DO ATENDIMENTO
-A consulta será realizada por tecnologias digitais de comunicação (teleconsulta). Este atendimento tem limitações inerentes à ausência de exame físico presencial.
+1. NATUREZA DO ATENDIMENTO E AUTORIZAÇÃO (Art. 15)
+A consulta será realizada por tecnologias digitais de comunicação (teleconsulta). Autorizo expressamente o atendimento por TELEMEDICINA e a captação, TRANSMISSÃO, armazenamento e processamento das imagens, vídeo, áudio e dados clínicos necessários à realização do atendimento. Este atendimento tem limitações inerentes à ausência de exame físico presencial.
 
-2. EMERGÊNCIA
-A teleconsulta NÃO substitui atendimento presencial em emergências. Em caso de urgência, devo procurar SAMU 192 ou pronto-socorro mais próximo IMEDIATAMENTE.
+2. ATENDIMENTO PRESENCIAL E EMERGÊNCIA (Art. 19)
+Tenho DIREITO A ATENDIMENTO PRESENCIAL sempre que preferir ou quando houver indicação médica, e estou ciente de que a teleconsulta NÃO substitui a consulta presencial nessas situações. O médico pode, a qualquer momento, encaminhar-me para atendimento presencial se julgar necessário. Em caso de urgência ou emergência, devo procurar SAMU 192 ou o pronto-socorro mais próximo IMEDIATAMENTE.
 
-3. SIGILO E LGPD
-Meus dados são tratados conforme LGPD. Servidores no Brasil. Criptografia em trânsito (TLS 1.3) e em repouso (AES-256). Posso exercer meus direitos LGPD via dpo@aloclinica.com.br: acesso, correção, portabilidade, eliminação (respeitada retenção de prontuário de 20 anos pela CFM 1.821/2007).
+3. SIGILO, LGPD E COMPARTILHAMENTO DE DADOS (Art. 15, §único)
+Meus dados são tratados conforme LGPD. Servidores no Brasil. Criptografia em trânsito (TLS 1.3) e em repouso (AES-256). Estou ciente de que meus dados pessoais e de saúde PODEM SER COMPARTILHADOS com o médico atendente e com terceiros estritamente necessários ao atendimento, e de que tenho o DIREITO DE NEGAR essa permissão de compartilhamento — salvo em caso de EMERGÊNCIA MÉDICA, quando o compartilhamento independe da minha autorização. Posso exercer meus direitos LGPD via dpo@aloclinica.com.br: acesso, correção, portabilidade, eliminação (respeitada retenção de prontuário de 20 anos pela CFM 1.821/2007).
 
 4. CONSENTIMENTO E REVOGAÇÃO
 Autorizo voluntariamente a teleconsulta. Estou ciente de que:

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { PINGO_LOGO_URL } from "@/lib/constants";
+import { COMPLIANCE } from "@/config/compliance";
 const logo = PINGO_LOGO_URL;
 
 const Footer = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) => {
@@ -204,6 +205,19 @@ const Footer = memo(forwardRef<HTMLElement, { config?: any }>(({ config }, ref) 
             <span className="px-2 py-0.5 rounded bg-white/[0.05] border border-white/[0.06] font-bold tracking-wider">MASTER</span>
             <span className="px-2 py-0.5 rounded bg-white/[0.05] border border-white/[0.06] font-bold tracking-wider">ELO</span>
           </div>
+        </div>
+      </div>
+
+      {/* Dados institucionais — CFM Res. 2.314/2022, Art. 17 */}
+      <div className="relative border-t border-white/[0.06]">
+        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28 py-4">
+          <p className="text-[10px] leading-relaxed text-white/45 text-center sm:text-left">
+            {COMPLIANCE.razaoSocial} · CNPJ {COMPLIANCE.cnpj} · Sede: {COMPLIANCE.enderecoSede} · CRM-PJ: {COMPLIANCE.crmPessoaJuridica}
+            {" · "}Responsável Técnico Médico: {COMPLIANCE.diretorTecnicoMedico} ({COMPLIANCE.diretorTecnicoCRM}).{" "}
+            <Link to="/responsavel-tecnico" className="text-white/60 hover:text-primary transition-colors underline underline-offset-2">
+              Ver dados completos
+            </Link>
+          </p>
         </div>
       </div>
 

@@ -32,13 +32,25 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    const { data: patient } = await supabase.from('profiles').select('first_name,last_name,cpf').eq('user_id', rx.patient_id).maybeSingle()
+    const { data: patient } = await supabase.from('profiles').select('first_name,last_name,cpf,address_street,address_city,address_state,address_zip,city,state').eq('user_id', rx.patient_id).maybeSingle()
     const { data: doctor } = await supabase.from('doctor_profiles').select('crm,crm_state,user_id').eq('id', rx.doctor_id).maybeSingle()
     const { data: doctorProfile } = doctor ? await supabase.from('profiles').select('first_name,last_name').eq('user_id', doctor.user_id).maybeSingle() : { data: null }
 
     // SECURITY: keep a verification code for lookup, but do NOT fabricate a signature hash.
     // A real signature must come from the ICP-Brasil flow (register-signature); this PDF is unsigned.
     const code = rx.verification_code || crypto.randomUUID().slice(0, 8).toUpperCase()
+
+    // CFM 2.314/2022 Art. 13: endereço do paciente. doctor_profiles NÃO possui
+    // coluna de endereço profissional — usa-se um valor configurável (env) com
+    // fallback explícito. Ver relatório: falta coluna de endereço em doctor_profiles.
+    const patientAddress = [
+      patient?.address_street,
+      patient?.address_city || patient?.city,
+      patient?.address_state || patient?.state,
+      patient?.address_zip ? `CEP ${patient.address_zip}` : null,
+    ].filter(Boolean).join(', ')
+    const doctorAddress = Deno.env.get('DOCTOR_PROFESSIONAL_ADDRESS') || '[Endereço profissional do médico não cadastrado]'
+    const emittedAt = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' })
 
     const pdf = await PDFDocument.create()
     const page = pdf.addPage([595, 842])
@@ -49,9 +61,13 @@ Deno.serve(async (req) => {
 
     draw('RECEITUÁRIO MÉDICO', bold, 16); y -= 6
     draw(`Dr(a). ${doctorProfile?.first_name || ''} ${doctorProfile?.last_name || ''} — CRM ${doctor?.crm || ''}/${doctor?.crm_state || ''}`, bold)
+    draw(`Endereço profissional: ${doctorAddress}`, font, 9)
     y -= 8
     draw(`Paciente: ${patient?.first_name || ''} ${patient?.last_name || ''}`)
     if (patient?.cpf) draw(`CPF: ${patient.cpf}`)
+    if (patientAddress) draw(`Endereço: ${patientAddress}`, font, 9)
+    draw('Local do atendimento: Telemedicina (atendimento remoto)', font, 9)
+    draw(`Data e hora de emissão: ${emittedAt}`, font, 9)
     if (rx.diagnosis) draw(`Diagnóstico: ${rx.diagnosis}`)
     y -= 10
     draw('Medicamentos:', bold, 13)
@@ -68,6 +84,7 @@ Deno.serve(async (req) => {
     const integrityHash = Array.from(new Uint8Array(integrityBuf)).map(b => b.toString(16).padStart(2, '0')).join('')
     draw(`Código de integridade (SHA-256): ${integrityHash.slice(0, 32)}`, font, 9)
     draw('Documento emitido eletronicamente — sem assinatura digital ICP-Brasil.', font, 9)
+    draw('Documento emitido em modalidade de Telemedicina — Resolução CFM nº 2.314/2022.', font, 9)
     draw(`Código de verificação: ${code}`, font, 9)
     draw(`Verifique em: aloclinica.com.br/verify/${code}`, font, 9)
 

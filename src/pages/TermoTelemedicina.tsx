@@ -14,7 +14,7 @@ export default function TermoTelemedicina() {
           <ShieldCheck className="w-7 h-7 text-primary" />
           <div>
             <h1 className="text-2xl font-bold">Termo de Consentimento — Telemedicina</h1>
-            <p className="text-xs text-muted-foreground">Versão 1.0 — vigente desde 27/04/2026</p>
+            <p className="text-xs text-muted-foreground">Versão 2.0 — vigente desde 27/04/2026</p>
           </div>
         </div>
 
@@ -51,7 +51,8 @@ export default function TermoTelemedicina() {
             <h2 className="text-lg font-semibold mt-6">4. Limitações e condições</h2>
             <p>O paciente está ciente de que:</p>
             <ul className="list-disc pl-6 space-y-1">
-              <li>A teleconsulta <strong>NÃO substitui</strong> o atendimento presencial em todas as situações.</li>
+              <li>O paciente tem <strong>direito a atendimento presencial</strong> sempre que preferir ou quando houver indicação médica (Art. 19, CFM 2.314/2022); a teleconsulta <strong>NÃO substitui</strong> a consulta presencial nessas situações.</li>
+              <li>Ao aceitar, o paciente <strong>autoriza o atendimento por telemedicina e a transmissão</strong> de imagens, áudio, vídeo e dados clínicos necessários ao atendimento (Art. 15, CFM 2.314/2022).</li>
               <li>Em caso de <strong>emergência</strong>, deve procurar atendimento presencial imediato (SAMU 192 ou pronto-socorro).</li>
               <li>O médico pode <strong>encaminhar para atendimento presencial</strong> se julgar necessário.</li>
               <li>A qualidade da consulta depende da conexão à internet e do dispositivo utilizado.</li>
@@ -70,6 +71,11 @@ export default function TermoTelemedicina() {
             <p>
               <strong>Compartilhamento:</strong> dados podem ser compartilhados apenas com o médico atendente,
               plataforma de pagamento (Asaas) e autoridades quando exigido por lei.
+            </p>
+            <p>
+              <strong>Direito de negar (Art. 15, §único, CFM 2.314/2022):</strong> o paciente tem o direito de
+              negar a permissão de compartilhamento dos seus dados pessoais e de saúde, exceto em caso de
+              <strong> emergência médica</strong>, quando o compartilhamento independe de autorização.
             </p>
             <p>
               <strong>Armazenamento:</strong> servidores no Brasil (LGPD-compliant), com criptografia em trânsito (TLS 1.3) e em repouso (AES-256).
@@ -117,7 +123,7 @@ export default function TermoTelemedicina() {
 
             <hr className="my-6" />
             <p className="text-xs text-muted-foreground">
-              Versão 1.0 — Em caso de atualização, será exibido novo aceite ao paciente.
+              Versão 2.0 — Em caso de atualização, será exibido novo aceite ao paciente.
             </p>
           </CardContent>
         </Card>

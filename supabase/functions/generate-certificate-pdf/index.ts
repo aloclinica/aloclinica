@@ -31,9 +31,21 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    const { data: patient } = await supabase.from('profiles').select('first_name,last_name,cpf').eq('user_id', appt.patient_id).maybeSingle()
+    const { data: patient } = await supabase.from('profiles').select('first_name,last_name,cpf,address_street,address_city,address_state,address_zip,city,state').eq('user_id', appt.patient_id).maybeSingle()
     const { data: doctor } = await supabase.from('doctor_profiles').select('crm,crm_state,user_id').eq('id', appt.doctor_id).maybeSingle()
     const { data: dProf } = doctor ? await supabase.from('profiles').select('first_name,last_name').eq('user_id', doctor.user_id).maybeSingle() : { data: null }
+
+    // CFM 2.314/2022 Art. 13: endereço do paciente. doctor_profiles NÃO possui
+    // coluna de endereço profissional — usa-se um valor configurável (env) com
+    // fallback explícito. Ver relatório: falta coluna de endereço em doctor_profiles.
+    const patientAddress = [
+      patient?.address_street,
+      patient?.address_city || patient?.city,
+      patient?.address_state || patient?.state,
+      patient?.address_zip ? `CEP ${patient.address_zip}` : null,
+    ].filter(Boolean).join(', ')
+    const doctorAddress = Deno.env.get('DOCTOR_PROFESSIONAL_ADDRESS') || '[Endereço profissional do médico não cadastrado]'
+    const emittedAt = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' })
 
     const code = crypto.randomUUID().slice(0, 8).toUpperCase()
     const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(appointment_id + code))
@@ -48,16 +60,22 @@ Deno.serve(async (req) => {
 
     draw('ATESTADO MÉDICO', bold, 18); y -= 10
     draw(`Atesto, para os devidos fins, que o(a) paciente ${patient?.first_name||''} ${patient?.last_name||''}${patient?.cpf?` (CPF ${patient.cpf})`:''}`, font, 12)
+    if (patientAddress) draw(`Endereço do paciente: ${patientAddress}`, font, 9)
     draw(`esteve sob meus cuidados profissionais em ${new Date().toLocaleDateString('pt-BR')},`, font, 12)
     draw(`necessitando de afastamento de suas atividades por ${days_off} dia(s).`, font, 12)
     if (cid_code) { y -= 6; draw(`CID: ${cid_code}`, font, 11) }
     if (reason) { y -= 6; draw(`Observação: ${reason}`, font, 11) }
+    y -= 6
+    draw('Local do atendimento: Telemedicina (atendimento remoto)', font, 10)
+    draw(`Data e hora de emissão: ${emittedAt}`, font, 10)
     y = 200
     draw(`Dr(a). ${dProf?.first_name||''} ${dProf?.last_name||''}`, bold, 12)
     draw(`CRM ${doctor?.crm||''}/${doctor?.crm_state||''}`, font, 11)
+    draw(`Endereço profissional: ${doctorAddress}`, font, 9)
     y -= 30
     draw(`Código de integridade (SHA-256): ${sigHash}`, font, 9)
     draw('Documento emitido eletronicamente — sem assinatura digital ICP-Brasil.', font, 9)
+    draw('Documento emitido em modalidade de Telemedicina — Resolução CFM nº 2.314/2022.', font, 9)
     draw(`Código de verificação: ${code}`, font, 9)
     draw(`Verifique em: aloclinica.com.br/verify/${code}`, font, 9)
 
