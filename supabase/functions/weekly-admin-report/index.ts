@@ -24,18 +24,23 @@ Deno.serve(async (req) => {
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
     // Aggregate metrics in parallel
-    const [appts, completed, cancelled, noShow, newDoctors, newPatients, surveys, tickets] = await Promise.all([
+    const [appts, completed, cancelled, noShow, newDoctors, newPatients, surveys, tickets, payments] = await Promise.all([
       admin.from("appointments").select("id", { count: "exact", head: true }).gte("created_at", weekAgo),
-      admin.from("appointments").select("price_at_booking").eq("status", "completed").gte("updated_at", weekAgo),
+      admin.from("appointments").select("id").eq("status", "completed").gte("updated_at", weekAgo),
       admin.from("appointments").select("id", { count: "exact", head: true }).eq("status", "cancelled").gte("updated_at", weekAgo),
       admin.from("appointments").select("id", { count: "exact", head: true }).eq("status", "no_show").gte("updated_at", weekAgo),
       admin.from("doctor_profiles").select("id", { count: "exact", head: true }).gte("created_at", weekAgo),
       admin.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", weekAgo),
       admin.from("satisfaction_surveys").select("nps_score").gte("created_at", weekAgo),
       admin.from("support_tickets").select("id", { count: "exact", head: true }).gte("created_at", weekAgo),
+      // Receita REAL: transações aprovadas (menos reembolsos), nunca price_at_booking (gravável pelo cliente).
+      admin.from("payment_transactions").select("amount_cents, status").in("status", ["approved", "refunded"]).gte("created_at", weekAgo),
     ]);
 
-    const revenue = (completed.data ?? []).reduce((s, a: any) => s + Number(a.price_at_booking ?? 0), 0);
+    const revenue = (payments.data ?? []).reduce((s: number, p: any) => {
+      const v = Number(p.amount_cents ?? 0) / 100;
+      return p.status === "refunded" ? s - v : s + v;
+    }, 0);
     const npsAvg = surveys.data?.length ? (surveys.data.reduce((s, x: any) => s + Number(x.nps_score ?? 0), 0) / surveys.data.length).toFixed(1) : "—";
 
     const html = `<h2>📊 Relatório semanal AloClínica</h2>

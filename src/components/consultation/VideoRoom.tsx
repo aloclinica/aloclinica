@@ -196,7 +196,7 @@ const VideoRoom = () => {
   };
 
   // Gravação da consulta (requer consentimento expresso — CFM 2.314/2022 / TCLE)
-  const handleToggleRecording = () => {
+  const handleToggleRecording = async () => {
     const v = videoRef.current;
     if (!v) { toast.info("Gravação disponível no modo de vídeo P2P."); return; }
     if (v.isRecording) {
@@ -209,6 +209,23 @@ const VideoRoom = () => {
       "Confirme que o paciente consentiu com a gravação antes de prosseguir."
     );
     if (!ok) return;
+    // Registra o consentimento de gravação (trilha CFM/LGPD) — antes era só um
+    // window.confirm sem registro. Best-effort: não bloqueia a gravação se falhar.
+    try {
+      if (patientId) {
+        await db.from("patient_consents").insert({
+          patient_id: patientId,
+          appointment_id: appointmentId ?? null,
+          consent_type: "recording",
+          version: "1.0",
+          accepted: true,
+          accepted_at: new Date().toISOString(),
+          user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+        } as any);
+      }
+    } catch (e) {
+      logError("registro de consentimento de gravação falhou", e);
+    }
     v.startRecording();
     toast.success("Gravando a consulta…", { description: "O arquivo é gerado localmente; baixe ao final." });
   };

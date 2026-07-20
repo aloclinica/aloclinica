@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
 import { PDFDocument, StandardFonts, rgb } from 'https://esm.sh/pdf-lib@1.17.1'
 // SECURITY: authenticate the caller before issuing a medical certificate with service-role.
-import { getCaller, isInternalOrService } from '../_shared/auth.ts'
+import { getCaller, isInternalOrService, checkRateLimit } from '../_shared/auth.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -16,6 +16,10 @@ Deno.serve(async (req) => {
     const caller = await getCaller(req)
     if (!internal && !caller.user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+    if (!internal && caller.user) {
+      const ok = await checkRateLimit(caller.user.id, 'generate-certificate-pdf', 30, 10)
+      if (!ok) return new Response(JSON.stringify({ error: 'Muitas gerações de documento. Aguarde alguns minutos.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const { data: appt } = await supabase.from('appointments').select('*').eq('id', appointment_id).maybeSingle()
