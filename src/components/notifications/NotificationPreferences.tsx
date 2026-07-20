@@ -4,6 +4,8 @@ import { Switch } from "@/components/ui/switch";
 import { motion } from "framer-motion";
 import PushNotificationToggle from "./PushNotificationToggle";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { db } from "@/integrations/supabase/untyped";
 
 import { NOTIF_PREFS_KEY as STORAGE_KEY } from "@/lib/notificationPrefs";
 
@@ -40,8 +42,18 @@ const loadPrefs = (): Prefs => {
 };
 
 const NotificationPreferences = () => {
+  const { user } = useAuth();
   const [prefs, setPrefs] = useState<Prefs>(() => loadPrefs());
   const [allOn, setAllOn] = useState(true);
+
+  // Carrega da CONTA (servidor) — fonte de verdade que o backend respeita.
+  useEffect(() => {
+    if (!user) return;
+    db.from("notification_preferences").select("prefs").eq("user_id", user.id).maybeSingle()
+      .then(({ data }: any) => {
+        if (data?.prefs) setPrefs(p => ({ ...p, ...(data.prefs as Prefs) }));
+      });
+  }, [user]);
 
   useEffect(() => {
     try {
@@ -52,13 +64,24 @@ const NotificationPreferences = () => {
     setAllOn(Object.values(prefs).every(Boolean));
   }, [prefs]);
 
+  // Salva no servidor (upsert) — agora silenciar afeta o que o backend envia.
+  const persist = (next: Prefs) => {
+    setPrefs(next);
+    if (user) {
+      db.from("notification_preferences").upsert(
+        { user_id: user.id, prefs: next, updated_at: new Date().toISOString() } as any,
+        { onConflict: "user_id" },
+      ).then(() => {});
+    }
+  };
+
   const toggle = (id: string) => {
-    setPrefs(p => ({ ...p, [id]: !p[id] }));
+    persist({ ...prefs, [id]: !prefs[id] });
   };
 
   const toggleAll = () => {
     const next = !allOn;
-    setPrefs(Object.fromEntries(CATEGORIES.map(c => [c.id, next])));
+    persist(Object.fromEntries(CATEGORIES.map(c => [c.id, next])));
     toast.success(next ? "Todas as notificações ativadas" : "Todas as notificações silenciadas");
   };
 
@@ -137,7 +160,7 @@ const NotificationPreferences = () => {
       </ul>
 
       <p className="text-[10.5px] text-muted-foreground/80 px-5 py-3 bg-muted/20 leading-relaxed">
-        Suas preferências ficam salvas neste dispositivo. Algumas notificações críticas (segurança da conta) sempre serão entregues.
+        Suas preferências ficam salvas na sua conta (valem em todos os aparelhos). Algumas notificações críticas (segurança da conta) sempre serão entregues.
       </p>
     </motion.section>
   );

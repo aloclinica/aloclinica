@@ -88,6 +88,28 @@ serve(async (req) => {
       });
     }
 
+    // Respeita as preferencias de notificacao do usuario (silenciar afeta o envio).
+    const CATEGORY_BY_TIPO: Record<NotificationType, string> = {
+      consulta_agendada: "appointment",
+      lembrete_1h: "appointment",
+      nova_consulta: "appointment",
+      laudo_disponivel: "document",
+    };
+    const cat = CATEGORY_BY_TIPO[tipo];
+    const { data: prefRow } = await supabase
+      .from("notification_preferences").select("prefs").eq("user_id", user_id).maybeSingle();
+    const prefs = ((prefRow as any)?.prefs ?? {}) as Record<string, boolean>;
+    // Default: ligado. Só bloqueia se a categoria estiver explicitamente desligada.
+    if (cat && prefs[cat] === false) {
+      await supabase.from("notification_logs").insert({
+        user_id, tipo, canal: "whatsapp", status: "skipped",
+        mensagem: "Silenciado pela preferencia do usuario",
+      });
+      return new Response(JSON.stringify({ success: true, skipped: "user_preference" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const message = TEMPLATES[tipo](dados);
 
     // Send via existing send-whatsapp edge function
