@@ -38,6 +38,40 @@ const MAX_FACE_SIZE_VARIANCE = 0.5;
 const LIVENESS_MIN_YAW = 18;      // degrees — head must be visibly turned
 const LIVENESS_MIN_PROB = 0.80;   // turned faces detect with lower confidence than frontal
 
+// Passive anti-spoof microservice (self-hosted, free). Optional: when ANTISPOOF_URL
+// is unset the check is skipped. Fail-open unless ANTISPOOF_REQUIRED=true.
+const ANTISPOOF_URL = (Deno.env.get("ANTISPOOF_URL") ?? "").replace(/\/+$/, "");
+const ANTISPOOF_API_KEY = Deno.env.get("ANTISPOOF_API_KEY") ?? "";
+const ANTISPOOF_REQUIRED = (Deno.env.get("ANTISPOOF_REQUIRED") ?? "false").toLowerCase() === "true";
+
+/**
+ * Passive liveness/anti-spoof on the selfie (printed photo / screen replay / mask).
+ * Returns { checked, pass }. `checked=false` means the service is off/unreachable.
+ */
+async function checkAntiSpoof(selfieDataUrl: string): Promise<{ checked: boolean; pass: boolean; score?: number }> {
+  if (!ANTISPOOF_URL) return { checked: false, pass: true };
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000);
+    const res = await fetch(`${ANTISPOOF_URL}/check`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(ANTISPOOF_API_KEY ? { "x-api-key": ANTISPOOF_API_KEY } : {}),
+      },
+      body: JSON.stringify({ image: selfieDataUrl }),
+      signal: ctrl.signal,
+    });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error(`antispoof http ${res.status}`);
+    const data = await res.json();
+    return { checked: true, pass: data?.real === true, score: typeof data?.score === "number" ? data.score : undefined };
+  } catch (e) {
+    console.warn("[didit-kyc] anti-spoof indisponível, fail-open:", e);
+    return { checked: false, pass: true };
+  }
+}
+
 function dataUrlToBlob(dataUrl: string): Blob {
   const [meta, b64] = dataUrl.startsWith("data:") ? dataUrl.split(",") : ["data:image/jpeg;base64", dataUrl];
   const mime = meta.match(/data:([^;]+)/)?.[1] || "image/jpeg";
@@ -243,6 +277,22 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({
         match: false, score: 0, status: "rejected",
         error: reasons.join(". "), stage: "anti_spoof",
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // LAYER 1.5: Passive anti-spoof on the selfie (printed photo / screen / mask).
+    // Self-hosted, free. Fail-open unless ANTISPOOF_REQUIRED=true.
+    const spoof = await checkAntiSpoof(selfie_image);
+    if (spoof.checked && !spoof.pass) {
+      return new Response(JSON.stringify({
+        match: false, score: 0, status: "rejected", stage: "antispoof",
+        error: "A selfie parece ser uma foto ou tela, não um rosto ao vivo. Refaça olhando diretamente para a câmera, com boa luz.",
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (ANTISPOOF_REQUIRED && !spoof.checked) {
+      return new Response(JSON.stringify({
+        match: false, score: 0, status: "rejected", stage: "antispoof",
+        error: "Não foi possível validar a prova de vida no momento. Tente novamente em instantes.",
       }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
