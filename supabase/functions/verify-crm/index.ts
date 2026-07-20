@@ -8,6 +8,24 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Name-ownership helpers: normalize to accent-free uppercase significant tokens and
+// require >=2 tokens in common. Used to confirm a valid CRM actually belongs to the
+// registrant (anti-impersonation), not just that the number exists and is regular.
+const NAME_STOPWORDS = new Set(["DOS", "DAS", "DES", "JR", "FILHO", "NETO", "JUNIOR"]);
+function nameTokens(s: string): string[] {
+  return (s || "")
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .toUpperCase().replace(/[^A-Z\s]/g, " ")
+    .split(/\s+/)
+    .filter((t) => t.length >= 3 && !NAME_STOPWORDS.has(t));
+}
+function namesMatch(a: string, b: string): boolean {
+  const ta = new Set(nameTokens(a));
+  const tb = nameTokens(b);
+  if (ta.size === 0 || tb.length === 0) return false;
+  return tb.filter((t) => ta.has(t)).length >= 2;
+}
+
 async function checkRateLimit(identifier: string, endpoint: string, maxReqs: number, windowMin: number): Promise<boolean> {
   try {
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -111,6 +129,9 @@ serve(async (req) => {
       isValid = situacao.includes("regular") || situacao.includes("ativ");
     }
 
+    // name_match: null = não aplicável/não checado; true/false quando há doctor_profile_id.
+    let nameMatch: boolean | null = null;
+
     // If doctor_profile_id is provided and CRM is valid, auto-update the DB.
     // This write marks a doctor as CRM-verified, so it requires an admin caller.
     // (The pre-signup lookup path omits doctor_profile_id and stays public.)
@@ -126,6 +147,34 @@ serve(async (req) => {
       const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const supabase = createClient(supabaseUrl, serviceKey);
 
+      // OWNERSHIP: o nome do titular do CRM precisa bater com o nome do cadastro do
+      // médico antes de marcar como verificado. Um CRM válido e regular que pertence
+      // a OUTRA pessoa NÃO pode auto-verificar (impostor). Em divergência, retorna
+      // aviso e deixa crm_verified intacto — o admin ainda pode confirmar por outros
+      // meios e marcar manualmente.
+      const { data: dp } = await supabase
+        .from("doctor_profiles").select("user_id").eq("id", doctor_profile_id).maybeSingle();
+      let profileName = "";
+      if (dp?.user_id) {
+        const { data: pr } = await supabase
+          .from("profiles").select("first_name,last_name").eq("user_id", dp.user_id).maybeSingle();
+        profileName = `${pr?.first_name ?? ""} ${pr?.last_name ?? ""}`.trim();
+      }
+      nameMatch = !!doctorInfo?.nome && !!profileName && namesMatch(doctorInfo.nome, profileName);
+
+      if (!nameMatch) {
+        return new Response(
+          JSON.stringify({
+            found,
+            valid: isValid,
+            doctor: doctorInfo,
+            name_match: false,
+            message: "O nome do titular do CRM não confere com o cadastro do médico. Verificação manual necessária: o CRM NÃO foi marcado como verificado.",
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
       await supabase.from("doctor_profiles").update({
         crm_verified: true,
         crm_verified_at: new Date().toISOString(),
@@ -137,6 +186,7 @@ serve(async (req) => {
         found,
         valid: isValid,
         doctor: doctorInfo,
+        name_match: nameMatch,
         message: isValid
           ? "CRM válido e situação regular"
           : found
