@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
-type Step = "intro" | "doc_type" | "document" | "document_back" | "selfie" | "analyzing" | "result";
+type Step = "intro" | "doc_type" | "document" | "document_back" | "liveness" | "selfie" | "analyzing" | "result";
 
 type DocType = "rg" | "cnh" | "passaporte";
 
@@ -54,6 +54,7 @@ async function verifyViaDeepSeek(
   selfieDataUrl: string,
   documentBackDataUrl: string | null,
   documentType: DocType,
+  livenessDataUrl: string,
 ): Promise<VerifyResponse> {
   const { data: sessionData } = await db.auth.getSession();
   const token = sessionData?.session?.access_token;
@@ -66,6 +67,7 @@ async function verifyViaDeepSeek(
       selfie_image: selfieDataUrl,
       document_back: documentBackDataUrl,
       document_type: documentType,
+      liveness_image: livenessDataUrl,
     },
   });
 
@@ -116,10 +118,13 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
   const [documentImage, setDocumentImage] = useState<string | null>(null);
   const [documentBackImage, setDocumentBackImage] = useState<string | null>(null);
   const [selfieImage, setSelfieImage] = useState<string | null>(null);
+  // Prova de vida (liveness): frame com o rosto virado, capturado antes da selfie frontal.
+  const [livenessImage, setLivenessImage] = useState<string | null>(null);
+  const [livenessDir] = useState<"esquerda" | "direita">(() => (Math.random() < 0.5 ? "esquerda" : "direita"));
   const [result, setResult] = useState<KYCResult | null>(null);
   const [rejection, setRejection] = useState<{ reasons: string[]; error?: string | null } | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
-  const [captureTarget, setCaptureTarget] = useState<"document" | "document_back" | "selfie">("document");
+  const [captureTarget, setCaptureTarget] = useState<"document" | "document_back" | "selfie" | "liveness">("document");
   const [lgpdConsent, setLgpdConsent] = useState(false);
   const [quality, setQuality] = useState<QualitySample>({ brightness: 0, sharpness: 0, motion: 0, status: "init", message: "Iniciando câmera..." });
   const [autoCountdown, setAutoCountdown] = useState<number | null>(null);
@@ -131,12 +136,12 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
   const prevFrameRef = useRef<Uint8ClampedArray | null>(null);
   const capturedRef = useRef(false);
 
-  const startCamera = useCallback(async (target: "document" | "document_back" | "selfie") => {
+  const startCamera = useCallback(async (target: "document" | "document_back" | "selfie" | "liveness") => {
     setCaptureTarget(target);
     setCameraActive(true);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: target === "selfie" ? "user" : "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
+        video: { facingMode: target === "selfie" || target === "liveness" ? "user" : "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
       });
       streamRef.current = stream;
       if (videoRef.current) {
@@ -181,11 +186,15 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
   const handleCapturedImage = (dataUrl: string) => {
     if (captureTarget === "document") {
       setDocumentImage(dataUrl);
-      // Se tipo precisa de verso → vai pra verso, senão → selfie
+      // Frente do documento → verso (se precisa) → prova de vida
       const needsBack = docType ? DOC_TYPES.find((d) => d.id === docType)?.needsBack : false;
-      setStep(needsBack ? "document_back" : "selfie");
+      setStep(needsBack ? "document_back" : "liveness");
     } else if (captureTarget === "document_back") {
       setDocumentBackImage(dataUrl);
+      setStep("liveness");
+    } else if (captureTarget === "liveness") {
+      // Frame do desafio (rosto virado) → segue para a selfie frontal
+      setLivenessImage(dataUrl);
       setStep("selfie");
     } else {
       setSelfieImage(dataUrl);
@@ -198,6 +207,8 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
       void startCamera("document");
     } else if (step === "document_back" && !documentBackImage && !cameraActive) {
       void startCamera("document_back");
+    } else if (step === "liveness" && !livenessImage && !cameraActive) {
+      void startCamera("liveness");
     } else if (step === "selfie" && !selfieImage && !cameraActive) {
       void startCamera("selfie");
     }
@@ -216,7 +227,7 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
     const ctx = off.getContext("2d", { willReadFrequently: true })!;
     let lastSample = performance.now();
 
-    const requireMotion = captureTarget === "selfie";
+    const requireMotion = captureTarget === "selfie" || captureTarget === "liveness";
 
     const loop = (now: number) => {
       qualityRafRef.current = requestAnimationFrame(loop);
@@ -292,7 +303,7 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
   }, [cameraActive, captureTarget, capturePhoto]);
 
   const analyzeImages = async () => {
-    if (!documentImage || !selfieImage || !user || !docType) return;
+    if (!documentImage || !selfieImage || !livenessImage || !user || !docType) return;
     setStep("analyzing");
     setRejection(null);
 
@@ -301,7 +312,7 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
       // CompreFace + OCR e é o ÚNICO que grava kyc_verificacoes / profiles.kyc_status /
       // doctor_profiles.kyc_status (reforçado por triggers + RLS no banco).
       // O cliente NUNCA grava o resultado do KYC — apenas usa o retorno para a UI.
-      const verification = await verifyViaDeepSeek(documentImage, selfieImage, documentBackImage, docType);
+      const verification = await verifyViaDeepSeek(documentImage, selfieImage, documentBackImage, docType, livenessImage);
 
       // Confia na decisão do servidor (didit-kyc aplica o limiar de 90% do CompreFace).
       const isApproved = verification.match;
@@ -356,6 +367,7 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
     setDocumentImage(null);
     setDocumentBackImage(null);
     setSelfieImage(null);
+    setLivenessImage(null);
     setResult(null);
     setRejection(null);
     setLgpdConsent(false);
@@ -475,7 +487,7 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
           </motion.div>
         )}
 
-        {(step === "document" || step === "document_back" || step === "selfie") && (
+        {(step === "document" || step === "document_back" || step === "liveness" || step === "selfie") && (
           <motion.div key={step} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
             <div className="text-center">
               <h3 className="text-lg font-bold text-foreground">
@@ -483,18 +495,22 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
                   ? `📄 Frente do ${docType ? DOC_TYPES.find((d) => d.id === docType)?.label : "documento"}`
                   : step === "document_back"
                     ? `🔄 Verso do ${docType ? DOC_TYPES.find((d) => d.id === docType)?.label : "documento"}`
-                    : "🤳 Tire uma Selfie"}
+                    : step === "liveness"
+                      ? "🧠 Prova de vida"
+                      : "🤳 Tire uma Selfie"}
               </h3>
               <p className="text-xs text-muted-foreground mt-1">
                 {step === "document"
                   ? "Posicione a frente do documento, com a foto bem visível"
                   : step === "document_back"
                     ? "Agora capture o verso do documento — todos os dados devem estar legíveis"
-                    : "Olhe para a câmera — posicione seu rosto centralizado"}
+                    : step === "liveness"
+                      ? `Vire o rosto para a ${livenessDir.toUpperCase()} e mova a cabeça. A captura é automática.`
+                      : "Olhe para a câmera — posicione seu rosto centralizado"}
               </p>
             </div>
 
-            <Progress value={step === "document" ? 35 : step === "document_back" ? 60 : 80} className="h-1.5" />
+            <Progress value={step === "document" ? 30 : step === "document_back" ? 50 : step === "liveness" ? 70 : 85} className="h-1.5" />
 
             {cameraActive ? (
               <div className="space-y-3">
@@ -502,7 +518,7 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
                   <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
                   {/* Overlay de enquadramento */}
                   <div className="absolute inset-0 pointer-events-none">
-                    {step === "selfie" ? (
+                    {step === "selfie" || step === "liveness" ? (
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div
                           className={`w-44 h-56 rounded-[50%] border-2 shadow-[0_0_0_9999px_rgba(0,0,0,0.55)] transition-colors ${
@@ -577,7 +593,9 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
                   </Button>
                 </div>
                 <p className="text-[11px] text-muted-foreground text-center">
-                  {step === "selfie"
+                  {step === "liveness"
+                    ? `Vire o rosto para a ${livenessDir.toUpperCase()} — isso comprova que é uma pessoa real (não uma foto). Captura automática ao virar.`
+                    : step === "selfie"
                     ? "Centralize seu rosto no oval e mova levemente a cabeça (prova de vida). Captura automática quando estiver tudo certo."
                     : "Enquadre o documento dentro da moldura. Captura automática ao detectar boa nitidez e iluminação."}
                 </p>
@@ -608,6 +626,11 @@ const BiometricKYC = ({ onComplete, variant = "full", className = "", tipo = "pa
                   <div className="rounded-2xl overflow-hidden border border-border/50">
                     <img src={documentBackImage} alt="Verso do documento" className="w-full" />
                   </div>
+                )}
+                {step === "liveness" && !livenessImage && (
+                  <Button onClick={() => startCamera("liveness")} className="w-full h-12 rounded-xl gap-2 bg-primary text-primary-foreground font-bold">
+                    <Camera className="w-5 h-5" /> Abrir câmera frontal
+                  </Button>
                 )}
                 {step === "selfie" && !selfieImage && (
                   <Button onClick={() => startCamera("selfie")} className="w-full h-12 rounded-xl gap-2 bg-primary text-primary-foreground font-bold">

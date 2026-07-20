@@ -33,6 +33,10 @@ async function sha256Hex(input: string): Promise<string> {
 const MIN_SIMILARITY = 0.90;      // 90% face match required
 const MIN_FACE_DETECT_PROB = 0.95;
 const MAX_FACE_SIZE_VARIANCE = 0.5;
+// Active liveness (challenge): the turned "prova de vida" frame must show a clearly
+// non-frontal pose that a static frontal selfie/photo cannot produce.
+const LIVENESS_MIN_YAW = 18;      // degrees — head must be visibly turned
+const LIVENESS_MIN_PROB = 0.80;   // turned faces detect with lower confidence than frontal
 
 function dataUrlToBlob(dataUrl: string): Blob {
   const [meta, b64] = dataUrl.startsWith("data:") ? dataUrl.split(",") : ["data:image/jpeg;base64", dataUrl];
@@ -158,13 +162,48 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { document_image, selfie_image, document_back, document_type } = await req.json();
+    const { document_image, selfie_image, document_back, document_type, liveness_image } = await req.json();
     if (!document_image || !selfie_image) {
       return new Response(JSON.stringify({ error: "document_image e selfie_image são obrigatórios (data URL base64)" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    if (!liveness_image) {
+      return new Response(JSON.stringify({ error: "Prova de vida obrigatória (liveness_image ausente). Atualize o app e refaça a verificação." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const docType: string = typeof document_type === "string" ? document_type : "rg";
+
+    // LAYER 0: Active liveness — the challenge frame must show a clearly turned head,
+    // a distinct pose from the frontal selfie (checked in LAYER 1). A static photo or
+    // screenshot cannot satisfy both a turned frame AND a frontal, matching selfie.
+    let liveDetect;
+    try {
+      liveDetect = await detectFaces(liveness_image);
+    } catch (e: any) {
+      console.error("[didit-kyc] liveness detect failure:", e);
+      return new Response(JSON.stringify({
+        error: "Falha ao processar a prova de vida. Tente novamente com boa iluminação.",
+        stage: "liveness",
+      }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    const liveFaces = liveDetect?.result || [];
+    const liveFace = liveFaces[0];
+    const liveProb = liveFace?.box?.probability || 0;
+    const liveYaw = Math.abs(liveFace?.pose?.yaw || 0);
+    if (liveFaces.length !== 1 || liveProb < LIVENESS_MIN_PROB) {
+      return new Response(JSON.stringify({
+        match: false, score: 0, status: "rejected", stage: "liveness",
+        error: "Prova de vida: mantenha apenas o seu rosto visível e bem iluminado, e refaça o movimento.",
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (liveYaw < LIVENESS_MIN_YAW) {
+      return new Response(JSON.stringify({
+        match: false, score: 0, status: "rejected", stage: "liveness",
+        error: "Prova de vida: vire bem o rosto para o lado indicado e tente novamente.",
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     // LAYER 1: Anti-spoof — detect faces in both, require real face + high probability
     let docDetect, selfieDetect;
