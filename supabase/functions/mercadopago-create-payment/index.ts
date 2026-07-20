@@ -246,6 +246,26 @@ Deno.serve(async (req) => {
         .eq("id", apptId);
     }
 
+    // SECURITY (F1): consome o cupom de forma IDEMPOTENTE (uma vez por reference,
+    // via coupon_usages). Fecha o buraco de "cupom nunca é gasto" — antes times_used
+    // ficava parado e um cupom com limite virava ilimitado.
+    if (coupon_code) {
+      try {
+        const pct = await resolveCouponPercent(admin, coupon_code);
+        if (pct > 0) {
+          const normalizedCoupon = String(coupon_code).trim().toUpperCase();
+          const { error: usageErr } = await admin
+            .from("coupon_usages")
+            .insert({ coupon_code: normalizedCoupon, reference_id, user_id: user.id });
+          if (!usageErr) {
+            await admin.rpc("fn_increment_coupon_usage_atomic", { p_code: normalizedCoupon });
+          }
+        }
+      } catch (e) {
+        console.warn("[mercadopago-create-payment] coupon consume failed", e);
+      }
+    }
+
     // Monta resposta apropriada por método
     const result: Record<string, any> = {
       payment_id: paymentId,
