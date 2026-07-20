@@ -1,73 +1,109 @@
-# Welcome to your Lovable project
+# AloClínica — Plataforma de Telemedicina
 
-## Project info
+Plataforma de telemedicina para o Brasil: **teleconsulta por vídeo, agendamento, prontuário eletrônico, prescrição/atestado digital e pagamentos**, em conformidade com a Resolução **CFM nº 2.314/2022** e a **LGPD**.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+> PJ: ALO CLINICA MEDICA LTDA · CNPJ 66.474.468/0001-26 · Responsável Técnica: Dra. Tâmara Oliveira Vieira (CRM 2352/RR).
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 🧱 Stack
 
-**Use Lovable**
+| Camada | Tecnologias |
+|---|---|
+| **Frontend** | React 18 · TypeScript · Vite · Tailwind + shadcn/radix · React Router · TanStack Query · PWA · Capacitor (Android/iOS) · Sentry |
+| **Backend** | **Supabase** — Postgres (RLS), Auth (GoTrue), Storage, **Edge Functions (Deno)**, pg_cron |
+| **Integrações** | Mercado Pago (pagamentos) · Anthropic (IA clínica) · MiroTalk + coturn (vídeo) · Memed (prescrição ICP-Brasil) · Evolution API (WhatsApp) · Resend (e-mail) |
+| **Deploy** | Docker + nginx (frontend) · Caddy (HTTPS) · VPS · Supabase (backend gerenciado) |
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## 🏗️ Arquitetura
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+Navegador / App (Capacitor)
+        │  HTTPS
+        ▼
+Frontend SPA (React) ── nginx no container Docker ── Caddy (TLS) ── VPS
+        │
+        │  supabase-js (Auth JWT + RLS)
+        ▼
+Supabase ─ Postgres (RLS por perfil) · Auth · Storage · Edge Functions (Deno)
+        │
+        ├─ Mercado Pago (pagamento de consulta — preço autoritativo no servidor)
+        ├─ Memed (assinatura ICP-Brasil da receita)
+        ├─ MiroTalk/coturn (vídeo da consulta)
+        └─ Anthropic (assistência clínica por IA)
 ```
 
-**Edit a file directly in GitHub**
+- **Perfis (RBAC):** paciente, médico, clínica, admin, suporte — controle real por **RLS** no banco (o RoleGuard do front é só UX).
+- **Prontuário:** imutável (DELETE bloqueado por RLS RESTRICTIVE); retenção mínima 20 anos (CFM 1.821/2007).
+- **Consentimento (TCLE):** registrado em `patient_consents` antes da teleconsulta.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🚀 Setup local
 
-**Use GitHub Codespaces**
+Requisitos: Node.js 20+.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```sh
+git clone https://github.com/aloclinica/aloclinica.git
+cd aloclinica
+npm ci
+cp .env.example .env   # preencha as variáveis (ver abaixo)
+npm run dev            # http://localhost:8080
+```
 
-## What technologies are used for this project?
+Outros comandos: `npm run build` (produção) · `npm run lint` · `npm test` (Vitest) · `npm run test:e2e` (Playwright).
 
-This project is built with:
+## 🔑 Variáveis de ambiente
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+**Frontend (build-time, `VITE_*`):** já têm default público embutido (projeto Supabase de produção). Para sobrescrever:
+```
+VITE_SUPABASE_URL=
+VITE_SUPABASE_PUBLISHABLE_KEY=
+VITE_SENTRY_DSN=            # opcional
+VITE_MERCADOPAGO_PUBLIC_KEY=
+```
 
-## How can I deploy this project?
+**Backend (Supabase → secrets das Edge Functions):**
+```
+SUPABASE_SERVICE_ROLE_KEY   MERCADOPAGO_ACCESS_TOKEN   ANTHROPIC_API_KEY
+INTERNAL_FUNCTION_SECRET     MEMED_API_KEY / MEMED_SECRET_KEY   EVOLUTION_API_KEY / URL
+COMPREFACE_URL/VERIFY_KEY/DETECT_KEY (HTTPS)   DOCTOR_PROFESSIONAL_ADDRESS (fallback)
+```
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## 📦 Deploy
 
-## Can I connect a custom domain to my Lovable project?
+**Frontend (VPS):** build multi-stage Docker + Caddy para HTTPS automático.
+```sh
+docker build -t aloclinica-web .
+docker run -d --name aloclinica-web --restart unless-stopped -p 127.0.0.1:8080:80 aloclinica-web
+# Caddy faz o TLS de aloclinica.com.br → 127.0.0.1:8080
+```
 
-Yes, you can!
+**Backend (Supabase):**
+1. Migrações: aplicar `supabase/migrations/*` (`supabase db push`) ou colar `docs/APLICAR_NO_SUPABASE.sql` no SQL Editor.
+2. Edge Functions: `supabase functions deploy` (requer Access Token `sbp_`).
+3. Secrets: `supabase secrets set ...` para as chaves acima.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+**DNS:** registro A de `aloclinica.com.br` → IP da VPS.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## ⚖️ Conformidade
+
+- **CFM 2.314/2022:** ver [`docs/CONFORMIDADE_CFM.md`](docs/CONFORMIDADE_CFM.md) (mapa item a item do roteiro de vistoria).
+- **LGPD:** dados de saúde (art. 11) com RLS por perfil, logs de auditoria de acesso, portabilidade/eliminação, consentimento registrado.
+- **Segurança:** ver [`docs/`](docs/) — hardening de auth (anti auto-admin), preço de pagamento autoritativo no servidor, endpoints internos fail-closed, assinatura de documentos honesta (ICP-Brasil via Memed).
+
+## 📁 Estrutura
+
+```
+src/
+  components/   # UI por domínio (consultation, patient, doctor, admin, landing, ...)
+  pages/        # rotas (React Router)
+  hooks/  lib/  contexts/  config/   # lógica, utilidades, estado, config de compliance
+  integrations/supabase/             # cliente Supabase (tipos gerados)
+supabase/
+  functions/    # Edge Functions (Deno) — pagamento, PDFs, IA, notificações
+  migrations/   # schema + RLS + políticas
+docs/           # RUNBOOK, conformidade, deploy, auditorias
+```
+
+## 📄 Licença
+
+Software proprietário — ALO CLINICA MEDICA LTDA. Todos os direitos reservados.
