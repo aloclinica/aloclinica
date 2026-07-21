@@ -13,7 +13,7 @@ import {
   VideoCamera,
   Wallet,
 } from "@phosphor-icons/react";
-import { FileText, RefreshCw, FlaskConical } from "lucide-react";
+import { FileText, RefreshCw, FlaskConical, Send } from "lucide-react";
 import { NavIcon } from "@/components/ui/nav-icon";
 
 export const getDoctorNav = (active: string) => [
@@ -28,6 +28,7 @@ export const getDoctorNav = (active: string) => [
   { label: "Atestados", href: "/dashboard/certificates?role=doctor", icon: <NavIcon icon={<Certificate size={16} weight="fill" />} color="blue" />, active: active === "certificates", group: "Documentos" },
   { label: "Renovacoes", href: "/dashboard/doctor/renewal-queue?role=doctor", icon: <NavIcon icon={<RefreshCw className="h-4 w-4" />} color="emerald" />, active: active === "renewal-queue", group: "Documentos" },
   { label: "Pedir Exame", href: "/dashboard/exam-request?role=doctor", icon: <NavIcon icon={<FlaskConical className="h-4 w-4" />} color="cyan" />, active: active === "exam-request", group: "Atendimento" },
+  { label: "Encaminhar", href: "/dashboard/doctor/referral?role=doctor", icon: <NavIcon icon={<Send className="h-4 w-4" />} color="blue" />, active: active === "referrals", group: "Documentos" },
   { label: "Ganhos", href: "/dashboard/earnings?role=doctor", icon: <NavIcon icon={<Money size={16} weight="fill" />} color="green" />, active: active === "earnings", group: "Financeiro" },
   { label: "Carteira", href: "/dashboard/doctor/wallet?role=doctor", icon: <NavIcon icon={<Wallet size={16} weight="fill" />} color="emerald" />, active: active === "wallet", group: "Financeiro" },
   { label: "Disponibilidade", href: "/dashboard/availability?role=doctor", icon: <NavIcon icon={<CalendarBlank size={16} weight="fill" />} color="slate" />, active: active === "availability", group: "Conta" },
