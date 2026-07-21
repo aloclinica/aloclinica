@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">AloClínica</string>
+    <string name="title_activity_main">AloClínica</string>
+    <string name="package_name">br.com.aloclinica.app</string>
+    <string name="custom_url_scheme">br.com.aloclinica.app</string>
+</resources>
