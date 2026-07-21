@@ -111,6 +111,19 @@ Deno.serve(async (req) => {
       return json({ error: "Saque já processado ou em processamento" }, 409);
     }
 
+    // LEDGER: debita o repasse REAL (doctor_payouts) ANTES do PIX — marca os
+    // repasses 'ready' do medico como 'paid'. Fecha o double-spend (sacar o mesmo
+    // saldo 2x). Requer as funcoes SQL fn_claim_ready_payouts / fn_unclaim_payouts;
+    // ate existirem, o rpc falha e e ignorado (comportamento legado preservado).
+    let claimedDoctorId: string | null = null;
+    try {
+      const { data: dp } = await admin.from("doctor_profiles").select("id").eq("user_id", wd.user_id).maybeSingle();
+      claimedDoctorId = (dp as any)?.id ?? null;
+      if (claimedDoctorId) await admin.rpc("fn_claim_ready_payouts", { p_doctor_id: claimedDoctorId });
+    } catch (e) {
+      console.warn("[mp-withdraw] fn_claim_ready_payouts indisponivel (aplique o SQL do saque):", e);
+    }
+
     // Mercado Pago Money Request (PIX out)
     // Documentação: o endpoint pode exigir habilitação na conta. Caso a conta
     // não tenha Money Out habilitado, marca como pending_manual e admin paga
@@ -128,6 +141,10 @@ Deno.serve(async (req) => {
     }, { idempotencyKey: `withdrawal_${withdrawal_id}` });
 
     if (!moneyOut.ok) {
+      // Rollback do ledger: o PIX automatico nao saiu → devolve os repasses para 'ready'.
+      if (claimedDoctorId) {
+        try { await admin.rpc("fn_unclaim_payouts", { p_doctor_id: claimedDoctorId }); } catch (_e) { /* noop */ }
+      }
       // Se a conta não tem Money Out habilitado, marca pra processamento manual
       const needsManual = moneyOut.status === 403 || moneyOut.status === 404;
       await admin.from("withdrawal_requests").update({

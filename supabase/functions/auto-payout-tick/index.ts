@@ -71,9 +71,17 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Saldo: soma das wallet_transactions menos saques pendentes/aprovados
-      const { data: tx } = await sb.from("wallet_transactions").select("amount").eq("user_id", userId);
-      const credit = (tx ?? []).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
+      // Saldo REAL = repasses liberados ('ready') em doctor_payouts (fonte unica).
+      // Fallback legado (wallet_transactions) so ate o SQL do saque ser aplicado.
+      const doctorId = (d as any).id as string;
+      let credit = 0;
+      const { data: bal, error: balErr } = await sb.rpc("fn_doctor_available_balance", { p_doctor_id: doctorId });
+      if (!balErr && bal != null) {
+        credit = Number(bal);
+      } else {
+        const { data: tx } = await sb.from("wallet_transactions").select("amount").eq("user_id", userId);
+        credit = (tx ?? []).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
+      }
       const { data: pendApr } = await sb.from("withdrawal_requests")
         .select("amount").eq("user_id", userId).in("status", ["pending", "approved", "processing"]);
       const blocked = (pendApr ?? []).reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
