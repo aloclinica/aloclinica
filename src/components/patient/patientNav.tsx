@@ -12,6 +12,7 @@ import {
   Home,
   LifeBuoy,
   MessageCircle,
+  Pill,
   RefreshCw,
   Search,
   ShieldCheck,
@@ -78,6 +79,7 @@ export const getPatientNav = (active: string, t: Translator = fallback) => {
     { label: "Vacinação", href: "/dashboard/patient/vaccinations?role=patient", icon: <NavIcon icon={<Syringe size={18} strokeWidth={2.4} />} color="emerald" />, active: active === "vaccinations", group: health },
     { label: "Diário de Sintomas", href: "/dashboard/patient/diary?role=patient", icon: <NavIcon icon={<BookOpen size={18} strokeWidth={2.4} />} color="rose" />, active: active === "diary", group: health },
     { label: "Planos de Cuidado", href: "/dashboard/patient/care-plans?role=patient", icon: <NavIcon icon={<ClipboardList size={18} strokeWidth={2.4} />} color="cyan" />, active: active === "care-plans", group: health },
+    { label: "Lembretes de Remédio", href: "/dashboard/patient/medication?role=patient", icon: <NavIcon icon={<Pill size={18} strokeWidth={2.4} />} color="rose" />, active: active === "medication", group: health },
     // ── Financeiro & Notificações ──
     { label: t("patientNav.payments"), href: "/dashboard/payment-history?role=patient", icon: <NavIcon icon={<CreditCard size={18} strokeWidth={2.4} />} color="green" />, active: active === "payments", group: finance },
     { label: t("patientNav.notifications"), href: "/dashboard/notifications?role=patient", icon: <NavIcon icon={<Bell size={18} strokeWidth={2.4} />} color="blue" />, active: active === "notifications", group: finance },

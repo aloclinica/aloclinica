@@ -67,6 +67,7 @@ const VideoRoom = lazy(() => import("@/components/consultation/VideoRoom"));
 const PrescriptionForm = lazy(() => import("@/components/consultation/PrescriptionForm"));
 const ExamRequestForm = lazy(() => import("@/components/doctor/ExamRequestForm"));
 const ClinicalReferral = lazy(() => import("@/components/doctor/ClinicalReferral"));
+const MedicationReminders = lazy(() => import("@/components/patient/MedicationReminders"));
 const RateConsultationPage = lazy(() => import("@/components/patient/RateConsultationPage"));
 const PreConsultationPage = lazy(() => import("@/components/patient/PreConsultationPage"));
 const QuickRxRenewal = lazy(() => import("@/components/patient/QuickRxRenewal"));
@@ -304,6 +305,7 @@ const Dashboard = () => {
       <Route path="patient/exams" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><ExamMarketplace /></ContextGuard></RoleGuard>} />
       <Route path="patient/referral" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><ReferralPage /></ContextGuard></RoleGuard>} />
       <Route path="patient/care-plans" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><CarePlansPage /></ContextGuard></RoleGuard>} />
+      <Route path="patient/medication" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><MedicationReminders /></ContextGuard></RoleGuard>} />
       <Route path="patient/vaccinations" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><VaccinationsPage /></ContextGuard></RoleGuard>} />
       <Route path="patient/lgpd" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><LGPDCenter /></ContextGuard></RoleGuard>} />
       <Route path="notifications" element={<Notifications />} />
