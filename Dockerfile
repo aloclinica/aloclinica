@@ -21,9 +21,9 @@ COPY nginx.conf /etc/nginx/conf.d/app.conf
 # Copy built assets
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO- http://localhost/health || exit 1
+# NB: sem HEALTHCHECK no Dockerfile — o EasyPanel/Traefik faz a checagem
+# de saude dele mesmo. Um HEALTHCHECK aqui faz o Swarm segurar o container
+# como "unhealthy" e o proxy nao roteia (502).
 
 EXPOSE 80
 
