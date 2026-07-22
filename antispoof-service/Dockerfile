@@ -21,8 +21,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app.py .
 
 EXPOSE 8000
-HEALTHCHECK --interval=30s --timeout=5s --start-period=180s --retries=3 \
-  CMD curl -fsS http://localhost:8000/health || exit 1
+
+# NB: sem HEALTHCHECK no Dockerfile — o EasyPanel/Traefik faz a checagem de
+# saude dele mesmo; um HEALTHCHECK aqui faz o Swarm segurar o container como
+# "unhealthy" e o proxy nao roteia (502). O modelo leva ~180s pra carregar,
+# entao chamadas iniciais podem falhar-aberto (ANTISPOOF_REQUIRED=false).
 
 # Single worker: the model is loaded once per process; 1 worker keeps RAM low.
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
