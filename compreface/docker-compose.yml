@@ -2,7 +2,7 @@
 # Chamado por supabase/functions/{compreface-proxy,didit-kyc}. Entrada: serviço compreface-fe (porta 80).
 # Após subir: criar Application + serviços "Detection" e "Verification" no admin, pegar as API keys,
 # e setar COMPREFACE_URL / COMPREFACE_DETECT_KEY / COMPREFACE_VERIFY_KEY nos secrets do Supabase.
-version: "3.8"
+# (sem 'version:' — obsoleto no Compose novo, o EasyPanel avisa)
 
 services:
   compreface-postgres-db:
