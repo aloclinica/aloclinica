@@ -1,14 +1,13 @@
 // emit-nfse — emite a Nota Fiscal de Serviço (NFS-e) da teleconsulta e a ENVIA
 // automaticamente por E-MAIL e WHATSAPP para o paciente.
 //
-// Provedor: Nuvem Fiscal (nuvemfiscal.com.br) — o mais barato p/ automatizar
-// (faixa gratuita + centavos por nota). OAuth2 client_credentials.
+// Provedor: Focus NFe (focusnfe.com.br) — API REST simples (token + JSON),
+// suporta a NFS-e Nacional e 3.000+ prefeituras.
 //
-// GATE (fail-open): enquanto os secrets NUVEMFISCAL_* / NFSE_* não estiverem
+// GATE (fail-open): enquanto os secrets FOCUS_NFE_TOKEN / NFSE_* não estiverem
 // definidos, a emissão é PULADA sem erro — nada quebra no fluxo de pagamento.
-// Quando você abrir a conta na Nuvem Fiscal (com o CNPJ + certificado + os
-// parâmetros que o seu contador definir) e preencher os secrets, a emissão
-// LIGA sozinha e a nota passa a sair + ser enviada a cada pagamento aprovado.
+// Quando você cadastrar a empresa na Focus (CNPJ + inscrição municipal +
+// certificado A1) e preencher os secrets, a emissão LIGA sozinha.
 //
 // Chamado internamente pelo mercadopago-webhook (pagamento aprovado).
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
@@ -24,69 +23,45 @@ const json = (b: unknown, s = 200) =>
 
 // ── Configuração (secrets). O contador confirma os campos fiscais. ──
 const CFG = {
-  authUrl: Deno.env.get("NUVEMFISCAL_AUTH_URL") ?? "https://auth.nuvemfiscal.com.br/oauth/token",
-  apiBase: Deno.env.get("NUVEMFISCAL_API_BASE") ?? "https://api.nuvemfiscal.com.br",
-  clientId: Deno.env.get("NUVEMFISCAL_CLIENT_ID") ?? "",
-  clientSecret: Deno.env.get("NUVEMFISCAL_CLIENT_SECRET") ?? "",
+  token: Deno.env.get("FOCUS_NFE_TOKEN") ?? "",
+  ambiente: (Deno.env.get("FOCUS_NFE_AMBIENTE") ?? "homologacao").toLowerCase(), // homologacao | producao
   cnpj: (Deno.env.get("NFSE_CNPJ") ?? "").replace(/\D/g, ""),
-  ambiente: (Deno.env.get("NFSE_AMBIENTE") ?? "homologacao").toLowerCase(), // homologacao | producao
-  cityIbge: Deno.env.get("NFSE_CITY_IBGE") ?? "",       // código IBGE do município (7 díg.)
-  serviceCode: Deno.env.get("NFSE_SERVICE_CODE") ?? "", // código do serviço (lista municipal/nacional)
-  issRate: Number(Deno.env.get("NFSE_ISS_RATE") ?? "0"),// alíquota ISS (%) — ex.: 2
+  inscricaoMunicipal: Deno.env.get("NFSE_INSCRICAO_MUNICIPAL") ?? "",
+  cityIbge: Deno.env.get("NFSE_CITY_IBGE") ?? "",                 // código IBGE do município (7 díg.)
+  itemListaServico: Deno.env.get("NFSE_ITEM_LISTA_SERVICO") ?? "",// item da lista LC 116 (ex.: 0405 = 4.05 saúde)
+  codigoTributarioMunicipio: Deno.env.get("NFSE_CODIGO_TRIBUTARIO_MUNICIPIO") ?? "", // opcional (varia por município)
+  issRate: Number(Deno.env.get("NFSE_ISS_RATE") ?? "0"),         // alíquota ISS (%)
   serviceDesc: Deno.env.get("NFSE_SERVICE_DESC") ?? "Teleconsulta médica (telemedicina) — prestação de serviço de saúde à distância.",
 };
-const isConfigured = () => Boolean(CFG.clientId && CFG.clientSecret && CFG.cnpj && CFG.cityIbge && CFG.serviceCode);
+const baseUrl = () => (CFG.ambiente === "producao" ? "https://api.focusnfe.com.br" : "https://homologacao.focusnfe.com.br");
+const isConfigured = () => Boolean(CFG.token && CFG.cnpj && CFG.cityIbge && CFG.itemListaServico);
+const auth = () => "Basic " + btoa(`${CFG.token}:`); // Focus: token como usuário, senha vazia
 
-async function getToken(): Promise<string> {
-  const res = await fetch(CFG.authUrl, {
+// Emite (POST) e busca (GET) até autorizar. Idempotente por `ref` (appointment_id).
+async function emitFocus(ref: string, body: unknown) {
+  const post = await fetch(`${baseUrl()}/v2/nfse?ref=${encodeURIComponent(ref)}`, {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "client_credentials",
-      client_id: CFG.clientId,
-      client_secret: CFG.clientSecret,
-      scope: "nfse",
-    }),
-  });
-  if (!res.ok) throw new Error(`nuvemfiscal token ${res.status}: ${await res.text()}`);
-  return (await res.json()).access_token as string;
-}
-
-// Emite a DPS (Declaração de Prestação de Serviços) → NFS-e no padrão nacional.
-// `referencia` = appointment_id garante idempotência (o provedor não duplica).
-async function emitNfse(token: string, p: {
-  ref: string; valor: number; tomadorCpf: string; tomadorNome: string;
-  tomadorEmail: string; discriminacao: string;
-}) {
-  const body = {
-    ambiente: CFG.ambiente === "producao" ? "producao" : "homologacao",
-    referencia: p.ref,
-    infDPS: {
-      tpAmb: CFG.ambiente === "producao" ? 1 : 2,
-      prest: { CNPJ: CFG.cnpj },
-      toma: {
-        CPF: p.tomadorCpf || undefined,
-        xNome: p.tomadorNome,
-        email: p.tomadorEmail || undefined,
-      },
-      serv: {
-        locPrest: { cLocPrestacao: CFG.cityIbge },
-        cServ: { cTribNac: CFG.serviceCode, xDescServ: p.discriminacao },
-      },
-      valores: {
-        vServPrest: { vServ: Number(p.valor.toFixed(2)) },
-        trib: { tribMun: { tribISSQN: 1, pAliq: CFG.issRate } },
-      },
-    },
-  };
-  const res = await fetch(`${CFG.apiBase}/nfse/dps`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    headers: { Authorization: auth(), "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(`nuvemfiscal emit ${res.status}: ${JSON.stringify(data).slice(0, 400)}`);
-  return data as { id?: string; status?: string; url_pdf?: string; url?: string };
+  const posted = await post.json().catch(() => ({}));
+  // 422 com codigo "nfse_ja_existe" = já emitida antes (idempotência) → seguimos p/ o GET.
+  if (post.status >= 400 && posted?.codigo !== "nfse_ja_existe") {
+    throw new Error(`focus emit ${post.status}: ${JSON.stringify(posted).slice(0, 400)}`);
+  }
+  // A autorização é assíncrona — buscamos o status até "autorizado".
+  let last: Record<string, unknown> = posted;
+  for (let i = 0; i < 6; i++) {
+    const g = await fetch(`${baseUrl()}/v2/nfse/${encodeURIComponent(ref)}`, { headers: { Authorization: auth() } });
+    last = await g.json().catch(() => ({}));
+    const st = String(last?.status ?? "");
+    if (st === "autorizado") return last;
+    if (st === "erro_autorizacao" || st === "cancelado") {
+      throw new Error(`focus status ${st}: ${JSON.stringify(last?.erros ?? last).slice(0, 400)}`);
+    }
+    await new Promise((r) => setTimeout(r, 2500));
+  }
+  return last; // ainda processando — devolvemos o que temos
 }
 
 serve(async (req) => {
@@ -99,8 +74,7 @@ serve(async (req) => {
     if (!appointment_id) return json({ error: "appointment_id required" }, 400);
 
     if (!isConfigured()) {
-      // Ainda sem conta do provedor → pula silenciosamente (não quebra o pagamento).
-      return json({ skipped: true, reason: "NFS-e não configurada (defina NUVEMFISCAL_* e NFSE_*)" });
+      return json({ skipped: true, reason: "NFS-e não configurada (defina FOCUS_NFE_TOKEN e NFSE_*)" });
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -108,7 +82,7 @@ serve(async (req) => {
 
     const { data: appt } = await supabase
       .from("appointments")
-      .select("id, patient_id, doctor_id, price_at_booking, payment_status, payment_confirmed_at")
+      .select("id, patient_id, price_at_booking, payment_status")
       .eq("id", appointment_id).single();
     if (!appt) return json({ error: "appointment not found" }, 404);
 
@@ -129,58 +103,76 @@ serve(async (req) => {
     const patientName = patient ? `${patient.first_name ?? ""} ${patient.last_name ?? ""}`.trim() : "Paciente";
     const amountBRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(valor);
 
-    // 1) Emitir a NFS-e
-    const token = await getToken();
-    const nfse = await emitNfse(token, {
-      ref: String(appt.id),
-      valor,
-      tomadorCpf: (patient?.cpf ?? "").replace(/\D/g, ""),
-      tomadorNome: patientName,
-      tomadorEmail: patientEmail,
-      discriminacao: CFG.serviceDesc,
-    });
-    const pdfUrl = nfse.url_pdf || nfse.url || `${CFG.apiBase}/nfse/${nfse.id}/pdf`;
+    // 1) Emitir a NFS-e via Focus NFe
+    const dpsBody: Record<string, unknown> = {
+      data_emissao: new Date().toISOString().slice(0, 19),
+      prestador: {
+        cnpj: CFG.cnpj,
+        inscricao_municipal: CFG.inscricaoMunicipal || undefined,
+        codigo_municipio: CFG.cityIbge,
+      },
+      tomador: {
+        cpf: (patient?.cpf ?? "").replace(/\D/g, "") || undefined,
+        razao_social: patientName,
+        email: patientEmail || undefined,
+      },
+      servico: {
+        aliquota: CFG.issRate,
+        discriminacao: CFG.serviceDesc,
+        iss_retido: false,
+        item_lista_servico: CFG.itemListaServico,
+        codigo_tributario_municipio: CFG.codigoTributarioMunicipio || undefined,
+        valor_servicos: Number(valor.toFixed(2)),
+      },
+    };
+    const nfse = await emitFocus(String(appt.id), dpsBody);
+    const st = String(nfse?.status ?? "");
+    const pdfPath = (nfse?.caminho_danfse as string) || (nfse?.caminho_xml_nota_fiscal as string) || "";
+    const pdfUrl = pdfPath ? `${baseUrl()}${pdfPath}` : ((nfse?.url as string) || "");
 
-    const results: string[] = [`nfse: emitida (${nfse.status ?? "ok"})`];
+    const results: string[] = [`nfse: ${st || "processando"}${pdfUrl ? " (pdf ok)" : ""}`];
 
-    // 2) Enviar por E-MAIL
-    if (patientEmail) {
-      try {
-        const r = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
-            "x-internal-secret": Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "",
-          },
-          body: JSON.stringify({
-            type: "nfse_invoice",
-            to: patientEmail,
-            data: { patient_name: patientName, amount: amountBRL, nfse_url: pdfUrl, appointment_id: String(appt.id) },
-          }),
-        });
-        results.push(`email: ${r.ok ? "sent" : "failed"}`);
-      } catch (e) { results.push(`email: error ${(e as Error).message}`); }
+    // Só envia se temos um link (autorizada). Se ainda processando, o webhook do
+    // Focus/reprocesso cobre depois — não enviamos link quebrado.
+    if (pdfUrl) {
+      // 2) E-MAIL
+      if (patientEmail) {
+        try {
+          const r = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+              "x-internal-secret": Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "",
+            },
+            body: JSON.stringify({
+              type: "nfse_invoice",
+              to: patientEmail,
+              data: { patient_name: patientName, amount: amountBRL, nfse_url: pdfUrl, appointment_id: String(appt.id) },
+            }),
+          });
+          results.push(`email: ${r.ok ? "sent" : "failed"}`);
+        } catch (e) { results.push(`email: error ${(e as Error).message}`); }
+      }
+      // 3) WHATSAPP
+      if (patient?.phone) {
+        try {
+          const msg = `🧾 *Nota Fiscal — AloClínica*\n\nOlá ${patientName}, a nota fiscal da sua teleconsulta foi emitida.\n\nValor: *${amountBRL}*\n\n📄 Baixar a NFS-e:\n${pdfUrl}\n\n_Documento fiscal oficial. Guarde para reembolso junto ao seu plano de saúde._`;
+          const r = await fetch(`${supabaseUrl}/functions/v1/send-whatsapp`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+              "x-internal-secret": Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "",
+            },
+            body: JSON.stringify({ phone: patient.phone, message: msg }),
+          });
+          results.push(`whatsapp: ${r.ok ? "sent" : "failed"}`);
+        } catch (e) { results.push(`whatsapp: error ${(e as Error).message}`); }
+      }
     }
 
-    // 3) Enviar por WHATSAPP
-    if (patient?.phone) {
-      try {
-        const msg = `🧾 *Nota Fiscal — AloClínica*\n\nOlá ${patientName}, a nota fiscal da sua teleconsulta foi emitida.\n\nValor: *${amountBRL}*\n\n📄 Baixar a NFS-e:\n${pdfUrl}\n\n_Documento fiscal oficial. Guarde para reembolso junto ao seu plano de saúde._`;
-        const r = await fetch(`${supabaseUrl}/functions/v1/send-whatsapp`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
-            "x-internal-secret": Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "",
-          },
-          body: JSON.stringify({ phone: patient.phone, message: msg }),
-        });
-        results.push(`whatsapp: ${r.ok ? "sent" : "failed"}`);
-      } catch (e) { results.push(`whatsapp: error ${(e as Error).message}`); }
-    }
-
-    return json({ success: true, nfse_id: nfse.id ?? null, pdf_url: pdfUrl, results });
+    return json({ success: true, status: st, pdf_url: pdfUrl || null, results });
   } catch (e) {
     // Falha na emissão NUNCA deve derrubar o fluxo do pagamento — loga e retorna 200.
     console.error("[emit-nfse]", e);
