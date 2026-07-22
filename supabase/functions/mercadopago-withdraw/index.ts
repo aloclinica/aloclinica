@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
     try {
       const { data: dp } = await admin.from("doctor_profiles").select("id").eq("user_id", wd.user_id).maybeSingle();
       claimedDoctorId = (dp as any)?.id ?? null;
-      if (claimedDoctorId) await admin.rpc("fn_claim_ready_payouts", { p_doctor_id: claimedDoctorId });
+      if (claimedDoctorId) await admin.rpc("fn_claim_ready_payouts", { p_doctor_id: claimedDoctorId, p_withdrawal_id: withdrawal_id });
     } catch (e) {
       console.warn("[mp-withdraw] fn_claim_ready_payouts indisponivel (aplique o SQL do saque):", e);
     }
@@ -143,7 +143,7 @@ Deno.serve(async (req) => {
     if (!moneyOut.ok) {
       // Rollback do ledger: o PIX automatico nao saiu → devolve os repasses para 'ready'.
       if (claimedDoctorId) {
-        try { await admin.rpc("fn_unclaim_payouts", { p_doctor_id: claimedDoctorId }); } catch (_e) { /* noop */ }
+        try { await admin.rpc("fn_unclaim_payouts", { p_doctor_id: claimedDoctorId, p_withdrawal_id: withdrawal_id }); } catch (_e) { /* noop */ }
       }
       // Se a conta não tem Money Out habilitado, marca pra processamento manual
       const needsManual = moneyOut.status === 403 || moneyOut.status === 404;
