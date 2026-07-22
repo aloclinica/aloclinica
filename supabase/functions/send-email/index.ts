@@ -107,6 +107,7 @@ const TEMPLATE_BANNER: Record<string, string> = {
   appointment_cancelled: "alert",
   appointment_rescheduled: "alert",
   payment_receipt: "payment",
+  nfse_invoice: "payment",
   prescription_sent: "prescription",
   certificate_sent: "certificate",
   welcome: "welcome",
@@ -250,6 +251,26 @@ const templates: Record<string, (d: Record<string, string>) => { subject: string
       ${btn(d.receipt_url || URLS.patientAppointments, "Baixar recibo em PDF")}
       <p style="font-size:12px;color:${BRAND.muted};margin-top:20px;">Guarde este recibo para fins de reembolso junto ao seu plano de saúde ou imposto de renda. Em caso de dúvidas, fale com o suporte AloClínica.</p>
     `, "payment_receipt"),
+  }),
+
+  nfse_invoice: (d) => ({
+    subject: `📄 Nota Fiscal da sua teleconsulta — AloClínica`,
+    html: wrap(`
+      <h2 style="color:${BRAND.color};margin:0 0 16px;">Nota Fiscal emitida</h2>
+      <p>Olá <strong>${d.patient_name}</strong>,</p>
+      <p>A <strong>nota fiscal (NFS-e)</strong> da sua teleconsulta foi emitida. Este é o documento fiscal oficial do serviço prestado.</p>
+      ${card(`
+        <p style="margin:0 0 6px;font-size:12px;color:${BRAND.muted};text-transform:uppercase;letter-spacing:.5px;">Serviço</p>
+        <p style="margin:0 0 4px;"><strong>Teleconsulta médica (telemedicina)</strong></p>
+        ${d.appointment_id ? `<p style="margin:0;color:${BRAND.muted};font-size:13px;">Ref.: ${d.appointment_id.slice(0, 8).toUpperCase()}</p>` : ""}
+      `)}
+      <div style="background:${BRAND.bg};border:1px solid ${BRAND.border};border-radius:12px;padding:18px;margin:20px 0;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:13px;color:${BRAND.muted};text-transform:uppercase;letter-spacing:.5px;">Valor</span>
+        <span style="font-size:24px;font-weight:800;color:${BRAND.color};">${d.amount}</span>
+      </div>
+      ${btn(d.nfse_url || URLS.patientAppointments, "📄 Baixar Nota Fiscal (PDF)")}
+      <p style="font-size:12px;color:${BRAND.muted};margin-top:20px;">Documento fiscal oficial. Guarde para reembolso junto ao seu plano de saúde ou declaração de imposto de renda.</p>
+    `, "nfse_invoice"),
   }),
 
   appointment_reminder: (d) => ({

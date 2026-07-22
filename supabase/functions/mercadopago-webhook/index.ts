@@ -129,6 +129,16 @@ async function handlePayment(admin: any, paymentId: string) {
       } catch (e) {
         console.error("[mp-webhook] falha ao enviar recibo", e);
       }
+      // Emite a NFS-e (nota fiscal) e envia por e-mail + WhatsApp.
+      // Fica DORMANTE (fail-open) enquanto NUVEMFISCAL_*/NFSE_* nao estiverem
+      // configurados — entao nunca quebra o fluxo do pagamento.
+      try {
+        await admin.functions.invoke("emit-nfse", {
+          body: { appointment_id: apptId },
+        });
+      } catch (e) {
+        console.error("[mp-webhook] falha ao emitir NFS-e", e);
+      }
     } else if (internalStatus === "refused" || internalStatus === "cancelled") {
       await admin
         .from("appointments")
