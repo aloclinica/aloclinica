@@ -70,11 +70,13 @@ services:
       ML_PORT: 3000
       IMG_LENGTH_LIMIT: 640
       UPLOADER_ARGS: "--workers 1 --timeout 60000 --graceful-timeout 60000 -b 0.0.0.0:3000"
-    mem_limit: 1400m
+    # 2GB: os modelos de reconhecimento facial (ArcFace + RetinaFace) precisam
+    # de ~1.5-2GB pra carregar. 1.4GB fazia o Core estourar e travar em "loading".
+    mem_limit: 2048m
     deploy:
       resources:
         limits:
-          memory: 1400M
+          memory: 2048M
 
   compreface-fe:
     image: exadel/compreface-fe:1.2.0
