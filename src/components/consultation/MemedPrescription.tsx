@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Pill, Loader2, CheckCircle, AlertCircle, ExternalLink } from "lucide-react";
 
-// Memed Script URL (homologação - trocar para produção quando tiver chaves de prod)
+// Memed Script URL — PRODUÇÃO (integrations.memed.com.br). As chaves de produção
+// ficam nos secrets do Supabase (MEMED_API_KEY / MEMED_SECRET_KEY), usadas pelo
+// edge memed-prescriber. Assinatura ICP-Brasil da receita ativa.
 const MEMED_SCRIPT_URL =
   "https://integrations.memed.com.br/modulos/plataforma.sinapse-prescricao/build/sinapse-prescricao.min.js";
 
