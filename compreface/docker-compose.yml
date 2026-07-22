@@ -1,0 +1,96 @@
+# CompreFace 1.2.0 — configuração ENXUTA para VPS 7.8GB (heaps Java pequenos + limites de RAM).
+# Chamado por supabase/functions/{compreface-proxy,didit-kyc}. Entrada: serviço compreface-fe (porta 80).
+# Após subir: criar Application + serviços "Detection" e "Verification" no admin, pegar as API keys,
+# e setar COMPREFACE_URL / COMPREFACE_DETECT_KEY / COMPREFACE_VERIFY_KEY nos secrets do Supabase.
+version: "3.8"
+
+services:
+  compreface-postgres-db:
+    image: exadel/compreface-postgres-db:1.2.0
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: cf_Al0clinica_2026_dbpw
+      POSTGRES_DB: frs
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    mem_limit: 300m
+    deploy:
+      resources:
+        limits:
+          memory: 300M
+
+  compreface-admin:
+    image: exadel/compreface-admin:1.2.0
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: cf_Al0clinica_2026_dbpw
+      POSTGRES_URL: jdbc:postgresql://compreface-postgres-db:5432/frs
+      SPRING_PROFILES_ACTIVE: dev
+      ENABLE_EMAIL_SERVER: "false"
+      ADMIN_JAVA_OPTS: "-Xmx350m"
+      MAX_FILE_SIZE: 5MB
+      MAX_REQUEST_SIZE: 10MB
+    depends_on:
+      - compreface-postgres-db
+      - compreface-api
+    mem_limit: 560m
+    deploy:
+      resources:
+        limits:
+          memory: 560M
+
+  compreface-api:
+    image: exadel/compreface-api:1.2.0
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: cf_Al0clinica_2026_dbpw
+      POSTGRES_URL: jdbc:postgresql://compreface-postgres-db:5432/frs
+      SPRING_PROFILES_ACTIVE: dev
+      API_JAVA_OPTS: "-Xmx650m"
+      SAVE_IMAGES_TO_DB: "true"
+      MAX_FILE_SIZE: 5MB
+      MAX_REQUEST_SIZE: 10MB
+      CONNECTION_TIMEOUT: 10000
+      READ_TIMEOUT: 60000
+    depends_on:
+      - compreface-postgres-db
+    mem_limit: 950m
+    deploy:
+      resources:
+        limits:
+          memory: 950M
+
+  compreface-core:
+    image: exadel/compreface-core:1.2.0
+    restart: always
+    environment:
+      ML_PORT: 3000
+      IMG_LENGTH_LIMIT: 640
+      UPLOADER_ARGS: "--workers 1 --timeout 60000 --graceful-timeout 60000 -b 0.0.0.0:3000"
+    mem_limit: 1400m
+    deploy:
+      resources:
+        limits:
+          memory: 1400M
+
+  compreface-fe:
+    image: exadel/compreface-fe:1.2.0
+    restart: always
+    environment:
+      CLIENT_MAX_BODY_SIZE: 10M
+      PROXY_READ_TIMEOUT: 60000s
+      PROXY_CONNECT_TIMEOUT: 10000s
+    depends_on:
+      - compreface-api
+      - compreface-admin
+    mem_limit: 100m
+    deploy:
+      resources:
+        limits:
+          memory: 100M
+
+volumes:
+  postgres-data:
