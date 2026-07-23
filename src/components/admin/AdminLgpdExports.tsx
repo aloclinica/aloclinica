@@ -103,9 +103,10 @@ const AdminLgpdExports = () => {
       return;
     }
     setCreating(true);
-    // Busca user_id pelo email
-    const { data: { users }, error: listErr } = await (db.auth as any).admin.listUsers({ filter: `email.eq.${emailToExport}` }).catch(() => ({ data: { users: [] }, error: null }));
-    const userId = (users ?? []).find((u: any) => u.email === emailToExport)?.id;
+    // Busca user_id pelo email via edge function server-side (a Admin API do Supabase
+    // não roda no navegador — antes esta chamada sempre falhava).
+    const { data: lookup } = await db.functions.invoke("admin-user-lookup", { body: { email: emailToExport.trim() } });
+    const userId = (lookup as any)?.id;
 
     if (!userId) {
       // Fallback: tenta direto via tabela auth não funciona. Pede o user inputar UUID
@@ -207,7 +208,7 @@ const AdminLgpdExports = () => {
             <div className="space-y-3 pt-2">
               <p className="text-sm text-muted-foreground">
                 Gera ZIP com todos os dados pessoais do usuário em todas as tabelas (auth, profile, KYC,
-                consultas, prescrições, pagamentos etc). Link expira em 7 dias.
+                consultas, prescrições, pagamentos etc). Link expira em 10 minutos (baixe assim que gerar).
               </p>
               <Input
                 value={emailToExport}

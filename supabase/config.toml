@@ -23,6 +23,10 @@ project_id = "pwxvvimdtmvziynbspgx"
 [functions.mercadopago-webhook]
 verify_jwt = false
 
+# Registro de login falho — chamado por usuário anônimo (o login acabou de falhar).
+[functions.log-failed-login]
+verify_jwt = false
+
 # DocuSeal webhook — authenticated by the shared x-docuseal-secret header.
 [functions.docuseal-webhook]
 verify_jwt = false

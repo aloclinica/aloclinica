@@ -11,6 +11,7 @@ import { PINGO_LOGO_URL } from "@/lib/constants";
 import mascotWelcome from "@/assets/mascot-welcome.png";
 import { AuthField, AuthPasswordField, AuthSubmitButton } from "@/components/auth/AuthFields";
 import { translateAuthError } from "@/lib/authErrors";
+import { reportFailedLogin } from "@/lib/security";
 
 const logo = PINGO_LOGO_URL;
 
@@ -54,6 +55,7 @@ const Auth = () => {
     const { error } = await db.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
+      reportFailedLogin(email);
       toast.error("Erro ao entrar", { description: translateAuthError(error.message) });
     } else {
       navigate("/dashboard");

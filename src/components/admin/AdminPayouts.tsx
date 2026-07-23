@@ -52,11 +52,16 @@ const AdminPayouts = () => {
   const markPaid = async (id: string) => {
     const tx = txMap[id]?.trim();
     if (!tx) { toast.error("Informe o ID da transação PIX"); return; }
-    const { error } = await db
+    // Idempotente: só marca um repasse que ainda NÃO foi pago (pending/ready).
+    // Evita re-marcar/duplicar um repasse que o fluxo automático de saque já pagou.
+    const { data: updated, error } = await db
       .from("doctor_payouts")
       .update({ status: "paid", paid_at: new Date().toISOString(), pix_tx_id: tx })
-      .eq("id", id);
+      .eq("id", id)
+      .in("status", ["pending", "ready"])
+      .select("id");
     if (error) { toast.error(error.message); return; }
+    if (!updated || updated.length === 0) { toast.error("Repasse já estava pago ou cancelado — nada foi alterado."); return; }
     toast.success("Repasse marcado como pago");
     qc.invalidateQueries({ queryKey: ["admin-payouts"] });
   };

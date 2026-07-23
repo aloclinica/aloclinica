@@ -135,9 +135,9 @@ const AdminKycReview = () => {
 
   const sendNotification = async (row: KycRow, approved: boolean) => {
     try {
-      // Buscar email do user
-      const { data: { user: target } } = await db.auth.admin.getUserById?.(row.user_id) || { data: { user: null } };
-      const email = (target as any)?.email;
+      // Buscar email do user via edge function server-side (a Admin API não roda no navegador).
+      const { data: lookup } = await db.functions.invoke("admin-user-lookup", { body: { user_id: row.user_id } });
+      const email = (lookup as any)?.email;
       if (!email) {
         warn("[AdminKycReview] sem email para notificar", row.user_id);
         return;

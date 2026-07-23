@@ -10,6 +10,7 @@ import pingoAdmin from "@/assets/pingo-admin.png";
 import AuthShell from "@/components/auth/AuthShell";
 import { AuthField, AuthPasswordField, AuthSubmitButton, AuthHeading } from "@/components/auth/AuthFields";
 import { translateAuthError } from "@/lib/authErrors";
+import { reportFailedLogin } from "@/lib/security";
 import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 
 const benefits: { icon: LucideIcon; title: string; desc: string }[] = [
@@ -32,6 +33,7 @@ const AuthAdmin = () => {
     const { data, error } = await db.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
+      reportFailedLogin(email, "admin_login");
       toast.error("Erro ao entrar", { description: translateAuthError(error.message) });
     } else if (data.user) {
       await redirectAfterLogin(data.user.id);
