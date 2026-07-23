@@ -76,8 +76,7 @@ const PingoRunBanner = () => {
               Agende sua consulta em{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-cyan-300">
                 menos de 2 minutos
-              </span>{" "}
-              pelo app
+              </span>
             </motion.h2>
 
             <motion.div

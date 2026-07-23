@@ -231,6 +231,8 @@ const PatientDashboard = () => {
 const PatientHomeModern = ({ firstName, stats, nextAppt, timelineEvents, navigate }: any) => {
   const scheduledAt = nextAppt ? new Date(nextAppt.scheduled_at) : null;
   const activities = (timelineEvents ?? []).slice(0, 3);
+  const PAID_STATUSES = ["approved", "confirmed", "received", "paid"];
+  const paymentApproved = nextAppt ? PAID_STATUSES.includes(String(nextAppt.payment_status ?? "").toLowerCase()) : false;
   const actionCards = [
     { label: "Agendar", sub: "Consulta", icon: CalendarCheck, path: "/dashboard/schedule?role=patient", tone: "from-blue-500 to-cyan-500", soft: "bg-blue-500/10 text-blue-600" },
     { label: "Urgência", sub: "Agora", icon: Lightning, path: "/dashboard/urgent-care?role=patient", tone: "from-rose-500 to-orange-500", soft: "bg-rose-500/10 text-rose-600" },
@@ -317,9 +319,13 @@ const PatientHomeModern = ({ firstName, stats, nextAppt, timelineEvents, navigat
             </div>
             <span className={cn(
               "rounded-full px-3 py-1 text-[11px] font-black",
-              nextAppt ? "bg-emerald-500/10 text-emerald-700" : "bg-blue-500/10 text-blue-700"
+              !nextAppt
+                ? "bg-blue-500/10 text-blue-700"
+                : paymentApproved
+                  ? "bg-emerald-500/10 text-emerald-700"
+                  : "bg-amber-500/10 text-amber-700"
             )}>
-              {nextAppt ? "Confirmada" : "Disponível"}
+              {!nextAppt ? "Disponível" : paymentApproved ? "Confirmada" : "Aguardando pagamento"}
             </span>
           </div>
           <div className="flex gap-4 rounded-[24px] bg-muted/25 p-3">
@@ -328,11 +334,16 @@ const PatientHomeModern = ({ firstName, stats, nextAppt, timelineEvents, navigat
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-base font-black text-foreground">{nextAppt?.doctor_name ?? "Nenhuma consulta marcada"}</p>
-              <p className="text-sm font-medium text-muted-foreground">{nextAppt?.specialty ?? "Escolha um médico para começar"}</p>
+              <p className="text-sm font-medium text-muted-foreground">{nextAppt ? (nextAppt.specialty ?? "Atendimento médico") : "Escolha um médico para começar"}</p>
               <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-black">
                 <span className="rounded-full bg-background px-2.5 py-1 text-primary">{scheduledAt ? format(scheduledAt, "dd MMM", { locale: ptBR }) : "Sem data"}</span>
                 <span className="rounded-full bg-background px-2.5 py-1 text-primary">{scheduledAt ? format(scheduledAt, "HH:mm") : "--:--"}</span>
-                <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-emerald-700">Online</span>
+                <span className={cn(
+                  "rounded-full px-2.5 py-1",
+                  nextAppt && !paymentApproved ? "bg-amber-500/10 text-amber-700" : "bg-emerald-500/10 text-emerald-700"
+                )}>
+                  {nextAppt && !paymentApproved ? "Aguardando pagamento" : "Online"}
+                </span>
               </div>
             </div>
           </div>
@@ -378,24 +389,28 @@ const PatientHomeModern = ({ firstName, stats, nextAppt, timelineEvents, navigat
           </button>
         </div>
         <div className="grid gap-2">
-          {(activities.length ? activities : [
-            { title: "Receita emitida", subtitle: "Seu histórico ficará disponível aqui", status: "Ativa", icon: FileText },
-            { title: "Exame enviado", subtitle: "Documentos recentes aparecem nesta área", status: "Concluído", icon: Pill },
-          ]).map((item: any, index: number) => {
-            const Icon = item.icon ?? (index === 0 ? FileText : Pill);
-            return (
-              <button key={item.id ?? item.title ?? index} onClick={() => navigate("/dashboard/history?role=patient")} className="group flex w-full items-center gap-3 rounded-2xl border border-border/40 bg-background p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm">
-                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-600 transition group-hover:scale-105">
-                  <Icon size={20} weight="bold" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-black text-foreground">{item.title ?? item.type ?? "Atividade"}</p>
-                  <p className="truncate text-xs text-muted-foreground">{item.subtitle ?? item.description ?? "Atualização recente"}</p>
-                </div>
-                <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black text-emerald-700">{item.status ?? "Ativa"}</span>
-              </button>
-            );
-          })}
+          {activities.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-border/50 bg-background/60 px-4 py-8 text-center">
+              <p className="text-sm font-black text-foreground">Nenhuma atividade ainda</p>
+              <p className="text-xs text-muted-foreground">Suas consultas, receitas e exames aparecerão aqui.</p>
+            </div>
+          ) : (
+            activities.map((item: any, index: number) => {
+              const Icon = item.icon ?? (index === 0 ? FileText : Pill);
+              return (
+                <button key={item.id ?? item.title ?? index} onClick={() => navigate("/dashboard/history?role=patient")} className="group flex w-full items-center gap-3 rounded-2xl border border-border/40 bg-background p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm">
+                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-600 transition group-hover:scale-105">
+                    <Icon size={20} weight="bold" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-black text-foreground">{item.title ?? item.type ?? "Atividade"}</p>
+                    <p className="truncate text-xs text-muted-foreground">{item.subtitle ?? item.description ?? "Atualização recente"}</p>
+                  </div>
+                  <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black text-emerald-700">{item.status ?? "Ativa"}</span>
+                </button>
+              );
+            })
+          )}
         </div>
       </section>
     </div>

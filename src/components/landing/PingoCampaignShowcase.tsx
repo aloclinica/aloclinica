@@ -9,7 +9,7 @@ import supportImage from "@/assets/clinic-patient-chat.png";
 const campaignCards = [
   {
     title: "Telemedicina acolhedora",
-    description: "Atendimento online com profissionais de saude sem sair de casa.",
+    description: "Atendimento online com profissionais de saúde sem sair de casa.",
     image: telemedicineImage,
     icon: Video,
     action: "Falar com especialista",
@@ -17,17 +17,17 @@ const campaignCards = [
     tone: "from-blue-500 to-cyan-500",
   },
   {
-    title: "Exames com confianca",
-    description: "Agende exames e acompanhe resultados com mais praticidade.",
+    title: "Agende sua consulta",
+    description: "Marque seu atendimento e acompanhe tudo em um só lugar.",
     image: examsImage,
     icon: FlaskConical,
-    action: "Ver exames",
+    action: "Agendar",
     href: "/agendar",
     tone: "from-emerald-500 to-teal-500",
   },
   {
     title: "Suporte que acompanha",
-    description: "Historico, orientacao e ajuda humana para continuar o cuidado.",
+    description: "Histórico, orientação e ajuda humana para continuar o cuidado.",
     image: supportImage,
     icon: Headphones,
     action: "Central de ajuda",
@@ -46,10 +46,10 @@ const PingoCampaignShowcase = () => {
         <div className="mb-9 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
             <span className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#f28c18]">
-              Cuidado visual, simples e proximo
+              Cuidado visual, simples e próximo
             </span>
             <h2 className="mt-3 text-3xl font-extrabold leading-tight text-[#0b2f73] sm:text-4xl lg:text-5xl">
-              Uma experiencia mais clara para quem precisa cuidar da saude.
+              Uma experiência mais clara para quem precisa cuidar da saúde.
             </h2>
           </div>
           <Button

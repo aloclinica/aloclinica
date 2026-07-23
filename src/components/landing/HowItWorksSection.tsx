@@ -78,7 +78,7 @@ const HowItWorksSection = forwardRef<HTMLElement>((_, ref) => {
         >
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/[0.06] border border-primary/10 text-primary text-sm font-semibold mb-4">
             <Clock className="w-3.5 h-3.5" weight="fill" />
-            Menos de 5 minutos
+            Em poucos minutos
           </span>
           <h2 className="text-2xl md:text-4xl font-extrabold text-foreground mb-3 tracking-tight">
             {title}
@@ -208,7 +208,7 @@ const HowItWorksSection = forwardRef<HTMLElement>((_, ref) => {
         >
           <span className="flex items-center gap-1.5">
             <Clock className="w-4 h-4 text-primary" weight="fill" />
-            <strong className="text-foreground">~18 min</strong> do cadastro à receita
+            <strong className="text-foreground">Em poucos minutos</strong> do cadastro à receita
           </span>
           <span className="hidden sm:inline text-border">•</span>
           <span>100% online</span>

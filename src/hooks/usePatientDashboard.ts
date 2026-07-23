@@ -112,12 +112,19 @@ async function enrichWithDoctorNames(
   if (!records.length) return [];
 
   const doctorIds = [...new Set(records.map(r => r.doctor_id))];
-  const { data: docs } = await db
-    .from("doctor_profiles")
-    .select("id, user_id")
-    .in("id", doctorIds);
+  const [{ data: docs }, { data: specs }] = await Promise.all([
+    db.from("doctor_profiles").select("id, user_id").in("id", doctorIds),
+    db.from("doctor_specialties").select("doctor_id, specialties(name)").in("doctor_id", doctorIds),
+  ]);
 
-  if (!docs?.length) return records.map(r => ({ ...r, doctor_name: "Médico" }));
+  // Map doctor_id → first specialty name (doctor_specialties.doctor_id references doctor_profiles.id)
+  const specMap = new Map<string, string>();
+  (specs ?? []).forEach((s: { doctor_id: string; specialties?: { name?: string } | null }) => {
+    const name = s.specialties?.name;
+    if (name && !specMap.has(s.doctor_id)) specMap.set(s.doctor_id, name);
+  });
+
+  if (!docs?.length) return records.map(r => ({ ...r, doctor_name: "Médico", specialty: specMap.get(r.doctor_id) ?? null }));
 
   const userIds = docs.map(d => d.user_id);
   const { data: profiles } = await db
@@ -131,7 +138,11 @@ async function enrichWithDoctorNames(
     if (p) nameMap.set(d.id, `Dr(a). ${p.first_name} ${p.last_name}`);
   });
 
-  return records.map(r => ({ ...r, doctor_name: nameMap.get(r.doctor_id) ?? "Médico" }));
+  return records.map(r => ({
+    ...r,
+    doctor_name: nameMap.get(r.doctor_id) ?? "Médico",
+    specialty: specMap.get(r.doctor_id) ?? null,
+  }));
 }
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
@@ -176,7 +187,7 @@ export const usePatientUpcoming = () => {
       if (!user) return [];
       const { data: appts } = await db
         .from("appointments")
-        .select("id, scheduled_at, status, doctor_id, duration_minutes, appointment_type")
+        .select("id, scheduled_at, status, doctor_id, duration_minutes, appointment_type, payment_status")
         .eq("patient_id", user.id)
         .gte("scheduled_at", new Date().toISOString())
         .in("status", ["scheduled", "waiting", "in_progress"])

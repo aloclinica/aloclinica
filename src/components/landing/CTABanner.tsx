@@ -2,16 +2,16 @@ import { forwardRef } from "react";
 import { BannerCTA } from "@/components/ui/banner-cta";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { ArrowRight, ShieldCheck, Clock, Star, Check, X, Heart, Lightning, Sparkle } from "@phosphor-icons/react";
+import { ArrowRight, ShieldCheck, Clock, Star, Check, Heart, Lightning, Sparkle } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
 import mascotThumbsup from "@/assets/mascot-thumbsup.png";
 
-const comparisonRows = [
-  { feature: "Tempo de espera", us: "~15 min", them: "2–5 horas" },
-  { feature: "Receita digital válida", us: true, them: false },
-  { feature: "Disponível 24h", us: true, them: false },
-  { feature: "Preço médio", us: "R$89", them: "R$200–400" },
-  { feature: "Atestado digital", us: true, them: false },
+const platformFacts = [
+  "Atendimento por vídeo, 24h por dia",
+  "Receita digital válida em todo o Brasil",
+  "Atestado digital",
+  "Médicos verificados no CFM",
+  "Dados criptografados e sigilosos",
 ];
 
 const benefits = [
@@ -51,8 +51,8 @@ const CTABanner = forwardRef<HTMLElement>((_, ref) => {
                 transition={{ delay: 0.15, duration: 0.5 }}
                 className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-sm text-primary-foreground text-xs font-semibold w-fit mb-6"
               >
-                <span className="w-2 h-2 rounded-full bg-medical-green animate-pulse" />
-                Médicos disponíveis agora
+                <Clock className="w-3 h-3" weight="fill" />
+                Atendimento por vídeo, 24h
               </motion.div>
 
               <motion.h2
@@ -136,7 +136,7 @@ const CTABanner = forwardRef<HTMLElement>((_, ref) => {
                 whileHover={{ rotate: 5, scale: 1.08, transition: { duration: 0.3 } }}
               />
 
-              {/* Comparison card */}
+              {/* Benefits card */}
               <motion.div
                 initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
                 whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -144,45 +144,20 @@ const CTABanner = forwardRef<HTMLElement>((_, ref) => {
                 transition={{ delay: 0.4, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full max-w-sm rounded-2xl bg-white/[0.1] backdrop-blur-lg border border-white/[0.12] overflow-hidden shadow-xl shadow-black/10"
               >
-                <div className="grid grid-cols-3 text-[10px] uppercase tracking-widest font-bold px-5 py-3.5 border-b border-white/10">
-                  <span />
-                  <span className="text-center text-primary-foreground">AloClinica</span>
-                  <span className="text-center text-primary-foreground/35 text-[9px]">Tradicional</span>
+                <div className="text-[10px] uppercase tracking-widest font-bold px-5 py-3.5 border-b border-white/10 text-primary-foreground">
+                  Por que a AloClínica
                 </div>
-                {comparisonRows.map((row, i) => (
+                {platformFacts.map((fact, i) => (
                   <div
                     key={i}
-                    className={`grid grid-cols-3 items-center text-[12px] text-primary-foreground/70 px-5 py-3 ${
-                      i < comparisonRows.length - 1 ? "border-b border-white/[0.06]" : ""
+                    className={`flex items-center gap-3 text-[12px] text-primary-foreground/75 px-5 py-3 ${
+                      i < platformFacts.length - 1 ? "border-b border-white/[0.06]" : ""
                     } hover:bg-white/[0.04] transition-colors`}
                   >
-                    <span className="font-medium text-primary-foreground/80 text-[11px]">{row.feature}</span>
-                    <span className="text-center font-bold text-primary-foreground">
-                      {typeof row.us === "boolean" ? (
-                        row.us ? (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-medical-green/25 mx-auto">
-                            <Check className="w-3.5 h-3.5 text-medical-green" weight="bold" />
-                          </span>
-                        ) : (
-                          <X className="w-3.5 h-3.5 opacity-40 mx-auto" weight="bold" />
-                        )
-                      ) : (
-                        <span className="font-extrabold">{row.us}</span>
-                      )}
+                    <span className="inline-flex items-center justify-center w-6 h-6 shrink-0 rounded-full bg-medical-green/25">
+                      <Check className="w-3.5 h-3.5 text-medical-green" weight="bold" />
                     </span>
-                    <span className="text-center text-primary-foreground/30">
-                      {typeof row.them === "boolean" ? (
-                        row.them ? (
-                          <Check className="w-3.5 h-3.5 mx-auto" weight="bold" />
-                        ) : (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/[0.08] mx-auto">
-                            <X className="w-3 h-3 opacity-50" weight="bold" />
-                          </span>
-                        )
-                      ) : (
-                        <span className="text-[11px]">{row.them}</span>
-                      )}
-                    </span>
+                    <span className="font-medium text-primary-foreground/85">{fact}</span>
                   </div>
                 ))}
               </motion.div>

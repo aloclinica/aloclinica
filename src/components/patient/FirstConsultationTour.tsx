@@ -33,7 +33,7 @@ const STEPS: Step[] = [
     title: "1. Encontre seu especialista",
     body: "Use a busca do dashboard para achar por especialidade, sintoma ou nome do médico.",
     icon: MagnifyingGlass,
-    bullet: "Mais de 100 médicos verificados pelo CFM.",
+    bullet: "Médicos verificados pelo CFM.",
   },
   {
     title: "2. Urgência? Atendimento já",

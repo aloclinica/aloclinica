@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Smartphone, Wifi, FileText, Clock, Pill, ShieldCheck } from "lucide-react";
 
 const INFO_ITEMS = [
-  { icon: Smartphone, label: "Pelocelular ou PC" },
+  { icon: Smartphone, label: "Pelo celular ou PC" },
   { icon: Wifi, label: "Só precisa de internet" },
   { icon: Clock, label: "Plantão 24h, todos os dias" },
   { icon: FileText, label: "Atestados e receitas digitais" },
