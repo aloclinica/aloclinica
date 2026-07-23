@@ -79,9 +79,11 @@ $function$;
 -- 5) SEGURANÇA: estas funções mexem em dinheiro — só o service_role (edge
 --    functions server-side) pode chamá-las. Bloqueia chamada via RPC por
 --    usuário logado (anon/authenticated).
-REVOKE ALL ON FUNCTION public.fn_claim_ready_payouts(uuid, uuid) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.fn_unclaim_payouts(uuid, uuid) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.fn_doctor_available_balance(uuid) FROM PUBLIC;
+-- NB: no Supabase o EXECUTE já vem concedido a anon/authenticated por padrão,
+-- então além de PUBLIC é preciso revogar desses papéis explicitamente.
+REVOKE ALL ON FUNCTION public.fn_claim_ready_payouts(uuid, uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.fn_unclaim_payouts(uuid, uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.fn_doctor_available_balance(uuid) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_claim_ready_payouts(uuid, uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.fn_unclaim_payouts(uuid, uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.fn_doctor_available_balance(uuid) TO service_role;
