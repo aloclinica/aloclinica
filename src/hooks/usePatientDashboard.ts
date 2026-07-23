@@ -187,7 +187,7 @@ export const usePatientUpcoming = () => {
       if (!user) return [];
       const { data: appts } = await db
         .from("appointments")
-        .select("id, scheduled_at, status, doctor_id, duration_minutes, appointment_type, payment_status")
+        .select("id, patient_id, scheduled_at, status, doctor_id, duration_minutes, appointment_type, payment_status")
         .eq("patient_id", user.id)
         .gte("scheduled_at", new Date().toISOString())
         .in("status", ["scheduled", "waiting", "in_progress"])

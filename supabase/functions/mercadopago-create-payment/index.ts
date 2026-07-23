@@ -397,9 +397,24 @@ async function resolveServerAmount(admin: any, referenceId: string, callerId: st
       .maybeSingle();
     if (docErr || !doc) throw new AmountError("Médico não encontrado", 404);
     const base = Number(doc.consultation_price);
-    // Único desconto do produto: cupom (revalidado no servidor).
+    // Retorno: 50% de desconto quando o paciente tem consulta CONCLUÍDA com este
+    // médico cujo prazo de retorno ainda é válido (mesma regra do BookAppointment).
+    // Aplicado no SERVIDOR para a cobrança NUNCA ser maior que a exibida ao paciente.
+    let returnFactor = 1;
+    const { data: priorReturn } = await admin
+      .from("appointments")
+      .select("id")
+      .eq("patient_id", data.patient_id)
+      .eq("doctor_id", data.doctor_id)
+      .eq("status", "completed")
+      .not("return_deadline", "is", null)
+      .gte("return_deadline", new Date().toISOString())
+      .neq("id", resourceId)
+      .limit(1);
+    if (priorReturn && priorReturn.length > 0) returnFactor = 0.5;
+    // Descontos: retorno (servidor) + cupom (revalidado no servidor).
     const pct = await resolveCouponPercent(admin, couponCode);
-    const final = Math.round(base * (1 - pct / 100) * 100) / 100;
+    const final = Math.round(base * returnFactor * (1 - pct / 100) * 100) / 100;
     return requirePrice(final);
   }
 

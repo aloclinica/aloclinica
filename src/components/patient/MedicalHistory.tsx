@@ -8,7 +8,8 @@ import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Download, Sparkles, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Download, Sparkles, Loader2, ChevronDown, ChevronUp, Search, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import jsPDF from "jspdf";
@@ -22,6 +23,7 @@ interface DoctorInfo {
   crm: string;
   crm_state: string;
   name: string;
+  areas_of_expertise: string[] | null;
 }
 
 interface PrescriptionItem {
@@ -31,6 +33,7 @@ interface PrescriptionItem {
   medications: unknown;
   observations: string | null;
   created_at: string;
+  pdf_url: string | null;
 }
 
 interface HistoryAppointment {
@@ -54,8 +57,27 @@ const MedicalHistory = () => {
   const [summaries, setSummaries] = useState<Record<string, string>>({});
   const [loadingSummary, setLoadingSummary] = useState<Record<string, boolean>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   useEffect(() => { if (user) fetchHistory(); }, [user]);
+
+  // Filtro client-side sobre a lista já carregada: médico, especialidade, diagnóstico e medicamentos.
+  const q = query.trim().toLowerCase();
+  const filtered = !q ? appointments : appointments.filter((a) => {
+    const parts: string[] = [];
+    if (a.doctor?.name) parts.push(a.doctor.name);
+    if (a.doctor?.areas_of_expertise?.length) parts.push(a.doctor.areas_of_expertise.join(" "));
+    a.prescriptions.forEach((p) => {
+      if (p.diagnosis) parts.push(p.diagnosis);
+      if (p.observations) parts.push(p.observations);
+      const meds = Array.isArray(p.medications) ? p.medications : [];
+      meds.forEach((m: unknown) => {
+        const md = m as Record<string, string>;
+        parts.push(typeof m === "string" ? m : (md.name || md.medication || ""));
+      });
+    });
+    return parts.join(" ").toLowerCase().includes(q);
+  });
 
   const fetchHistory = async () => {
     const { data: appts } = await db
@@ -70,8 +92,8 @@ const MedicalHistory = () => {
     const doctorIds = [...new Set(appts.map(a => a.doctor_id))];
     const apptIds = appts.map(a => a.id);
     const [docsRes, prescRes, notesRes] = await Promise.all([
-      db.from("doctor_profiles").select("id, user_id, crm, crm_state").in("id", doctorIds),
-      db.from("prescriptions").select("id, appointment_id, diagnosis, medications, observations, created_at").eq("patient_id", user!.id),
+      db.from("doctor_profiles").select("id, user_id, crm, crm_state, areas_of_expertise").in("id", doctorIds),
+      db.from("prescriptions").select("id, appointment_id, diagnosis, medications, observations, created_at, pdf_url").eq("patient_id", user!.id),
       // Prontuário SOAP canônico: appointment_notes (type=soap). consultation_notes é legada e nunca escrita.
       (db as any).from("appointment_notes").select("appointment_id, content").eq("type", "soap").in("appointment_id", apptIds),
     ]);
@@ -137,6 +159,11 @@ const MedicalHistory = () => {
   };
 
   const downloadPrescription = (prescription: PrescriptionItem, doctorName: string) => {
+    // Documento oficial assinado tem prioridade; a reconstrução jsPDF é só fallback.
+    if (prescription.pdf_url) {
+      window.open(prescription.pdf_url, "_blank");
+      return;
+    }
     const doc = new jsPDF();
     doc.setFontSize(18);
     doc.text("Receita Médica Digital", 20, 20);
@@ -173,8 +200,22 @@ const MedicalHistory = () => {
         appointments.length === 0 ? (
           <div className="text-center py-8 rounded-2xl border border-dashed border-border/40 bg-muted/10"><img src={mascotReading} alt="Pingo" className="w-20 h-20 object-contain mx-auto drop-shadow-md mb-3 select-none" loading="lazy" decoding="async" width={80} height={80} /><p className="text-[13px] font-semibold text-foreground mb-1">Nenhuma consulta realizada ainda</p><p className="text-[11px] text-muted-foreground">Seu histórico médico aparecerá aqui após sua primeira consulta</p></div>
         ) : (
+          <>
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar por médico, especialidade, diagnóstico ou medicamento…"
+                className="pl-9"
+              />
+            </div>
+
+            {filtered.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">Nenhuma consulta encontrada para “{query}”.</p>
+            ) : (
           <div className="space-y-4">
-            {appointments.map(a => (
+            {filtered.map(a => (
               <Card key={a.id} className="border-border">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
@@ -242,14 +283,19 @@ const MedicalHistory = () => {
                     <div>
                       <p className="text-xs font-medium text-muted-foreground mb-2">Receitas</p>
                       {a.prescriptions.map((p) => (
-                        <div key={p.id} className="flex items-center justify-between p-2 border border-border rounded-lg mb-1">
-                          <div>
-                            <p className="text-sm text-foreground">{p.diagnosis || "Receita médica"}</p>
+                        <div key={p.id} className="flex items-center justify-between gap-2 p-2 border border-border rounded-lg mb-1">
+                          <div className="min-w-0">
+                            <p className="text-sm text-foreground truncate">{p.diagnosis || "Receita médica"}</p>
                             <p className="text-xs text-muted-foreground">{format(new Date(p.created_at), "dd/MM/yyyy", { locale: ptBR })}</p>
                           </div>
-                          <Button size="sm" variant="outline" onClick={() => downloadPrescription(p, a.doctor?.name ?? "Médico")}>
-                            <Download className="w-3 h-3 mr-1" /> PDF
-                          </Button>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <Button size="sm" variant="ghost" onClick={() => navigate(`/dashboard/prescriptions/renew/${p.id}`)}>
+                              <RefreshCw className="w-3 h-3 mr-1" /> Renovar
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => downloadPrescription(p, a.doctor?.name ?? "Médico")}>
+                              <Download className="w-3 h-3 mr-1" /> PDF
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -258,6 +304,8 @@ const MedicalHistory = () => {
               </Card>
             ))}
           </div>
+            )}
+          </>
         )}
       </div>
     </DashboardLayout>

@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import mascotWave from "@/assets/mascot-wave.png";
 import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
@@ -75,15 +77,60 @@ const FREQUENT_SEARCHES = ["Check-up Geral", "Dermatologia", "Nutrição", "Saú
 
 type DoctorTypeFilter = "telemedicina";
 
+type Slot = { day_of_week: number; start_time: string; end_time: string };
+
+// Próximo horário disponível a partir da agenda semanal (availability_slots).
+// Aproximação para a lista: varre até 14 dias e devolve o 1º slot futuro em passos de 30 min.
+// Não desconta consultas já reservadas (isso é validado no fluxo de agendamento).
+const computeNextSlot = (slots: Slot[], now: Date): Date | null => {
+  if (!slots || slots.length === 0) return null;
+  let best: Date | null = null;
+  for (let dayOffset = 0; dayOffset < 14; dayOffset++) {
+    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + dayOffset);
+    const dow = date.getDay();
+    for (const slot of slots) {
+      if (slot.day_of_week !== dow) continue;
+      const [startH, startM] = slot.start_time.split(":").map(Number);
+      const [endH, endM] = slot.end_time.split(":").map(Number);
+      let h = startH, m = startM;
+      while (h < endH || (h === endH && m < endM)) {
+        const dt = new Date(date);
+        dt.setHours(h, m, 0, 0);
+        if (dt.getTime() >= now.getTime()) {
+          if (!best || dt < best) best = dt;
+          break;
+        }
+        m += 30;
+        if (m >= 60) { h++; m = 0; }
+      }
+    }
+    if (best) break;
+  }
+  return best;
+};
+
+const formatNextSlot = (dt: Date): string => {
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfDt = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+  const dayDiff = Math.round((startOfDt.getTime() - startOfToday.getTime()) / 86400000);
+  const time = format(dt, "HH:mm");
+  if (dayDiff === 0) return `Hoje ${time}`;
+  if (dayDiff === 1) return `Amanhã ${time}`;
+  if (dayDiff < 7) return `${format(dt, "EEE", { locale: ptBR }).replace(".", "")} ${time}`;
+  return `${format(dt, "dd/MM", { locale: ptBR })} ${time}`;
+};
+
 const DoctorSearch = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const isUrgency = searchParams.get("urgency") === "true";
   const initialQ = searchParams.get("q") ?? "";
-  const initialType: DoctorTypeFilter = "telemedicina";
-  const [doctorType, setDoctorType] = useState<DoctorTypeFilter>(initialType);
+  // Único tipo de atendimento hoje — mantido como constante para a query (doctor_type).
+  const doctorType: DoctorTypeFilter = "telemedicina";
   const [doctors, setDoctors] = useState<DoctorResult[]>([]);
   const [availableNowIds, setAvailableNowIds] = useState<Set<string>>(new Set());
+  const [nextSlotMap, setNextSlotMap] = useState<Map<string, Date>>(new Map());
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [specialties, setSpecialties] = useState<{ id: string; name: string }[]>([]);
   const [search, setSearch] = useState(initialQ);
@@ -101,6 +148,7 @@ const DoctorSearch = () => {
   const [sortBy, setSortBy] = useState<string>("rating");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [insuranceOnly, setInsuranceOnly] = useState(false);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [totalDoctors, setTotalDoctors] = useState<number>(0);
   const [loadingMore, setLoadingMore] = useState(false);
   const PAGE_SIZE = 50;
@@ -119,6 +167,21 @@ const DoctorSearch = () => {
       setViewMode("results");
     }
   }, [debouncedSearch, selectedSpecialty, isUrgency]);
+
+  // Landing de triagem guiada: ?specialty=<id> (e/ou ?q=<text>) pré-filtra a lista.
+  // Resolve o id para o nome da especialidade (o filtro compara por nome) uma única vez.
+  const specialtyParamApplied = useRef(false);
+  useEffect(() => {
+    if (specialtyParamApplied.current) return;
+    const specId = searchParams.get("specialty");
+    if (!specId || specialties.length === 0) return;
+    const match = specialties.find(s => s.id === specId);
+    if (match) {
+      setSelectedSpecialty(match.name);
+      setViewMode("results");
+    }
+    specialtyParamApplied.current = true;
+  }, [specialties, searchParams]);
 
   const fetchFavorites = async () => {
     if (!user) return;
@@ -189,12 +252,24 @@ const DoctorSearch = () => {
     const currentDay = now.getDay();
     const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
     const availableNow = new Set<string>();
+    const slotsByDoctor = new Map<string, Slot[]>();
     slotsRes.data?.forEach(slot => {
       if (slot.day_of_week === currentDay && slot.start_time <= currentTime && slot.end_time > currentTime) {
         availableNow.add(slot.doctor_id);
       }
+      const arr = slotsByDoctor.get(slot.doctor_id) ?? [];
+      arr.push(slot);
+      slotsByDoctor.set(slot.doctor_id, arr);
     });
     setAvailableNowIds(availableNow);
+
+    // Próximo horário por médico (reaproveita os slots já carregados neste batch).
+    const nextSlots = new Map<string, Date>();
+    doctorIds.forEach(id => {
+      const next = computeNextSlot(slotsByDoctor.get(id) ?? [], now);
+      if (next) nextSlots.set(id, next);
+    });
+    setNextSlotMap(prev => loadMore ? new Map([...prev, ...nextSlots]) : nextSlots);
 
     const profilesMap = new Map(profilesRes.data?.map(p => [p.user_id, p]) ?? []);
     const specsMap = new Map<string, string[]>();
@@ -250,7 +325,8 @@ const DoctorSearch = () => {
         (availabilityFilter === "today" && availableNowIds.has(d.id)) ||
         (availabilityFilter === "on_duty" && Boolean(d.available_now));
       const insuranceMatch = !insuranceOnly || Boolean(d.accepts_insurance);
-      return nameMatch && specMatch && urgencyMatch && priceMatch && ratingMatch && availMatch && insuranceMatch;
+      const favMatch = !favoritesOnly || favoriteIds.has(d.id);
+      return nameMatch && specMatch && urgencyMatch && priceMatch && ratingMatch && availMatch && insuranceMatch && favMatch;
     })
     .sort((a, b) => {
       const aFav = favoriteIds.has(a.id) ? 1 : 0;
@@ -263,10 +339,15 @@ const DoctorSearch = () => {
       if (sortBy === "price_asc") return a.consultation_price - b.consultation_price;
       if (sortBy === "price_desc") return b.consultation_price - a.consultation_price;
       if (sortBy === "experience") return (b.experience_years ?? 0) - (a.experience_years ?? 0);
+      if (sortBy === "soonest") {
+        const at = nextSlotMap.get(a.id)?.getTime() ?? Infinity;
+        const bt = nextSlotMap.get(b.id)?.getTime() ?? Infinity;
+        return at - bt;
+      }
       return 0;
     });
 
-  const activeFilters = (minRating > 0 ? 1 : 0) + (availabilityFilter !== "all" ? 1 : 0) + (sortBy !== "rating" ? 1 : 0) + (insuranceOnly ? 1 : 0);
+  const activeFilters = (minRating > 0 ? 1 : 0) + (availabilityFilter !== "all" ? 1 : 0) + (sortBy !== "rating" ? 1 : 0) + (insuranceOnly ? 1 : 0) + (favoritesOnly ? 1 : 0);
 
   const clearFilters = () => {
     setMinRating(0);
@@ -274,6 +355,7 @@ const DoctorSearch = () => {
     setSortBy("rating");
     setPriceRange([0, 500]);
     setInsuranceOnly(false);
+    setFavoritesOnly(false);
   };
 
   const FiltersContent = () => (
@@ -310,12 +392,20 @@ const DoctorSearch = () => {
         </div>
         <Switch checked={insuranceOnly} onCheckedChange={setInsuranceOnly} />
       </div>
+      <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/40">
+        <div className="flex items-center gap-2">
+          <Heart className="w-4 h-4 text-destructive" />
+          <p className="text-sm font-medium text-foreground">Somente favoritos</p>
+        </div>
+        <Switch checked={favoritesOnly} onCheckedChange={setFavoritesOnly} />
+      </div>
       <div>
         <p className="text-sm font-medium text-foreground mb-3">🔄 Ordenar por</p>
         <Select value={sortBy} onValueChange={setSortBy}>
           <SelectTrigger className="h-11 rounded-2xl"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="rating">Melhor avaliação</SelectItem>
+            <SelectItem value="soonest">Mais cedo disponível</SelectItem>
             <SelectItem value="price_asc">Menor preço</SelectItem>
             <SelectItem value="price_desc">Maior preço</SelectItem>
             <SelectItem value="experience">Mais experiente</SelectItem>
@@ -368,31 +458,6 @@ const DoctorSearch = () => {
           </div>
         </section>
         <div className="mb-5 flex flex-col gap-3 rounded-[26px] border border-border/45 bg-card/90 p-3 shadow-sm backdrop-blur md:flex-row md:items-center">
-        {/* Doctor type segmented control */}
-        <div className="inline-flex p-1 rounded-2xl bg-muted/60 border border-border/30 w-full md:w-auto">
-          {([
-            { value: "telemedicina", label: "Telemedicina", icon: Stethoscope },
-          ] as const).map(opt => {
-            const Icon = opt.icon;
-            const active = doctorType === opt.value;
-            return (
-              <button
-                key={opt.value}
-                onClick={() => { setDoctorType(opt.value); setSelectedSpecialty(null); }}
-                className={cn(
-                  "flex-1 sm:flex-none h-10 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-95",
-                  active
-                    ? "bg-card text-[hsl(var(--p-primary))] shadow-[var(--p-shadow-card)]"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Icon className="w-4 h-4" />
-                {opt.label}
-              </button>
-            );
-          })}
-        </div>
-
         {/* Search bar */}
         <div className="flex flex-1 gap-2">
           <div className="relative flex-1">
@@ -646,6 +711,13 @@ const DoctorSearch = () => {
                           <span className="text-xl font-extrabold text-foreground font-[Manrope]">R$ {doctor.consultation_price.toFixed(2).replace(".", ",")}</span>
                           <span className="text-xs text-muted-foreground ml-1">/consulta</span>
                           <span className="block text-[11px] text-muted-foreground/80 flex items-center gap-1"><Clock className="w-3 h-3" /> {doctor.consultation_duration ?? 30} min</span>
+                          {nextSlotMap.has(doctor.id) ? (
+                            <span className="mt-0.5 text-[11px] font-semibold text-[hsl(var(--p-primary))] flex items-center gap-1">
+                              <Calendar className="w-3 h-3" /> Próximo horário: {formatNextSlot(nextSlotMap.get(doctor.id)!)}
+                            </span>
+                          ) : (
+                            <span className="mt-0.5 block text-[11px] text-muted-foreground/70">Ver horários disponíveis</span>
+                          )}
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0 sm:justify-end">
                           <Button size="sm" variant="ghost" className="h-9 px-2.5 rounded-full text-xs text-muted-foreground hover:text-foreground"

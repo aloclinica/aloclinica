@@ -26,7 +26,7 @@ import SectionErrorBoundary from "@/components/ui/section-error-boundary";
 import PatientHealthReport from "@/components/patient/PatientHealthReport";
 import {
    usePatientStats, usePatientUpcoming, useReturnAppointments, useRecentHealthMetrics, useHealthTimeline,
-  useDetectPatientService, type ServiceType,
+  useFavoriteDoctors, useDetectPatientService, type ServiceType,
 } from "@/hooks/usePatientDashboard";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -99,6 +99,7 @@ const PatientDashboard = () => {
   const { data: upcoming = [], isLoading: upcomingLoading, isError: upcomingError } = usePatientUpcoming();
   const { data: returnAppts = [] } = useReturnAppointments();
   const { data: healthMetrics = [] } = useRecentHealthMetrics();
+  const { data: favoriteDoctors = [] } = useFavoriteDoctors();
   const { data: timelineEvents = [], isLoading: timelineLoading } = useHealthTimeline(3);
   const loading = statsLoading || upcomingLoading || detectingService;
   const waitingAppt = upcoming.find((a: any) => a.status === "waiting" || a.status === "in_progress") ?? null;
@@ -117,6 +118,7 @@ const PatientDashboard = () => {
     await queryClient.invalidateQueries({ queryKey: ["patient-dashboard-stats"] });
     await queryClient.invalidateQueries({ queryKey: ["patient-return-appts"] });
     await queryClient.invalidateQueries({ queryKey: ["patient-recent-metrics"] });
+    await queryClient.invalidateQueries({ queryKey: ["patient-fav-doctors"] });
     setTimeout(() => setIsRefreshing(false), 600);
   }, [queryClient]);
 
@@ -212,15 +214,21 @@ const PatientDashboard = () => {
       {showOnboarding && <PatientOnboarding onComplete={() => setShowOnboarding(false)} />}
       {!showOnboarding && <FirstConsultationTour />}
       <div ref={scrollRef} className="space-y-6 pb-24 md:pb-12 max-w-7xl mx-auto">
-        <ImminentConsultationBar
-          appt={waitingAppt ?? nextAppt}
-          role="patient"
-        />
+        {waitingAppt ? (
+          <SectionErrorBoundary fallbackTitle="Erro na sala de espera">
+            <PatientWaitingCard appointment={waitingAppt} />
+          </SectionErrorBoundary>
+        ) : (
+          <ImminentConsultationBar appt={nextAppt} role="patient" />
+        )}
         <PatientHomeModern
           firstName={firstName}
           stats={stats}
           nextAppt={nextAppt}
           timelineEvents={timelineEvents}
+          returnAppts={returnAppts}
+          favoriteDoctors={favoriteDoctors}
+          healthMetrics={healthMetrics}
           navigate={navigate}
         />
       </div>
@@ -228,11 +236,17 @@ const PatientDashboard = () => {
   );
 };
 
-const PatientHomeModern = ({ firstName, stats, nextAppt, timelineEvents, navigate }: any) => {
+const PatientHomeModern = ({ firstName, stats, nextAppt, timelineEvents, returnAppts = [], favoriteDoctors = [], healthMetrics = [], navigate }: any) => {
   const scheduledAt = nextAppt ? new Date(nextAppt.scheduled_at) : null;
   const activities = (timelineEvents ?? []).slice(0, 3);
   const PAID_STATUSES = ["approved", "confirmed", "received", "paid"];
   const paymentApproved = nextAppt ? PAID_STATUSES.includes(String(nextAppt.payment_status ?? "").toLowerCase()) : false;
+  const nextPaymentPending = !!nextAppt && nextAppt.status === "scheduled" && !paymentApproved;
+  const returns = (returnAppts ?? []).slice(0, 3);
+  const favorites = (favoriteDoctors ?? []).slice(0, 6);
+  const healthNudge = (healthMetrics?.length ?? 0) > 0
+    ? { title: "Acompanhe sua saúde", sub: "Veja seus indicadores e evolução", path: "/dashboard/patient/health?role=patient" }
+    : { title: "Comece seu diário de sintomas", sub: "Registre como você se sente hoje", path: "/dashboard/patient/diary?role=patient" };
   const actionCards = [
     { label: "Agendar", sub: "Consulta", icon: CalendarCheck, path: "/dashboard/schedule?role=patient", tone: "from-blue-500 to-cyan-500", soft: "bg-blue-500/10 text-blue-600" },
     { label: "Urgência", sub: "Agora", icon: Lightning, path: "/dashboard/urgent-care?role=patient", tone: "from-rose-500 to-orange-500", soft: "bg-rose-500/10 text-rose-600" },
@@ -310,6 +324,30 @@ const PatientHomeModern = ({ firstName, stats, nextAppt, timelineEvents, navigat
         </div>
       </motion.section>
 
+      {nextPaymentPending && (
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          whileTap={{ scale: 0.99 }}
+          onClick={() => navigate(`/dashboard/schedule/${nextAppt.doctor_id}?resume=${nextAppt.id}`)}
+          className="flex w-full items-center gap-4 rounded-[24px] border border-amber-500/25 bg-amber-500/[0.07] p-4 text-left shadow-sm transition hover:-translate-y-0.5"
+        >
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-amber-500 text-white shadow-lg shadow-amber-500/25">
+            <Warning size={24} weight="fill" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-black text-amber-700">Pagamento pendente</p>
+            <p className="mt-0.5 truncate text-xs font-semibold text-amber-700/80">
+              Finalize para confirmar sua consulta com {nextAppt.doctor_name}.
+            </p>
+          </div>
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-500 px-3 py-2 text-[11px] font-black text-white sm:px-4 sm:text-xs">
+            <span className="hidden sm:inline">Finalizar pagamento</span>
+            <ArrowRight size={14} weight="bold" />
+          </span>
+        </motion.button>
+      )}
+
       <div className="grid gap-4 lg:grid-cols-[1.05fr_.95fr]">
         <section className="rounded-[28px] border border-border/55 bg-card p-4 shadow-sm md:p-5">
           <div className="mb-4 flex items-center justify-between gap-3">
@@ -380,6 +418,78 @@ const PatientHomeModern = ({ firstName, stats, nextAppt, timelineEvents, navigat
           </div>
         </section>
       </div>
+
+      {returns.length > 0 && (
+        <section className="rounded-[28px] border border-emerald-500/20 bg-emerald-500/[0.05] p-4 shadow-sm md:p-5">
+          <div className="mb-3 flex items-center gap-2.5">
+            <div className="grid h-9 w-9 place-items-center rounded-2xl bg-emerald-500/12 text-emerald-600">
+              <Gift size={18} weight="fill" />
+            </div>
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-emerald-700">Retorno disponível</p>
+              <p className="text-xs font-semibold text-muted-foreground">Reagende sem custo dentro do prazo</p>
+            </div>
+          </div>
+          <div className="grid gap-2">
+            {returns.map((ra: any) => (
+              <div key={ra.id} className="flex items-center justify-between gap-3 rounded-2xl border border-border/40 bg-card p-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <LazyAvatar name={ra.doctor_name} className="h-10 w-10" fallbackClassName="bg-emerald-500/10 text-emerald-700 text-xs font-black" />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black text-foreground">{ra.doctor_name}</p>
+                    <p className="truncate text-xs font-medium text-muted-foreground">Válido até {format(new Date(ra.return_deadline), "dd/MM")}</p>
+                  </div>
+                </div>
+                <Button size="sm" onClick={() => navigate(`/dashboard/schedule/${ra.doctor_id}?return=true&original=${ra.id}`)} className="h-9 shrink-0 rounded-full bg-emerald-600 px-4 text-xs font-black text-white hover:bg-emerald-700">
+                  Agendar
+                </Button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {favorites.length > 0 && (
+        <section className="rounded-[28px] border border-border/55 bg-card p-4 shadow-sm md:p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-muted-foreground">Meu médico</p>
+              <h2 className="mt-1 text-lg font-black text-foreground">Agende de novo</h2>
+            </div>
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-rose-500/10 text-rose-500">
+              <Heart size={24} weight="fill" />
+            </div>
+          </div>
+          <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
+            {favorites.map((doc: any) => (
+              <div key={doc.id} className="flex w-[150px] shrink-0 flex-col items-center rounded-2xl border border-border/40 bg-background p-3 text-center">
+                <LazyAvatar name={doc.name} className="h-14 w-14" fallbackClassName="bg-primary/10 text-primary text-sm font-black" />
+                <p className="mt-2 line-clamp-1 text-sm font-black text-foreground">{doc.name}</p>
+                <p className="line-clamp-1 text-[11px] font-medium text-muted-foreground">{doc.specs?.[0] ?? "Atendimento médico"}</p>
+                <Button size="sm" onClick={() => navigate(`/dashboard/schedule/${doc.id}`)} className="mt-2 h-8 w-full rounded-full text-[11px] font-black">
+                  Agendar
+                </Button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <button
+        onClick={() => navigate(healthNudge.path)}
+        className="flex w-full items-center gap-4 rounded-[24px] border border-primary/12 bg-gradient-to-br from-primary/[0.06] via-card to-card p-4 text-left shadow-sm transition hover:-translate-y-0.5"
+      >
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
+          <Heartbeat size={24} weight="fill" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-black text-foreground">{healthNudge.title}</p>
+          <p className="mt-0.5 truncate text-xs font-medium text-muted-foreground">{healthNudge.sub}</p>
+        </div>
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+          <ArrowRight size={16} weight="bold" />
+        </span>
+      </button>
 
       <section className="rounded-[28px] border border-border/55 bg-card p-4 shadow-sm md:p-5">
         <div className="mb-4 flex items-center justify-between">

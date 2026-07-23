@@ -50,6 +50,7 @@ const PatientSupportChat = lazy(() => import("@/components/patient/PatientSuppor
 const DependentsManager = lazy(() => import("@/components/patient/DependentsManager"));
 const HealthTimeline = lazy(() => import("@/components/patient/HealthTimeline"));
 const SymptomDiary = lazy(() => import("@/components/patient/SymptomDiary"));
+const SymptomTriage = lazy(() => import("@/components/patient/SymptomTriage"));
 const DoctorPrescriptions = lazy(() => import("@/components/doctor/DoctorPrescriptions"));
 const DoctorEarnings = lazy(() => import("@/components/doctor/DoctorEarnings"));
 const MedicalCertificate = lazy(() => import("@/components/doctor/MedicalCertificate"));
@@ -311,6 +312,7 @@ const Dashboard = () => {
       <Route path="notifications" element={<Notifications />} />
       
       <Route path="book" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><DoctorSearch /></ContextGuard></RoleGuard>} />
+      <Route path="triage" element={<RoleGuard allowed={["patient"]} roles={roles}><ContextGuard panel="patient" forceRole={forceRole} roles={roles}><SymptomTriage /></ContextGuard></RoleGuard>} />
 
       {/* Doctor routes */}
       <Route path="availability" element={<RoleGuard allowed={["doctor"]} roles={roles}><ContextGuard panel="doctor" forceRole={forceRole} roles={roles}><DoctorAvailability /></ContextGuard></RoleGuard>} />

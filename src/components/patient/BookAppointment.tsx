@@ -66,9 +66,8 @@ const BookAppointment = () => {
   const [recurrence, setRecurrence] = useState("none");
   const [recurrenceCount, setRecurrenceCount] = useState(4);
 
-  // Return eligibility
+  // Return eligibility — retorno com 50% de desconto (consulta concluída dentro do prazo de retorno)
   const [returnEligible, setReturnEligible] = useState(false);
-  const [originalPrice, setOriginalPrice] = useState<number | null>(null);
 
   // Payment state
   const [paymentStep, setPaymentStep] = useState(false);
@@ -129,12 +128,12 @@ const BookAppointment = () => {
     const checkReturn = async () => {
       if (appointmentType !== "return" || !user || !doctorId) {
         setReturnEligible(false);
-        setOriginalPrice(null);
         return;
       }
+      // Elegível a retorno: existe consulta concluída com este médico cujo prazo de retorno ainda é válido.
       const { data } = await db
         .from("appointments")
-        .select("id, price_at_booking, return_deadline")
+        .select("id, return_deadline")
         .eq("patient_id", user.id)
         .eq("doctor_id", doctorId)
         .eq("status", "completed")
@@ -142,13 +141,7 @@ const BookAppointment = () => {
         .gte("return_deadline", new Date().toISOString())
         .order("scheduled_at", { ascending: false })
         .limit(1);
-      if (data && data.length > 0) {
-        setReturnEligible(true);
-        setOriginalPrice(data[0].price_at_booking);
-      } else {
-        setReturnEligible(false);
-        setOriginalPrice(null);
-      }
+      setReturnEligible(Boolean(data && data.length > 0));
     };
     checkReturn();
   }, [appointmentType, user, doctorId]);
@@ -342,10 +335,45 @@ const BookAppointment = () => {
     return doctor.slots.some(s => s.day_of_week === dayOfWeek);
   };
 
+  // Próximos horários abertos: varre a agenda semanal do médico a partir de agora e
+  // devolve os primeiros `limit` slots. Reaproveita doctor.slots já carregado; a
+  // checagem anti-duplo-agendamento roda na confirmação (handleBook) e no índice do banco.
+  const getUpcomingSlots = (limit = 5): { date: Date; time: string }[] => {
+    if (!doctor) return [];
+    const now = new Date();
+    const result: { date: Date; time: string }[] = [];
+    for (let offset = 0; offset < 30 && result.length < limit; offset++) {
+      const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
+      if (!isDayAvailable(date)) continue;
+      const dayOfWeek = date.getDay();
+      const daySlots = doctor.slots.filter(s => s.day_of_week === dayOfWeek);
+      const times: string[] = [];
+      daySlots.forEach(slot => {
+        const [startH, startM] = slot.start_time.split(":").map(Number);
+        const [endH, endM] = slot.end_time.split(":").map(Number);
+        let h = startH, m = startM;
+        while (h < endH || (h === endH && m < endM)) {
+          const slotDateTime = setMinutes(setHours(new Date(date), h), m);
+          if (!isBefore(slotDateTime, now)) times.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+          m += 30;
+          if (m >= 60) { h++; m = 0; }
+        }
+      });
+      times.sort();
+      for (const t of times) {
+        if (result.length >= limit) break;
+        result.push({ date: new Date(date), time: t });
+      }
+    }
+    return result;
+  };
+
   const fullPrice = doctor?.consultation_price ?? 89;
-  // Produto: só cupom, sem desconto de retorno. O preço-base é sempre o cheio do médico
-  // (o servidor também usa doctor_profiles.consultation_price — front e back batem).
-  const basePrice = fullPrice;
+  // Retorno: 50% de desconto sobre o preço do médico quando o paciente é elegível
+  // (consulta concluída com prazo de retorno válido). Cupom/cartão incidem sobre a base já com o retorno.
+  const RETURN_DISCOUNT_PCT = 50;
+  const returnDiscountAmount = returnEligible ? fullPrice * (RETURN_DISCOUNT_PCT / 100) : 0;
+  const basePrice = fullPrice - returnDiscountAmount;
   const discountAmount = basePrice * (cardDiscount / 100);
   const couponAmount = basePrice * (couponDiscount / 100);
   const totalPrice = Math.max(basePrice - discountAmount - couponAmount, 0);
@@ -700,6 +728,7 @@ const BookAppointment = () => {
   };
 
   const availableTimes = selectedDate ? getAvailableTimesForDate(selectedDate) : [];
+  const upcomingSlots = getUpcomingSlots(5);
 
   // ── Cadastro rápido dialog ──
   const quickDialog = (
@@ -816,8 +845,11 @@ const BookAppointment = () => {
           </div>
           <div className="text-right shrink-0">
             <p className="text-xl font-black text-foreground">R${totalPrice.toFixed(0)}</p>
-            {cardDiscount > 0 && (
-              <p className="text-[10px] text-secondary line-through">R${basePrice.toFixed(0)}</p>
+            {totalPrice < fullPrice && (
+              <p className="text-[10px] text-secondary line-through">R${fullPrice.toFixed(0)}</p>
+            )}
+            {returnEligible && (
+              <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Retorno -{RETURN_DISCOUNT_PCT}%</p>
             )}
             <p className="text-[10px] text-muted-foreground">por consulta</p>
           </div>
@@ -879,6 +911,24 @@ const BookAppointment = () => {
               <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                 <CalendarDays className="w-4 h-4 text-primary" /> Escolha a data
               </h3>
+              {upcomingSlots.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-primary" /> Próximos horários
+                  </p>
+                  <div className="flex gap-2 flex-wrap">
+                    {upcomingSlots.map(({ date, time }) => (
+                      <button
+                        key={`${date.toISOString()}-${time}`}
+                        onClick={() => { setSelectedDate(date); setSelectedTime(time); }}
+                        className="h-10 px-3 rounded-xl border border-primary/20 bg-primary/5 text-sm font-medium text-primary hover:bg-primary/10 active:scale-95 transition-all"
+                      >
+                        {format(date, "EEE dd/MM", { locale: ptBR }).replace(".", "")} · {time}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <Calendar
                 mode="single" selected={selectedDate}
                 onSelect={(d) => { setSelectedDate(d); setSelectedTime(null); }}
@@ -985,6 +1035,11 @@ const BookAppointment = () => {
                       <SelectItem value="urgency"><span className="flex items-center gap-2"><AlertTriangle className="w-3.5 h-3.5" /> Urgência</span></SelectItem>
                     </SelectContent>
                   </Select>
+                  {appointmentType === "return" && returnEligible && (
+                    <div className="mt-2 flex items-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 text-[12px] font-medium text-emerald-700 dark:text-emerald-400">
+                      <CheckCircle2 className="w-4 h-4 shrink-0" /> Retorno com {RETURN_DISCOUNT_PCT}% de desconto aplicado.
+                    </div>
+                  )}
                 </div>
 
                 <div className="bg-muted/50 rounded-xl p-4 space-y-2.5 mb-5">
@@ -1000,8 +1055,16 @@ const BookAppointment = () => {
                   <div className="pt-2 border-t border-border/60 space-y-1 text-[12px]">
                     <div className="flex items-center justify-between text-muted-foreground">
                       <span>Subtotal</span>
-                      <span className="tabular-nums">R$ {basePrice.toFixed(2)}</span>
+                      <span className="tabular-nums">R$ {fullPrice.toFixed(2)}</span>
                     </div>
+                    {returnEligible && returnDiscountAmount > 0 && (
+                      <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
+                        <span className="inline-flex items-center gap-1">
+                          <UserCheck className="w-3 h-3" /> Retorno (-{RETURN_DISCOUNT_PCT}%)
+                        </span>
+                        <span className="tabular-nums">- R$ {returnDiscountAmount.toFixed(2)}</span>
+                      </div>
+                    )}
                     {couponCode && couponDiscount > 0 && (
                       <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
                         <span className="inline-flex items-center gap-1">
@@ -1130,6 +1193,9 @@ const BookAppointment = () => {
                     <Lock className="w-3 h-3 mr-2" /> Checkout Seguro
                   </Badge>
                   <h3 className="text-3xl font-black tracking-tight mb-2">Finalizar Agendamento</h3>
+                  {totalPrice < fullPrice && (
+                    <span className="text-sm font-medium line-through opacity-60">R$ {fullPrice.toFixed(2)}</span>
+                  )}
                   <div className="flex items-baseline gap-1">
                     <span className="text-lg opacity-80 font-medium">R$</span>
                     <span className="text-5xl font-black">{totalPrice.toFixed(2)}</span>

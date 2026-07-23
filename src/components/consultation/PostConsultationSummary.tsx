@@ -1,16 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "@/integrations/supabase/untyped";
-import { useAuth } from "@/contexts/AuthContext";
 import { logError } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   CheckCircle2, Clock, FileText, Pill, Star, ArrowRight,
-  MessageSquare, Shield, Send, CalendarPlus, Download, Stamp, Users,
+  MessageSquare, Shield, CalendarPlus, Download, Stamp, Users,
   FlaskConical, Sparkles, Loader2, Copy, Check, ClipboardList, BellRing
 } from "lucide-react";
 
@@ -30,7 +28,6 @@ const PostConsultationSummary = ({
   onContinue,
 }: PostConsultationSummaryProps) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [hasNotes, setHasNotes] = useState(false);
   const [hasPrescription, setHasPrescription] = useState(false);
   const [hasCertificate, setHasCertificate] = useState(false);
@@ -46,15 +43,6 @@ const PostConsultationSummary = ({
   const [aiCopied, setAiCopied] = useState(false);
   const [sendingSummary, setSendingSummary] = useState(false);
   const [summarySent, setSummarySent] = useState(false);
-
-  // Rating state
-  const [existingRating, setExistingRating] = useState<number | null>(null);
-  const [showRating, setShowRating] = useState(false);
-  const [hoveredStar, setHoveredStar] = useState(0);
-  const [selectedRating, setSelectedRating] = useState(0);
-  const [reviewText, setReviewText] = useState("");
-  const [ratingSubmitting, setRatingSubmitting] = useState(false);
-  const [ratingDone, setRatingDone] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -106,28 +94,6 @@ const PostConsultationSummary = ({
     };
     load();
   }, [appointmentId, isDoctor]);
-
-  const handleSubmitRating = async () => {
-    if (!selectedRating) { toast.error("Selecione uma avaliação de 1 a 5 estrelas"); return; }
-    setRatingSubmitting(true);
-    const { error } = await db.from("satisfaction_surveys").insert({
-      appointment_id: appointmentId,
-      patient_id: user?.id,
-      nps_score: selectedRating * 2,
-      comment: reviewText.trim() || null,
-    } as any);
-
-    if (error) {
-      logError("[PostConsultationSummary] submit rating failed", error);
-      toast.error("Erro ao salvar avaliação. Tente novamente.");
-    } else {
-      setRatingDone(true);
-      setExistingRating(selectedRating);
-      toast.success("Avaliação enviada! Obrigado pelo seu feedback.");
-      setTimeout(() => onContinue(), 1500);
-    }
-    setRatingSubmitting(false);
-  };
 
   // Gera resumo clínico da consulta via IA (clinical-ai) para o médico revisar/enviar
   const handleGenerateSummary = async () => {
@@ -197,8 +163,6 @@ const PostConsultationSummary = ({
       setSendingSummary(false);
     }
   };
-
-  const starLabel = (n: number) => ["", "Ruim", "Regular", "Bom", "Muito bom", "Excelente"][n] ?? "";
 
   const formatDuration = (s: number) => {
     const h = Math.floor(s / 3600);
@@ -288,94 +252,6 @@ const PostConsultationSummary = ({
             </div>
           </CardContent>
         </Card>
-
-        {/* Patient Rating Section */}
-        <AnimatePresence>
-          {!isDoctor && showRating && (
-            <motion.div
-              key="rating-panel"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="overflow-hidden mb-4"
-            >
-              <Card className="bg-card border-border">
-                <CardContent className="p-4 space-y-4">
-                  <p className="text-sm font-semibold text-foreground text-center">
-                    {ratingDone ? "Sua avaliação" : `Como foi sua consulta com ${otherPartyName || "o médico"}?`}
-                  </p>
-
-                  {/* Stars */}
-                  <div className="flex justify-center gap-2" role="group" aria-label="Avaliação de 1 a 5 estrelas">
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <button
-                        key={n}
-                        type="button"
-                        disabled={ratingDone}
-                        aria-label={`${n} estrela${n > 1 ? "s" : ""} — ${starLabel(n)}`}
-                        onMouseEnter={() => !ratingDone && setHoveredStar(n)}
-                        onMouseLeave={() => !ratingDone && setHoveredStar(0)}
-                        onClick={() => !ratingDone && setSelectedRating(n)}
-                        className="transition-transform active:scale-90 disabled:cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
-                      >
-                        <Star
-                          className={`w-9 h-9 sm:w-10 sm:h-10 transition-colors ${
-                            n <= (hoveredStar || selectedRating)
-                              ? "fill-yellow-400 text-yellow-400"
-                              : "text-muted-foreground/40"
-                          }`}
-                        />
-                      </button>
-                    ))}
-                  </div>
-
-                  {selectedRating > 0 && (
-                    <p className="text-center text-sm font-medium text-primary">
-                      {starLabel(selectedRating)}
-                    </p>
-                  )}
-
-                  {!ratingDone && (
-                    <>
-                      <Textarea
-                        placeholder="Comentário opcional sobre a consulta..."
-                        value={reviewText}
-                        onChange={(e) => setReviewText(e.target.value)}
-                        rows={3}
-                        className="resize-none text-sm"
-                        maxLength={500}
-                      />
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          className="flex-1 h-10 rounded-xl text-sm"
-                          onClick={() => { setShowRating(false); setSelectedRating(0); setReviewText(""); setHoveredStar(0); }}
-                        >
-                          Pular
-                        </Button>
-                        <Button
-                          className="flex-1 h-10 rounded-xl text-sm gap-1.5"
-                          onClick={handleSubmitRating}
-                          disabled={ratingSubmitting || !selectedRating}
-                        >
-                          <Send className="w-3.5 h-3.5" />
-                          {ratingSubmitting ? "Enviando..." : "Enviar Avaliação"}
-                        </Button>
-                      </div>
-                    </>
-                  )}
-
-                  {ratingDone && (
-                    <p className="text-center text-xs text-muted-foreground">
-                      Avaliação registrada. Obrigado!
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* Ferramentas do médico — pós-consulta */}
         {isDoctor && (
@@ -473,13 +349,14 @@ const PostConsultationSummary = ({
             </Button>
           )}
 
-          {!isDoctor && !showRating && !ratingDone && (
+          {!isDoctor && (
             <Button
               className="w-full h-12 rounded-xl font-semibold gap-2"
-              onClick={() => setShowRating(true)}
+              onClick={onContinue}
             >
               <Star className="w-5 h-5" />
               Avaliar Consulta
+              <ArrowRight className="w-4 h-4" />
             </Button>
           )}
 
@@ -505,14 +382,24 @@ const PostConsultationSummary = ({
             </Button>
           )}
 
-          <Button
-            onClick={onContinue}
-            variant={(!isDoctor && !ratingDone) || (isDoctor && !hasPrescription) ? "outline" : "default"}
-            className="w-full h-12 rounded-xl font-semibold gap-2"
-          >
-            {isDoctor ? "Voltar ao Dashboard" : ratingDone ? "Continuar" : "Pular Avaliação"}
-            <ArrowRight className="w-4 h-4" />
-          </Button>
+          {isDoctor ? (
+            <Button
+              onClick={onContinue}
+              variant={!hasPrescription ? "outline" : "default"}
+              className="w-full h-12 rounded-xl font-semibold gap-2"
+            >
+              Voltar ao Dashboard
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          ) : (
+            <Button
+              onClick={() => navigate("/dashboard")}
+              variant="ghost"
+              className="w-full h-11 rounded-xl text-sm gap-2 text-muted-foreground"
+            >
+              Pular avaliação
+            </Button>
+          )}
         </div>
 
         <p className="text-[10px] text-muted-foreground text-center mt-6">

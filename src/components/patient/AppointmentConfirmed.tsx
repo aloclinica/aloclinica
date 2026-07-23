@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { CheckCircle2, Calendar, Clock, Video, ArrowRight, Stethoscope, Download, Home, ListChecks, Loader2, Copy, Wifi, Mic, Camera, FileText, Receipt, RefreshCw, X, ShieldCheck, AlertTriangle, Info, BellRing, ChevronDown, Check, Mail } from "lucide-react";
+import { CheckCircle2, Calendar, Clock, Video, ArrowRight, Stethoscope, Download, Home, ListChecks, Loader2, Copy, Wifi, Mic, Camera, FileText, Receipt, RefreshCw, X, ShieldCheck, AlertTriangle, Info, BellRing, ChevronDown, Check, Mail, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -470,6 +470,37 @@ const AppointmentConfirmed = () => {
                   <span className="text-lg font-black text-foreground tabular-nums">
                     {formatBRL(appt.price_at_booking)}
                   </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Pre-consultation CTA — coleta informações para o médico antes da consulta */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-6"
+        >
+          <Card className="border-primary/30 bg-primary/5">
+            <CardContent className="p-4 sm:p-5">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                  <ClipboardList className="w-5 h-5 text-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-foreground">Adiante sua consulta</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Conte o motivo da consulta e seus sintomas. O médico se prepara antes da chamada e vocês ganham tempo.
+                  </p>
+                  <Button
+                    className="mt-3 w-full sm:w-auto h-10 rounded-xl font-semibold gap-2"
+                    onClick={() => navigate(`/dashboard/pre-consultation/${appt.id}`)}
+                  >
+                    <FileText className="w-4 h-4" /> Preencher formulário pré-consulta
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
             </CardContent>
