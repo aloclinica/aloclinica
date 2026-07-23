@@ -9,6 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { useSavedCards } from "@/components/billing/useSavedCards";
+import SavedCardCheckout, { chargeSavedCard } from "@/components/billing/SavedCardCheckout";
 import {
   ArrowRight,
   Check,
@@ -60,6 +63,10 @@ const PrescriptionRenewalForm = () => {
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
+  // Cartões salvos (vault MP) — pagar em 1 toque
+  const { cards: savedCards, addCard, loading: savedCardsLoading } = useSavedCards();
+  const [useNewCard, setUseNewCard] = useState(false);
+  const [saveCardNext, setSaveCardNext] = useState(false);
 
   const finalPrice = RENEWAL_PRICE;
 
@@ -202,6 +209,10 @@ const PrescriptionRenewalForm = () => {
       }
 
       if (data.status === "approved") {
+        if (saveCardNext) {
+          const [em, ey] = cardExpiry.split("/");
+          await addCard({ holder: cardName, number: cardNumber.replace(/\D/g, ""), expiryMonth: em, expiryYear: ey, cvv: cardCvv, cpf: profile.cpf, isDefault: savedCards.length === 0 });
+        }
         await db.from("prescription_renewals").update({
           paid_at: new Date().toISOString(),
           status: "pending_review",
@@ -210,6 +221,34 @@ const PrescriptionRenewalForm = () => {
         toast.success("Pagamento confirmado", { description: "Um medico analisara sua receita em breve." });
         resetForm();
         fetchRenewals();
+      }
+    } catch (err: unknown) {
+      toast.error("Erro", { description: err instanceof Error ? err.message : "Erro inesperado" });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  // Pagamento em 1 toque com cartão salvo (sem termo de consentimento neste fluxo)
+  const handleSavedCardPay = async (savedCardId: string, securityCode?: string) => {
+    if (processing || !user || !renewalId) return;
+    setProcessing(true);
+    try {
+      const res = await chargeSavedCard({ savedCardId, referenceId: `renewal_${renewalId}`, description: "Renovacao de Receita - AloClinica", securityCode });
+      if (!res.ok) { toast.error("Erro no pagamento", { description: res.error }); return; }
+      if (res.status === "approved") {
+        await db.from("prescription_renewals").update({
+          paid_at: new Date().toISOString(),
+          status: "pending_review",
+          payment_id: res.payment_id,
+        } as any).eq("id", renewalId);
+        toast.success("Pagamento confirmado", { description: "Um medico analisara sua receita em breve." });
+        resetForm();
+        fetchRenewals();
+      } else if (res.status === "refused") {
+        toast.error("Pagamento recusado", { description: res.message || "Tente outro cartao." });
+      } else {
+        toast.success("Pagamento em processamento", { description: "Aguardando confirmacao." });
       }
     } catch (err: unknown) {
       toast.error("Erro", { description: err instanceof Error ? err.message : "Erro inesperado" });
@@ -392,15 +431,37 @@ const PrescriptionRenewalForm = () => {
 
                 {paymentMethod === "card" && (
                   <motion.div key="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
-                    <div><Label className="text-xs font-bold text-muted-foreground">Nome no cartao</Label><Input value={cardName} onChange={e => setCardName(e.target.value)} placeholder="Nome no cartao" className="mt-1 h-11 rounded-2xl" /></div>
-                    <div><Label className="text-xs font-bold text-muted-foreground">Numero</Label><Input value={cardNumber} onChange={e => setCardNumber(formatCardNum(e.target.value))} placeholder="0000 0000 0000 0000" className="mt-1 h-11 rounded-2xl font-mono" maxLength={19} /></div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div><Label className="text-xs font-bold text-muted-foreground">Validade</Label><Input value={cardExpiry} onChange={e => setCardExpiry(formatExp(e.target.value))} placeholder="MM/AA" className="mt-1 h-11 rounded-2xl font-mono" maxLength={5} /></div>
-                      <div><Label className="text-xs font-bold text-muted-foreground">CVV</Label><Input value={cardCvv} onChange={e => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="***" className="mt-1 h-11 rounded-2xl font-mono" maxLength={4} type="password" /></div>
-                    </div>
-                    <Button className="h-12 w-full rounded-full bg-[hsl(var(--p-primary))] font-bold text-white shadow-[var(--p-shadow-btn)]" onClick={handlePayment} disabled={processing}>
-                      {processing ? "Processando..." : <><Lock className="mr-2 h-4 w-4" /> Pagar R$ {finalPrice.toFixed(2).replace(".", ",")}</>}
-                    </Button>
+                    {savedCardsLoading ? (
+                      <div className="h-16 rounded-2xl bg-muted animate-pulse" />
+                    ) : savedCards.length > 0 && !useNewCard ? (
+                      <SavedCardCheckout
+                        cards={savedCards}
+                        payLabel={`Pagar R$ ${finalPrice.toFixed(2).replace(".", ",")}`}
+                        payClassName="rounded-full bg-[hsl(var(--p-primary))] text-white shadow-[var(--p-shadow-btn)]"
+                        processing={processing}
+                        onPay={handleSavedCardPay}
+                        onUseNewCard={() => setUseNewCard(true)}
+                      />
+                    ) : (
+                      <>
+                        <div><Label className="text-xs font-bold text-muted-foreground">Nome no cartao</Label><Input value={cardName} onChange={e => setCardName(e.target.value)} placeholder="Nome no cartao" className="mt-1 h-11 rounded-2xl" /></div>
+                        <div><Label className="text-xs font-bold text-muted-foreground">Numero</Label><Input value={cardNumber} onChange={e => setCardNumber(formatCardNum(e.target.value))} placeholder="0000 0000 0000 0000" className="mt-1 h-11 rounded-2xl font-mono" maxLength={19} /></div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div><Label className="text-xs font-bold text-muted-foreground">Validade</Label><Input value={cardExpiry} onChange={e => setCardExpiry(formatExp(e.target.value))} placeholder="MM/AA" className="mt-1 h-11 rounded-2xl font-mono" maxLength={5} /></div>
+                          <div><Label className="text-xs font-bold text-muted-foreground">CVV</Label><Input value={cardCvv} onChange={e => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="***" className="mt-1 h-11 rounded-2xl font-mono" maxLength={4} type="password" /></div>
+                        </div>
+                        <div className="flex items-center justify-between rounded-2xl border border-border/40 p-3">
+                          <Label className="text-xs font-normal cursor-pointer">Salvar cartao para a proxima vez</Label>
+                          <Switch checked={saveCardNext} onCheckedChange={setSaveCardNext} />
+                        </div>
+                        <Button className="h-12 w-full rounded-full bg-[hsl(var(--p-primary))] font-bold text-white shadow-[var(--p-shadow-btn)]" onClick={handlePayment} disabled={processing}>
+                          {processing ? "Processando..." : <><Lock className="mr-2 h-4 w-4" /> Pagar R$ {finalPrice.toFixed(2).replace(".", ",")}</>}
+                        </Button>
+                        {savedCards.length > 0 && (
+                          <Button type="button" variant="ghost" className="h-11 w-full rounded-full" onClick={() => setUseNewCard(false)}>Voltar aos cartoes salvos</Button>
+                        )}
+                      </>
+                    )}
                   </motion.div>
                 )}
 

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { Clock, Zap, Phone, RefreshCw, AlertTriangle, QrCode, CreditCard, FileBarChart, Lock, Copy, CheckCircle2, Shield, MapPin, Ambulance, ChevronRight, Building2, Navigation, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -15,6 +16,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { notifyDoctorsNewQueueEntry } from "@/lib/notifications-queue";
 import { logError } from "@/lib/logger";
 import { validateCard } from "@/lib/card-utils";
+import { useSavedCards } from "@/components/billing/useSavedCards";
+import SavedCardCheckout, { chargeSavedCard } from "@/components/billing/SavedCardCheckout";
 import mascotWave from "@/assets/mascot-wave.png";
 import ConsentDialog from "@/components/legal/ConsentDialog";
 
@@ -117,6 +120,10 @@ const UrgentCareQueue = () => {
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
   const [pendingQueueId, setPendingQueueId] = useState<string | null>(null);
+  // Cartões salvos (vault MP) — pagar em 1 toque
+  const { cards: savedCards, addCard, loading: savedCardsLoading } = useSavedCards();
+  const [useNewCard, setUseNewCard] = useState(false);
+  const [saveCardNext, setSaveCardNext] = useState(false);
   // PIX expiry countdown (15 minutes = 900s)
   const PIX_EXPIRY_SECS = 900;
   const [pixSecondsLeft, setPixSecondsLeft] = useState(PIX_EXPIRY_SECS);
@@ -320,12 +327,42 @@ const UrgentCareQueue = () => {
       if (paymentMethod === "pix") { setPixQrCode(data.qr_code_base64 || null); setPixCopyPaste(data.qr_code || null); setProcessing(false); toast.success("PIX gerado! 🎉"); return; }
       if (paymentMethod === "boleto") { setBoletoUrl(data.boleto_url || null); setProcessing(false); toast.success("Boleto gerado! 📄"); return; }
       if (data.status === "approved") {
+        if (saveCardNext) {
+          const [em, ey] = cardExpiry.split("/");
+          await addCard({ holder: cardName, number: cardNumber.replace(/\D/g, ""), expiryMonth: em, expiryYear: ey, cvv: cardCvv, cpf: profile.cpf, isDefault: savedCards.length === 0 });
+        }
         await db.from("on_demand_queue").update({ status: "waiting", payment_id: data.payment_id } as any).eq("id", queueEntry.id);
         toast.success("Pagamento confirmado! Você está na fila. 🚀"); setShowPayment(false);
         notifyDoctorsNewQueueEntry(profile.first_name || "Paciente", shiftInfo.shift, priceWithDiscount);
         fetchMyEntry();
       } else { toast.success("Pagamento criado!", { description: "Aguardando confirmação." }); }
     } catch (err: unknown) { logError("UrgentCareQueue payment error", err); toast.error("Erro", { description: err instanceof Error ? err.message : "Erro inesperado." }); }
+    finally { setProcessing(false); }
+  };
+
+  // Pagamento em 1 toque com cartão salvo. Consentimento já foi aceito antes da tela de pagamento.
+  const handleSavedCardPay = async (savedCardId: string, securityCode?: string) => {
+    if (processing || !user || !shiftInfo) return;
+    setProcessing(true);
+    try {
+      const { data: profile } = await db.from("profiles").select("first_name, last_name, cpf").eq("user_id", user.id).single();
+      if (!profile?.cpf) { toast.error("CPF obrigatório", { description: "Complete seu perfil com o CPF antes de pagar." }); setProcessing(false); return; }
+      const { data: queueEntry, error: queueError } = await db.from("on_demand_queue").insert({ patient_id: user.id, shift: shiftInfo.shift, price: priceWithDiscount, status: "pending_payment" } as any).select("id").single();
+      if (queueError || !queueEntry) { toast.error("Erro ao reservar lugar na fila"); setProcessing(false); return; }
+      const res = await chargeSavedCard({ savedCardId, referenceId: `queue_${queueEntry.id}`, description: `Plantão 24h - AloClínica (${shiftInfo.label})`, securityCode });
+      if (!res.ok) { toast.error("Erro no pagamento", { description: res.error }); await db.from("on_demand_queue").delete().eq("id", queueEntry.id); setProcessing(false); return; }
+      if (res.status === "approved") {
+        await db.from("on_demand_queue").update({ status: "waiting", payment_id: res.payment_id } as any).eq("id", queueEntry.id);
+        toast.success("Pagamento confirmado! Você está na fila. 🚀"); setShowPayment(false);
+        notifyDoctorsNewQueueEntry(profile.first_name || "Paciente", shiftInfo.shift, priceWithDiscount);
+        fetchMyEntry();
+      } else if (res.status === "refused") {
+        toast.error("Pagamento recusado", { description: res.message || "Tente outro cartão." });
+        await db.from("on_demand_queue").delete().eq("id", queueEntry.id);
+      } else {
+        toast.success("Pagamento em processamento", { description: "Aguardando confirmação." });
+      }
+    } catch (err: unknown) { logError("UrgentCareQueue saved-card payment error", err); toast.error("Erro", { description: err instanceof Error ? err.message : "Erro inesperado." }); }
     finally { setProcessing(false); }
   };
 
@@ -486,13 +523,35 @@ const UrgentCareQueue = () => {
                   )}
                   {paymentMethod === "card" && (
                     <motion.div key="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
-                      <div><Label className="text-xs">Nome no cartão</Label><Input value={cardName} onChange={e => setCardName(e.target.value)} placeholder="Nome no cartão" className="mt-1 rounded-2xl h-11" /></div>
-                      <div><Label className="text-xs">Número</Label><Input value={cardNumber} onChange={e => setCardNumber(formatCardNum(e.target.value))} placeholder="0000 0000 0000 0000" className="mt-1 font-mono rounded-2xl h-11" maxLength={19} /></div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div><Label className="text-xs">Validade</Label><Input value={cardExpiry} onChange={e => setCardExpiry(formatExp(e.target.value))} placeholder="MM/AA" className="mt-1 font-mono rounded-2xl h-11" maxLength={5} /></div>
-                        <div><Label className="text-xs">CVV</Label><Input value={cardCvv} onChange={e => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="•••" className="mt-1 font-mono rounded-2xl h-11" maxLength={4} type="password" /></div>
-                      </div>
-                      <Button className="w-full bg-[hsl(var(--p-primary))] text-white h-12 rounded-2xl" onClick={handlePayment} disabled={processing}>{processing ? "Processando..." : <><Lock className="w-4 h-4 mr-2" /> Pagar R$ {priceWithDiscount.toFixed(2)}</>}</Button>
+                      {savedCardsLoading ? (
+                        <div className="h-16 rounded-2xl bg-muted animate-pulse" />
+                      ) : savedCards.length > 0 && !useNewCard ? (
+                        <SavedCardCheckout
+                          cards={savedCards}
+                          payLabel={`Pagar R$ ${priceWithDiscount.toFixed(2)}`}
+                          payClassName="bg-[hsl(var(--p-primary))] text-white"
+                          processing={processing}
+                          onPay={handleSavedCardPay}
+                          onUseNewCard={() => setUseNewCard(true)}
+                        />
+                      ) : (
+                        <>
+                          <div><Label className="text-xs">Nome no cartão</Label><Input value={cardName} onChange={e => setCardName(e.target.value)} placeholder="Nome no cartão" className="mt-1 rounded-2xl h-11" /></div>
+                          <div><Label className="text-xs">Número</Label><Input value={cardNumber} onChange={e => setCardNumber(formatCardNum(e.target.value))} placeholder="0000 0000 0000 0000" className="mt-1 font-mono rounded-2xl h-11" maxLength={19} /></div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div><Label className="text-xs">Validade</Label><Input value={cardExpiry} onChange={e => setCardExpiry(formatExp(e.target.value))} placeholder="MM/AA" className="mt-1 font-mono rounded-2xl h-11" maxLength={5} /></div>
+                            <div><Label className="text-xs">CVV</Label><Input value={cardCvv} onChange={e => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="•••" className="mt-1 font-mono rounded-2xl h-11" maxLength={4} type="password" /></div>
+                          </div>
+                          <div className="flex items-center justify-between rounded-2xl border border-border/40 p-3">
+                            <Label className="text-xs font-normal cursor-pointer">Salvar cartão para a próxima vez</Label>
+                            <Switch checked={saveCardNext} onCheckedChange={setSaveCardNext} />
+                          </div>
+                          <Button className="w-full bg-[hsl(var(--p-primary))] text-white h-12 rounded-2xl" onClick={handlePayment} disabled={processing}>{processing ? "Processando..." : <><Lock className="w-4 h-4 mr-2" /> Pagar R$ {priceWithDiscount.toFixed(2)}</>}</Button>
+                          {savedCards.length > 0 && (
+                            <Button type="button" variant="ghost" className="w-full h-11 rounded-2xl" onClick={() => setUseNewCard(false)}>Voltar aos cartões salvos</Button>
+                          )}
+                        </>
+                      )}
                     </motion.div>
                   )}
                   {paymentMethod === "boleto" && (

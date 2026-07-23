@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { db } from "@/integrations/supabase/untyped";
 import { triggerAppointmentConfirmed } from "@/lib/whatsapp";
@@ -15,6 +15,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import {
   ArrowLeft, Clock, Star, Check, UserPlus, UserCheck, AlertTriangle, Loader2,
@@ -40,6 +41,8 @@ import {
 } from "./BookAppointment.types";
 import { usePixCountdown } from "@/hooks/usePixCountdown";
 import QuickPatientCheckoutDialog, { isProfileComplete } from "./QuickPatientCheckoutDialog";
+import { useSavedCards } from "@/components/billing/useSavedCards";
+import SavedCardCheckout, { chargeSavedCard } from "@/components/billing/SavedCardCheckout";
 import ConsentDialog from "@/components/legal/ConsentDialog";
 import type { LegalKind } from "@/lib/legal-docs";
 import AppPromotionalBanners from "@/components/dashboards/AppPromotionalBanners";
@@ -83,6 +86,13 @@ const BookAppointment = () => {
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
   const [cardDiscount, setCardDiscount] = useState(0);
+
+  // Cartões salvos (vault MP) — pagar em 1 toque
+  const { cards: savedCards, addCard, loading: savedCardsLoading } = useSavedCards();
+  const [useNewCard, setUseNewCard] = useState(false);
+  const [saveCardNext, setSaveCardNext] = useState(false);
+  // Cobrança de cartão salvo pendente enquanto o termo de consentimento não é aceito
+  const pendingSavedPayRef = useRef<{ savedCardId: string; securityCode?: string } | null>(null);
 
   // Coupon state
   const [couponInput, setCouponInput] = useState("");
@@ -687,24 +697,20 @@ const BookAppointment = () => {
 
       // Card — usually instant
       if (data.status === "approved") {
-        await db.from("appointments").update({
-          payment_status: "approved",
-          payment_confirmed_at: new Date().toISOString(),
-        }).eq("id", appointmentId);
-
-        // Trigger notifications
-        triggerAppointmentConfirmed(appointmentId).catch(err => logError("triggerAppointmentConfirmed", err));
-        const pName = `${profile.first_name} ${profile.last_name}`.trim();
-        const doctorFullName = `Dr(a). ${doctor.first_name} ${doctor.last_name}`;
-        if (selectedDate && selectedTime) {
-          notifyNewAppointment(appointmentId, doctor.id, pName, format(selectedDate, "dd/MM/yyyy", { locale: ptBR }), selectedTime)
-            .catch(err => logError("notifyNewAppointment", err));
+        // Oferecer salvar o cartão no vault para a próxima vez (tokeniza de novo via addCard)
+        if (saveCardNext) {
+          const [em, ey] = cardExpiry.split("/");
+          await addCard({
+            holder: cardName,
+            number: cardNumber.replace(/\D/g, ""),
+            expiryMonth: em,
+            expiryYear: ey,
+            cvv: cardCvv,
+            cpf: profile.cpf,
+            isDefault: savedCards.length === 0,
+          });
         }
-        notifyPaymentConfirmed(user.id, doctorFullName, selectedDate ? format(selectedDate, "dd/MM/yyyy", { locale: ptBR }) : "", `R$ ${totalPrice.toFixed(2)}`)
-          .catch(err => logError("notifyPaymentConfirmed", err));
-
-        toast.success("Pagamento confirmado! ✅");
-        navigate(`/dashboard/appointments/${appointmentId}/confirmed`);
+        await finalizeApprovedAppointment(profile.first_name, profile.last_name);
       } else {
         toast.success("Pagamento criado!", { description: "Aguardando confirmação." });
       }
@@ -712,6 +718,68 @@ const BookAppointment = () => {
       logError("BookAppointment payment error", err);
       toast.error("Erro", { description: err instanceof Error ? err.message : "Erro inesperado." });
     } finally {
+      setProcessing(false);
+    }
+  };
+
+  // Pós-aprovação da consulta (compartilhado entre cartão novo e cartão salvo)
+  const finalizeApprovedAppointment = async (firstName?: string, lastName?: string) => {
+    if (!user || !doctor || !appointmentId) return;
+    await db.from("appointments").update({
+      payment_status: "approved",
+      payment_confirmed_at: new Date().toISOString(),
+    }).eq("id", appointmentId);
+
+    triggerAppointmentConfirmed(appointmentId).catch(err => logError("triggerAppointmentConfirmed", err));
+    const pName = `${firstName ?? ""} ${lastName ?? ""}`.trim();
+    const doctorFullName = `Dr(a). ${doctor.first_name} ${doctor.last_name}`;
+    if (selectedDate && selectedTime) {
+      notifyNewAppointment(appointmentId, doctor.id, pName, format(selectedDate, "dd/MM/yyyy", { locale: ptBR }), selectedTime)
+        .catch(err => logError("notifyNewAppointment", err));
+    }
+    notifyPaymentConfirmed(user.id, doctorFullName, selectedDate ? format(selectedDate, "dd/MM/yyyy", { locale: ptBR }) : "", `R$ ${totalPrice.toFixed(2)}`)
+      .catch(err => logError("notifyPaymentConfirmed", err));
+
+    toast.success("Pagamento confirmado! ✅");
+    navigate(`/dashboard/appointments/${appointmentId}/confirmed`);
+  };
+
+  // Pagamento em 1 toque com cartão salvo — respeita o termo (CFM) como o handlePayment
+  const handleSavedCardPay = async (savedCardId: string, securityCode?: string) => {
+    if (processing) return;
+    if (!user || !doctor || !appointmentId) return;
+    if (!consentDone) {
+      pendingSavedPayRef.current = { savedCardId, securityCode };
+      setConsentOpen(true);
+      return;
+    }
+    setProcessing(true);
+    try {
+      const res = await chargeSavedCard({
+        savedCardId,
+        referenceId: `appointment_${appointmentId}`,
+        description: "Consulta médica AloClínica",
+        securityCode,
+        couponCode: couponCode || undefined,
+      });
+      if (!res.ok) {
+        toastError(toast, res.error || "pagamento_falhou", "pagamento");
+        setProcessing(false);
+        return;
+      }
+      if (res.status === "approved") {
+        const { data: profile } = await db.from("profiles").select("first_name, last_name").eq("user_id", user.id).maybeSingle();
+        await finalizeApprovedAppointment(profile?.first_name, profile?.last_name);
+      } else if (res.status === "refused") {
+        toast.error("Pagamento recusado", { description: res.message || "Tente outro cartão." });
+        setProcessing(false);
+      } else {
+        toast.success("Pagamento em processamento", { description: "Aguardando confirmação." });
+        setProcessing(false);
+      }
+    } catch (err) {
+      logError("BookAppointment saved-card payment error", err);
+      toastError(toast, err, "pagamento");
       setProcessing(false);
     }
   };
@@ -751,7 +819,16 @@ const BookAppointment = () => {
       kind={consentKind}
       appointmentId={appointmentId}
       acceptLabel="Aceitar e prosseguir"
-      onAccepted={() => { setConsentDone(true); setTimeout(() => handlePayment(), 0); }}
+      onAccepted={() => {
+        setConsentDone(true);
+        const pending = pendingSavedPayRef.current;
+        if (pending) {
+          pendingSavedPayRef.current = null;
+          setTimeout(() => handleSavedCardPay(pending.savedCardId, pending.securityCode), 0);
+        } else {
+          setTimeout(() => handlePayment(), 0);
+        }
+      }}
     />
   );
 
@@ -1322,6 +1399,30 @@ const BookAppointment = () => {
                   )}
 
                   {paymentMethod === "card" && (
+                    savedCardsLoading ? (
+                      <Card className="border-border/40 shadow-2xl rounded-3xl overflow-hidden bg-card/50 backdrop-blur-xl">
+                        <CardContent className="p-8">
+                          <div className="h-16 rounded-2xl bg-muted animate-pulse" />
+                        </CardContent>
+                      </Card>
+                    ) : savedCards.length > 0 && !useNewCard && !returnEligible ? (
+                      <Card className="border-border/40 shadow-2xl rounded-3xl overflow-hidden bg-card/50 backdrop-blur-xl">
+                        <CardContent className="p-8 space-y-4">
+                          <div>
+                            <h4 className="text-lg font-bold">Pagar em 1 toque</h4>
+                            <p className="text-sm text-muted-foreground">Escolha um cartão salvo para pagar na hora.</p>
+                          </div>
+                          <SavedCardCheckout
+                            cards={savedCards}
+                            payLabel="PAGAR AGORA"
+                            payClassName="h-16 bg-primary hover:bg-primary/90 text-primary-foreground font-black text-lg shadow-xl shadow-primary/20"
+                            processing={processing}
+                            onPay={handleSavedCardPay}
+                            onUseNewCard={() => setUseNewCard(true)}
+                          />
+                        </CardContent>
+                      </Card>
+                    ) : (
                     <Card className="border-border/40 shadow-2xl rounded-3xl overflow-hidden bg-card/50 backdrop-blur-xl">
                       <CardContent className="p-8 space-y-6">
                         <div className="relative h-44 w-full rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 p-6 text-white shadow-xl overflow-hidden">
@@ -1394,6 +1495,11 @@ const BookAppointment = () => {
                           </div>
                         </div>
 
+                        <div className="flex items-center justify-between rounded-2xl border border-border/40 p-3">
+                          <Label className="text-sm font-normal cursor-pointer">Salvar cartão para a próxima vez</Label>
+                          <Switch checked={saveCardNext} onCheckedChange={setSaveCardNext} />
+                        </div>
+
                         <Button
                           className="w-full h-16 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-lg shadow-xl shadow-primary/20 transition-all active:scale-[0.98] mt-4"
                           onClick={handlePayment}
@@ -1402,8 +1508,15 @@ const BookAppointment = () => {
                           {processing ? <Loader2 className="animate-spin mr-2" /> : <Shield className="w-6 h-6 mr-2" />}
                           PAGAR AGORA
                         </Button>
+
+                        {savedCards.length > 0 && !returnEligible && (
+                          <Button type="button" variant="ghost" className="w-full rounded-2xl" onClick={() => setUseNewCard(false)}>
+                            Voltar aos cartões salvos
+                          </Button>
+                        )}
                       </CardContent>
                     </Card>
+                    )
                   )}
 
                   {paymentMethod === "boleto" && (

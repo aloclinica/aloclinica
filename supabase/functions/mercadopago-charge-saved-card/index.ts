@@ -231,8 +231,23 @@ async function resolveServerAmount(admin: any, referenceId: string, callerId: st
       .from("doctor_profiles").select("consultation_price").eq("id", data.doctor_id).maybeSingle();
     if (docErr || !doc) throw new AmountError("Médico não encontrado", 404);
     const base = Number(doc.consultation_price);
+    // Retorno: 50% quando há consulta CONCLUÍDA com este médico dentro do prazo de
+    // retorno (mesma regra do create-payment/BookAppointment). Assim o pagamento com
+    // cartão salvo também respeita o desconto — cobrança nunca maior que a exibida.
+    let returnFactor = 1;
+    const { data: priorReturn } = await admin
+      .from("appointments")
+      .select("id")
+      .eq("patient_id", data.patient_id)
+      .eq("doctor_id", data.doctor_id)
+      .eq("status", "completed")
+      .not("return_deadline", "is", null)
+      .gte("return_deadline", new Date().toISOString())
+      .neq("id", resourceId)
+      .limit(1);
+    if (priorReturn && priorReturn.length > 0) returnFactor = 0.5;
     const pct = await resolveCouponPercent(admin, couponCode);
-    const final = Math.round(base * (1 - pct / 100) * 100) / 100;
+    const final = Math.round(base * returnFactor * (1 - pct / 100) * 100) / 100;
     return requirePrice(final);
   }
   if (prefix === "queue") {
