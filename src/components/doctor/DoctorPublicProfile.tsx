@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { db } from "@/integrations/supabase/untyped";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Star, GraduationCap, Clock, Calendar, ArrowLeft, Award, ShieldCheck, ShieldAlert, Video, Lock, Zap } from "lucide-react";
+import { Star, GraduationCap, Clock, Calendar, ArrowLeft, Award, ShieldCheck, ShieldAlert, Video, Lock, Zap, Gauge, CheckCircle2, Circle, Pencil } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface DoctorPublicData {
@@ -37,14 +38,23 @@ interface Review {
 const DoctorPublicProfile = () => {
   const { doctorId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [doctor, setDoctor] = useState<DoctorPublicData | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
+  // Só o próprio médico (dono deste perfil) vê o card "Força do perfil".
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     if (doctorId) fetchDoctor();
   }, [doctorId]);
+
+  useEffect(() => {
+    if (!user || !doctorId) { setIsOwner(false); return; }
+    db.from("doctor_profiles").select("id").eq("user_id", user.id).maybeSingle()
+      .then(({ data }: any) => setIsOwner(!!data && data.id === doctorId));
+  }, [user, doctorId]);
 
   const fetchDoctor = async () => {
     // Use secure RPC instead of direct table access
@@ -128,6 +138,21 @@ const DoctorPublicProfile = () => {
   }
 
   const starRating = Math.round((doctor.rating ?? 0) * 2) / 2;
+
+  // Força do perfil — só campos reais do objeto `doctor` que influenciam agendamentos.
+  const bioLen = doctor.bio?.trim().length ?? 0;
+  const strengthItems = [
+    { key: "foto", label: "Foto de perfil", done: !!doctor.avatar_url, tip: "Adicione uma foto profissional — perfis com foto recebem mais agendamentos." },
+    { key: "bio", label: "Apresentação (bio)", done: bioLen >= 120, tip: bioLen === 0 ? "Escreva uma bio contando sua experiência e forma de atender." : "Amplie sua bio para pelo menos 120 caracteres." },
+    { key: "especialidades", label: "Especialidades", done: doctor.specialties.length > 0, tip: "Cadastre suas especialidades para aparecer nas buscas certas." },
+    { key: "areas", label: "Áreas de atendimento", done: doctor.careAreas.length > 0, tip: "Liste as áreas e condições que você atende." },
+    { key: "preco", label: "Preço da consulta", done: (doctor.consultation_price ?? 0) > 0, tip: "Defina o valor da sua consulta." },
+    { key: "formacao", label: "Formação acadêmica", done: !!doctor.education, tip: "Informe sua formação para reforçar sua credibilidade." },
+    { key: "experiencia", label: "Anos de experiência", done: !!doctor.experience_years, tip: "Informe seus anos de experiência." },
+    { key: "crm", label: "CRM verificado", done: doctor.crm_verified, tip: "Conclua a verificação do seu CRM para exibir o selo Verificado." },
+  ];
+  const strengthDone = strengthItems.filter((i) => i.done).length;
+  const strengthPct = Math.round((strengthDone / strengthItems.length) * 100);
 
   return (
     <div className="min-h-screen bg-background">
@@ -257,6 +282,59 @@ const DoctorPublicProfile = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Força do perfil — coach visível apenas para o próprio médico */}
+          {isOwner && (
+            <Card className="mt-6 border-primary/20 bg-primary/[0.03]">
+              <CardContent className="p-5 sm:p-6">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <Gauge className="w-5 h-5 text-primary" />
+                    <h3 className="font-bold text-foreground">Força do perfil</h3>
+                    <Badge variant="secondary" className="text-[10px]">visível só para você</Badge>
+                  </div>
+                  <span className="text-2xl font-black text-primary tabular-nums leading-none">{strengthPct}%</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {strengthDone} de {strengthItems.length} itens que ajudam pacientes a escolher você.
+                </p>
+                <div className="mt-3 h-2 rounded-full bg-muted overflow-hidden">
+                  <div className="h-full rounded-full bg-gradient-to-r from-primary/70 to-primary transition-all" style={{ width: `${strengthPct}%` }} />
+                </div>
+
+                {strengthDone === strengthItems.length ? (
+                  <p className="mt-4 text-sm font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" /> Perfil completo! Nada a melhorar por aqui.
+                  </p>
+                ) : (
+                  <ul className="mt-4 space-y-2.5">
+                    {strengthItems.map((item) => (
+                      <li key={item.key} className="flex items-start gap-2.5">
+                        {item.done ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                        ) : (
+                          <Circle className="w-4 h-4 text-muted-foreground/40 mt-0.5 shrink-0" />
+                        )}
+                        <div className="min-w-0">
+                          <p className={`text-sm font-medium ${item.done ? "text-muted-foreground" : "text-foreground"}`}>{item.label}</p>
+                          {!item.done && <p className="text-xs text-muted-foreground mt-0.5">{item.tip}</p>}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4 gap-1.5"
+                  onClick={() => navigate("/dashboard/profile?role=doctor")}
+                >
+                  <Pencil className="w-3.5 h-3.5" /> Editar meu perfil
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Reviews */}
           <div className="mt-8">

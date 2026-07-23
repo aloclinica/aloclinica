@@ -6,11 +6,12 @@ import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getDoctorNav } from "./doctorNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
- import { UserPlus, UserCheck, AlertTriangle, Video, Clock, Bell, RefreshCw, HeartPulse, Zap } from "lucide-react";
+ import { UserPlus, UserCheck, AlertTriangle, Video, Clock, Bell, RefreshCw, HeartPulse, Zap, ListChecks } from "lucide-react";
  import { format, formatDistanceToNow } from "date-fns";
  import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import DoctorAppHeader from "./DoctorAppHeader";
+import { notify } from "@/lib/notifications";
 
 const typeLabel: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   first_visit: { label: "1ª Consulta", icon: <UserPlus className="w-3 h-3" />, color: "bg-blue-500/10 text-blue-700 border-blue-200" },
@@ -29,6 +30,12 @@ const DoctorWaitingRoom = () => {
   const [triageAlerts, setTriageAlerts] = useState<Map<string, any>>(new Map());
   const [avgDuration, setAvgDuration] = useState(20);
   const [loading, setLoading] = useState(true);
+  // Plantão (on-demand) queue surfaced dentro da sala de espera
+  const [queue, setQueue] = useState<any[]>([]);
+  const [accepting, setAccepting] = useState(false);
+  // Lista de espera (appointment_waitlist) deste médico
+  const [waitlist, setWaitlist] = useState<any[]>([]);
+  const [notifying, setNotifying] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) fetchDoctorProfile();
@@ -71,11 +78,22 @@ const DoctorWaitingRoom = () => {
     return () => { db.removeChannel(channel); };
   }, [doctorId]);
 
+  // Realtime da fila de plantão (on_demand_queue) — mantém "Plantão — próximos" ao vivo
+  useEffect(() => {
+    const channel = db
+      .channel("waiting-room-queue")
+      .on("postgres_changes", { event: "*", schema: "public", table: "on_demand_queue" }, () => fetchQueue())
+      .subscribe();
+    return () => { db.removeChannel(channel); };
+  }, []);
+
   const fetchDoctorProfile = async () => {
     const { data } = await db.from("doctor_profiles").select("id").eq("user_id", user!.id).single();
     if (data) {
       setDoctorId(data.id);
       fetchWaitingPatients(data.id);
+      fetchWaitlist(data.id);
+      fetchQueue();
       // Fetch average consultation duration scoped to THIS doctor's appointments
       const { data: completedAppts } = await db
         .from("appointments")
@@ -143,6 +161,133 @@ const DoctorWaitingRoom = () => {
 
     // Fetch triage data for all appointments
     fetchTriageData(data.map(a => a.id));
+  };
+
+  // ── Plantão (on_demand_queue) — mesma fila do painel de plantão, surfada aqui ──
+  const fetchQueue = async () => {
+    const { data } = await db
+      .from("on_demand_queue")
+      .select("*")
+      .eq("status", "waiting")
+      .order("created_at", { ascending: true });
+    const rows = data ?? [];
+    if (rows.length === 0) { setQueue([]); return; }
+    const patientIds = [...new Set(rows.filter((e: any) => e.patient_id).map((e: any) => e.patient_id))];
+    const { data: profs } = patientIds.length
+      ? await db.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds)
+      : { data: [] };
+    const pMap = new Map((profs ?? []).map((p: any) => [p.user_id, `${p.first_name} ${p.last_name}`]));
+    setQueue(rows.map((e: any) => ({ ...e, patient_name: pMap.get(e.patient_id) ?? "Paciente" })));
+  };
+
+  const waitTime = (createdAt: string) => {
+    const diff = Math.floor((Date.now() - new Date(createdAt).getTime()) / 1000 / 60);
+    return `${diff} min`;
+  };
+
+  // Claim atômico idêntico ao DoctorOnDutyPanel: só um médico vence a corrida.
+  const claimQueuePatient = async (entry: any) => {
+    if (!doctorId || !user) return;
+    setAccepting(true);
+
+    const { data: claimed, error: claimErr } = await db.from("on_demand_queue").update({
+      status: "in_progress",
+      assigned_doctor_id: doctorId,
+      assigned_at: new Date().toISOString(),
+      started_at: new Date().toISOString(),
+    }).eq("id", entry.id).eq("status", "waiting").select("id");
+
+    if (claimErr || !claimed || claimed.length === 0) {
+      toast.error("Este paciente já foi atendido por outro médico.");
+      setAccepting(false);
+      fetchQueue();
+      return;
+    }
+
+    const { data: appt, error: apptError } = await db.from("appointments").insert({
+      patient_id: entry.patient_id,
+      doctor_id: doctorId,
+      scheduled_at: new Date().toISOString(),
+      status: "in_progress",
+      payment_status: "approved",
+      appointment_type: "urgent_care",
+    }).select("id").single();
+
+    if (apptError || !appt) {
+      await db.from("on_demand_queue").update({
+        status: "waiting", assigned_doctor_id: null, assigned_at: null, started_at: null,
+      }).eq("id", entry.id);
+      toast.error("Erro ao criar consulta: " + (apptError?.message || ""));
+      setAccepting(false);
+      return;
+    }
+
+    await db.from("on_demand_queue").update({ appointment_id: appt.id }).eq("id", entry.id);
+
+    toast.success("Paciente aceito! Redirecionando...");
+    setTimeout(() => { navigate(`/dashboard/consultation/${appt.id}?role=doctor`); }, 500);
+    setAccepting(false);
+  };
+
+  // ── Lista de espera (appointment_waitlist) deste médico ──
+  const fetchWaitlist = async (docId: string) => {
+    // Especialidades do médico para casar entradas sem médico específico (doctor_id null)
+    const { data: specs } = await db.from("doctor_specialties").select("specialty_id").eq("doctor_id", docId);
+    const specialtyIds = [...new Set((specs ?? []).map((s: any) => s.specialty_id).filter(Boolean))];
+
+    const cols = "id, patient_id, doctor_id, specialty_id, desired_date, notes, notified, created_at";
+    const { data: mine } = await db.from("appointment_waitlist")
+      .select(cols)
+      .eq("doctor_id", docId)
+      .order("created_at", { ascending: true });
+
+    let bySpecialty: any[] = [];
+    if (specialtyIds.length) {
+      const { data } = await db.from("appointment_waitlist")
+        .select(cols)
+        .is("doctor_id", null)
+        .in("specialty_id", specialtyIds)
+        .order("created_at", { ascending: true });
+      bySpecialty = data ?? [];
+    }
+
+    // Merge + dedupe por id
+    const seen = new Set<string>();
+    const rows = [...(mine ?? []), ...bySpecialty].filter((r: any) => {
+      if (seen.has(r.id)) return false;
+      seen.add(r.id);
+      return true;
+    });
+
+    if (rows.length === 0) { setWaitlist([]); return; }
+
+    const patientIds = [...new Set(rows.map((r: any) => r.patient_id).filter(Boolean))];
+    const { data: profs } = await db.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds);
+    const pMap = new Map((profs ?? []).map((p: any) => [p.user_id, `${p.first_name} ${p.last_name}`]));
+    setWaitlist(rows.map((r: any) => ({ ...r, patient_name: pMap.get(r.patient_id) ?? "Paciente" })));
+  };
+
+  // Avisa o paciente na lista de espera que pode ter aberto uma vaga (in-app + push).
+  const notifyWaitlistPatient = async (entry: any) => {
+    if (!entry.patient_id) return;
+    setNotifying(entry.id);
+    try {
+      const link = `/dashboard/book?doctor=${doctorId}${entry.desired_date ? `&date=${entry.desired_date}` : ""}`;
+      await notify(
+        entry.patient_id,
+        "🔔 Vaga disponível!",
+        "Uma vaga pode estar disponível para a data que você solicitou. Agende agora!",
+        "waitlist",
+        { link },
+      );
+      await db.from("appointment_waitlist").update({ notified: true }).eq("id", entry.id);
+      setWaitlist(prev => prev.map(w => (w.id === entry.id ? { ...w, notified: true } : w)));
+      toast.success(`Aviso enviado — ${entry.patient_name}`);
+    } catch (err: unknown) {
+      toast.error("Não foi possível avisar o paciente.");
+    } finally {
+      setNotifying(null);
+    }
   };
 
   const getTriageAlert = (appointmentId: string) => {
@@ -241,7 +386,7 @@ const DoctorWaitingRoom = () => {
           actions={
             <Button
               size="sm"
-              onClick={() => doctorId && fetchWaitingPatients(doctorId)}
+              onClick={() => { if (doctorId) { fetchWaitingPatients(doctorId); fetchWaitlist(doctorId); } fetchQueue(); }}
               className="h-10 rounded-2xl bg-emerald-600 px-4 text-xs font-black text-white hover:bg-emerald-700"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
@@ -270,6 +415,48 @@ const DoctorWaitingRoom = () => {
             </Button>
           </div>
         </div>
+
+        {/* Plantão — próximos (fila on-demand surfada na sala de espera) */}
+        {queue.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <Zap className="w-4 h-4 text-amber-500" />
+              Plantão — próximos
+              <button
+                type="button"
+                onClick={() => navigate("/dashboard/doctor/on-duty?role=doctor")}
+                className="ml-auto text-xs font-medium text-amber-600 hover:underline"
+              >
+                Ver plantão 24h
+              </button>
+            </h2>
+            <div className="space-y-2">
+              {queue.map((entry, i) => (
+                <Card key={entry.id} variant="interactive" className={`border-l-4 ${i === 0 ? "border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20" : "border-l-amber-300"}`}>
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${i === 0 ? "bg-amber-500 text-white" : "bg-amber-100 text-amber-700"}`}>
+                          {i + 1}º
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{entry.patient_name}</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-2">
+                            <span className="font-semibold text-foreground tabular-nums">R$ {(Number(entry.price) || 0).toFixed(2)}</span>
+                            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {waitTime(entry.created_at)}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <Button size="sm" disabled={accepting} onClick={() => claimQueuePatient(entry)} className="bg-emerald-600 hover:bg-emerald-700 text-white shrink-0">
+                        <UserCheck className="w-4 h-4 mr-1" /> Atender
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Critical alerts banner */}
         {criticalCount > 0 && (
@@ -410,6 +597,49 @@ const DoctorWaitingRoom = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Lista de espera (appointment_waitlist) */}
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+            <ListChecks className="w-4 h-4 text-primary" />
+            Lista de espera
+          </h2>
+          {waitlist.length === 0 ? (
+            <Card variant="flat">
+              <CardContent className="py-6 text-center">
+                <p className="text-sm text-muted-foreground">Ninguém na lista de espera.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-2">
+              {waitlist.map(w => (
+                <Card key={w.id} variant="flat">
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{w.patient_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {w.desired_date ? `Data desejada: ${format(new Date(`${w.desired_date}T00:00:00`), "dd/MM/yyyy")} · ` : ""}
+                          Na lista há {formatDistanceToNow(new Date(w.created_at), { locale: ptBR })}
+                        </p>
+                        {w.notes && <p className="text-xs text-muted-foreground mt-0.5 truncate">{w.notes}</p>}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant={w.notified ? "outline" : "default"}
+                        disabled={w.notified || notifying === w.id}
+                        onClick={() => notifyWaitlistPatient(w)}
+                        className={`shrink-0 ${w.notified ? "" : "bg-gradient-hero text-primary-foreground"}`}
+                      >
+                        <Bell className="w-4 h-4 mr-1" /> {w.notified ? "Avisado" : "Avisar disponibilidade"}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );

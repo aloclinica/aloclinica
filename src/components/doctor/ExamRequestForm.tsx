@@ -9,15 +9,48 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Stethoscope, Send, CheckCircle2 } from "lucide-react";
+import { Stethoscope, Send, CheckCircle2, Layers, Star, Plus, Save, Trash2, X } from "lucide-react";
 
 const EXAMES_COMUNS = [
   "Hemograma completo", "Glicemia de jejum", "Colesterol total e frações",
   "TSH / T4 livre", "Urina tipo I (EAS)", "Raio-X de tórax", "Eletrocardiograma (ECG)",
   "Ultrassom abdominal", "Beta-HCG", "PCR / VHS",
 ];
+
+// Painéis: presets que adicionam vários exames de uma vez (dedupe ao aplicar).
+const PAINEIS: { nome: string; exames: string[] }[] = [
+  { nome: "Check-up básico", exames: ["Hemograma completo", "Glicemia de jejum", "Colesterol total e frações", "TGO / TGP", "Creatinina", "Urina tipo I (EAS)"] },
+  { nome: "Tireoide", exames: ["TSH", "T4 livre"] },
+  { nome: "Perfil lipídico", exames: ["Colesterol total", "HDL", "LDL", "Triglicerídeos"] },
+  { nome: "Pré-natal básico", exames: ["Hemograma completo", "Tipagem sanguínea", "Glicemia de jejum", "Sorologias (pré-natal)"] },
+];
+
+// Favoritos pessoais: seleções nomeadas persistidas em localStorage por médico.
+// Sem tabela nova no Supabase — mesmo padrão de PrescriptionTemplates.
+type ExamFavorite = { id: string; name: string; exames: string[]; created_at: string };
+const FAV_KEY = (userId: string) => `exam_favorites_v1:${userId}`;
+
+const parseLinhas = (s: string) => s.split("\n").map((l) => l.trim()).filter(Boolean);
+
+function loadFavorites(userId: string): ExamFavorite[] {
+  try {
+    const raw = localStorage.getItem(FAV_KEY(userId));
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveFavorites(userId: string, list: ExamFavorite[]) {
+  try {
+    localStorage.setItem(FAV_KEY(userId), JSON.stringify(list));
+  } catch { /* quota or private mode */ }
+}
 
 const ExamRequestForm = () => {
   const { user } = useAuth();
@@ -33,11 +66,19 @@ const ExamRequestForm = () => {
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
 
+  const [favorites, setFavorites] = useState<ExamFavorite[]>([]);
+  const [savingFav, setSavingFav] = useState(false);
+  const [favName, setFavName] = useState("");
+
   useEffect(() => {
     if (user) {
       db.from("doctor_profiles").select("id").eq("user_id", user.id).maybeSingle()
         .then(({ data }: any) => { if (data) setDoctorProfileId(data.id); });
     }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) setFavorites(loadFavorites(user.id));
   }, [user]);
 
   useEffect(() => {
@@ -54,9 +95,48 @@ const ExamRequestForm = () => {
 
   const toggleExame = (e: string) => {
     setExamType((prev) => {
-      const linhas = prev.split("\n").map((l) => l.trim()).filter(Boolean);
+      const linhas = parseLinhas(prev);
       return linhas.includes(e) ? linhas.filter((l) => l !== e).join("\n") : [...linhas, e].join("\n");
     });
+  };
+
+  // Adiciona vários exames à seleção atual, sem duplicar os já presentes.
+  const addExames = (novos: string[]) => {
+    setExamType((prev) => {
+      const linhas = parseLinhas(prev);
+      const vistos = new Set(linhas);
+      novos.forEach((e) => {
+        const t = e.trim();
+        if (t && !vistos.has(t)) { vistos.add(t); linhas.push(t); }
+      });
+      return linhas.join("\n");
+    });
+  };
+
+  const persistFavorites = (list: ExamFavorite[]) => {
+    setFavorites(list);
+    if (user) saveFavorites(user.id, list);
+  };
+
+  const saveCurrentFavorite = () => {
+    const exames = parseLinhas(examType);
+    if (exames.length === 0) { toast.error("Adicione exames antes de salvar um favorito."); return; }
+    const name = favName.trim();
+    if (!name) { toast.error("Dê um nome ao favorito."); return; }
+    const novo: ExamFavorite = { id: crypto.randomUUID(), name, exames, created_at: new Date().toISOString() };
+    persistFavorites([novo, ...favorites]);
+    setSavingFav(false);
+    setFavName("");
+    toast.success("Favorito salvo!", { description: `"${name}" disponível nos próximos pedidos.` });
+  };
+
+  const applyFavorite = (f: ExamFavorite) => {
+    addExames(f.exames);
+    toast.success(`Favorito "${f.name}" aplicado.`);
+  };
+
+  const deleteFavorite = (id: string) => {
+    persistFavorites(favorites.filter((f) => f.id !== id));
   };
 
   const submit = async () => {
@@ -116,6 +196,57 @@ const ExamRequestForm = () => {
                         </button>
                       );
                     })}
+                  </div>
+                </div>
+                <div>
+                  <Label className="mb-2 flex items-center gap-1.5"><Layers className="w-4 h-4 text-primary" /> Painéis (adiciona vários de uma vez)</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {PAINEIS.map((p) => (
+                      <button key={p.nome} type="button" onClick={() => addExames(p.exames)}
+                        title={p.exames.join(", ")}
+                        className="text-xs px-3 py-1.5 rounded-full border border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 transition font-medium">
+                        + {p.nome}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <Label className="mb-2 flex items-center gap-1.5"><Star className="w-4 h-4 text-amber-500" /> Meus favoritos</Label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {favorites.map((f) => (
+                      // UI: chip aplica o favorito; botão interno exclui sem disparar a aplicação
+                      <span key={f.id} className="inline-flex items-center rounded-full border border-input bg-background text-xs overflow-hidden">
+                        <button type="button" onClick={() => applyFavorite(f)} title={f.exames.join(", ")}
+                          className="pl-3 pr-2 py-1.5 hover:bg-muted transition">
+                          {f.name} <span className="text-muted-foreground">({f.exames.length})</span>
+                        </button>
+                        <button type="button" onClick={() => deleteFavorite(f.id)} aria-label={`Excluir favorito ${f.name}`}
+                          className="px-1.5 py-1.5 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition">
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                    {!savingFav ? (
+                      <button type="button" onClick={() => setSavingFav(true)}
+                        className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-full border border-dashed border-input text-muted-foreground hover:bg-muted transition">
+                        <Plus className="w-3 h-3" /> Salvar seleção atual
+                      </button>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5">
+                        <Input autoFocus value={favName} onChange={(e) => setFavName(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter") saveCurrentFavorite(); if (e.key === "Escape") { setSavingFav(false); setFavName(""); } }}
+                          placeholder="Nome do favorito" className="h-8 w-44 text-xs" />
+                        <Button type="button" size="sm" className="h-8 gap-1" onClick={saveCurrentFavorite}>
+                          <Save className="w-3.5 h-3.5" /> Salvar
+                        </Button>
+                        <Button type="button" size="sm" variant="ghost" className="h-8 px-2" onClick={() => { setSavingFav(false); setFavName(""); }}>
+                          <X className="w-3.5 h-3.5" />
+                        </Button>
+                      </span>
+                    )}
+                    {favorites.length === 0 && !savingFav && (
+                      <span className="text-xs text-muted-foreground">Nenhum favorito ainda.</span>
+                    )}
                   </div>
                 </div>
                 <div>
