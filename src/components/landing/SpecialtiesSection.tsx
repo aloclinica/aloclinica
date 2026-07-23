@@ -161,13 +161,6 @@ const SpecialtyCard = ({ name, desc, index }: { name: string; desc?: string; ind
             </div>
           )}
         </div>
-        {/* Online status dot */}
-        <div className="absolute bottom-1 right-1 z-10 flex items-center justify-center w-5 h-5 rounded-full bg-card border-2 border-card shadow-md">
-          <span className="relative flex w-2.5 h-2.5">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-          </span>
-        </div>
       </div>
 
       <span className="relative text-xs md:text-sm font-bold text-foreground text-center leading-tight group-hover:text-primary transition-colors min-h-[2.5rem] flex items-center">
