@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 // ─── Financial calculations ───────────────────────────────────────────────────
 describe('Financial calculations', () => {
   const PLATFORM_FEE_PERCENT = 10;
-  const DEFAULT_DOCTOR_PERCENT = 70;
+  const DEFAULT_DOCTOR_PERCENT = 50;
 
   it('calculates doctor earnings correctly', () => {
     const price = 89;

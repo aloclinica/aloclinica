@@ -205,8 +205,8 @@ const AdminFinancial = () => {
     });
     setCommissionData(
       Array.from(doctorRevenue.values())
-        // Taxa da plataforma = 20% (regra real do fn_create_payout_on_completion: fee = pago * 0.20).
-        .map(d => ({ doctor_name: d.name, count: d.count, revenue: d.revenue, commission: d.revenue * 0.20 }))
+        // Taxa da plataforma = 50% (regra real do fn_create_payout_on_completion: fee = pago * 0.50).
+        .map(d => ({ doctor_name: d.name, count: d.count, revenue: d.revenue, commission: d.revenue * 0.50 }))
         .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 10)
     );
@@ -638,7 +638,7 @@ const AdminFinancial = () => {
           <Card variant="elevated">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-primary" /> Comissão da Plataforma — 20% (Top 10)
+                <CreditCard className="w-4 h-4 text-primary" /> Comissão da Plataforma — 50% (Top 10)
               </CardTitle>
             </CardHeader>
             <CardContent>

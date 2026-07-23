@@ -10,7 +10,7 @@ export const IS_DEV =
 // ─── Financial ────────────────────────────────────────────────────────────────
 export const DEFAULT_CONSULTATION_PRICE = 89;
 export const PLATFORM_FEE_PERCENT       = 10;
-export const DEFAULT_DOCTOR_PERCENT     = 70;
+export const DEFAULT_DOCTOR_PERCENT     = 50;
 export const MIN_WITHDRAWAL_BRL         = 50;
 export const MP_SPLIT_PERCENT           = PLATFORM_FEE_PERCENT;
 /** @deprecated use MP_SPLIT_PERCENT — pagamento migrado para Mercado Pago. */
