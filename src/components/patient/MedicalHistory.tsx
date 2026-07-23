@@ -3,6 +3,7 @@ import mascotReading from "@/assets/mascot-reading.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { db } from "@/integrations/supabase/untyped";
+import { formatSoapNotes } from "@/lib/soap";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -67,10 +68,12 @@ const MedicalHistory = () => {
     if (!appts || appts.length === 0) { setLoading(false); return; }
 
     const doctorIds = [...new Set(appts.map(a => a.doctor_id))];
+    const apptIds = appts.map(a => a.id);
     const [docsRes, prescRes, notesRes] = await Promise.all([
       db.from("doctor_profiles").select("id, user_id, crm, crm_state").in("id", doctorIds),
       db.from("prescriptions").select("id, appointment_id, diagnosis, medications, observations, created_at").eq("patient_id", user!.id),
-      db.from("consultation_notes").select("id, appointment_id, content").in("doctor_id", doctorIds),
+      // Prontuário SOAP canônico: appointment_notes (type=soap). consultation_notes é legada e nunca escrita.
+      (db as any).from("appointment_notes").select("appointment_id, content").eq("type", "soap").in("appointment_id", apptIds),
     ]);
 
     const docUserIds = docsRes.data?.map(d => d.user_id) ?? [];
@@ -90,7 +93,10 @@ const MedicalHistory = () => {
     });
 
     const notesMap = new Map<string, string>();
-    notesRes.data?.forEach(n => notesMap.set(n.appointment_id, n.content));
+    notesRes.data?.forEach((n: any) => {
+      const txt = formatSoapNotes(n.content);
+      if (txt) notesMap.set(n.appointment_id, txt);
+    });
 
     setAppointments(appts.map(a => ({
       ...a,
@@ -185,7 +191,7 @@ const MedicalHistory = () => {
                   {a.consultation_notes && (
                     <div className="p-3 bg-muted rounded-lg">
                       <p className="text-xs font-medium text-muted-foreground mb-1">Notas da Consulta</p>
-                      <p className="text-sm text-foreground">{a.consultation_notes}</p>
+                      <p className="text-sm text-foreground whitespace-pre-line">{a.consultation_notes}</p>
                     </div>
                   )}
 

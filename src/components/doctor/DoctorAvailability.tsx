@@ -14,8 +14,10 @@ import { format, parseISO, eachDayOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const daysOfWeek = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
-const timeOptions = Array.from({ length: 28 }, (_, i) => {
-  const h = Math.floor(i / 2) + 7;
+// Plataforma 24h: horários cobrem o dia inteiro (00:00–23:30) em passos de 30min,
+// permitindo criar plantões noturnos e de madrugada.
+const timeOptions = Array.from({ length: 48 }, (_, i) => {
+  const h = Math.floor(i / 2);
   const m = (i % 2) * 30;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 });

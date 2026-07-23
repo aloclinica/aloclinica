@@ -17,6 +17,17 @@ import { Send, Paperclip, Image as ImageIcon, X, FileText, FileCheck } from "luc
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
+// Respostas rápidas do médico no chat da consulta.
+// (O QUICK_REPLIES do ChatPage não é exportado e é voltado ao paciente; replicamos um set de frases de médico.)
+const DOCTOR_QUICK_REPLIES = [
+  "Olá! Vou iniciar seu atendimento.",
+  "Pode descrever seus sintomas?",
+  "Há quanto tempo sente isso?",
+  "Enviando sua receita.",
+  "Receita disponível no app.",
+  "Mais alguma dúvida?",
+];
+
 interface ChatMessage {
   id: string;
   sender: "patient" | "doctor";
@@ -217,6 +228,22 @@ export function ConsultationChatPanel({
                 </button>
               </div>
             </motion.div>
+          )}
+
+          {userRole === "doctor" && (
+            <div className="flex flex-wrap gap-1.5">
+              {DOCTOR_QUICK_REPLIES.map((phrase) => (
+                <button
+                  key={phrase}
+                  type="button"
+                  onClick={() => setInput((prev) => (prev.trim() ? `${prev.trim()} ${phrase}` : phrase))}
+                  disabled={isSending || uploadingFile}
+                  className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-border bg-muted/40 text-muted-foreground hover:bg-primary/10 hover:border-primary/30 hover:text-foreground transition-colors disabled:opacity-50"
+                >
+                  {phrase}
+                </button>
+              ))}
+            </div>
           )}
 
           <div className="flex gap-2">

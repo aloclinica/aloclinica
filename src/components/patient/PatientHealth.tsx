@@ -4,6 +4,7 @@ import mascotThumbsup from "@/assets/mascot-thumbsup.png";
 import mascotReading from "@/assets/mascot-reading.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { db } from "@/integrations/supabase/untyped";
+import { formatSoapNotes } from "@/lib/soap";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getPatientNav } from "./patientNav";
 import HealthScoreRing from "./HealthScoreRing";
@@ -102,9 +103,10 @@ const PatientHealth = () => {
 
     const apptIds = (apptRes.data ?? []).map(a => a.id);
     const { data: notes } = apptIds.length > 0
-      ? await db.from("consultation_notes").select("appointment_id, content").in("appointment_id", apptIds)
+      ? await (db as any).from("appointment_notes").select("appointment_id, content").eq("type", "soap").in("appointment_id", apptIds)
       : { data: [] };
-    const notesMap = new Map((notes ?? []).map(n => [n.appointment_id, n.content]));
+    const notesMap = new Map<string, string>();
+    (notes ?? []).forEach((n: any) => { const t = formatSoapNotes(n.content); if (t) notesMap.set(n.appointment_id, t); });
 
     setConsultations((apptRes.data ?? []).map(a => ({
       ...a, doctor_name: docNameMap.get(a.doctor_id) ?? "Médico",
@@ -477,7 +479,7 @@ const PatientHealth = () => {
                         {a.consultation_notes && (
                           <div className="p-2.5 bg-muted/40 rounded-xl mt-2.5 border border-border/30">
                             <p className="text-[10px] font-medium text-muted-foreground mb-0.5">Anotações do médico</p>
-                            <p className="text-xs text-foreground leading-relaxed">{a.consultation_notes}</p>
+                            <p className="text-xs text-foreground leading-relaxed whitespace-pre-line">{a.consultation_notes}</p>
                           </div>
                         )}
                       </div>

@@ -612,25 +612,9 @@ const VideoRoom = () => {
       }
     }
 
-    if (isDoctor) {
-      const { data: noteData } = await db
-        .from("consultation_notes").select("content").eq("appointment_id", appointmentId ?? '').maybeSingle();
-      if (noteData) {
-        // Try to parse SOAP JSON, fallback to plain text
-        try {
-          const parsed = JSON.parse(noteData.content);
-          if (parsed.subjective !== undefined) {
-            Object.entries(parsed).forEach(([k, v]) => {
-              if (["subjective","objective","assessment","plan"].includes(k)) soap.updateSection(k as keyof import("@/hooks/useSOAPNotes").SOAPNotes, v as string);
-            });
-          } else {
-            soap.updateSection("subjective", noteData.content);
-          }
-        } catch {
-          soap.updateSection("subjective", noteData.content);
-        }
-      }
-    }
+    // O SOAP é carregado por useSOAPNotes (appointment_notes, type=soap). O bloco
+    // legado que lia consultation_notes (tabela nunca escrita, com JSON.parse que
+    // não casa com o jsonb atual) foi removido — era redundante e sempre vazio.
 
     setLoading(false);
   };

@@ -12,11 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
- import { Search, Video, FileText, Download, Filter, Calendar as CalendarIcon, Users, ArrowLeft, MoreHorizontal, Clock } from "lucide-react";
+ import { Search, Video, FileText, Download, Calendar as CalendarIcon, Users, Clock, Star } from "lucide-react";
  import { motion } from "framer-motion";
 import { format, isWithinInterval, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import NoShowBadge from "./NoShowBadge";
@@ -63,8 +62,22 @@ const DoctorConsultations = () => {
   const [calendarStep, setCalendarStep] = useState<"from" | "to">("from");
 
   const [doctorIdLocal, setDoctorIdLocal] = useState<string | null>(null);
+  const [reviews, setReviews] = useState<{ id: string; nps_score: number | null; comment: string | null; created_at: string }[]>([]);
 
   useEffect(() => { if (user) fetchAppointments(); }, [user]);
+
+  // Últimas avaliações de pacientes (satisfaction_surveys) — só dados reais.
+  useEffect(() => { if (doctorIdLocal) fetchReviews(doctorIdLocal); }, [doctorIdLocal]);
+
+  const fetchReviews = async (docId: string) => {
+    const { data } = await db
+      .from("satisfaction_surveys")
+      .select("id, nps_score, comment, created_at")
+      .eq("doctor_id", docId)
+      .order("created_at", { ascending: false })
+      .limit(8);
+    if (data) setReviews(data as any);
+  };
 
   // Realtime sync — FILTRADO por doctor_id (antes recebia eventos de todos os medicos)
   useEffect(() => {
@@ -224,51 +237,6 @@ const DoctorConsultations = () => {
           }
         />
 
-        {/* Modern Header Section */}
-        <div className="hidden">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => navigate("/dashboard")}
-                className="rounded-full hover:bg-muted"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <div>
-                <h1 className="text-2xl font-black tracking-tight text-foreground">Minhas Consultas</h1>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Atendimento Profissional</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={exportCSV} className="rounded-xl h-9 px-4 hidden sm:flex">
-                <Download className="w-4 h-4 mr-2" /> CSV
-              </Button>
-              <Button variant="outline" size="sm" onClick={exportPDF} className="rounded-xl h-9 px-4 hidden sm:flex">
-                <FileText className="w-4 h-4 mr-2" /> PDF
-              </Button>
-              <Button variant="ghost" size="icon" className="sm:hidden rounded-full" aria-label="Mais ações">
-                <MoreHorizontal className="w-5 h-5" />
-              </Button>
-            </div>
-          </div>
-
-          {/* KPI Mini Bento */}
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: "Agendadas", value: scheduledCount, color: "text-blue-600", bg: "bg-blue-50/50" },
-              { label: "Concluídas", value: completedCount, color: "text-emerald-600", bg: "bg-emerald-50/50" },
-              { label: "Total", value: appointments.length, color: "text-slate-600", bg: "bg-slate-50/50" },
-            ].map(k => (
-              <div key={k.label} className={cn("rounded-2xl p-3 border border-border/10", k.bg)}>
-                <p className={cn("text-lg font-black leading-none", k.color)}>{k.value}</p>
-                <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/70 mt-1">{k.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Modern Filters */}
         <div className="rounded-3xl border border-border/20 bg-card/60 backdrop-blur-md p-2 shadow-sm">
           <div className="flex flex-col sm:flex-row gap-2">
@@ -426,6 +394,41 @@ const DoctorConsultations = () => {
                  </motion.div>
                );
             })}
+          </div>
+        )}
+
+        {/* Últimas avaliações — feedback recente de pacientes (rating + comentário + data) */}
+        {!loading && (
+          <div className="rounded-3xl border border-border/20 bg-card/60 backdrop-blur-md p-5 shadow-sm">
+            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/60 mb-4 flex items-center gap-2">
+              <Star className="w-3 h-3" /> Últimas avaliações
+            </p>
+            {reviews.length === 0 ? (
+              <p className="text-xs text-muted-foreground/70 py-2">
+                Nenhuma avaliação recebida ainda. Elas aparecem aqui após os pacientes avaliarem suas consultas.
+              </p>
+            ) : (
+              <div className="space-y-2.5">
+                {reviews.map(r => (
+                  <div key={r.id} className="flex items-start gap-3 rounded-2xl border border-border/30 bg-muted/20 p-3">
+                    <div className="flex items-center gap-1 shrink-0 text-[11px] font-black text-emerald-600 dark:text-emerald-400">
+                      <Star className="w-3.5 h-3.5 fill-current" />
+                      {r.nps_score ?? "—"}<span className="font-medium text-muted-foreground/50">/10</span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      {r.comment ? (
+                        <p className="text-xs text-foreground/80 break-words">{r.comment}</p>
+                      ) : (
+                        <p className="text-xs italic text-muted-foreground/50">Sem comentário</p>
+                      )}
+                      <p className="text-[10px] text-muted-foreground/60 mt-1">
+                        {format(new Date(r.created_at), "dd/MM/yyyy")}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

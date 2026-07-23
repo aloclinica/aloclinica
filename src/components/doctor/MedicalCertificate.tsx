@@ -24,6 +24,26 @@ import { drawSafeText, safeQrBox } from "@/lib/pdf-layout";
 import { drawBrandFooter } from "@/lib/pdf-brand";
 import { TemplateControls } from "@/components/consultation/DoctorTemplates";
 
+// CID-10 mais comuns em telemedicina — datalist leve; o campo continua livre.
+// (MedicalAutocomplete só faz sugestão de texto por IA para diagnosis/notes, não códigos CID.)
+const COMMON_CID10: { code: string; label: string }[] = [
+  { code: "J06", label: "Infecção aguda das vias aéreas superiores" },
+  { code: "J11", label: "Influenza (gripe)" },
+  { code: "J00", label: "Nasofaringite aguda (resfriado comum)" },
+  { code: "A09", label: "Diarreia e gastroenterite" },
+  { code: "B34.9", label: "Infecção viral não especificada" },
+  { code: "I10", label: "Hipertensão essencial" },
+  { code: "E11", label: "Diabetes mellitus tipo 2" },
+  { code: "R51", label: "Cefaleia" },
+  { code: "M54.5", label: "Dor lombar baixa" },
+  { code: "N39.0", label: "Infecção do trato urinário" },
+  { code: "F41.1", label: "Ansiedade generalizada" },
+  { code: "F32", label: "Episódio depressivo" },
+  { code: "K29", label: "Gastrite e duodenite" },
+  { code: "J45", label: "Asma" },
+  { code: "Z00.0", label: "Exame médico geral" },
+];
+
 const MedicalCertificate = () => {
   const { profile, user } = useAuth();
   const { appointmentId } = useParams<{ appointmentId?: string }>();
@@ -50,6 +70,43 @@ const MedicalCertificate = () => {
       });
     }
   }, [user]);
+
+  // Prefill do paciente a partir da consulta (patient_id → profiles, ou guest_patient_id → guest_patients),
+  // pra o médico não precisar redigitar nome/CPF quando vem de uma consulta.
+  useEffect(() => {
+    if (!appointmentId) return;
+    let cancelled = false;
+    (async () => {
+      const { data: appt } = await db
+        .from("appointments")
+        .select("patient_id, guest_patient_id")
+        .eq("id", appointmentId)
+        .single();
+      if (cancelled || !appt) return;
+
+      if (appt.patient_id) {
+        const { data: p } = await db
+          .from("profiles")
+          .select("first_name, last_name, cpf")
+          .eq("user_id", appt.patient_id)
+          .single();
+        if (cancelled || !p) return;
+        const fullName = `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim();
+        if (fullName) setPatientName(prev => prev || fullName);
+        if (p.cpf) setPatientCpf(prev => prev || p.cpf);
+      } else if (appt.guest_patient_id) {
+        const { data: g } = await db
+          .from("guest_patients")
+          .select("full_name, cpf")
+          .eq("id", appt.guest_patient_id)
+          .single();
+        if (cancelled || !g) return;
+        if (g.full_name) setPatientName(prev => prev || g.full_name);
+        if (g.cpf) setPatientCpf(prev => prev || g.cpf);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [appointmentId]);
 
   const CERT_TYPES = {
     absence: { label: "Atestado de Afastamento", title: "ATESTADO MÉDICO" },
@@ -282,6 +339,12 @@ const MedicalCertificate = () => {
             <Card className="border-border">
               <CardHeader><CardTitle className="text-lg flex items-center gap-2"><FileBadge className="w-5 h-5 text-primary" /> Novo Documento</CardTitle></CardHeader>
               <CardContent className="space-y-4">
+                {/* CID-10 sugeridos — compartilhado pelos campos de CID (afastamento e aptidão) */}
+                <datalist id="cid10-options">
+                  {COMMON_CID10.map(c => (
+                    <option key={c.code} value={c.code}>{c.code} — {c.label}</option>
+                  ))}
+                </datalist>
                 <div>
                   {/* UI: associate label with the select trigger for a11y */}
                   <Label htmlFor="cert-type">Tipo de Documento</Label>
@@ -317,7 +380,7 @@ const MedicalCertificate = () => {
                     <div>
                       {/* UI: associate label with input for a11y */}
                       <Label htmlFor="cert-cid-absence">CID-10 (opcional)</Label>
-                      <Input id="cert-cid-absence" value={cid} onChange={e => setCid(e.target.value)} placeholder="Ex: J06, I10" className="mt-1" />
+                      <Input id="cert-cid-absence" list="cid10-options" value={cid} onChange={e => setCid(e.target.value)} placeholder="Ex: J06, I10" className="mt-1" />
                     </div>
                   </div>
                 )}
@@ -326,7 +389,7 @@ const MedicalCertificate = () => {
                   <div>
                     {/* UI: associate label with input for a11y */}
                     <Label htmlFor="cert-cid-fitness">CID-10 (opcional)</Label>
-                    <Input id="cert-cid-fitness" value={cid} onChange={e => setCid(e.target.value)} placeholder="Ex: Z00.0" className="mt-1" />
+                    <Input id="cert-cid-fitness" list="cid10-options" value={cid} onChange={e => setCid(e.target.value)} placeholder="Ex: Z00.0" className="mt-1" />
                   </div>
                 )}
 

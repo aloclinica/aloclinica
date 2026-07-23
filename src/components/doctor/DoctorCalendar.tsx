@@ -19,7 +19,6 @@ import {
 import { ptBR } from "date-fns/locale";
 import { useIsMobile } from "@/hooks/use-mobile";
 import LazyAvatar from "@/components/ui/lazy-avatar";
-import { motion } from "framer-motion";
 import AppPromotionalBanners from "@/components/dashboards/AppPromotionalBanners";
 import DoctorAppHeader from "./DoctorAppHeader";
 
@@ -453,53 +452,6 @@ const DoctorCalendar = () => {
             }
           />
         </div>
-        {/* Header */}
-        <motion.section
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="hidden"
-        >
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="min-w-0">
-              <div className="mb-2 inline-flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300">
-                <CalendarDays className="h-3.5 w-3.5" />
-                Agenda clínica
-              </div>
-              <h1 className="text-2xl font-black tracking-tight text-foreground sm:text-3xl">Calendário médico</h1>
-              <p className="mt-1 text-sm text-muted-foreground">Visualize consultas, fila e ausências com leitura rápida por período.</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <IcalSyncButton />
-              <Button size="sm" variant="outline" onClick={() => setCurrentDate(new Date())} className="h-9 rounded-xl text-xs font-bold">
-                Hoje
-              </Button>
-            </div>
-          </div>
-          <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto] md:items-center">
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {[
-                { label: "Consultas", value: appointments.length, tone: "text-primary" },
-                { label: "Aguardando", value: waitingCount, tone: "text-warning" },
-                { label: "Concluídas", value: completedCount, tone: "text-success" },
-                { label: "Dias ativos", value: activeDays, tone: "text-foreground" },
-              ].map(item => (
-                <div key={item.label} className="rounded-2xl border border-border/45 bg-background/62 px-3 py-2.5">
-                  <p className={`text-xl font-black leading-none tabular-nums ${item.tone}`}>{item.value}</p>
-                  <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{item.label}</p>
-                </div>
-              ))}
-            </div>
-            <Tabs value={view} onValueChange={(v) => setView(v as "day" | "week" | "month")}>
-              <TabsList className="grid h-10 w-full grid-cols-3 rounded-2xl border border-border/45 bg-muted/45 p-1 md:w-[280px]">
-                <TabsTrigger value="day" className="rounded-xl text-xs font-bold">Dia</TabsTrigger>
-                <TabsTrigger value="week" className="rounded-xl text-xs font-bold">Semana</TabsTrigger>
-                <TabsTrigger value="month" className="rounded-xl text-xs font-bold">Mês</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-        </motion.section>
-
         <div className="mb-5">
           <AppPromotionalBanners role="doctor" placement="schedule" />
         </div>
