@@ -16,6 +16,8 @@ import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useBulkSelection } from "@/hooks/useBulkSelection";
 import { BulkActionBar } from "@/components/ui/bulk-action-bar";
 import { Checkbox } from "@/components/ui/checkbox";
+import DashboardLayout from "@/components/dashboards/DashboardLayout";
+import { getAdminNav } from "./adminNav";
 
 type Media = {
   id: string;
@@ -216,6 +218,7 @@ export default function AdminMediaLibrary() {
   }), [items]);
 
   return (
+    <DashboardLayout title="Biblioteca de Mídia" nav={getAdminNav("media")} role="admin">
     <div className="p-4 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -350,5 +353,6 @@ export default function AdminMediaLibrary() {
         )}
       </div>
     </div>
+    </DashboardLayout>
   );
 }
