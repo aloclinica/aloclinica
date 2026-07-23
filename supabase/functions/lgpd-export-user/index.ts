@@ -22,7 +22,9 @@ const corsHeaders = {
 // another user's rows. Tables not listed here are skipped (see REQUIRES notes).
 const TABLE_OWNER_COLUMN: Record<string, string> = {
   profiles: "user_id",
+  doctor_profiles: "user_id",
   user_roles: "user_id",
+  consent_logs: "user_id",
   user_consents: "user_id",
   user_consent_log: "user_id",
   kyc_verificacoes: "user_id",

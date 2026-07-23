@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2, FileText, Plus, CheckCircle2, ScrollText } from "lucide-react";
+import { LegalMarkdown } from "@/components/ui/legal-markdown";
 
 type Kind = "platform_terms" | "telemed_scheduled" | "telemed_ondemand" | "telemed_contract";
 const KIND_LABELS: Record<Kind, string> = {
@@ -148,9 +149,9 @@ const AdminLegalDocuments = () => {
                       <p className="text-[11px] text-muted-foreground mb-2">
                         Vigente desde {new Date(d.effective_at).toLocaleString("pt-BR")} · atualizado {new Date(d.updated_at).toLocaleString("pt-BR")}
                       </p>
-                      <pre className="whitespace-pre-wrap font-sans text-xs leading-relaxed text-foreground max-h-48 overflow-auto bg-muted/30 rounded p-3 border border-border">
-                        {d.body_md}
-                      </pre>
+                      <div className="max-h-48 overflow-auto bg-muted/30 rounded p-3 border border-border">
+                        <LegalMarkdown source={d.body_md} />
+                      </div>
                     </CardContent>
                   </Card>
                 ))}

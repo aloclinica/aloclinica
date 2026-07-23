@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Shield } from "lucide-react";
 import { warn } from "@/lib/logger";
+import { logConsent } from "@/lib/consent";
 
 const CURRENT_TERMS_VERSION_KEY = "terms_version";
 
@@ -49,30 +50,40 @@ const TermsReconsentDialog = () => {
         : (typeof raw === "string" ? raw : "1.0.0");
       setRequiredVersion(version);
 
-      // Checa nova tabela user_consent_log primeiro (preferencial)
-      const { data: newConsent } = await (db as any)
-        .from("user_consent_log")
+      // Fonte canônica: consent_logs (é a tabela que o painel de compliance lê).
+      const { data: canonical } = await db
+        .from("consent_logs")
         .select("id")
         .eq("user_id", user.id)
-        .eq("document_type", "terms")
+        .eq("consent_type", "terms_of_use")
         .eq("version", version)
+        .eq("accepted", true)
         .maybeSingle();
 
-      if (newConsent) {
+      if (canonical) {
         setOpen(false);
         return;
       }
 
-      // Fallback: checa a tabela antiga user_consents
-      const { data: oldConsent } = await db
-        .from("user_consents")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("version", version)
-        .eq("consent_type", "terms_of_use")
-        .maybeSingle();
+      // Fallback (compat): quem já aceitou nas tabelas legadas não é re-perguntado.
+      const [{ data: legacyLog }, { data: legacyConsent }] = await Promise.all([
+        (db as any)
+          .from("user_consent_log")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("document_type", "terms")
+          .eq("version", version)
+          .maybeSingle(),
+        db
+          .from("user_consents")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("version", version)
+          .eq("consent_type", "terms_of_use")
+          .maybeSingle(),
+      ]);
 
-      setOpen(!oldConsent);
+      setOpen(!legacyLog && !legacyConsent);
     } catch (error) {
       warn("[terms] Erro inesperado ao verificar termos", error);
     }
@@ -84,17 +95,26 @@ const TermsReconsentDialog = () => {
     setSaving(true);
 
     try {
-      // Insere em ambas as tabelas (nova é a preferencial; antiga é compat)
-      const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : null;
-
-      await (db as any).from("user_consent_log").insert({
-        user_id: user.id,
-        document_type: "terms",
+      // Canônico: grava em consent_logs (aceite imutável, com IP + user agent
+      // capturados pelo helper) — é o que aparece na auditoria de compliance.
+      // A caixa cobre Termos + Privacidade, então registramos os dois.
+      await logConsent({
+        type: "terms_of_use",
+        userId: user.id,
         version: requiredVersion,
-        ip_address: null,
-        user_agent: userAgent,
+        documentUrl: "/terms",
+        metadata: { source: "reconsent_dialog" },
+      });
+      await logConsent({
+        type: "privacy_policy",
+        userId: user.id,
+        version: requiredVersion,
+        documentUrl: "/privacy",
+        metadata: { source: "reconsent_dialog" },
       });
 
+      // Compat: mantém a tabela legada user_consents preenchida (não-bloqueante).
+      const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : null;
       const { error } = await db.from("user_consents").insert({
         user_id: user.id,
         consent_type: "terms_of_use",
@@ -102,7 +122,6 @@ const TermsReconsentDialog = () => {
         ip_address: null,
         user_agent: userAgent,
       });
-
       if (error) warn("[terms] insert legacy table falhou (não-bloqueante)", error);
 
       toast.success("Termos aceitos com sucesso!");

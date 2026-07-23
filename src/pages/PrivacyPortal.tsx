@@ -71,37 +71,66 @@ export default function PrivacyPortal() {
     })();
   }, [navigate]);
 
+  // Baixa um arquivo (URL ou Blob) forçando o nome do arquivo.
+  const triggerDownload = (href: string, filename: string) => {
+    const a = document.createElement("a");
+    a.href = href;
+    a.download = filename;
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  // Export completo (perfil, consultas, receitas, pagamentos, KYC, consentimentos
+  // etc.) via edge function server-side, que roda com service_role e não fica
+  // limitada pelo RLS do navegador. Se falhar, cai no export client-side reduzido.
   const exportData = async () => {
     if (!userId) return;
     setBusy("export");
+    const filename = `aloclinica-meus-dados-${new Date().toISOString().slice(0, 10)}.json`;
     try {
-      const [profile, appointments, prescriptions, notifs] = await Promise.all([
-        db.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
-        db.from("appointments").select("*").eq("patient_id", userId),
-        db.from("prescriptions").select("*").eq("patient_id", userId),
-        db.from("notifications").select("*").eq("user_id", userId).limit(500),
-      ]);
-      const payload = {
-        exported_at: new Date().toISOString(),
-        user: { id: userId, email },
-        profile: profile.data ?? null,
-        appointments: appointments.data ?? [],
-        prescriptions: prescriptions.data ?? [],
-        notifications: notifs.data ?? [],
-        consent_history: consents,
-        _note: "Exportação LGPD Art. 18 III/V — portabilidade dos dados.",
-      };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `aloclinica-meus-dados-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      await logConsent({ type: "lgpd_data_processing", accepted: true, metadata: { action: "export_request" } });
-      toast.success("Seus dados foram exportados.");
-    } catch (e) {
-      toast.error("Não foi possível exportar agora. Tente novamente.");
+      const { data, error } = await db.functions.invoke("lgpd-export-user", { body: {} });
+      if (error || !data?.download_url) throw error ?? new Error("sem URL de download");
+
+      // Busca o JSON assinado e baixa como arquivo (nome amigável).
+      const res = await fetch(data.download_url);
+      if (!res.ok) throw new Error(`download ${res.status}`);
+      const blob = await res.blob();
+      const objUrl = URL.createObjectURL(blob);
+      triggerDownload(objUrl, filename);
+      URL.revokeObjectURL(objUrl);
+
+      await logConsent({ type: "lgpd_data_processing", accepted: true, metadata: { action: "export_request", mode: "server", tables: data.tables_count } });
+      toast.success(`Seus dados foram exportados (${data.tables_count ?? "todas as"} tabelas).`);
+    } catch (serverErr) {
+      // Fallback: export client-side (subconjunto sujeito ao RLS do usuário).
+      try {
+        const [profile, appointments, prescriptions, notifs] = await Promise.all([
+          db.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
+          db.from("appointments").select("*").eq("patient_id", userId),
+          db.from("prescriptions").select("*").eq("patient_id", userId),
+          db.from("notifications").select("*").eq("user_id", userId).limit(500),
+        ]);
+        const payload = {
+          exported_at: new Date().toISOString(),
+          user: { id: userId, email },
+          profile: profile.data ?? null,
+          appointments: appointments.data ?? [],
+          prescriptions: prescriptions.data ?? [],
+          notifications: notifs.data ?? [],
+          consent_history: consents,
+          _note: "Exportação LGPD Art. 18 III/V — portabilidade dos dados (modo reduzido).",
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        const objUrl = URL.createObjectURL(blob);
+        triggerDownload(objUrl, filename);
+        URL.revokeObjectURL(objUrl);
+        await logConsent({ type: "lgpd_data_processing", accepted: true, metadata: { action: "export_request", mode: "client_fallback" } });
+        toast.success("Seus dados foram exportados.");
+      } catch {
+        toast.error("Não foi possível exportar agora. Tente novamente.");
+      }
     } finally {
       setBusy(null);
     }

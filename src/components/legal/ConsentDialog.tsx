@@ -7,6 +7,7 @@ import { Loader2, ScrollText, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchActiveLegalDoc, recordConsultationConsent, type LegalKind, type LegalDoc } from "@/lib/legal-docs";
+import { LegalMarkdown } from "@/components/ui/legal-markdown";
 
 /**
  * Dialog reusável que carrega o documento legal vigente do `kind`, exige
@@ -79,7 +80,7 @@ export function ConsentDialog({ open, onOpenChange, kind, appointmentId, onAccep
           </div>
         ) : doc ? (
           <ScrollArea className="h-[55vh] rounded-lg border border-border bg-muted/30 p-4" onScrollCapture={onScroll}>
-            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{doc.body_md}</pre>
+            <LegalMarkdown source={doc.body_md} />
           </ScrollArea>
         ) : (
           <p className="text-sm text-destructive py-8 text-center">Documento indisponível. Tente novamente.</p>
