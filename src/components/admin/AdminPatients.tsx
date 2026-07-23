@@ -96,8 +96,7 @@ const AdminPatients = () => {
     setLoading(false);
   };
 
-  // Search/filter/sort/paginação agora server-side. `filtered` = página atual.
-  const filtered = patients;
+  // Search/filter/sort/paginação agora server-side. `paged` = página atual.
   const paged = patients;
 
   const openDetail = async (p: PatientProfile) => {
@@ -129,14 +128,51 @@ const AdminPatients = () => {
     }
   };
 
-  const exportCSV = () => {
-    if (filtered.length === 0) {
+  const exportCSV = async () => {
+    // Exporta o dataset filtrado COMPLETO (não apenas a página atual).
+    // Reaplica os mesmos filtros (role=patient + busca + período + ordenação) sem paginação.
+    const { data: roles } = await db.from("user_roles").select("user_id").eq("role", "patient");
+    if (!roles || roles.length === 0) {
       toast.error("Nenhum paciente para exportar");
       return;
     }
+    const userIds = roles.map(r => r.user_id);
+
+    let q = db.from("profiles")
+      .select("user_id, first_name, last_name, phone, cpf, date_of_birth, created_at")
+      .in("user_id", userIds);
+
+    const term = debouncedSearch.trim();
+    if (term) {
+      const safe = term.replace(/[(),]/g, " ").replace(/\s+/g, " ").trim();
+      q = q.or(`first_name.ilike.%${safe}%,last_name.ilike.%${safe}%,cpf.ilike.%${safe}%,phone.ilike.%${safe}%`);
+    }
+
+    if (dateFilter !== "all") {
+      const cutoff = new Date();
+      const days = dateFilter === "7d" ? 7 : dateFilter === "30d" ? 30 : 90;
+      cutoff.setDate(cutoff.getDate() - days);
+      q = q.gte("created_at", cutoff.toISOString());
+    }
+
+    if (sortBy === "name") {
+      q = q.order("first_name", { ascending: true });
+    } else if (sortBy === "oldest") {
+      q = q.order("created_at", { ascending: true });
+    } else {
+      q = q.order("created_at", { ascending: false });
+    }
+
+    const { data: allRows } = await q.limit(10000);
+    const rows = (allRows ?? []) as PatientProfile[];
+    if (rows.length === 0) {
+      toast.error("Nenhum paciente para exportar");
+      return;
+    }
+
     exportToCSV(
       `pacientes_${new Date().toISOString().slice(0, 10)}.csv`,
-      filtered.map(p => ({
+      rows.map(p => ({
         nome: p.first_name ?? "",
         sobrenome: p.last_name ?? "",
         telefone: p.phone ?? "",
@@ -153,7 +189,7 @@ const AdminPatients = () => {
         { key: "cadastro", label: "Cadastro" },
       ],
     );
-    toast.success(`${filtered.length} paciente${filtered.length === 1 ? "" : "s"} exportado${filtered.length === 1 ? "" : "s"}`);
+    toast.success(`${rows.length} paciente${rows.length === 1 ? "" : "s"} exportado${rows.length === 1 ? "" : "s"}`);
   };
 
   const statusLabel: Record<string, string> = {
@@ -169,7 +205,7 @@ const AdminPatients = () => {
           title="Pacientes"
           description="Base completa de pacientes cadastrados na plataforma."
           accent="from-cyan-500 to-blue-600"
-          badge={{ label: `${filtered.length} ${filtered.length === 1 ? "paciente" : "pacientes"}`, tone: "info" }}
+          badge={{ label: `${pg.total} ${pg.total === 1 ? "paciente" : "pacientes"}`, tone: "info" }}
           actions={
             <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1.5">
               <Download className="w-4 h-4" /> Exportar CSV

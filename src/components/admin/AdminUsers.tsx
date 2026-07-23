@@ -14,6 +14,7 @@ import { AdminPageHeader } from "./AdminPageHeader";
 import { AdminLoading, AdminEmpty } from "./AdminStateBlocks";
 import { Search, Shield, Eye, Users as UsersIcon, Download, Bookmark, Trash2, Plus } from "lucide-react";
 import { exportCSV } from "@/lib/csvExport";
+import { logError } from "@/lib/logger";
 import { useBulkSelection } from "@/hooks/useBulkSelection";
 import { BulkActionBar } from "@/components/ui/bulk-action-bar";
 import { useSavedFilters } from "@/hooks/useSavedFilters";
@@ -122,15 +123,52 @@ const AdminUsers = () => {
     const toAdd = userRoles.filter(r => !currentRoles.includes(r));
     const toRemove = currentRoles.filter(r => !userRoles.includes(r));
 
-    // Audit log simulated
-    console.log(`Updating roles for ${selected.user_id}: adding [${toAdd}], removing [${toRemove}]`);
-
-
     for (const role of toAdd) {
       await db.from("user_roles").upsert({ user_id: selected.user_id, role: role as "admin" | "clinic" | "doctor" | "partner" | "patient" | "receptionist" | "support" });
     }
     for (const role of toRemove) {
       await db.from("user_roles").delete().eq("user_id", selected.user_id).eq("role", role as "admin" | "clinic" | "doctor" | "partner" | "patient" | "receptionist" | "support");
+    }
+
+    // Auditoria imutável: registra cada grant/revoke em activity_logs (uma linha por operação)
+    if (toAdd.length > 0 || toRemove.length > 0) {
+      try {
+        const { data: authData } = await db.auth.getUser();
+        const actorId = authData?.user?.id ?? null;
+        const auditRows = [
+          ...toAdd.map(role => ({
+            user_id: actorId,
+            action: "user_role.grant",
+            entity_type: "user_role",
+            entity_id: selected.user_id,
+            metadata: {
+              actor_id: actorId,
+              target_user_id: selected.user_id,
+              role,
+              operation: "grant",
+              previous_roles: currentRoles,
+              new_roles: userRoles,
+            },
+          })),
+          ...toRemove.map(role => ({
+            user_id: actorId,
+            action: "user_role.revoke",
+            entity_type: "user_role",
+            entity_id: selected.user_id,
+            metadata: {
+              actor_id: actorId,
+              target_user_id: selected.user_id,
+              role,
+              operation: "revoke",
+              previous_roles: currentRoles,
+              new_roles: userRoles,
+            },
+          })),
+        ];
+        await db.from("activity_logs").insert(auditRows);
+      } catch (e) {
+        logError("AdminUsers audit log write failed", e);
+      }
     }
 
     toast.success("Roles atualizadas! ✅");

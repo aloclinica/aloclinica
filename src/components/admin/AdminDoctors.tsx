@@ -36,9 +36,21 @@ const AdminDoctors = () => {
       .order("created_at", { ascending: false });
     if (!data) { setLoading(false); return; }
     const userIds = data.map(d => d.user_id);
-    const { data: profiles } = await db.from("profiles").select("user_id, first_name, last_name, phone").in("user_id", userIds);
+    const doctorIds = data.map(d => d.id);
+    const [{ data: profiles }, { data: specRows }] = await Promise.all([
+      db.from("profiles").select("user_id, first_name, last_name, phone").in("user_id", userIds),
+      db.from("doctor_specialties").select("doctor_id, specialties(name)").in("doctor_id", doctorIds),
+    ]);
     const pMap = new Map(profiles?.map(p => [p.user_id, p]) ?? []);
-    setDoctors(data.map((d: any) => ({ ...d, ...(pMap.get(d.user_id) as any ?? {}) })));
+    const specMap = new Map<string, string[]>();
+    (specRows ?? []).forEach((row: any) => {
+      const name = row.specialties?.name;
+      if (!name) return;
+      const arr = specMap.get(row.doctor_id) ?? [];
+      arr.push(name);
+      specMap.set(row.doctor_id, arr);
+    });
+    setDoctors(data.map((d: any) => ({ ...d, ...(pMap.get(d.user_id) as any ?? {}), specialties: specMap.get(d.id) ?? [] })));
     setLoading(false);
   };
 
@@ -186,7 +198,11 @@ const AdminDoctors = () => {
                     <TableCell data-label="CRM" className="hidden sm:table-cell text-muted-foreground">{doc.crm}/{doc.crm_state}</TableCell>
                     <TableCell data-label="Especialidade" className="hidden md:table-cell">
                       <div className="flex flex-wrap gap-1">
-                        <Badge variant="outline" className="text-[10px] bg-primary/5">Geral</Badge>
+                        {doc.specialties && doc.specialties.length > 0
+                          ? doc.specialties.map((name) => (
+                              <Badge key={name} variant="outline" className="text-[10px] bg-primary/5">{name}</Badge>
+                            ))
+                          : <span className="text-muted-foreground">—</span>}
                       </div>
                     </TableCell>
                     <TableCell data-label="Telefone" className="hidden md:table-cell text-muted-foreground text-xs">{doc.phone || "—"}</TableCell>

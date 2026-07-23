@@ -63,6 +63,11 @@ const PanelCenter = () => {
   const [totalUsers, setTotalUsers] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [kpiLeads, setKpiLeads] = useState<number | null>(null);
+  const [kpiApptsToday, setKpiApptsToday] = useState<number | null>(null);
+  const [kpiPendingDoctors, setKpiPendingDoctors] = useState<number | null>(null);
+  const [whatsappState, setWhatsappState] = useState<"loading" | "connected" | "offline" | "unconfigured">("loading");
+  const [revenueData, setRevenueData] = useState<{ day: string; revenue: number }[]>([]);
 
   const fetchPresence = async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
@@ -137,9 +142,68 @@ const PanelCenter = () => {
     setLastRefresh(new Date());
   };
 
+  const fetchKpis = async () => {
+    try {
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startOfTomorrow = new Date(startOfToday.getTime() + 24 * 60 * 60 * 1000);
+      const sevenDaysAgo = new Date(startOfToday.getTime() - 6 * 24 * 60 * 60 * 1000);
+      const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+
+      const [leadsRes, apptsRes, pendingRes, revenueRes] = await Promise.all([
+        db.from("contract_leads").select("id", { count: "exact", head: true }),
+        db.from("appointments").select("id", { count: "exact", head: true })
+          .gte("scheduled_at", startOfToday.toISOString())
+          .lt("scheduled_at", startOfTomorrow.toISOString()),
+        db.from("doctor_profiles").select("id", { count: "exact", head: true }).eq("is_approved", false),
+        db.from("appointments").select("scheduled_at, price_at_booking, payment_status")
+          .gte("scheduled_at", sevenDaysAgo.toISOString())
+          .in("payment_status", ["approved", "confirmed"])
+          .limit(5000),
+      ]);
+
+      setKpiLeads(leadsRes.count ?? 0);
+      setKpiApptsToday(apptsRes.count ?? 0);
+      setKpiPendingDoctors(pendingRes.count ?? 0);
+
+      const buckets: { day: string; revenue: number }[] = [];
+      const idxByKey = new Map<string, number>();
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(startOfToday.getTime() - i * 24 * 60 * 60 * 1000);
+        idxByKey.set(dayKey(d), buckets.length);
+        buckets.push({ day: format(d, "EEE", { locale: ptBR }), revenue: 0 });
+      }
+      (revenueRes.data ?? []).forEach((a: any) => {
+        if (!a.scheduled_at) return;
+        const idx = idxByKey.get(dayKey(new Date(a.scheduled_at)));
+        if (idx !== undefined) buckets[idx].revenue += Number(a.price_at_booking) || 0;
+      });
+      setRevenueData(buckets);
+    } catch (e) {
+      logError("PanelCenter KPIs fetch error", e);
+    }
+  };
+
+  const fetchWhatsappState = async () => {
+    try {
+      const { data, error } = await db.functions.invoke("whatsapp-qr", { body: { action: "list" } });
+      if (error || data?.success === false) { setWhatsappState("unconfigured"); return; }
+      const instances: any[] = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+      const connected = instances.some((i: any) => {
+        const s = i.instance?.status ?? i.instance?.state ?? i.status ?? i.state;
+        return s === "open";
+      });
+      setWhatsappState(connected ? "connected" : "offline");
+    } catch {
+      setWhatsappState("unconfigured");
+    }
+  };
+
   useEffect(() => {
     fetchPresence();
-    const interval = setInterval(() => fetchPresence(), 15000);
+    fetchKpis();
+    fetchWhatsappState();
+    const interval = setInterval(() => { fetchPresence(); fetchKpis(); }, 15000);
     return () => clearInterval(interval);
   }, []);
 
@@ -161,11 +225,18 @@ const PanelCenter = () => {
 
   const activePanels = panels.filter(p => p.onlineCount > 0).length;
 
+  const whatsappLabel =
+    whatsappState === "connected" ? "Conectado"
+    : whatsappState === "offline" ? "Desconectado"
+    : whatsappState === "loading" ? "…"
+    : "Configurável";
+
     const stats = [
       {
         label: "Online agora",
         sublabel: "Usuários conectados",
         value: totalOnline,
+        badge: "Live",
         icon: Zap,
         gradient: "from-emerald-400 via-emerald-500 to-teal-600",
         ring: "ring-emerald-500/30",
@@ -176,7 +247,8 @@ const PanelCenter = () => {
       {
         label: "Leads",
         sublabel: "Novos contatos",
-        value: "18",
+        value: kpiLeads ?? "—",
+        badge: "Total",
         icon: UserPlus,
         gradient: "from-blue-400 via-blue-500 to-indigo-600",
         ring: "ring-blue-500/30",
@@ -187,7 +259,8 @@ const PanelCenter = () => {
       {
         label: "WhatsApp API",
         sublabel: "Automações & Bots",
-        value: "Ativo",
+        value: whatsappLabel,
+        badge: "Status",
         icon: WhatsappLogo,
         gradient: "from-green-400 via-green-500 to-emerald-600",
         ring: "ring-green-500/30",
@@ -198,7 +271,8 @@ const PanelCenter = () => {
       {
         label: "Aprovações",
         sublabel: "Médicos pendentes",
-        value: panels.find(p => p.id === "doctor")?.totalUsers ?? 0,
+        value: kpiPendingDoctors ?? "—",
+        badge: "Fila",
         icon: UserCheck,
         gradient: "from-orange-400 via-orange-500 to-red-600",
         ring: "ring-orange-500/30",
@@ -209,7 +283,8 @@ const PanelCenter = () => {
       {
         label: "Consultas",
         sublabel: "Agendadas hoje",
-        value: "42",
+        value: kpiApptsToday ?? "—",
+        badge: "Hoje",
         icon: ClipboardList,
         gradient: "from-violet-400 via-violet-500 to-purple-600",
         ring: "ring-violet-500/30",
@@ -236,17 +311,6 @@ const PanelCenter = () => {
       { label: "Segurança", icon: ShieldCheck, route: "/dashboard/admin/security?role=admin", color: "text-rose-500", bg: "bg-rose-500/10" },
       { label: "Contratos", icon: Handshake, route: "/dashboard/admin/contratos?role=admin", color: "text-emerald-500", bg: "bg-emerald-500/10" },
     ];
-
-   // Simulated revenue data for the chart
-   const revenueData = [
-     { day: "Seg", revenue: 1200 },
-     { day: "Ter", revenue: 1800 },
-     { day: "Qua", revenue: 1400 },
-     { day: "Qui", revenue: 2200 },
-     { day: "Sex", revenue: 2800 },
-     { day: "Sáb", revenue: 2100 },
-     { day: "Dom", revenue: 1900 },
-   ];
 
   return (
     <DashboardLayout title="Centro de Painéis" nav={getAdminNav("panel-center")}>
@@ -285,7 +349,7 @@ const PanelCenter = () => {
                 <div className="flex flex-wrap gap-2 mt-5">
                   <Button
                     size="sm"
-                    onClick={() => fetchPresence(true)}
+                    onClick={() => { fetchPresence(true); fetchKpis(); fetchWhatsappState(); }}
                     disabled={refreshing}
                     className="gap-2 rounded-xl bg-gradient-to-br from-primary to-blue-700 hover:opacity-90 shadow-md shadow-primary/20"
                   >
@@ -366,10 +430,10 @@ const PanelCenter = () => {
             <div className="px-5 py-3 border-b border-border/40 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-emerald-500" />
-                <h3 className="text-sm font-bold text-foreground">Faturamento estimado · últimos 7 dias</h3>
+                <h3 className="text-sm font-bold text-foreground">Faturamento · últimos 7 dias</h3>
               </div>
               <Badge variant="outline" className="font-mono text-[10px] text-muted-foreground border-border/60 bg-muted/30">
-                dados simulados
+                pagamentos confirmados
               </Badge>
             </div>
             <div className="h-[200px] p-3">
@@ -429,7 +493,7 @@ const PanelCenter = () => {
                         <Icon className="w-5 h-5 text-white" strokeWidth={2.2} />
                       </div>
                       <span className={cn("text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ring-1", s.ring, "text-muted-foreground")}>
-                        Live
+                        {s.badge}
                       </span>
                     </div>
 

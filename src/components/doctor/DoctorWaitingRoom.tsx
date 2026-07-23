@@ -76,16 +76,26 @@ const DoctorWaitingRoom = () => {
     if (data) {
       setDoctorId(data.id);
       fetchWaitingPatients(data.id);
-      // Fetch average consultation duration for this doctor
-      const { data: durations } = await db
-        .from("video_presence_logs")
-        .select("duration_seconds")
-        .gt("duration_seconds", 60)
-        .order("joined_at", { ascending: false })
-        .limit(30);
-      if (durations && durations.length > 0) {
-        const avg = Math.round(durations.reduce((a, d) => a + (d.duration_seconds ?? 0), 0) / durations.length / 60);
-        setAvgDuration(Math.max(5, Math.min(avg, 60)));
+      // Fetch average consultation duration scoped to THIS doctor's appointments
+      const { data: completedAppts } = await db
+        .from("appointments")
+        .select("id")
+        .eq("doctor_id", data.id)
+        .eq("status", "completed")
+        .limit(50);
+      const apptIds = (completedAppts ?? []).map((a: { id: string }) => a.id);
+      if (apptIds.length > 0) {
+        const { data: durations } = await db
+          .from("video_presence_logs")
+          .select("duration_seconds")
+          .in("appointment_id", apptIds)
+          .gt("duration_seconds", 60)
+          .order("joined_at", { ascending: false })
+          .limit(30);
+        if (durations && durations.length > 0) {
+          const avg = Math.round(durations.reduce((a, d) => a + (d.duration_seconds ?? 0), 0) / durations.length / 60);
+          setAvgDuration(Math.max(5, Math.min(avg, 60)));
+        }
       }
     }
     setLoading(false);

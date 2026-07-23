@@ -65,7 +65,6 @@ const CfmPrescription = ({
   doctorName,
   patientName,
   patientCpf,
-  onDocumentCreated,
 }: CfmPrescriptionProps) => {
   const [showDialog, setShowDialog] = useState(false);
   const [showIframe, setShowIframe] = useState(false);
@@ -87,10 +86,9 @@ const CfmPrescription = ({
 
   const handleOpenExternal = useCallback(() => {
     window.open(CFM_PRESCRICAO_URL + "/login", "_blank", "noopener,noreferrer");
-    toast.success("Plataforma CFM aberta em nova aba");
+    toast.info("Portal CFM aberto em nova aba", { description: "Conclua a emissão no portal oficial do CFM." });
     setShowDialog(false);
-    onDocumentCreated?.(selectedDocType);
-  }, [selectedDocType, onDocumentCreated]);
+  }, []);
 
   const handleIframeLoad = useCallback(() => {
     setIframeLoading(false);

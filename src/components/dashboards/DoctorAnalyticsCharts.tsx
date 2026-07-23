@@ -12,6 +12,8 @@ import type { ChartDataPoint } from "@/types/domain";
 
 const DAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--destructive))", "hsl(var(--muted-foreground))", "hsl(var(--accent))"];
+const DOCTOR_SHARE = 0.5; // espelha DEFAULT_DOCTOR_PERCENT do DoctorEarnings
+const isPaid = (s: any) => ["approved", "confirmed", "received"].includes(String(s ?? ""));
 
 const DoctorAnalyticsCharts = () => {
   const { user } = useAuth();
@@ -51,14 +53,15 @@ const DoctorAnalyticsCharts = () => {
     if (!docProfile) { setLoading(false); return; }
 
     const price = Number(docProfile.consultation_price) || 89;
+    const doctorEarn = (a: any) => (Number(a.price_at_booking) || price) * DOCTOR_SHARE;
     const days = 7;
     const startDate = startOfDay(subDays(new Date(), days));
 
     const [apptsRes, surveysRes, allApptsRes, sixMonthRes] = await Promise.all([
-      db.from("appointments").select("id, scheduled_at, status").eq("doctor_id", docProfile.id).gte("scheduled_at", startDate.toISOString()),
+      db.from("appointments").select("id, scheduled_at, status, payment_status, price_at_booking").eq("doctor_id", docProfile.id).gte("scheduled_at", startDate.toISOString()),
       db.from("satisfaction_surveys").select("nps_score, created_at").eq("doctor_id", docProfile.id).order("created_at", { ascending: true }).limit(20),
-      db.from("appointments").select("scheduled_at, status, patient_id").eq("doctor_id", docProfile.id).gte("scheduled_at", subDays(new Date(), 60).toISOString()),
-      db.from("appointments").select("scheduled_at, status, patient_id").eq("doctor_id", docProfile.id).gte("scheduled_at", subMonths(new Date(), 6).toISOString()),
+      db.from("appointments").select("scheduled_at, status, patient_id, payment_status, price_at_booking").eq("doctor_id", docProfile.id).gte("scheduled_at", subDays(new Date(), 60).toISOString()),
+      db.from("appointments").select("scheduled_at, status, patient_id, payment_status, price_at_booking").eq("doctor_id", docProfile.id).gte("scheduled_at", subMonths(new Date(), 6).toISOString()),
     ]);
 
     // Weekly appointments
@@ -71,7 +74,7 @@ const DoctorAnalyticsCharts = () => {
     (apptsRes.data ?? []).forEach((a) => {
       const key = format(new Date(a.scheduled_at), "yyyy-MM-dd");
       const entry = dayMap.get(key);
-      if (entry && a.status === "completed") { entry.consultas++; entry.ganhos += price; }
+      if (entry && a.status === "completed") { entry.consultas++; if (isPaid(a.payment_status)) entry.ganhos += doctorEarn(a); }
     });
     setWeeklyData(Array.from(dayMap.values()));
 
@@ -83,9 +86,9 @@ const DoctorAnalyticsCharts = () => {
     // Cumulative earnings
     const earningsMap = new Map<string, number>();
     for (let i = 3; i >= 0; i--) { earningsMap.set(format(subDays(new Date(), i * 7), "dd/MM", { locale: ptBR }), 0); }
-    (allApptsRes.data ?? []).filter(a => a.status === "completed").forEach(a => {
+    (allApptsRes.data ?? []).filter(a => a.status === "completed" && isPaid(a.payment_status)).forEach(a => {
       const wk = format(new Date(a.scheduled_at), "dd/MM", { locale: ptBR });
-      if (earningsMap.has(wk)) earningsMap.set(wk, (earningsMap.get(wk) ?? 0) + price);
+      if (earningsMap.has(wk)) earningsMap.set(wk, (earningsMap.get(wk) ?? 0) + doctorEarn(a));
     });
     let cumEarnings = 0;
     setEarningsData(Array.from(earningsMap.entries()).map(([week, val]) => {
@@ -111,7 +114,7 @@ const DoctorAnalyticsCharts = () => {
       const entry = monthMap.get(key);
       if (entry) {
         entry.total++;
-        if (a.status === "completed") { entry.completed++; entry.revenue += price; }
+        if (a.status === "completed") { entry.completed++; if (isPaid(a.payment_status)) entry.revenue += doctorEarn(a); }
       }
     });
     setMonthlyTrend(Array.from(monthMap.values()));
@@ -142,7 +145,7 @@ const DoctorAnalyticsCharts = () => {
     setSummaryStats({
       completionRate: total60 > 0 ? Math.round((completed60 / total60) * 100) : 0,
       avgRating: avgNps,
-      totalEarnings: completed60 * price,
+      totalEarnings: (allApptsRes.data ?? []).filter(a => a.status === "completed" && isPaid(a.payment_status)).reduce((sum, a) => sum + doctorEarn(a), 0),
       totalPatients: uniquePatients,
       returnRate,
     });

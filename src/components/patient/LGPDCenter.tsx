@@ -154,14 +154,14 @@ export default function LGPDCenter() {
         {/* Rights */}
         <div className="grid grid-cols-2 gap-3">
           {[
-            { icon: Eye, label: "Acesso", desc: "Veja todos os seus dados", color: "blue" },
-            { icon: DownloadSimple, label: "Portabilidade", desc: "Exporte seus dados em JSON", color: "emerald" },
-            { icon: FileText, label: "Correção", desc: "Edite informações incorretas", color: "violet" },
-            { icon: Trash, label: "Exclusão", desc: "Solicite a exclusão dos dados", color: "red" },
-          ].map(({ icon: Icon, label, desc, color }) => (
+            { icon: Eye, label: "Acesso", desc: "Veja todos os seus dados", iconBg: "bg-blue-50 dark:bg-blue-950/30", iconText: "text-blue-500" },
+            { icon: DownloadSimple, label: "Portabilidade", desc: "Exporte seus dados em JSON", iconBg: "bg-emerald-50 dark:bg-emerald-950/30", iconText: "text-emerald-500" },
+            { icon: FileText, label: "Correção", desc: "Edite informações incorretas", iconBg: "bg-violet-50 dark:bg-violet-950/30", iconText: "text-violet-500" },
+            { icon: Trash, label: "Exclusão", desc: "Solicite a exclusão dos dados", iconBg: "bg-red-50 dark:bg-red-950/30", iconText: "text-red-500" },
+          ].map(({ icon: Icon, label, desc, iconBg, iconText }) => (
             <div key={label} className="rounded-xl border border-border bg-card p-3 flex items-start gap-3">
-              <div className={`w-8 h-8 rounded-lg bg-${color}-50 dark:bg-${color}-950/30 flex items-center justify-center shrink-0`}>
-                <Icon size={16} weight="fill" className={`text-${color}-500`} />
+              <div className={`w-8 h-8 rounded-lg ${iconBg} flex items-center justify-center shrink-0`}>
+                <Icon size={16} weight="fill" className={iconText} />
               </div>
               <div>
                 <p className="text-xs font-bold text-foreground">{label}</p>

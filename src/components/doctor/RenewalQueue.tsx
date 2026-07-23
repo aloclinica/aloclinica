@@ -111,9 +111,7 @@ const RenewalQueue = () => {
           prescription_type: (orig as any).prescription_type ?? "comum",
           observations: (orig as any).observations,
           status: "active",
-          is_signed: true,
-          signed_at: today.toISOString(),
-          signature_hash: verification,
+          is_signed: false,
           verification_code: verification,
           valid_until: validUntil.toISOString().slice(0, 10),
         } as any)
@@ -131,7 +129,7 @@ const RenewalQueue = () => {
       const docName = await getDoctorName();
       notifyRenewalApproved(renewal.patient_id, docName);
 
-      toast.success("Receita renovada", { description: "Nova receita ativa por 30 dias. O paciente foi notificado." });
+      toast.success("Renovação preparada", { description: "A nova receita precisa da sua assinatura digital para ter validade." });
       setSelectedRenewal(null);
       fetchRenewals();
     } catch (e: any) {

@@ -43,12 +43,12 @@ const DoctorOnDutyPanel = () => {
       todayStart.setHours(0, 0, 0, 0);
       const { data: appts } = await db
         .from("appointments")
-        .select("id, price")
+        .select("id, price_at_booking, price")
         .eq("doctor_id", data.id)
         .eq("appointment_type", "urgent_care")
         .gte("scheduled_at", todayStart.toISOString());
       const sessions = appts?.length ?? 0;
-      const revenue = (appts ?? []).reduce((sum: number, a: { price?: number }) => sum + Number(a.price ?? 0) * 0.5, 0);
+      const revenue = (appts ?? []).reduce((sum: number, a: { price?: number; price_at_booking?: number }) => sum + (Number(a.price_at_booking ?? a.price) || 0) * 0.5, 0);
       setTodayStats({ sessions, revenue });
     }
   };
@@ -185,7 +185,7 @@ const DoctorOnDutyPanel = () => {
                     {i === 0 && <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400">Próximo</span>}
                   </div>
                   <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                    <span className="font-semibold text-foreground tabular-nums">R$ {Number(entry.price).toFixed(2)}</span>
+                    <span className="font-semibold text-foreground tabular-nums">R$ {(Number(entry.price) || 0).toFixed(2)}</span>
                     <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {waitTime(entry.created_at)}</span>
                   </div>
                 </div>

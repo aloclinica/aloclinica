@@ -75,7 +75,7 @@ const PrescriptionForm = () => {
       };
       localStorage.setItem(`prescription_draft_${appointmentId}`, JSON.stringify(draftData));
       // Show brief indicator
-      toast.success("Rascunho salvo localmente", { duration: 2 });
+      toast.success("Rascunho salvo localmente", { duration: 2000 });
     }, 2000);
     return () => clearTimeout(timer);
   }, [prescription.data, appointmentId]);
@@ -441,6 +441,11 @@ const PrescriptionForm = () => {
         status: "finalized",
       }).select("id").single();
 
+      if (error) {
+        toast.error("Erro ao salvar receita", { description: error.message });
+        return;
+      }
+
       // Also persist verification record
       await db.from("document_verifications").insert({
         verification_code: verificationCode,
@@ -452,11 +457,6 @@ const PrescriptionForm = () => {
         document_hash: documentHash,
         details: { medications: validMeds.length, diagnosis: data.diagnosis || null },
       });
-
-      if (error) {
-        toast.error("Erro ao salvar receita", { description: error.message });
-        return;
-      }
 
       // Send prescription via email + WhatsApp
       const doctorFullName = `Dr(a). ${data.doctorInfo?.first_name} ${data.doctorInfo?.last_name}`;
@@ -677,8 +677,8 @@ const PrescriptionForm = () => {
               doctorName={`${data.doctorInfo.first_name} ${data.doctorInfo.last_name}`}
               patientName={data.patientName}
               patientCpf={data.patientCpf}
-              onDocumentCreated={(docType) => {
-                toast.success("Documento CFM emitido! ✅", { description: `${docType} criado na plataforma oficial do CFM.` });
+              onDocumentCreated={() => {
+                toast.info("Portal CFM aberto em nova aba", { description: "Conclua a emissão no portal oficial do CFM — o documento não é registrado automaticamente aqui." });
               }}
             />
           </div>

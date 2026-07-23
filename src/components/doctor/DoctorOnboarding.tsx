@@ -163,16 +163,16 @@ const DoctorOnboarding = () => {
           {/* Motivational stats strip */}
           <div className="grid grid-cols-3 gap-2 mb-4">
             <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-2 text-center">
-              <p className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">Pacientes/mês</p>
-              <p className="text-sm font-extrabold text-foreground mt-0.5">+50</p>
+              <p className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">Alcance</p>
+              <p className="text-sm font-extrabold text-foreground mt-0.5">Nacional</p>
             </div>
             <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-2 text-center">
-              <p className="text-[10px] font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Receita estim.</p>
-              <p className="text-sm font-extrabold text-foreground mt-0.5">R$ 8k+</p>
+              <p className="text-[10px] font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Aprovação</p>
+              <p className="text-sm font-extrabold text-foreground mt-0.5">~24h</p>
             </div>
             <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-2 text-center">
-              <p className="text-[10px] font-semibold text-violet-700 dark:text-violet-400 uppercase tracking-wide">Tempo médio</p>
-              <p className="text-sm font-extrabold text-foreground mt-0.5">24h</p>
+              <p className="text-[10px] font-semibold text-violet-700 dark:text-violet-400 uppercase tracking-wide">Segurança</p>
+              <p className="text-sm font-extrabold text-foreground mt-0.5">LGPD</p>
             </div>
           </div>
 

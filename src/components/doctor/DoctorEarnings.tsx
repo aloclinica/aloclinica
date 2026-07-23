@@ -139,7 +139,15 @@ const DoctorEarnings = () => {
 
     const totalEarned = hasWalletData ? walletCredits : confirmedAppts.reduce((sum, a) => sum + getPrice(a) * (doctorPercent / 100), 0);
     const totalPending = pendingAppts.reduce((sum, a) => sum + getPrice(a) * (doctorPercent / 100), 0);
-    const availableBalance = hasWalletData ? Math.max(0, walletCredits - walletDebits) : Math.max(0, totalEarned - (withdrawRes.data ?? []).filter(w => w.status === "approved").reduce((sum: number, w: { amount: number }) => sum + Number(w.amount), 0));
+    const pendingWithdrawals = withdrawList
+      .filter((w: { status?: string }) => ["pending", "processing"].includes(String(w.status ?? "")))
+      .reduce((sum: number, w: { amount: number }) => sum + Number(w.amount), 0);
+    const approvedWithdrawals = withdrawList
+      .filter((w: { status?: string }) => w.status === "approved")
+      .reduce((sum: number, w: { amount: number }) => sum + Number(w.amount), 0);
+    const availableBalance = hasWalletData
+      ? Math.max(0, walletCredits - walletDebits - pendingWithdrawals)
+      : Math.max(0, totalEarned - approvedWithdrawals - pendingWithdrawals);
 
     const now = new Date();
     const monthStart = startOfMonth(now);

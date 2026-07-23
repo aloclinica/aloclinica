@@ -84,7 +84,7 @@ const DoctorPrescriptions = () => {
             { label: "Medicamentos", value: prescriptions.reduce((total, p) => total + p.medications.length, 0) },
           ]}
           actions={
-            <Button onClick={() => navigate("/dashboard/prescribe")} className="h-11 rounded-2xl bg-emerald-600 px-5 text-sm font-black text-white hover:bg-emerald-700">
+            <Button onClick={() => navigate("/dashboard/doctor/consultations?role=doctor")} className="h-11 rounded-2xl bg-emerald-600 px-5 text-sm font-black text-white hover:bg-emerald-700">
               <Plus className="mr-2 h-5 w-5" />
               Nova receita
             </Button>
@@ -102,7 +102,7 @@ const DoctorPrescriptions = () => {
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Controle de Prescrições</p>
             </div>
           </div>
-          <Button onClick={() => navigate("/dashboard/prescribe")} className="rounded-2xl h-11 px-6 gap-2 shadow-lg shadow-primary/20">
+          <Button onClick={() => navigate("/dashboard/doctor/consultations?role=doctor")} className="rounded-2xl h-11 px-6 gap-2 shadow-lg shadow-primary/20">
             <Plus className="w-5 h-5" /> Nova Receita
           </Button>
         </div>
@@ -117,7 +117,7 @@ const DoctorPrescriptions = () => {
               </div>
               <p className="font-semibold text-foreground mb-1">Nenhuma receita emitida</p>
               <p className="text-sm text-muted-foreground mb-4">Emita receitas digitais com assinatura válida diretamente pela plataforma.</p>
-              <Button size="sm" className="rounded-xl gap-1.5" onClick={() => navigate("/dashboard/prescribe")}>
+              <Button size="sm" className="rounded-xl gap-1.5" onClick={() => navigate("/dashboard/doctor/consultations?role=doctor")}>
                 <Plus className="w-4 h-4" /> Nova Receita
               </Button>
             </CardContent>
@@ -125,10 +125,9 @@ const DoctorPrescriptions = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {prescriptions.map(p => (
-              <div 
-                key={p.id} 
-                className="p-5 rounded-3xl border border-border/10 bg-card hover:border-primary/30 transition-all hover:shadow-lg cursor-pointer flex flex-col justify-between h-full"
-                onClick={() => navigate(`/dashboard/prescriptions/${p.id}`)}
+              <div
+                key={p.id}
+                className="p-5 rounded-3xl border border-border/10 bg-card transition-all flex flex-col justify-between h-full"
               >
                 <div className="flex justify-between items-start mb-4">
                   <div className="min-w-0">
