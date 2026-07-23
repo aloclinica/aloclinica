@@ -94,18 +94,11 @@ const PingoRunBanner = () => {
                 Agendar agora
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" strokeWidth={2.5} />
               </button>
-              <div className="hidden sm:flex items-center gap-2">
-                <div className="flex text-amber-300">
-                  {[0, 1, 2, 3, 4].map((i) => (
-                    <Star key={i} className="w-3.5 h-3.5 fill-current" strokeWidth={0} />
-                  ))}
-                </div>
-                <div className="flex flex-col leading-tight">
-                  <span className="text-white font-bold text-sm">4.9/5</span>
-                  <span className="text-white/60 text-[10px] uppercase tracking-wider">
-                    avaliação dos pacientes
-                  </span>
-                </div>
+              <div className="hidden sm:flex flex-col leading-tight">
+                <span className="text-white font-bold text-sm">Médicos verificados no CFM</span>
+                <span className="text-white/60 text-[10px] uppercase tracking-wider">
+                  Receita digital válida
+                </span>
               </div>
             </motion.div>
           </div>

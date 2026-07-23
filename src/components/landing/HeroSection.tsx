@@ -81,22 +81,13 @@ const HeroSection = memo(
                   <ArrowRight className="relative w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" weight="bold" />
                 </Button>
 
-                <div className="hidden sm:flex items-center gap-2">
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-muted overflow-hidden">
-                        <img src={`https://i.pravatar.cc/80?u=${i}`} alt="Paciente" className="w-full h-full object-cover" loading="lazy" />
-                      </div>
-                    ))}
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0ea5e9] to-[#0369a1] border-2 border-white flex items-center justify-center text-[10px] font-bold text-white shadow-md">
-                      +12k
-                    </div>
+                <div className="hidden sm:flex items-center gap-2.5">
+                  <div className="p-2 bg-emerald-50 rounded-xl border border-emerald-100">
+                    <ShieldCheck className="w-5 h-5 text-emerald-600" weight="fill" />
                   </div>
-                  <div className="ml-1 leading-tight">
-                    <div className="flex items-center gap-0.5 text-amber-400">
-                      {[1,2,3,4,5].map((i)=>(<Star key={i} className="w-3 h-3" weight="fill" />))}
-                    </div>
-                    <span className="text-[11px] text-slate-500 font-medium">+12k pacientes atendidos</span>
+                  <div className="leading-tight">
+                    <p className="text-[13px] font-bold text-slate-800">Médicos verificados no CFM</p>
+                    <span className="text-[11px] text-slate-500 font-medium">Receita digital válida em todo o Brasil</span>
                   </div>
                 </div>
               </div>
@@ -135,8 +126,8 @@ const HeroSection = memo(
                     <VideoCamera className="w-5 h-5 text-[#0ea5e9]" weight="fill" />
                   </div>
                   <div className="leading-tight">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Em consulta agora</p>
-                    <p className="text-sm font-bold text-slate-800">847 pacientes</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Teleconsulta</p>
+                    <p className="text-sm font-bold text-slate-800">Vídeo em HD</p>
                   </div>
                 </div>
               </motion.div>
@@ -150,21 +141,16 @@ const HeroSection = memo(
                 <div className="bg-white/85 backdrop-blur-md p-4 rounded-2xl border border-white shadow-xl">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-1.5">
-                      <div className="flex text-amber-400">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <Star key={i} className="w-3.5 h-3.5" weight="fill" />
-                        ))}
-                      </div>
-                      <span className="text-xs font-bold text-slate-800">4.9</span>
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" weight="fill" />
+                      <span className="text-xs font-bold text-slate-800">Consulta segura</span>
                     </div>
-                    <div className="bg-rose-50 px-2 py-1 rounded text-[10px] font-bold text-rose-600 border border-rose-100 uppercase tracking-tighter">
+                    <div className="bg-emerald-50 px-2 py-1 rounded text-[10px] font-bold text-emerald-600 border border-emerald-100 uppercase tracking-tighter">
                       CFM Verificado
                     </div>
                   </div>
-                  <p className="text-xs text-slate-600 italic leading-snug">
-                    "Resolvi minha consulta em 8 minutos, sem sair do sofá."
+                  <p className="text-xs text-slate-600 leading-snug">
+                    Médicos com CRM ativo, vídeo criptografado e receita digital com assinatura ICP-Brasil.
                   </p>
-                  <p className="text-[10px] text-slate-400 font-bold mt-1.5 uppercase">— Maria, SP</p>
                 </div>
               </motion.div>
             </motion.div>

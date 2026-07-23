@@ -5,9 +5,9 @@ import { db } from "@/integrations/supabase/untyped";
 import { useSiteConfig } from "@/lib/site-config";
 
 const fallbackStats = [
-  { icon: Users, value: "+5k", label: "Pacientes atendidos" },
-  { icon: Stethoscope, value: "+30", label: "Médicos especialistas" },
-  { icon: Star, value: "4.9★", label: "Avaliação média" },
+  { icon: Users, value: "24h", label: "Atendimento" },
+  { icon: Stethoscope, value: "+30", label: "Especialidades" },
+  { icon: ShieldCheck, value: "CFM", label: "Médicos verificados" },
   { icon: ShieldCheck, value: "100%", label: "Digital e seguro" },
 ];
 

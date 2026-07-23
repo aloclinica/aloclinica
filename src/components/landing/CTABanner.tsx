@@ -18,8 +18,8 @@ const benefits = [
   { icon: Lightning, text: "Consulta em minutos" },
   { icon: ShieldCheck, text: "Dados criptografados" },
   { icon: Clock, text: "Disponível 24/7" },
-  { icon: Star, text: "4.9★ de avaliação" },
-  { icon: Heart, text: "50+ especialidades" },
+  { icon: Star, text: "Receita digital válida" },
+  { icon: Heart, text: "30+ especialidades" },
 ];
 
 const CTABanner = forwardRef<HTMLElement>((_, ref) => {
@@ -195,7 +195,7 @@ const CTABanner = forwardRef<HTMLElement>((_, ref) => {
                 transition={{ delay: 0.55, duration: 0.5 }}
                 className="text-[10px] text-primary-foreground/35 mt-4 text-center italic"
               >
-                Mais de 10.000 pacientes atendidos com satisfação
+                Médicos verificados no CFM · Receita digital válida em todo o Brasil
               </motion.p>
             </div>
           </div>

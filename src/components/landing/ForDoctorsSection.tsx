@@ -51,10 +51,10 @@ const perks = [
 ];
 
 const stats = [
-  { value: "500+", label: "Médicos ativos" },
+  { value: "Grátis", label: "Cadastro" },
   { value: "30+", label: "Especialidades" },
-  { value: "R$3k+", label: "Renda média/mês" },
-  { value: "4.9★", label: "Satisfação" },
+  { value: "48h", label: "Repasse via PIX" },
+  { value: "24h", label: "Aprovação" },
 ];
 
 const containerVariants = {
@@ -118,7 +118,7 @@ const ForDoctorsSection = forwardRef<HTMLElement>((_, ref) => {
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">
-                <span className="font-bold text-foreground">+500 médicos</span> já confiam
+                <span className="font-bold text-foreground">Cadastro gratuito</span> e validação de CRM
               </p>
             </div>
 
@@ -141,7 +141,7 @@ const ForDoctorsSection = forwardRef<HTMLElement>((_, ref) => {
             </h2>
 
             <p className="text-muted-foreground text-base sm:text-lg leading-relaxed mb-8 max-w-lg">
-              Junte-se a mais de 500 médicos que já expandiram sua prática com telemedicina.
+              Expanda sua prática com telemedicina e atenda de onde quiser.
               Cadastro gratuito, aprovação em até 24h.
             </p>
 

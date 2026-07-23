@@ -4,7 +4,7 @@ import { ShieldCheck, Award, Users, Lock, FileCheck, HeartHandshake, Sparkles } 
 const TRUST_ITEMS = [
   { icon: ShieldCheck, label: "Dados criptografados ponta a ponta" },
   { icon: Award, label: "Médicos credenciados CRM" },
-  { icon: Users, label: "+50 mil pacientes atendidos" },
+  { icon: Users, label: "Consulta por vídeo em HD" },
   { icon: Lock, label: "LGPD compliant" },
   { icon: FileCheck, label: "Receitas com assinatura ICP-Brasil" },
   { icon: HeartHandshake, label: "Suporte humano 24h" },

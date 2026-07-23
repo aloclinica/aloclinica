@@ -15,18 +15,16 @@ import CTABanner from "@/components/landing/CTABanner";
 import ConsultaInfoBanner from "@/components/landing/ConsultaInfoBanner";
 import TrustBanner from "@/components/landing/TrustBanner";
 import FAQSection from "@/components/landing/FAQSection";
-import TestimonialsMarquee from "@/components/landing/TestimonialsMarquee";
 import PingoCampaignShowcase from "@/components/landing/PingoCampaignShowcase";
 import PublicPageEnhancer from "@/components/landing/PublicPageEnhancer";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Building2, CalendarCheck, Star, Stethoscope, Video } from "lucide-react";
+import { ArrowRight, Building2, CalendarCheck, Stethoscope, Video } from "lucide-react";
 import { useHomeBlocks } from "@/lib/site-blocks";
 import { motion } from "framer-motion";
 import doctorTeleconsulta from "@/assets/doctor-phone-teleconsulta.png";
 import pingoCalendar from "@/assets/pingo-calendar.jpg";
 import pingoVideocall from "@/assets/pingo-videocall.png";
 import pingoPrescription from "@/assets/pingo-prescription.jpg";
-import pingoDepoimentos from "@/assets/pingo-depoimentos.png";
 
 const Index = forwardRef<HTMLDivElement>((_, ref) => {
   const { setTheme, theme } = useTheme();
@@ -168,76 +166,8 @@ const Index = forwardRef<HTMLDivElement>((_, ref) => {
       {isOn("benefits") !== false && <BenefitsGrid />}
       <TrustBanner />
 
-      {/* ═══════════════ DEPOIMENTOS ═══════════════ */}
-      {isOn("testimonials") && (
-        <section className="relative py-24 md:py-32 overflow-hidden">
-          {/* Background ambiance */}
-          <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background via-primary/[0.04] to-background" />
-          <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full bg-primary/10 blur-3xl -z-10" />
-          <div className="absolute -bottom-32 -right-32 w-[420px] h-[420px] rounded-full bg-secondary/10 blur-3xl -z-10" />
-
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid lg:grid-cols-[0.9fr_1.3fr] gap-16 lg:gap-20 items-center">
-              {/* Pingo + rating */}
-              <motion.div
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-                className="flex flex-col items-center text-center relative"
-              >
-                <div className="relative">
-                  {/* Halo */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-secondary/15 to-transparent rounded-full blur-2xl scale-110" />
-                  <div className="absolute inset-4 bg-card rounded-full shadow-2xl" />
-                  <img
-                    src={pingoDepoimentos}
-                    alt="Pingo celebrando avaliações dos pacientes"
-                    className="relative w-[260px] lg:w-[360px] drop-shadow-2xl pingo-float"
-                  />
-                </div>
-
-                <div className="relative mt-6 px-8 py-5 rounded-[2rem] bg-card border border-border/60 shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.25)]">
-                  <div className="flex items-center justify-center gap-1 mb-2">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400 drop-shadow-sm" />
-                    ))}
-                  </div>
-                  <p className="text-4xl font-extrabold bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent leading-none">
-                    4.9<span className="text-2xl text-muted-foreground font-bold">/5</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-2 font-semibold uppercase tracking-wider">
-                    +12.000 avaliações reais
-                  </p>
-                </div>
-              </motion.div>
-
-              {/* Testimonials */}
-              <div>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="mb-10"
-                >
-                  <span className="text-xs font-bold uppercase tracking-[0.25em] text-primary/60 mb-3 block">
-                    Depoimentos
-                  </span>
-                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight leading-[1.05]">
-                    {sectionData.testimonials?.title || (
-                      <>
-                        O que nossos <span className="text-primary">pacientes</span> dizem
-                      </>
-                    )}
-                  </h2>
-                </motion.div>
-
-                <TestimonialsMarquee />
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
+      {/* Seção de depoimentos removida: as normas de publicidade médica do CFM
+          (Res. CFM 2.336/2023) vedam a divulgação de depoimentos de pacientes. */}
 
       {isOn("for_doctors") !== false && <ForDoctorsSection />}
       {isOn("faq") !== false && <FAQSection />}
