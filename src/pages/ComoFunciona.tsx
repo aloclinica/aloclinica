@@ -20,7 +20,7 @@ const patientSteps = [
   {
     step: "2",
     title: "Escolher Especialista",
-    desc: "Navegue entre 500+ médicos em 30+ especialidades com filtros avançados.",
+    desc: "Navegue entre 30+ especialidades com filtros avançados.",
     icon: Download,
     time: "3 min",
     details: ["Filtro por especialidade", "Ver avaliações", "Agendar horário"],
@@ -134,9 +134,9 @@ const ComoFunciona = forwardRef<HTMLDivElement>((_, ref) => {
           >
             {[
               { value: "2 min", label: "para agendar" },
-              { value: "10 min", label: "tempo médio de espera" },
-              { value: "500+", label: "médicos verificados" },
-              { value: "4.9★", label: "avaliação dos pacientes" },
+              { value: "30+", label: "especialidades" },
+              { value: "24h", label: "disponível todos os dias" },
+              { value: "CFM", label: "médicos verificados" },
             ].map((m, i) => (
               <motion.div
                 key={m.label}
@@ -338,7 +338,7 @@ const ComoFunciona = forwardRef<HTMLDivElement>((_, ref) => {
               { title: "Sem Burocracia", desc: "Nenhum formulário complicado ou aprovações" },
               { title: "Acesso Rápido", desc: "Consulta agendada em menos de 2 minutos" },
               { title: "24 Horas", desc: "Atendimento disponível dia e noite" },
-              { title: "Seguro & Privado", desc: "Criptografia militar em toda comunicação" },
+              { title: "Seguro & Privado", desc: "Criptografia AES-256 em toda comunicação" },
             ].map((feature, i) => (
               <motion.div
                 key={i}
@@ -367,7 +367,7 @@ const ComoFunciona = forwardRef<HTMLDivElement>((_, ref) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {[
               { q: "Preciso de internet boa?", a: "Uma conexão 3G+ é suficiente. A plataforma otimiza qualidade baseado na sua velocidade." },
-              { q: "Posso usar pelo celular?", a: "Sim! A plataforma é 100% otimizada para celular. App disponível em breve." },
+              { q: "Posso usar pelo celular?", a: "Sim! A plataforma é 100% otimizada para celular, direto pelo navegador." },
               { q: "Como pagamento funciona?", a: "Cartão, PIX ou débito. Cobrança apenas após consulta realizada." },
               { q: "Meus dados estão seguros?", a: "Criptografia AES-256, conformidade LGPD/CFM, backups diários." },
             ].map((item, i) => (

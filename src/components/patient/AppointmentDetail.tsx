@@ -14,9 +14,11 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { toastError } from "@/lib/errorMessages";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import CancelRescheduleDialog from "./CancelRescheduleDialog";
 
 interface AppointmentData {
   id: string;
+  doctor_id: string;
   scheduled_at: string;
   status: string;
   duration_minutes: number | null;
@@ -93,6 +95,7 @@ const AppointmentDetail = () => {
 
     setAppt({
       id: data.id,
+      doctor_id: data.doctor_id,
       scheduled_at: data.scheduled_at,
       status: data.status,
       duration_minutes: data.duration_minutes,
@@ -435,13 +438,23 @@ const AppointmentDetail = () => {
               );
             })()}
             <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                className="h-12 rounded-full gap-2 border-border/30 hover:bg-muted/30"
-                onClick={() => toast.info("Reagendamento", { description: "Cancele esta consulta e agende um novo horário." })}
-              >
-                <RotateCcw className="w-4 h-4" /> Reagendar
-              </Button>
+              <CancelRescheduleDialog
+                appointmentId={appt.id}
+                doctorId={appt.doctor_id}
+                scheduledAt={appt.scheduled_at}
+                currentDate={format(new Date(appt.scheduled_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                doctorName={appt.doctor_name}
+                onSuccess={fetchAppointment}
+                defaultMode="reschedule"
+                trigger={
+                  <Button
+                    variant="outline"
+                    className="h-12 rounded-full gap-2 border-border/30 hover:bg-muted/30"
+                  >
+                    <RotateCcw className="w-4 h-4" /> Reagendar
+                  </Button>
+                }
+              />
               <Button
                 variant="outline"
                 className="h-12 rounded-full gap-2 bg-destructive/[0.04] border-destructive/15 text-destructive hover:bg-destructive/10"

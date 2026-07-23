@@ -19,7 +19,7 @@ const services = [
     image: teleconsultaHero,
     href: "/teleconsulta",
     badge: "⚡ Mais Popular",
-    stats: "500+ médicos • Desde R$ 89",
+    stats: "Desde R$ 89",
     color: "from-blue-500 to-cyan-500",
   },
 ];
@@ -58,7 +58,7 @@ const Servicos = forwardRef<HTMLDivElement>((_, ref) => {
               Atendimento médico online com especialistas verificados — tudo que sua saúde precisa em um só lugar.
             </p>
             <p className="text-base text-muted-foreground/80 max-w-2xl mx-auto">
-              De pacientes a clínicas, oferecemos a plataforma mais confiável de telemedicina do Brasil. Segurança CFM, conformidade LGPD e inovação de ponta.
+              De pacientes a clínicas, oferecemos uma plataforma de telemedicina com segurança CFM, conformidade LGPD e tecnologia de ponta.
             </p>
           </motion.div>
         </div>
@@ -272,7 +272,7 @@ const Servicos = forwardRef<HTMLDivElement>((_, ref) => {
               whileInView={{ opacity: 1 }}
               transition={{ delay: 0.35 }}
             >
-              Escolha seu serviço, crie sua conta e marque agora. Aproveite a primeira consulta com desconto.
+              Escolha seu serviço, crie sua conta e marque agora.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}

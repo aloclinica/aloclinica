@@ -34,7 +34,7 @@ const PorqueNos = () => {
     <div className="relative min-h-screen bg-background">
       <SEOHead
         title="Por que escolher a AloClínica"
-        description="Diferenciais que tornam a AloClínica a plataforma de saúde digital mais completa e segura do Brasil."
+        description="Diferenciais que tornam a AloClínica uma plataforma de saúde digital simples, segura e acessível."
         canonical="https://aloclinica.com.br/sobre/porque-nos"
       />
       <Header />
@@ -77,7 +77,7 @@ const PorqueNos = () => {
           <motion.div className="text-center mb-12" {...fadeUp}>
             <h2 className="text-3xl sm:text-4xl font-extrabold mb-3">Diferenciais que importam</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              O que faz da AloClínica a melhor escolha para você e sua família.
+              O que oferecemos para cuidar de você e da sua família com segurança.
             </p>
           </motion.div>
 
@@ -123,10 +123,10 @@ const PorqueNos = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
             {[
               { title: "LGPD Compliant", desc: "Proteção total dos seus dados pessoais." },
-              { title: "CFM Regulado", desc: "Aprovado para telemedicina no Brasil." },
+              { title: "Conformidade com o CFM", desc: "Em conformidade com o Conselho Federal de Medicina (Res. 2.314/2022)." },
               { title: "Criptografia E2E", desc: "Comunicações ponta a ponta protegidas." },
               { title: "Backup Contínuo", desc: "Redundância e backup automático 24/7." },
-              { title: "ISO 27001", desc: "Práticas alinhadas ao padrão internacional." },
+              { title: "Criptografia AES-256", desc: "Dados protegidos com criptografia de padrão avançado." },
               { title: "Auditoria", desc: "Logs e auditoria de todas as operações." },
             ].map((item, i) => (
               <motion.div key={i} {...fadeUp} transition={{ delay: i * 0.05 }} className="flex items-start gap-3 p-4 rounded-xl border border-border bg-card/60">
@@ -152,7 +152,7 @@ const PorqueNos = () => {
                 Experimente a saúde do futuro
               </h3>
               <p className="text-primary-foreground/85 max-w-xl mx-auto mb-6">
-                Junte-se a milhares de brasileiros que já confiam na AloClínica.
+                Cuide da sua saúde com praticidade, segurança e médicos verificados.
               </p>
               <Button size="lg" className="bg-background text-primary hover:bg-background/95 rounded-2xl px-8 gap-2 font-extrabold" onClick={() => navigate("/agendar")}>
                 Agendar Consulta <ArrowRight className="w-5 h-5" weight="bold" />

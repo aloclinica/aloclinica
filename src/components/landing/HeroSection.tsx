@@ -21,7 +21,7 @@ const HeroSection = memo(
     const subtitle  = config?.subtitle || "Conecte-se a médicos especialistas verificados pelo CFM. Consultas por vídeo em HD, receitas digitais válidas e prontuário eletrônico completo.";
     const ctaText   = config?.cta_text || "Agendar consulta";
     const ctaUrl    = config?.cta_url || "/agendar";
-    const badgeText = config?.badge_text || "Médicos disponíveis agora";
+    const badgeText = config?.badge_text || "Médicos verificados no CFM";
 
     return (
       <section

@@ -54,7 +54,7 @@ const faqCategories = {
       },
       {
         q: "Posso usar pelo celular?",
-        a: "Sim, a plataforma é 100% otimizada para celular. App disponível em breve.",
+        a: "Sim, a plataforma é 100% otimizada para celular, direto pelo navegador.",
       },
       {
         q: "Como recebo o atestado?",
@@ -101,8 +101,8 @@ const faqCategories = {
         a: "Oferecemos planos corporativos que cobrem telemedicina para seus colaboradores com suporte dedicado.",
       },
       {
-        q: "Qual é o ROI do investimento em saúde corporativa?",
-        a: "Empresas relatam redução de 40% em afastamentos e aumento de 35% em produtividade.",
+        q: "Qual é o valor da saúde corporativa?",
+        a: "A telemedicina corporativa facilita o acesso ao cuidado e reduz o tempo perdido com deslocamentos, contribuindo para o bem-estar e a produtividade da equipe.",
       },
       {
         q: "Posso customizar o plano?",
@@ -123,8 +123,8 @@ const faqCategories = {
         a: "Criptografia AES-256 para dados em repouso e SSL/TLS para dados em trânsito.",
       },
       {
-        q: "Quais certificações de segurança vocês têm?",
-        a: "Somos LGPD compliant, CFM regulado, HIPAA-compatible e ISO 27001 certificados.",
+        q: "Quais práticas de segurança vocês adotam?",
+        a: "Usamos criptografia AES-256, conformidade com a LGPD, regulação do CFM e receita com assinatura digital ICP-Brasil.",
       },
       {
         q: "Como é feito o backup de dados?",
@@ -132,7 +132,7 @@ const faqCategories = {
       },
       {
         q: "Qual é o tempo de atividade (uptime) da plataforma?",
-        a: "Garantimos 99.9% de uptime com monitoramento 24/7 e alertas automáticos.",
+        a: "Trabalhamos para manter a plataforma com alta disponibilidade, com monitoramento 24/7 e alertas automáticos.",
       },
       {
         q: "Como vocês lidam com conformidade LGPD?",

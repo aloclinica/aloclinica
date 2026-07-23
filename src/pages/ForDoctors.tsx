@@ -1,15 +1,13 @@
 import { forwardRef, lazy, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import {
   Stethoscope, CurrencyDollar, CalendarBlank, Globe, ShieldCheck, ArrowRight,
-  ChartLineUp, CheckCircle, Lock, Star, CaretDown, Video, Notepad, Certificate,
+  ChartLineUp, CheckCircle, Lock, CaretDown, Video, Notepad, Certificate,
   FirstAid, Heartbeat, Clock, Wallet, UserCirclePlus, FileText, ChatsCircle,
-  Lightning, X, Sparkle, MapPin,
+  Lightning, Sparkle, MapPin,
 } from "@phosphor-icons/react";
-import { TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/landing/Header";
 import SEOHead from "@/components/SEOHead";
@@ -44,7 +42,7 @@ const ForDoctors = forwardRef<HTMLDivElement>((_, ref) => {
 
       <SEOHead
         title="Seja Médico Parceiro | Telemedicina AloClínica"
-        description="Atenda pacientes online e aumente sua renda. Cadastro gratuito, aprovação em 24h. 500+ médicos já parceiros."
+        description="Atenda pacientes online e complemente sua renda. Cadastro gratuito, aprovação em até 24h."
         canonical="https://aloclinica.com.br/para-medicos"
       />
 
@@ -64,17 +62,17 @@ const ForDoctors = forwardRef<HTMLDivElement>((_, ref) => {
                 <span className="text-gradient">ganhe mais</span>
               </h1>
               <p className="text-lg text-muted-foreground leading-relaxed max-w-xl mb-8">
-                Junte-se a mais de 500 médicos que já expandiram sua prática com telemedicina.
-                Cadastro gratuito, aprovação em até 24h, e renda extra garantida sem sair de casa.
+                Expanda sua prática médica com telemedicina.
+                Cadastro gratuito, aprovação em até 24h, e renda extra sem sair de casa.
               </p>
 
               {/* Stats row */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
                 {[
-                  { value: "500+", label: "Médicos ativos" },
+                  { value: "Grátis", label: "Cadastro" },
                   { value: "30+", label: "Especialidades" },
-                  { value: "R$3k+", label: "Renda média/mês" },
-                  { value: "4.9★", label: "Satisfação" },
+                  { value: "PIX", label: "Repasse" },
+                  { value: "24h", label: "Aprovação" },
                 ].map((s, i) => (
                   <motion.div
                     key={s.label}
@@ -160,7 +158,7 @@ const ForDoctors = forwardRef<HTMLDivElement>((_, ref) => {
 
           <motion.div {...stagger} variants={staggerContainer} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { icon: CurrencyDollar, title: "Renda extra garantida", desc: "Atenda pacientes de todo o Brasil e aumente seu faturamento sem sair de casa. Pagamento garantido em 48h." },
+              { icon: CurrencyDollar, title: "Renda extra", desc: "Atenda pacientes de todo o Brasil e aumente seu faturamento sem sair de casa. Repasse via PIX em até 48h." },
               { icon: CalendarBlank, title: "Agenda no seu ritmo", desc: "Defina seus horários com total liberdade. Manhã, tarde, noite ou madrugada — você decide quando atender." },
               { icon: Globe, title: "Alcance nacional", desc: "Conecte-se a pacientes de qualquer estado. Sem limites geográficos, com demanda constante." },
               { icon: ShieldCheck, title: "100% regulamentado", desc: "Plataforma em conformidade com CFM, CRM e LGPD. Atenda com segurança jurídica total." },
@@ -347,6 +345,9 @@ const ForDoctors = forwardRef<HTMLDivElement>((_, ref) => {
                     </p>
                   </div>
                 </div>
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  Estimativa. Os valores variam conforme demanda, especialidade e disponibilidade.
+                </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
@@ -384,61 +385,6 @@ const ForDoctors = forwardRef<HTMLDivElement>((_, ref) => {
         </div>
       </section>
 
-      {/* ═══════════════ DEPOIMENTOS ═══════════════ */}
-      <section className="py-20 px-4 bg-muted/30">
-        <div className="max-w-7xl mx-auto">
-          <motion.div className="text-center mb-14" {...fadeUp}>
-            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-4 py-1.5 rounded-full mb-4">
-              Depoimentos
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-4">
-              Médicos que já transformaram sua prática
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Veja como profissionais como você estão aumentando sua renda com a AloClínica.
-            </p>
-          </motion.div>
-
-          <motion.div {...stagger} variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { name: "Dr. Lucas Ferreira", specialty: "Cardiologista", income: "R$ 4.2k", quote: "Em 6 meses de teleconsulta, fiz mais consultas do que fazia em 1 ano de consultório físico. Flexibilidade total e pagamento garantido." },
-              { name: "Dra. Marina Silva", specialty: "Dermatologista", income: "R$ 3.8k", quote: "Perfeito para retornos e acompanhamento. Menos deslocamento, mais renda. O prontuário digital é excepcional." },
-              { name: "Dr. Rafael Mendes", specialty: "Clínico Geral", income: "R$ 5.1k", quote: "Atendo pacientes de todo o Brasil. Minha renda triplicou sem abandonar meu consultório presencial." },
-            ].map((t, i) => (
-              <motion.div key={i} variants={staggerItem}>
-                <Card className="h-full border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group bg-background">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-1 mb-4">
-                      {Array.from({ length: 5 }).map((_, si) => (
-                        <Star key={si} className="w-4 h-4 text-amber-400" weight="fill" />
-                      ))}
-                    </div>
-                    <p className="text-sm text-muted-foreground italic mb-5 leading-relaxed">"{t.quote}"</p>
-                    <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm group-hover:scale-110 transition-transform">
-                          {t.name.split(" ").slice(-1)[0][0]}
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-foreground text-sm">{t.name}</h3>
-                          <p className="text-xs text-muted-foreground">{t.specialty}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-extrabold text-primary flex items-center gap-1">
-                          <TrendingUp className="w-3.5 h-3.5" /> {t.income}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">/mês</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
       {/* ═══════════════ FAQ ACCORDION ═══════════════ */}
       <section className="py-20 px-4">
         <div className="max-w-3xl mx-auto">
@@ -453,7 +399,7 @@ const ForDoctors = forwardRef<HTMLDivElement>((_, ref) => {
 
           <div className="space-y-3">
             {[
-              { q: "Quanto eu ganho por consulta?", a: "A média é de R$ 30-80 por consulta de 20-30 min, dependendo da especialidade. Médicos de cardiologia, dermatologia e psicologia ganham mais. Pagamento creditado em até 48h." },
+              { q: "Quanto eu ganho por consulta?", a: "O valor por consulta varia conforme a especialidade e o preço que você define, normalmente entre R$ 30 e R$ 80 por consulta de 20-30 min. O repasse é creditado em até 48h. Os valores variam conforme demanda e disponibilidade." },
               { q: "Preciso abandonar meu consultório?", a: "Não! A teleconsulta é complemento de renda. Muitos médicos atendem 2-3 pacientes online entre consultas presenciais. Você controla 100% da sua agenda." },
               { q: "Vocês controlam meus horários?", a: "Zero controle. Você define quando está disponível — pode ser de manhã, de madrugada, no fim de semana. Pacientes encaixam nos seus horários." },
               { q: "Meus dados de paciente ficam seguros?", a: "Sim. LGPD compliant, criptografia AES-256, prontuário eletrônico em nuvem com backup automático. Auditoria e conformidade 100% CFM." },
@@ -501,53 +447,34 @@ const ForDoctors = forwardRef<HTMLDivElement>((_, ref) => {
           <motion.div className="text-center mb-10" {...fadeUp}>
             <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-4 py-1.5 rounded-full mb-4">
               <Sparkle className="w-3.5 h-3.5" weight="fill" />
-              Comparativo
+              Benefícios
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-3">
-              AloClínica vs consultório tradicional
+              Vantagens de atender pela AloClínica
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Veja por que centenas de médicos preferem complementar a renda com a telemedicina.
+              Ferramentas e condições para complementar sua renda com a telemedicina.
             </p>
           </motion.div>
 
-          <motion.div {...fadeUp} className="overflow-hidden rounded-2xl border border-border bg-card/80 shadow-sm">
-            <div className="grid grid-cols-3 bg-muted/40 text-xs sm:text-sm font-bold uppercase tracking-wider">
-              <div className="p-4 text-muted-foreground">Característica</div>
-              <div className="p-4 text-primary text-center">AloClínica</div>
-              <div className="p-4 text-muted-foreground text-center">Consultório tradicional</div>
-            </div>
+          <motion.div {...fadeUp} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              { feat: "Custo inicial", us: "R$ 0", them: "R$ 30k+", usIcon: CheckCircle },
-              { feat: "Aluguel e estrutura", us: false, them: true },
-              { feat: "Alcance geográfico", us: "Nacional", them: "Local", usIcon: Globe },
-              { feat: "Agenda flexível", us: true, them: false },
-              { feat: "Pagamento garantido em 48h", us: true, them: false },
-              { feat: "Prontuário digital incluso", us: true, them: false },
-              { feat: "Receita ICP-Brasil", us: true, them: false },
-              { feat: "Suporte e onboarding", us: true, them: false },
+              { feat: "Sem custo inicial", desc: "Comece a atender sem investir em estrutura ou aluguel." },
+              { feat: "Alcance nacional", desc: "Atenda pacientes de qualquer estado, sem limites geográficos." },
+              { feat: "Agenda flexível", desc: "Você define seus horários e o valor da consulta." },
+              { feat: "Repasse via PIX em até 48h", desc: "Receba o repasse das suas consultas na carteira digital." },
+              { feat: "Prontuário digital incluso", desc: "Registro clínico completo integrado à plataforma." },
+              { feat: "Receita ICP-Brasil", desc: "Prescrições com assinatura digital válidas em todo o país." },
+              { feat: "Suporte e onboarding", desc: "Equipe dedicada para ajudar no seu início." },
             ].map((row, i) => (
               <div
                 key={i}
-                className={`grid grid-cols-3 text-sm border-t border-border/60 ${i % 2 === 1 ? "bg-background/60" : ""}`}
+                className="flex items-start gap-3 p-5 rounded-2xl border border-border bg-card/80"
               >
-                <div className="p-4 font-medium text-foreground">{row.feat}</div>
-                <div className="p-4 flex items-center justify-center gap-1.5 font-semibold text-primary">
-                  {typeof row.us === "boolean" ? (
-                    row.us ? <CheckCircle className="w-5 h-5" weight="fill" /> : <X className="w-5 h-5 text-muted-foreground/50" />
-                  ) : (
-                    <>
-                      {row.usIcon && <row.usIcon className="w-4 h-4" weight="fill" />}
-                      <span>{row.us}</span>
-                    </>
-                  )}
-                </div>
-                <div className="p-4 flex items-center justify-center gap-1.5 text-muted-foreground">
-                  {typeof row.them === "boolean" ? (
-                    row.them ? <CheckCircle className="w-5 h-5" weight="fill" /> : <X className="w-5 h-5" />
-                  ) : (
-                    <span>{row.them}</span>
-                  )}
+                <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" weight="fill" />
+                <div>
+                  <p className="font-semibold text-foreground text-sm">{row.feat}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{row.desc}</p>
                 </div>
               </div>
             ))}
@@ -566,7 +493,7 @@ const ForDoctors = forwardRef<HTMLDivElement>((_, ref) => {
                   Comece a atender hoje mesmo
                 </h2>
                 <p className="text-primary-foreground/85 max-w-xl">
-                  Cadastro gratuito, análise em 24h. Junte-se a mais de 500 médicos parceiros e aumente sua renda.
+                  Cadastro gratuito, análise em até 24h. Torne-se parceiro e complemente sua renda.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 shrink-0">

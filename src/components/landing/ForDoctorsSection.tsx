@@ -20,8 +20,8 @@ import doctorAvatar4 from "@/assets/doctor-signup-2.png";
 const perks = [
   {
     icon: CurrencyDollar,
-    title: "Renda extra garantida",
-    desc: "Atenda pacientes de todo o Brasil e aumente seu faturamento sem sair de casa.",
+    title: "Renda extra flexível",
+    desc: "Atenda pacientes de todo o Brasil de onde estiver. Você define seus horários e seu preço.",
   },
   {
     icon: CalendarBlank,

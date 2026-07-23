@@ -1,7 +1,7 @@
 import { lazy } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Heart, Target, Eye, ArrowRight, Users, Sparkle, Rocket, Buildings, ChartLineUp, Trophy } from "@phosphor-icons/react";
+import { Heart, Target, Eye, ArrowRight, Users, Sparkle } from "@phosphor-icons/react";
 import Header from "@/components/landing/Header";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,6 @@ const fadeUp = {
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true } as const,
 };
-
-const timeline = [
-  { year: "2022", title: "O começo", desc: "Nascemos com uma missão clara: levar saúde de qualidade a quem mora longe dos grandes centros.", icon: Sparkle },
-  { year: "2023", title: "Primeira escala", desc: "Atingimos 10 mil consultas e expandimos para 30+ especialidades médicas.", icon: Rocket },
-  { year: "2024", title: "Crescimento B2B", desc: "Lançamento da Saúde Corporativa e parcerias com 100+ clínicas em todo Brasil.", icon: Buildings },
-  { year: "2025", title: "Líder regional", desc: "Mais de 100 mil pacientes atendidos, 500+ médicos verificados e 4.9★ de satisfação.", icon: Trophy },
-];
 
 const QuemSomos = () => {
   const navigate = useNavigate();
@@ -77,7 +70,7 @@ const QuemSomos = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               { icon: Target, label: "Missão", text: "Democratizar o acesso à saúde de qualidade através de telemedicina segura e acessível." },
-              { icon: Eye, label: "Visão", text: "Ser a plataforma de saúde digital mais confiável e utilizada no Brasil." },
+              { icon: Eye, label: "Visão", text: "Ampliar o acesso à saúde digital de qualidade no Brasil, com inovação e cuidado humanizado." },
               { icon: Heart, label: "Valores", text: "Empatia, ética, inovação e cuidado humanizado em cada atendimento." },
             ].map((item, i) => (
               <motion.div
@@ -114,73 +107,6 @@ const QuemSomos = () => {
               precisa e a robustez que o profissional merece.
             </p>
           </motion.div>
-        </div>
-      </section>
-
-      {/* TIMELINE */}
-      <section className="py-20 px-4 bg-muted/20">
-        <div className="max-w-5xl mx-auto">
-          <motion.div className="text-center mb-12" {...fadeUp}>
-            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-4 py-1.5 rounded-full mb-4">
-              <ChartLineUp className="w-3.5 h-3.5" weight="fill" /> Nossa Trajetória
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold mb-3">Marcos que nos definem</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Cada etapa da nossa jornada nos aproxima do nosso propósito.
-            </p>
-          </motion.div>
-
-          <div className="relative">
-            {/* Linha vertical */}
-            <div className="absolute left-[19px] sm:left-1/2 sm:-translate-x-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary/40 via-primary/20 to-transparent" />
-
-            <div className="space-y-10">
-              {timeline.map((item, i) => (
-                <motion.div
-                  key={item.year}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-60px" }}
-                  transition={{ delay: i * 0.12, duration: 0.55 }}
-                  className={`relative pl-14 sm:pl-0 sm:grid sm:grid-cols-2 sm:gap-8 sm:items-center ${
-                    i % 2 === 0 ? "" : "sm:[&>*:first-child]:order-2"
-                  }`}
-                >
-                  <div className={`${i % 2 === 0 ? "sm:text-right sm:pr-10" : "sm:pl-10"}`}>
-                    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm hover:shadow-lg hover:border-primary/40 transition-all">
-                      <div className="flex items-center gap-2 mb-2 sm:justify-start">
-                        <span className="text-xs font-bold uppercase tracking-widest text-primary">{item.year}</span>
-                      </div>
-                      <h3 className="text-lg font-extrabold text-foreground mb-1.5">{item.title}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
-                    </div>
-                  </div>
-                  {/* Ícone central */}
-                  <div className="absolute left-0 top-5 sm:left-1/2 sm:-translate-x-1/2 sm:top-1/2 sm:-translate-y-1/2 w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground flex items-center justify-center shadow-lg ring-4 ring-background z-10">
-                    <item.icon className="w-5 h-5" weight="fill" />
-                  </div>
-                  <div className="hidden sm:block" />
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* MÉTRICAS DE IMPACTO */}
-      <section className="py-16 px-4">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          {[
-            { metric: "100k+", label: "Pacientes atendidos" },
-            { metric: "500+", label: "Médicos verificados" },
-            { metric: "30+", label: "Especialidades" },
-            { metric: "4.9★", label: "Avaliação média" },
-          ].map((item, i) => (
-            <motion.div key={i} {...fadeUp} transition={{ delay: i * 0.08 }} className="p-4">
-              <div className="text-3xl sm:text-4xl font-extrabold text-primary mb-1">{item.metric}</div>
-              <p className="text-sm text-muted-foreground">{item.label}</p>
-            </motion.div>
-          ))}
         </div>
       </section>
 

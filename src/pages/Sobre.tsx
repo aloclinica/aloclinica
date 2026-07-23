@@ -1,7 +1,7 @@
 import { forwardRef, lazy } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Check, ArrowRight, Heart, Eye, Target, Users, Lightning, Lock, Star, ShieldCheck, Video, FirstAid, Heartbeat, Cpu, ChatsCircle, Globe, Certificate } from "@phosphor-icons/react";
+import { Check, ArrowRight, Heart, Eye, Target, Lightning, Lock, ShieldCheck, Video, FirstAid, Heartbeat, Cpu, ChatsCircle, Globe, Certificate } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/landing/Header";
 import SEOHead from "@/components/SEOHead";
@@ -9,7 +9,6 @@ import PublicPageEnhancer from "@/components/landing/PublicPageEnhancer";
 
 import heroDoctor from "@/assets/hero-doctor.png";
 import heroTeleconsulta from "@/assets/hero-teleconsulta.png";
-import bannerPatient from "@/assets/banner-teleconsulta-patient.jpg";
 import heroSeguranca from "@/assets/doctor-seguranca.png";
 import pingoVideocall from "@/assets/pingo-videocall.png";
 
@@ -52,8 +51,8 @@ const Sobre = forwardRef<HTMLDivElement>((_, ref) => {
                 Quem Somos
               </span>
               <h1 className="text-4xl sm:text-5xl lg:text-[4rem] font-extrabold text-foreground leading-[1.02] mb-6 tracking-tight">
-                Cuidando da saúde de{" "}
-                <span className="text-gradient">milhares de brasileiros</span>
+                Cuidando da sua saúde com{" "}
+                <span className="text-gradient">tecnologia e humanização</span>
               </h1>
               <p className="text-lg text-muted-foreground leading-relaxed max-w-xl mb-8">
                 A AloClínica nasceu com a missão de democratizar o acesso à saúde de qualidade. 
@@ -126,7 +125,7 @@ const Sobre = forwardRef<HTMLDivElement>((_, ref) => {
           <motion.div {...stagger} variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               { label: "Missão", icon: Target, color: "text-primary", text: "Democratizar acesso à saúde de qualidade através de telemedicina segura, rápida e acessível para todos os brasileiros." },
-              { label: "Visão", icon: Eye, color: "text-primary", text: "Ser a plataforma de saúde digital mais confiável e utilizada no Brasil, referência em inovação e cuidado humanizado." },
+              { label: "Visão", icon: Eye, color: "text-primary", text: "Ampliar o acesso à saúde digital de qualidade no Brasil, com inovação e cuidado humanizado." },
               { label: "Compromisso", icon: Heart, color: "text-primary", text: "Colocar o paciente no centro de cada decisão, com ética, transparência e excelência médica." },
             ].map((item, i) => (
               <motion.div key={i} variants={staggerItem} className="public-card relative p-8 rounded-2xl border border-border bg-background hover:border-primary/30 transition-all group overflow-hidden">
@@ -239,108 +238,6 @@ const Sobre = forwardRef<HTMLDivElement>((_, ref) => {
         </div>
       </section>
 
-      {/* ═══════════════ PACIENTES SATISFEITOS ═══════════════ */}
-      <section id="depoimentos" className="py-20 md:py-28 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            <motion.div {...fadeUp} transition={{ duration: 0.5 }}>
-              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-4 py-1.5 rounded-full mb-5">
-                <ChatsCircle className="w-3.5 h-3.5" weight="fill" />
-                Pacientes Satisfeitos
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground leading-tight mb-6">
-                Quem usa, <span className="text-primary">recomenda</span>
-              </h2>
-              <p className="text-muted-foreground leading-relaxed mb-8">
-                A satisfação dos nossos pacientes é o que nos motiva a evoluir todos os dias. 
-                São milhares de vidas transformadas com atendimento médico de qualidade.
-              </p>
-
-              <div className="space-y-5">
-                {[
-                  { name: "Maria Fernanda", city: "São Paulo, SP", text: "Consultar pela AloClínica mudou minha vida. Recebi atendimento excelente sem precisar sair de casa. Super recomendo!", stars: 5 },
-                  { name: "João Carlos", city: "Recife, PE", text: "Moro no interior e finalmente consegui consultar com um especialista. A receita digital funcionou perfeitamente na farmácia.", stars: 5 },
-                  { name: "Ana Beatriz", city: "Belo Horizonte, MG", text: "Atendimento rápido, médico muito atencioso e a plataforma é super fácil de usar. Nota 10!", stars: 5 },
-                ].map((t, i) => (
-                  <motion.div
-                    key={i}
-                    className="public-card overflow-hidden p-5 rounded-2xl border border-border bg-card/80 hover:shadow-md transition-all"
-                    {...fadeUp}
-                    transition={{ delay: 0.15 + i * 0.1 }}
-                  >
-                    <div className="flex items-center gap-1 mb-2">
-                      {Array.from({ length: t.stars }).map((_, si) => (
-                        <Star key={si} className="w-4 h-4 text-amber-400" weight="fill" />
-                      ))}
-                    </div>
-                    <p className="text-sm text-foreground mb-3 italic">"{t.text}"</p>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-xs font-bold text-primary">{t.name[0]}</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{t.name}</p>
-                        <p className="text-xs text-muted-foreground">{t.city}</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-
-            <motion.div className="relative flex justify-center" {...fadeUp} transition={{ duration: 0.6, delay: 0.2 }}>
-              <div className="absolute inset-0 bg-secondary/[0.05] blur-[60px] rounded-full scale-75 -z-10" />
-              <img 
-                src={bannerPatient} 
-                alt="Pacientes utilizando a AloClínica" 
-                loading="lazy" 
-                width={512} 
-                height={512} 
-                className="public-image-depth w-full max-w-[420px] lg:max-w-[480px] rounded-3xl shadow-2xl relative z-10" 
-              />
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════ NÚMEROS ═══════════════ */}
-      <section className="py-20 px-4 bg-muted/30">
-        <div className="max-w-7xl mx-auto">
-          <motion.div className="text-center mb-14" {...fadeUp}>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-4">
-              AloClínica em números
-            </h2>
-            <p className="text-muted-foreground max-w-lg mx-auto">
-              Resultados que comprovam nosso compromisso com a saúde do brasileiro.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { metric: "100k+", label: "Pacientes Atendidos", icon: Users },
-              { metric: "500+", label: "Médicos Especialistas", icon: FirstAid },
-              { metric: "30+", label: "Especialidades Médicas", icon: Heartbeat },
-              { metric: "4.9★", label: "Satisfação Geral", icon: Star },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                className="public-card overflow-hidden text-center p-6 rounded-2xl border border-border bg-background hover:border-primary/30 transition-all"
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <item.icon className="w-6 h-6 text-primary" weight="fill" />
-                </div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-primary mb-1">{item.metric}</div>
-                <p className="text-sm text-muted-foreground">{item.label}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ═══════════════ SEGURANÇA & CONFORMIDADE ═══════════════ */}
       <section className="py-20 md:py-28 px-4">
         <div className="max-w-7xl mx-auto">
@@ -373,10 +270,10 @@ const Sobre = forwardRef<HTMLDivElement>((_, ref) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
                   { title: "LGPD Compliant", desc: "Proteção total de dados pessoais conforme a legislação brasileira." },
-                  { title: "CFM Regulado", desc: "Aprovado pelo Conselho Federal de Medicina para telemedicina." },
+                  { title: "Conformidade com o CFM", desc: "Em conformidade com o Conselho Federal de Medicina (Res. 2.314/2022)." },
                   { title: "Criptografia E2E", desc: "Comunicações protegidas com criptografia de ponta a ponta." },
                   { title: "Backup Contínuo", desc: "Redundância de sistemas e backup automático 24/7." },
-                  { title: "ISO 27001", desc: "Práticas alinhadas ao padrão internacional de segurança." },
+                  { title: "Criptografia AES-256", desc: "Dados protegidos em repouso e em trânsito com criptografia de padrão avançado." },
                   { title: "Auditoria", desc: "Logs de acesso e auditoria contínua de todas as operações." },
                 ].map((item, i) => (
                   <motion.div
@@ -406,7 +303,7 @@ const Sobre = forwardRef<HTMLDivElement>((_, ref) => {
               Por que escolher a AloClínica?
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Diferenciais que fazem da AloClínica a plataforma de saúde digital mais completa do Brasil.
+              Diferenciais que fazem da AloClínica uma plataforma de saúde digital simples, segura e acessível.
             </p>
           </motion.div>
 
@@ -451,7 +348,7 @@ const Sobre = forwardRef<HTMLDivElement>((_, ref) => {
                     Comece a cuidar da sua saúde hoje
                   </h2>
                   <p className="text-primary-foreground/85 max-w-xl">
-                    Agende sua primeira consulta e descubra por que milhares de brasileiros confiam na AloClínica.
+                    Agende sua primeira consulta e descubra um jeito simples e seguro de cuidar da saúde.
                   </p>
                 </div>
               </div>

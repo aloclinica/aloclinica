@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Video, Shield, Clock, MapPin, Heart, Stethoscope, FileText, Smartphone,
   CheckCircle2, ArrowRight, Users, HelpCircle, MonitorSmartphone,
-  Zap, Star, UserCheck, Receipt, ChevronDown
+  Zap, UserCheck, Receipt, ChevronDown
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import SEOHead from "@/components/SEOHead";
@@ -44,7 +44,7 @@ const faqItems = [
   {
     icon: <Stethoscope className="w-5 h-5" />,
     question: "Funciona por vídeo? E se precisar de exame físico?",
-    answer: "Funciona! 80%+ dos diagnósticos vêm de conversa + histórico. Se precisar exame físico, o médico encaminha para presencial. Receitas e atestados saem na hora, válidos em farmácias e hospitais.",
+    answer: "Funciona! Grande parte dos diagnósticos vem da conversa e do histórico do paciente. Se precisar de exame físico, o médico encaminha para presencial. Receitas e atestados saem na hora, válidos em farmácias e hospitais.",
   },
   {
     icon: <Shield className="w-5 h-5" />,
@@ -54,7 +54,7 @@ const faqItems = [
   {
     icon: <Smartphone className="w-5 h-5" />,
     question: "Preciso de algum equipamento especial?",
-    answer: "Não! Celular + wifi comum é suficiente. Testamos com 3G e funciona. Baixe nosso app ou use pelo navegador — 1 minuto de setup.",
+    answer: "Não! Celular + wifi comum é suficiente. Testamos com 3G e funciona. Use pelo navegador — 1 minuto de setup.",
   },
   {
     icon: <Shield className="w-5 h-5" />,
@@ -69,10 +69,10 @@ const faqItems = [
 ];
 
 const stats = [
-  { value: "12k+", label: "Pacientes atendidos", icon: <Users className="w-5 h-5" /> },
-  { value: "4.9", label: "Avaliação média", icon: <Star className="w-5 h-5" /> },
+  { value: "24h", label: "Disponível todos os dias", icon: <Clock className="w-5 h-5" /> },
   { value: "30+", label: "Especialidades", icon: <Stethoscope className="w-5 h-5" /> },
-  { value: "<15min", label: "Tempo médio", icon: <Clock className="w-5 h-5" /> },
+  { value: "CFM", label: "Médicos verificados", icon: <UserCheck className="w-5 h-5" /> },
+  { value: "AES-256", label: "Dados criptografados", icon: <Shield className="w-5 h-5" /> },
 ];
 
 /* ─── FAQ Accordion Item ─── */
@@ -188,7 +188,7 @@ const Teleconsulta = () => {
                   className="flex flex-col sm:flex-row items-start gap-3"
                 >
                   <Button size="lg" className="rounded-xl px-10 h-14 font-bold text-base shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all" asChild>
-                    <Link to="/dashboard/schedule?role=patient" className="flex items-center gap-2">
+                    <Link to="/agendar" className="flex items-center gap-2">
                       <Zap className="w-5 h-5" />
                       Agendar Consulta
                     </Link>
@@ -257,15 +257,6 @@ const Teleconsulta = () => {
                       <p className="text-xs font-bold text-foreground leading-none mb-0.5">CRM verificado</p>
                       <p className="text-[10px] text-muted-foreground leading-none">30+ especialidades</p>
                     </div>
-                  </motion.div>
-
-                  <motion.div
-                    className="absolute top-1/2 -right-3 md:-right-10 bg-card/95 backdrop-blur-sm border border-border rounded-xl px-3 py-2 shadow-lg flex items-center gap-1.5"
-                    animate={{ y: [0, 4, 0] }}
-                    transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                  >
-                    <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                    <span className="text-xs font-bold text-foreground">4.9</span>
                   </motion.div>
                 </div>
               </motion.div>
@@ -367,7 +358,7 @@ const Teleconsulta = () => {
                   💡 Benefícios Reais
                 </Badge>
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground tracking-tight mb-3">
-                  Por Que Milhões Escolhem Teleconsulta
+                  Por Que Escolher a Teleconsulta
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                   Velocidade, segurança e economia que funcionam na prática
@@ -451,7 +442,7 @@ const Teleconsulta = () => {
                 <p className="text-sm opacity-70 mt-1">Atendimento rápido, seguro e sem sair de casa.</p>
               </div>
               <Button size="lg" className="bg-white text-primary hover:bg-white/90 rounded-full px-8 font-bold shadow-lg shrink-0" asChild>
-                <Link to="/dashboard/schedule?role=patient">Agendar <ArrowRight className="w-4 h-4 ml-1.5" /></Link>
+                <Link to="/agendar">Agendar <ArrowRight className="w-4 h-4 ml-1.5" /></Link>
               </Button>
             </motion.div>
           </div>
@@ -492,7 +483,7 @@ const Teleconsulta = () => {
                 Celular, tablet ou computador com webcam. É tudo que você precisa para consultar agora.
               </p>
               <Button size="lg" className="rounded-xl h-14 px-10 text-base font-bold shadow-lg shadow-primary/20" asChild>
-                <Link to="/dashboard/schedule?role=patient">Marcar Teleconsulta <ArrowRight className="w-5 h-5 ml-2" /></Link>
+                <Link to="/agendar">Marcar Teleconsulta <ArrowRight className="w-5 h-5 ml-2" /></Link>
               </Button>
             </motion.div>
           </div>

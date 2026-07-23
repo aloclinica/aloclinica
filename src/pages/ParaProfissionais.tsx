@@ -8,7 +8,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowRight, CheckCircle, Rocket, Target, Users, Calculator, Quotes, Star, CurrencyDollar } from "@phosphor-icons/react";
+import { ArrowRight, CheckCircle, Rocket, Target, Users, Calculator, CurrencyDollar } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/landing/Header";
 import SEOHead from "@/components/SEOHead";
@@ -17,31 +17,10 @@ import refDashboard3 from "@/assets/ref-dashboard-3.png";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
-const doctorTestimonials = [
-  {
-    name: "Dr. Rafael Mendes",
-    role: "Cardiologista — São Paulo",
-    text: "Atendo 3h por dia entre meus turnos do hospital e faturo R$ 8k extras todo mês. A plataforma é simples e os pacientes chegam pré-triados.",
-    earning: "R$ 8.200/mês",
-  },
-  {
-    name: "Dra. Camila Souza",
-    role: "Dermatologista — Recife",
-    text: "Comecei na licença-maternidade. Hoje atendo 100% online, escolho meus horários e ainda mantenho minha clínica presencial 2x na semana.",
-    earning: "R$ 12.500/mês",
-  },
-  {
-    name: "Dr. Pedro Henrique",
-    role: "Clínico Geral — Curitiba",
-    text: "Renda extra que se transformou em renda principal. Plataforma estável, suporte rápido e prescrição digital que funciona em qualquer farmácia.",
-    earning: "R$ 15.000/mês",
-  },
-];
-
 const doctorFaq = [
   {
     q: "Quanto posso ganhar realmente?",
-    a: "O valor por consulta varia entre R$ 30 e R$ 80 conforme sua especialidade. Médicos ativos faturam em média R$ 3k–R$ 12k/mês trabalhando entre 2h e 6h por dia. Você define sua agenda.",
+    a: "O valor por consulta varia entre R$ 30 e R$ 80 conforme sua especialidade e o preço que você define. A renda varia conforme demanda, especialidade e disponibilidade. Você define sua agenda.",
   },
   {
     q: "Preciso ter consultório próprio?",
@@ -203,15 +182,15 @@ const professions = [
   {
     id: 1,
     title: "Sou Médico",
-    description: "Ganhe R$ 30 a R$ 80 por consulta. Sua agenda, suas regras. Trabalhe 2 horas/dia e ganhe R$ 3k+/mês sem abrir mão do consultório.",
+    description: "Você define sua agenda e o valor da consulta. Atenda por vídeo sem abrir mão do consultório presencial.",
     icon: "👨‍⚕️",
     image: refDashboard,
     href: "/para-medicos",
-    badge: "💵 Maior Demanda",
-    stats: "500+ médicos • Desde R$ 30/consulta",
+    badge: "🩺 Para Médicos",
+    stats: "Cadastro gratuito • 30+ especialidades",
     benefits: [
       "Agenda 100% flexível (você escolhe)",
-      "R$ 30-R$ 80 por teleconsulta",
+      "Você define o valor da consulta",
       "Ferramentas médicas completas",
       "Pagamento automático 1x/mês",
       "Suporte jurídico incluso",
@@ -245,7 +224,7 @@ const ParaProfissionais = forwardRef<HTMLDivElement>((_, ref) => {
             className="text-center max-w-3xl mx-auto"
           >
             <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full mb-4">
-              💰 Ganhe Mais, Trabalhe Melhor
+              💼 Flexibilidade e Autonomia
             </span>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-foreground leading-tight mb-6">
               Profissionais de <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Saúde Ganham Aqui</span>
@@ -254,7 +233,7 @@ const ParaProfissionais = forwardRef<HTMLDivElement>((_, ref) => {
               Médicos — expanda sua renda, controle sua agenda, atenda quantas vezes quiser.
             </p>
             <p className="text-base text-muted-foreground/80 max-w-2xl mx-auto">
-              500+ profissionais já ganham R$ 3k+/mês. Você pode ser o próximo.
+              Cadastro gratuito e aprovação em até 24h. Você define seus horários e seu preço.
             </p>
           </motion.div>
         </div>
@@ -420,7 +399,7 @@ const ParaProfissionais = forwardRef<HTMLDivElement>((_, ref) => {
               {
                 icon: "🔒",
                 title: "Segurança",
-                desc: "Plataforma regulada e conformidade garantida",
+                desc: "Plataforma regulada e em conformidade com a legislação",
               },
               {
                 icon: "⚙️",
@@ -499,7 +478,7 @@ const ParaProfissionais = forwardRef<HTMLDivElement>((_, ref) => {
               {
                 step: "03",
                 title: "Comece",
-                desc: "Acesse a plataforma e inicie a gerar renda imediatamente.",
+                desc: "Acesse a plataforma e comece a atender imediatamente.",
               },
             ].map((item, i) => (
               <motion.div
@@ -565,66 +544,6 @@ const ParaProfissionais = forwardRef<HTMLDivElement>((_, ref) => {
       {/* Earnings Calculator (médicos) */}
       <EarningsCalculator />
 
-      {/* Doctor Testimonials */}
-      <section className="py-20 px-4 bg-muted/20">
-        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 2xl:px-28">
-          <motion.div
-            className="text-center max-w-3xl mx-auto mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-          >
-            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-4 py-1.5 rounded-full mb-4">
-              <Quotes className="w-3.5 h-3.5" weight="fill" />
-              Depoimentos
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-3">
-              Médicos que já mudaram a renda
-            </h2>
-            <p className="text-muted-foreground">
-              Histórias reais de profissionais que cresceram com a AloClínica.
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {doctorTestimonials.map((t, i) => (
-              <motion.div
-                key={t.name}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-                whileHover={{ y: -6 }}
-                className="relative p-6 rounded-2xl border border-border bg-card hover:border-primary/40 hover:shadow-xl transition-all overflow-hidden"
-              >
-                <Quotes className="absolute top-5 right-5 w-8 h-8 text-primary/10" weight="fill" />
-                <div className="flex items-center gap-1 mb-3">
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <Star key={s} className="w-4 h-4 text-amber-400" weight="fill" />
-                  ))}
-                </div>
-                <p className="text-foreground leading-relaxed mb-5 text-sm">"{t.text}"</p>
-                <div className="flex items-center justify-between gap-3 pt-4 border-t border-border/60">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground flex items-center justify-center text-sm font-extrabold">
-                      {t.name.split(" ")[1]?.[0] ?? t.name[0]}
-                    </div>
-                    <div className="leading-tight">
-                      <p className="text-sm font-bold text-foreground">{t.name}</p>
-                      <p className="text-[11px] text-muted-foreground">{t.role}</p>
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Ganha</p>
-                    <p className="text-sm font-extrabold text-success">{t.earning}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* FAQ Profissionais */}
       <section className="py-20 px-4">
         <div className="max-w-3xl mx-auto px-4">
@@ -671,19 +590,19 @@ const ParaProfissionais = forwardRef<HTMLDivElement>((_, ref) => {
             viewport={{ once: true, margin: "-100px" }}
           >
             <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Números que impressionam
+              Vantagens de ser parceiro
             </h2>
             <p className="text-lg text-muted-foreground">
-              Crescimento sustentável de uma comunidade de profissionais
+              O que a AloClínica oferece para você
             </p>
           </motion.div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { metric: "500+", label: "Médicos na rede", icon: "👨‍⚕️" },
-              { metric: "100+", label: "Clínicas parceiras", icon: "🏥" },
-              { metric: "50k+", label: "Exames/mês", icon: "📋" },
-              { metric: "R$ 3k+", label: "Renda média/mês", icon: "💰" },
+              { metric: "Grátis", label: "Cadastro", icon: "📝" },
+              { metric: "30+", label: "Especialidades", icon: "🩺" },
+              { metric: "PIX", label: "Repasse", icon: "💳" },
+              { metric: "24h", label: "Aprovação", icon: "⏱️" },
             ].map((item, i) => (
               <motion.div
                 key={i}
@@ -745,10 +664,10 @@ const ParaProfissionais = forwardRef<HTMLDivElement>((_, ref) => {
               Sua renda extra começa <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">em 5 minutos</span>
             </h2>
             <p className="text-muted-foreground text-lg mb-2">
-              Cadastro rápido. Aprovação em até 24h. Ganhe no mesmo dia.
+              Cadastro rápido. Aprovação em até 24h. Comece a atender no mesmo dia.
             </p>
             <p className="text-muted-foreground/70 text-base mb-8">
-              Não perca tempo. 500+ profissionais já estão ganhando. Você quer ficar de fora?
+              Cadastro gratuito, sem compromisso. Você define seus horários e seu preço.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -763,7 +682,7 @@ const ParaProfissionais = forwardRef<HTMLDivElement>((_, ref) => {
               </Button>
             </div>
             <p className="text-xs text-muted-foreground/60 mt-8">
-              ✓ Sem taxas escondidas • ✓ Pagamento garantido • ✓ Suporte dedicado
+              ✓ Sem taxas escondidas • ✓ Repasse via PIX • ✓ Suporte dedicado
             </p>
           </motion.div>
         </div>

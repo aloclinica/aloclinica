@@ -11,9 +11,9 @@ const Footer = lazy(() => import("@/components/landing/Footer"));
 const certifications = [
   {
     icon: Shield,
-    title: "CFM Regulado",
-    desc: "Aprovado e licenciado pelo Conselho Federal de Medicina para prestação de serviços de telemedicina.",
-    items: ["Resolução CFM 1.643/2002", "Resolução CFM 2.227/2018", "Conformidade total"],
+    title: "Em conformidade com o CFM",
+    desc: "Plataforma alinhada às normas do Conselho Federal de Medicina para telemedicina.",
+    items: ["Resolução CFM 2.314/2022", "Lei 14.510/2022", "Médicos verificados no CFM"],
   },
   {
     icon: Lock,
@@ -22,23 +22,23 @@ const certifications = [
     items: ["Criptografia ponta a ponta", "Consentimento explícito", "Direito ao esquecimento"],
   },
   {
-    icon: Eye,
-    title: "HIPAA Compatible",
-    desc: "Infraestrutura e práticas alinhadas com padrões internacionais de privacidade em saúde.",
-    items: ["Padrão internacional", "Audit trail completo", "Conformidade cruzada"],
+    icon: Lock,
+    title: "Criptografia AES-256",
+    desc: "Dados de saúde protegidos com criptografia AES-256 em repouso e SSL/TLS em trânsito.",
+    items: ["Dados em repouso criptografados", "SSL/TLS em trânsito", "Chaves protegidas"],
   },
   {
-    icon: Database,
-    title: "ISO 27001",
-    desc: "Sistema de Gestão de Segurança da Informação certificado internacionalmente.",
-    items: ["Segurança de dados", "Controle de acesso", "Continuidade de negócios"],
+    icon: FileText,
+    title: "Receita ICP-Brasil",
+    desc: "Prescrições e atestados com assinatura digital ICP-Brasil, válidos em todo o Brasil.",
+    items: ["Assinatura digital ICP-Brasil", "Isolamento de dados por usuário (RLS)", "Trilha de auditoria"],
   },
 ];
 
 const securityFeatures = [
   {
     title: "Criptografia AES-256",
-    desc: "Todos os dados em repouso são criptografados com padrão militar.",
+    desc: "Todos os dados em repouso são criptografados com o padrão AES-256.",
     icon: Lock,
   },
   {
@@ -63,7 +63,7 @@ const securityFeatures = [
   },
   {
     title: "Auditoria Contínua",
-    desc: "Registros detalhados de todos os acessos e operações com retenção por 7 anos.",
+    desc: "Registros detalhados de todos os acessos e operações, com prontuários retidos por no mínimo 20 anos, conforme a Res. CFM 1.821/2007.",
     icon: FileText,
   },
 ];
@@ -80,7 +80,7 @@ const privacyPolicies = [
   {
     title: "Armazenamento",
     items: [
-      "Dados armazenados em servidores segurosdocumentados",
+      "Dados armazenados em servidores seguros documentados",
       "Acesso restrito apenas a profissionais autorizados",
       "Segregação de dados por perfil de usuário",
     ],
@@ -96,7 +96,7 @@ const privacyPolicies = [
   {
     title: "Retenção",
     items: [
-      "Dados de saúde retidos conforme legislação (7-10 anos)",
+      "Prontuários retidos por no mínimo 20 anos, conforme a Res. CFM 1.821/2007",
       "Exclusão segura após período legal",
       "Direito do paciente ao esquecimento (LGPD)",
     ],
@@ -112,7 +112,7 @@ const Seguranca = forwardRef<HTMLDivElement>((_, ref) => {
 
       <SEOHead
         title="Segurança e Conformidade | AloClínica"
-        description="Dados protegidos com criptografia militar, LGPD, CFM e ISO 27001. Sua privacidade é nossa prioridade."
+        description="Dados protegidos com criptografia AES-256, conformidade LGPD e CFM, e receita com assinatura ICP-Brasil. Sua privacidade é nossa prioridade."
         canonical="https://aloclinica.com.br/seguranca"
       />
 
@@ -134,7 +134,7 @@ const Seguranca = forwardRef<HTMLDivElement>((_, ref) => {
               Sua Privacidade é Nossa <span className="text-primary">Prioridade</span>
             </h1>
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Conformidade total com legislação brasileira e padrões internacionais. Seus dados de saúde protegidos com segurança de nível militar.
+              Conformidade total com a legislação brasileira. Seus dados de saúde protegidos com criptografia AES-256.
             </p>
           </motion.div>
         </div>
@@ -258,7 +258,7 @@ const Seguranca = forwardRef<HTMLDivElement>((_, ref) => {
                 Na AloClínica, segurança e privacidade não são características opcionais — são valores fundamentais. Cada linha de código, cada conexão de rede, cada acesso ao sistema foi projetado pensando em proteger seus dados de saúde com a máxima segurança possível.
               </p>
               <p className="text-muted-foreground">
-                Realizamos auditorias de segurança regularmente, mantemos certifications atualizadas e estamos em constante evolução para enfrentar ameaças emergentes. Sua confiança em nós é sagrada.
+                Realizamos auditorias de segurança regularmente, mantemos certificações atualizadas e estamos em constante evolução para enfrentar ameaças emergentes. Sua confiança em nós é sagrada.
               </p>
             </motion.div>
           </div>
@@ -274,10 +274,10 @@ const Seguranca = forwardRef<HTMLDivElement>((_, ref) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {[
-              { title: "Política de Privacidade", desc: "Conheça como coletamos, usamos e protegemos seus dados." },
-              { title: "Termos de Serviço", desc: "Direitos e responsabilidades dos usuários da plataforma." },
-              { title: "LGPD & Conformidade", desc: "Detalhes sobre conformidade com legislação de proteção de dados." },
-              { title: "Relatório de Segurança", desc: "Análise anual de nossas práticas e certificações de segurança." },
+              { title: "Política de Privacidade", desc: "Conheça como coletamos, usamos e protegemos seus dados.", href: "/privacy" },
+              { title: "Termos de Serviço", desc: "Direitos e responsabilidades dos usuários da plataforma.", href: "/terms" },
+              { title: "LGPD & Conformidade", desc: "Detalhes sobre conformidade com legislação de proteção de dados.", href: "/lgpd" },
+              { title: "Relatório de Segurança", desc: "Análise anual de nossas práticas e certificações de segurança.", href: "/seguranca" },
             ].map((doc, i) => (
               <motion.div
                 key={i}
@@ -290,7 +290,12 @@ const Seguranca = forwardRef<HTMLDivElement>((_, ref) => {
                 <FileText className="w-8 h-8 text-primary mb-4 group-hover:scale-110 transition-transform" weight="fill" />
                 <h3 className="font-semibold text-foreground mb-2">{doc.title}</h3>
                 <p className="text-sm text-muted-foreground mb-4">{doc.desc}</p>
-                <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-primary hover:bg-primary/10"
+                  onClick={() => navigate(doc.href)}
+                >
                   Acessar documento →
                 </Button>
               </motion.div>

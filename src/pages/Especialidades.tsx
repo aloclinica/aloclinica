@@ -8,6 +8,7 @@ import Header from "@/components/landing/Header";
 import SEOHead from "@/components/SEOHead";
 import { PINGO_SPECIALTIES } from "@/constants/specialties-assets";
 import pingoMedicoTeleconsulta from "@/assets/pingo-medico-teleconsulta.jpg";
+import pingoVideocall from "@/assets/pingo-videocall.png";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -20,42 +21,42 @@ const slugify = (s: string) =>
     .replace(/(^-|-$)/g, "");
 
 const specialties = [
-  { name: "Cardiologia", image: PINGO_SPECIALTIES["Cardiologia"], desc: "Coração, circulação e saúde cardiovascular", doctors: 45 },
-  { name: "Dermatologia", image: PINGO_SPECIALTIES["Dermatologia"], desc: "Pele, acne, envelhecimento e estética", doctors: 38 },
-  { name: "Pediatria", image: PINGO_SPECIALTIES["Pediatria"], desc: "Saúde infantil e desenvolvimento", doctors: 41 },
-  { name: "Psiquiatria", image: PINGO_SPECIALTIES["Psiquiatria"], desc: "Transtornos mentais e equilíbrio emocional", doctors: 33 },
-  { name: "Neurologia", image: PINGO_SPECIALTIES["Neurologia"], desc: "Sistema nervoso, dores e distúrbios", doctors: 34 },
-  { name: "Gastroenterologia", image: PINGO_SPECIALTIES["Gastroenterologia"], desc: "Digestão, estômago e intestinos", doctors: 29 },
-  { name: "Endocrinologia", image: PINGO_SPECIALTIES["Endocrinologia"], desc: "Diabetes, hormônios e metabolismo", doctors: 26 },
-  { name: "Urologia", image: PINGO_SPECIALTIES["Urologia"], desc: "Sistema urinário e saúde sexual", doctors: 32 },
-  { name: "Otorrinolaringologia", image: PINGO_SPECIALTIES["Otorrinolaringologia"], desc: "Ouvidos, nariz e garganta", doctors: 28 },
-  { name: "Reumatologia", image: PINGO_SPECIALTIES["Reumatologia"], desc: "Articulações, ossos e inflamação", doctors: 21 },
-  { name: "Pneumologia", image: PINGO_SPECIALTIES["Pneumologia"], desc: "Pulmões e sistema respiratório", doctors: 25 },
-  { name: "Clínico Geral", image: PINGO_SPECIALTIES["Clínico Geral"], desc: "Atendimento geral e primeiro acolhimento", doctors: 89 },
-  { name: "Ginecologia", image: PINGO_SPECIALTIES["Ginecologista-obstetra"], desc: "Saúde da mulher e reprodutiva", doctors: 44 },
-  { name: "Nutricionista", image: PINGO_SPECIALTIES["Nutricionista"], desc: "Dietas, emagrecimento e alimentação saudável", doctors: 36 },
-  { name: "Fisioterapia", image: PINGO_SPECIALTIES["Fisioterapia"], desc: "Reabilitação, movimento e dores físicas", doctors: 42 },
-  { name: "Fonoaudiologia", image: PINGO_SPECIALTIES["Fonoaudiologia"], desc: "Fala, audição e comunicação oral", doctors: 18 },
-  { name: "Ortopedia", image: PINGO_SPECIALTIES["Ortopedia"], desc: "Ossos, articulações e lesões esportivas", doctors: 51 },
-  { name: "Infectologia", image: PINGO_SPECIALTIES["Infectologia"], desc: "Tratamento de infecções e vírus", doctors: 19 },
-  { name: "Oncologia", image: PINGO_SPECIALTIES["Oncologia"], desc: "Diagnóstico e tratamento de câncer", doctors: 22 },
-  { name: "Nefrologia", image: PINGO_SPECIALTIES["Nefrologia"], desc: "Saúde dos rins e sistema urinário", doctors: 16 },
-  { name: "Alergologia", image: PINGO_SPECIALTIES["Alergologista"], desc: "Alergias e reações do sistema imune", doctors: 23 },
-  { name: "Geriatria", image: PINGO_SPECIALTIES["Geriatria"], desc: "Saúde do idoso e envelhecimento ativo", doctors: 19 },
-  { name: "Cirurgia Plástica", image: PINGO_SPECIALTIES["Cirurgia Plástica"], desc: "Procedimentos estéticos e reparadores", doctors: 15 },
-  { name: "Acupuntura", image: PINGO_SPECIALTIES["Acupuntura"], desc: "Alívio de dores e equilíbrio energético", doctors: 12 },
-  { name: "Angiologia", image: PINGO_SPECIALTIES["Angiologia"], desc: "Saúde dos vasos sanguíneos e linfáticos", doctors: 14 },
-  { name: "Hematologia", image: PINGO_SPECIALTIES["Hematologia"], desc: "Doenças do sangue e medula óssea", doctors: 11 },
-  { name: "Mastologia", image: PINGO_SPECIALTIES["Mastologia"], desc: "Saúde das mamas e prevenção", doctors: 13 },
-  { name: "Médico de Família", image: PINGO_SPECIALTIES["Médico de família"], desc: "Acompanhamento integral da família", doctors: 27 },
-  { name: "Med. do Esporte", image: PINGO_SPECIALTIES["Med. do Esporte"], desc: "Performance e saúde no exercício", doctors: 10 },
-  { name: "Cirurgia Vascular", image: PINGO_SPECIALTIES["Cirurgia Vascular"], desc: "Tratamento cirúrgico de veias e artérias", doctors: 9 },
-  { name: "Psicologia", image: PINGO_SPECIALTIES["Psiquiatria"], desc: "Saúde mental, terapia e bem-estar", doctors: 67 },
-  { name: "Anestesiologia", image: PINGO_SPECIALTIES["Anestesiologia"], desc: "Controle de dor e sedação em cirurgias", doctors: 12 },
-  { name: "Cirurgião Dentista", image: PINGO_SPECIALTIES["Cirurgião Dentista"], desc: "Saúde bucal e procedimentos odontológicos", doctors: 24 },
-  { name: "Fisiatra", image: PINGO_SPECIALTIES["Fisiatra"], desc: "Medicina física e reabilitação", doctors: 8 },
-  { name: "Hepatologia", image: PINGO_SPECIALTIES["Gastroenterologia"], desc: "Diagnóstico e tratamento de doenças do fígado", doctors: 14 },
-  { name: "Telemedicina 24h", image: "/src/assets/pingo-videocall.png", desc: "Atendimento imediato a qualquer hora", doctors: 150 },
+  { name: "Cardiologia", image: PINGO_SPECIALTIES["Cardiologia"], desc: "Coração, circulação e saúde cardiovascular" },
+  { name: "Dermatologia", image: PINGO_SPECIALTIES["Dermatologia"], desc: "Pele, acne, envelhecimento e estética" },
+  { name: "Pediatria", image: PINGO_SPECIALTIES["Pediatria"], desc: "Saúde infantil e desenvolvimento" },
+  { name: "Psiquiatria", image: PINGO_SPECIALTIES["Psiquiatria"], desc: "Transtornos mentais e equilíbrio emocional" },
+  { name: "Neurologia", image: PINGO_SPECIALTIES["Neurologia"], desc: "Sistema nervoso, dores e distúrbios" },
+  { name: "Gastroenterologia", image: PINGO_SPECIALTIES["Gastroenterologia"], desc: "Digestão, estômago e intestinos" },
+  { name: "Endocrinologia", image: PINGO_SPECIALTIES["Endocrinologia"], desc: "Diabetes, hormônios e metabolismo" },
+  { name: "Urologia", image: PINGO_SPECIALTIES["Urologia"], desc: "Sistema urinário e saúde sexual" },
+  { name: "Otorrinolaringologia", image: PINGO_SPECIALTIES["Otorrinolaringologia"], desc: "Ouvidos, nariz e garganta" },
+  { name: "Reumatologia", image: PINGO_SPECIALTIES["Reumatologia"], desc: "Articulações, ossos e inflamação" },
+  { name: "Pneumologia", image: PINGO_SPECIALTIES["Pneumologia"], desc: "Pulmões e sistema respiratório" },
+  { name: "Clínico Geral", image: PINGO_SPECIALTIES["Clínico Geral"], desc: "Atendimento geral e primeiro acolhimento" },
+  { name: "Ginecologia", image: PINGO_SPECIALTIES["Ginecologista-obstetra"], desc: "Saúde da mulher e reprodutiva" },
+  { name: "Nutricionista", image: PINGO_SPECIALTIES["Nutricionista"], desc: "Dietas, emagrecimento e alimentação saudável" },
+  { name: "Fisioterapia", image: PINGO_SPECIALTIES["Fisioterapia"], desc: "Reabilitação, movimento e dores físicas" },
+  { name: "Fonoaudiologia", image: PINGO_SPECIALTIES["Fonoaudiologia"], desc: "Fala, audição e comunicação oral" },
+  { name: "Ortopedia", image: PINGO_SPECIALTIES["Ortopedia"], desc: "Ossos, articulações e lesões esportivas" },
+  { name: "Infectologia", image: PINGO_SPECIALTIES["Infectologia"], desc: "Tratamento de infecções e vírus" },
+  { name: "Oncologia", image: PINGO_SPECIALTIES["Oncologia"], desc: "Diagnóstico e tratamento de câncer" },
+  { name: "Nefrologia", image: PINGO_SPECIALTIES["Nefrologia"], desc: "Saúde dos rins e sistema urinário" },
+  { name: "Alergologia", image: PINGO_SPECIALTIES["Alergologista"], desc: "Alergias e reações do sistema imune" },
+  { name: "Geriatria", image: PINGO_SPECIALTIES["Geriatria"], desc: "Saúde do idoso e envelhecimento ativo" },
+  { name: "Cirurgia Plástica", image: PINGO_SPECIALTIES["Cirurgia Plástica"], desc: "Procedimentos estéticos e reparadores" },
+  { name: "Acupuntura", image: PINGO_SPECIALTIES["Acupuntura"], desc: "Alívio de dores e equilíbrio energético" },
+  { name: "Angiologia", image: PINGO_SPECIALTIES["Angiologia"], desc: "Saúde dos vasos sanguíneos e linfáticos" },
+  { name: "Hematologia", image: PINGO_SPECIALTIES["Hematologia"], desc: "Doenças do sangue e medula óssea" },
+  { name: "Mastologia", image: PINGO_SPECIALTIES["Mastologia"], desc: "Saúde das mamas e prevenção" },
+  { name: "Médico de Família", image: PINGO_SPECIALTIES["Médico de família"], desc: "Acompanhamento integral da família" },
+  { name: "Med. do Esporte", image: PINGO_SPECIALTIES["Med. do Esporte"], desc: "Performance e saúde no exercício" },
+  { name: "Cirurgia Vascular", image: PINGO_SPECIALTIES["Cirurgia Vascular"], desc: "Tratamento cirúrgico de veias e artérias" },
+  { name: "Psicologia", image: PINGO_SPECIALTIES["Psiquiatria"], desc: "Saúde mental, terapia e bem-estar" },
+  { name: "Anestesiologia", image: PINGO_SPECIALTIES["Anestesiologia"], desc: "Controle de dor e sedação em cirurgias" },
+  { name: "Cirurgião Dentista", image: PINGO_SPECIALTIES["Cirurgião Dentista"], desc: "Saúde bucal e procedimentos odontológicos" },
+  { name: "Fisiatra", image: PINGO_SPECIALTIES["Fisiatra"], desc: "Medicina física e reabilitação" },
+  { name: "Hepatologia", image: PINGO_SPECIALTIES["Gastroenterologia"], desc: "Diagnóstico e tratamento de doenças do fígado" },
+  { name: "Telemedicina 24h", image: pingoVideocall, desc: "Atendimento imediato a qualquer hora" },
 ];
 
 const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
@@ -71,11 +72,6 @@ const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
       return matchesSearch && matchesCategory;
     });
   }, [searchTerm, selectedCategory]);
-
-  const totalDoctorsOnline = useMemo(
-    () => Math.floor(filteredSpecialties.reduce((acc, s) => acc + Math.floor(s.doctors * 0.18), 0)),
-    [filteredSpecialties],
-  );
 
   return (
     <div ref={ref} className="relative min-h-screen bg-background">
@@ -113,7 +109,7 @@ const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
               </span>
             </h1>
             <p className="text-xl sm:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed font-medium">
-              Conectamos você aos melhores especialistas através de um atendimento humanizado e tecnologia de ponta.
+              Conectamos você a especialistas verificados através de um atendimento humanizado e tecnologia de ponta.
             </p>
           </motion.div>
         </div>
@@ -205,14 +201,6 @@ const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
             <p className="text-muted-foreground">
               Exibindo <span className="font-bold text-foreground">{filteredSpecialties.length}</span> especialidade{filteredSpecialties.length === 1 ? "" : "s"}
             </p>
-            <span className="hidden sm:inline text-muted-foreground/40">•</span>
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-success">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-60" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
-              </span>
-              ~{totalDoctorsOnline} médicos online agora
-            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -255,11 +243,7 @@ const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
                 </p>
                 <div className="flex items-center gap-2 flex-wrap">
                   <div className="inline-flex items-center gap-1.5 text-[11px] font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full uppercase tracking-wider">
-                    {specialty.doctors}+ médicos
-                  </div>
-                  <div className="inline-flex items-center gap-1.5 text-[11px] font-bold bg-success/10 text-success px-2.5 py-1 rounded-full">
-                    <span className="w-1.5 h-1.5 rounded-full bg-success" />
-                    online
+                    Médicos verificados
                   </div>
                 </div>
                 </div>
@@ -298,9 +282,9 @@ const Especialidades = forwardRef<HTMLDivElement>((_, ref) => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
               { metric: "30+", label: "Especialidades" },
-              { metric: "500+", label: "Médicos" },
+              { metric: "CFM", label: "Médicos verificados" },
               { metric: "24h", label: "Disponibilidade" },
-              { metric: "4.9★", label: "Avaliação" },
+              { metric: "LGPD", label: "Conformidade" },
             ].map((item, i) => (
               <motion.div
                 key={i}
