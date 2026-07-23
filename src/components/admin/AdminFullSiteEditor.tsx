@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { db } from "@/integrations/supabase/untyped";
+import DashboardLayout from "@/components/dashboards/DashboardLayout";
+import { getAdminNav } from "./adminNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -218,6 +220,7 @@ export default function AdminFullSiteEditor() {
   const VpIcon = VIEWPORTS[viewport].icon;
 
   return (
+    <DashboardLayout title="Editor do Site" nav={getAdminNav("site-editor")} role="admin">
     <div className="h-[calc(100vh-120px)] flex flex-col gap-4">
       {/* Header Toolbar */}
       <div className="flex items-center justify-between bg-card p-3 rounded-xl border shadow-sm">
@@ -545,6 +548,7 @@ export default function AdminFullSiteEditor() {
         </Card>
       </div>
     </div>
+    </DashboardLayout>
   );
 }
 

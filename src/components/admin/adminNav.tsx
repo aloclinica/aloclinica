@@ -38,11 +38,13 @@ export const getAdminNav = (active: string) => [
   { label: "Clínicas",  href: "/dashboard/admin/clinics?role=admin",  icon: <NavIcon icon={<Buildings size={16} weight="fill" />}   color="purple"  />, active: active === "clinics",  group: "Pessoas" },
 
   // ── Conteúdo ──
+  { label: "Editor do Site", href: "/dashboard/admin/site-editor?role=admin",  icon: <NavIcon icon={<Layout size={16} weight="fill" />}      color="purple" />, active: active === "site-editor",  group: "Conteúdo" },
+  { label: "Config do Site", href: "/dashboard/admin/site-config?role=admin",  icon: <NavIcon icon={<Browser size={16} weight="fill" />}     color="blue"   />, active: active === "site-config",  group: "Conteúdo" },
   { label: "Especialidades", href: "/dashboard/admin/specialties?role=admin",  icon: <NavIcon icon={<ShieldStar size={16} weight="fill" />} color="cyan"   />, active: active === "specialties",  group: "Conteúdo" },
-  { label: "Studio",         href: "/dashboard/admin/studio?role=admin",       icon: <NavIcon icon={<PaintBrush size={16} weight="fill" />}  color="purple" />, active: active === "studio", group: "Conteúdo" },
-  { label: "Editor Apps",    href: "/dashboard/admin/app-editor?role=admin",   icon: <NavIcon icon={<DeviceMobile size={16} weight="fill" />} color="cyan"   />, active: active === "app-editor", group: "Conteúdo" },
   { label: "Cupons",         href: "/dashboard/admin/coupons?role=admin",      icon: <NavIcon icon={<Tag size={16} weight="fill" />}         color="orange" />, active: active === "coupons",      group: "Conteúdo" },
+  { label: "Editor Apps",    href: "/dashboard/admin/app-editor?role=admin",   icon: <NavIcon icon={<DeviceMobile size={16} weight="fill" />} color="cyan"   />, active: active === "app-editor", group: "Conteúdo" },
   { label: "Biblioteca de Mídia", href: "/dashboard/admin/media?role=admin",   icon: <NavIcon icon={<ImageIcon size={16} weight="fill" />}   color="cyan"   />, active: active === "media",        group: "Conteúdo" },
+  { label: "Studio (experimental)", href: "/dashboard/admin/studio?role=admin", icon: <NavIcon icon={<PaintBrush size={16} weight="fill" />} color="slate" />, active: active === "studio", group: "Conteúdo" },
 
   // ── Comunicação ──
   { label: "WhatsApp",      href: "/dashboard/admin/whatsapp?role=admin", icon: <NavIcon icon={<WhatsappLogo size={16} weight="fill" />}          color="green" />, active: active === "whatsapp", group: "Comunicação" },
