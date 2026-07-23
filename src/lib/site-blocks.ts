@@ -159,6 +159,45 @@ export function invalidateBlocksCache() {
 }
 
 /**
+ * useHomeBlocks — fonte de conteúdo da home a partir do Studio (site_blocks).
+ *
+ * Substitui o antigo useSiteSections (site_sections) mantendo EXATAMENTE a mesma
+ * interface { sections, enabled } que a Index.tsx consome, para a troca ser
+ * transparente. Cada bloco vira { key: block_key, config: published, is_enabled }.
+ *
+ * Segurança: se a leitura falhar, `sections` fica vazio e cada componente da
+ * landing cai no seu conteúdo padrão embutido (a home nunca fica em branco).
+ */
+export type HomeSection = { key: string; config: Record<string, any>; is_enabled: boolean };
+
+export function useHomeBlocks() {
+  const [sections, setSections] = useState<HomeSection[] | null>(_publicCache ? _publicCache.filter((b) => b.page_slug === "home").map((b) => ({ key: b.block_key, config: b.published ?? {}, is_enabled: b.is_enabled })) : null);
+  const [loading, setLoading] = useState(!_publicCache);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchPublicBlocks().then((blocks) => {
+      if (!mounted) return;
+      setSections(
+        blocks
+          .filter((b) => b.page_slug === "home")
+          .map((b) => ({ key: b.block_key, config: b.published ?? {}, is_enabled: b.is_enabled })),
+      );
+      setLoading(false);
+    });
+    return () => { mounted = false; };
+  }, []);
+
+  // Mesma semântica do useSiteSections: bloco ausente => renderiza (default ON).
+  const enabled = (key: string): boolean => {
+    const s = sections?.find((x) => x.key === key);
+    return s ? s.is_enabled : true;
+  };
+
+  return { sections, loading, enabled };
+}
+
+/**
  * usePublishedBlock — lê o conteúdo publicado de um bloco para uso público.
  * Retorna fallback enquanto carrega ou se o bloco não existir.
  *

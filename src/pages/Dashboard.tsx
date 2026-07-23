@@ -407,7 +407,8 @@ const Dashboard = () => {
       <Route path="admin/coupons" element={<RoleGuard allowed={[]} roles={roles}><AdminCoupons /></RoleGuard>} />
       
       <Route path="admin/site-config" element={<RoleGuard allowed={[]} roles={roles}><AdminSiteConfig /></RoleGuard>} />
-      <Route path="admin/site-editor" element={<RoleGuard allowed={[]} roles={roles}><AdminFullSiteEditor /></RoleGuard>} />
+      {/* site-editor (site_sections) foi substituido pelo Studio (site_blocks), que agora alimenta a home. Redireciona para nao editar num store morto. */}
+      <Route path="admin/site-editor" element={<Navigate to={`/dashboard/admin/studio${forceRole ? `?role=${forceRole}` : ""}`} replace />} />
       <Route path="admin/studio" element={<RoleGuard allowed={[]} roles={roles}><AdminStudio /></RoleGuard>} />
       <Route path="admin/app-editor" element={<RoleGuard allowed={[]} roles={roles}><AdminAppEditor /></RoleGuard>} />
       <Route path="admin/media" element={<RoleGuard allowed={[]} roles={roles}><AdminMediaLibrary /></RoleGuard>} />

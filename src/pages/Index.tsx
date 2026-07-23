@@ -20,7 +20,7 @@ import PingoCampaignShowcase from "@/components/landing/PingoCampaignShowcase";
 import PublicPageEnhancer from "@/components/landing/PublicPageEnhancer";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Building2, CalendarCheck, Star, Stethoscope, Video } from "lucide-react";
-import { useSiteSections } from "@/lib/site-sections";
+import { useHomeBlocks } from "@/lib/site-blocks";
 import { motion } from "framer-motion";
 import doctorTeleconsulta from "@/assets/doctor-phone-teleconsulta.png";
 import pingoCalendar from "@/assets/pingo-calendar.jpg";
@@ -31,7 +31,7 @@ import pingoDepoimentos from "@/assets/pingo-depoimentos.png";
 const Index = forwardRef<HTMLDivElement>((_, ref) => {
   const { setTheme, theme } = useTheme();
   const navigate = useNavigate();
-  const { enabled, sections } = useSiteSections();
+  const { enabled, sections } = useHomeBlocks();
 
   const sectionData = useMemo(() => {
     const map: Record<string, any> = {};
