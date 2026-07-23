@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // SECURITY: gate cron/internal-only function against public callers
 import { isInternalOrService } from "../_shared/auth.ts";
+import { wppAutomationEnabled } from "../_shared/wpp-settings.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,6 +25,11 @@ serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
+
+    // Respeita o toggle da automação "Lembrete 1h antes" do painel admin.
+    if (!(await wppAutomationEnabled(supabase, "wpp_appointment_reminder_1h"))) {
+      return new Response(JSON.stringify({ skipped: "lembrete 1h desativado no painel" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     // Find appointments starting in ~1h (between 55 and 65 minutes from now)
     const now = new Date();

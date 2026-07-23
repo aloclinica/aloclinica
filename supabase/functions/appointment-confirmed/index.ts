@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // SECURITY: gate against anonymous callers — accept internal/service or any authenticated user
 import { getCaller, isInternalOrService } from "../_shared/auth.ts";
+import { wppAutomationEnabled } from "../_shared/wpp-settings.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -142,7 +143,9 @@ serve(async (req) => {
     }
 
     // 2. Send WhatsApp via Evolution API (skip on resend_only)
-    if (!resend_only && patient?.phone) {
+    // Respeita o toggle da automação "Consulta Confirmada" do painel admin.
+    const wppConfirmedOn = await wppAutomationEnabled(supabase, "wpp_appointment_confirmed");
+    if (!resend_only && wppConfirmedOn && patient?.phone) {
       try {
         const receiptBlock = isPaid && Number(appt.price_at_booking ?? 0) > 0
           ? `\n\n🧾 *Recibo de pagamento:* ${receiptUrl}\nValor: ${amountBRL} · Nº ${String(appt.id).slice(0, 8).toUpperCase()}`
@@ -164,7 +167,7 @@ serve(async (req) => {
     }
 
     // 2b. Mensagem dedicada com link do recibo (somente se pago) — facilita encaminhamento ao plano de saúde (skip on resend_only)
-    if (!resend_only && patient?.phone && isPaid && Number(appt.price_at_booking ?? 0) > 0) {
+    if (!resend_only && wppConfirmedOn && patient?.phone && isPaid && Number(appt.price_at_booking ?? 0) > 0) {
       try {
         const receiptMsg = `🧾 *Recibo AloClínica*\n\nOlá ${patientName}, seu pagamento foi confirmado.\n\nValor: *${amountBRL}*\nNº do recibo: *${String(appt.id).slice(0, 8).toUpperCase()}*\nEmitido em: ${issuedAt}\n\n📄 Acessar e baixar:\n${receiptUrl}\n\n_Login obrigatório. Use este recibo para reembolso junto ao seu plano de saúde._`;
         const waReceiptRes = await fetch(`${supabaseUrl}/functions/v1/send-whatsapp`, {
