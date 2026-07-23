@@ -348,9 +348,19 @@ const AdminWhatsApp = () => {
 
   useEffect(() => {
     if (!polling || !selectedInstance) return;
+    let ticks = 0;
     const interval = setInterval(async () => {
+      ticks++;
       const state = await checkStatus(selectedInstance);
-      if (state === "open") { clearInterval(interval); fetchInstances(); }
+      if (state === "open") { clearInterval(interval); fetchInstances(); return; }
+      // Renova o QR a cada ~30s (6 ticks de 5s) para nunca expirar na tela.
+      if (ticks % 6 === 0) {
+        try {
+          const res = await callApi("qrcode", selectedInstance);
+          const b64 = res?.data?.base64 || res?.data?.qrcode?.base64 || null;
+          if (b64) setQrCode(b64.startsWith("data:") ? b64 : `data:image/png;base64,${b64}`);
+        } catch { /* mantém o QR atual se falhar */ }
+      }
     }, 5000);
     return () => clearInterval(interval);
   }, [polling, selectedInstance]);
