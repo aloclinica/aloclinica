@@ -188,6 +188,42 @@ export function useHomeBlocks() {
     return () => { mounted = false; };
   }, []);
 
+  // Live-preview do Studio: quando a home é aberta no iframe do editor, o Studio
+  // emite `studio:live-preview` a cada tecla (com o draft do bloco) e
+  // `studio:block-updated` ao publicar. Aqui espelhamos isso na config da seção,
+  // sem persistir — o preview reflete a edição em tempo real.
+  useEffect(() => {
+    const onMsg = (ev: MessageEvent) => {
+      const data = ev.data;
+      if (!data || typeof data !== "object") return;
+
+      if (data.type === "studio:live-preview" && data.pageSlug === "home" && data.blockKey) {
+        const draft = (data.draft ?? {}) as Record<string, any>;
+        setSections((prev) => {
+          const list = prev ?? [];
+          const idx = list.findIndex((s) => s.key === data.blockKey);
+          if (idx === -1) return [...list, { key: data.blockKey, config: draft, is_enabled: true }];
+          const next = list.slice();
+          next[idx] = { ...next[idx], config: { ...next[idx].config, ...draft } };
+          return next;
+        });
+      }
+
+      if (data.type === "studio:block-updated") {
+        invalidateBlocksCache();
+        fetchPublicBlocks().then((blocks) => {
+          setSections(
+            blocks
+              .filter((b) => b.page_slug === "home")
+              .map((b) => ({ key: b.block_key, config: b.published ?? {}, is_enabled: b.is_enabled })),
+          );
+        });
+      }
+    };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, []);
+
   // Mesma semântica do useSiteSections: bloco ausente => renderiza (default ON).
   const enabled = (key: string): boolean => {
     const s = sections?.find((x) => x.key === key);
