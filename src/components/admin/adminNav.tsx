@@ -6,7 +6,8 @@ import {
     PaintBrush, Image as ImageIcon, Heart, CreditCard
     , TestTube, Handshake, Layout, Browser, Shield, Graph,
     Database, FileText, DeviceMobile,
-    IdentificationCard, EnvelopeSimple, ShieldWarning
+    IdentificationCard, EnvelopeSimple, ShieldWarning,
+    Gauge, Funnel
  } from "@phosphor-icons/react";
 import { NavIcon } from "@/components/ui/nav-icon";
 
@@ -20,11 +21,13 @@ export const getAdminNav = (active: string) => [
    { label: "Monitor ao Vivo",  href: "/dashboard/admin/live?role=admin",         icon: <NavIcon icon={<VideoCamera size={16} weight="fill" />}    color="rose"   />, active: active === "live",     group: "Visão Geral" },
    { label: "Relatórios",      href: "/dashboard/admin/reports?role=admin",      icon: <NavIcon icon={<Graph size={16} weight="fill" />}          color="emerald" />, active: active === "reports",  group: "Visão Geral" },
    { label: "NPS & Satisfação", href: "/dashboard/admin/nps?role=admin",         icon: <NavIcon icon={<Star size={16} weight="fill" />}           color="amber"   />, active: active === "nps",      group: "Visão Geral" },
+   { label: "Capacidade & Demanda", href: "/dashboard/admin/capacity?role=admin", icon: <NavIcon icon={<Gauge size={16} weight="fill" />}        color="cyan"    />, active: active === "capacity", group: "Visão Geral" },
 
   // ── Operação ──
   { label: "Aprovações",          href: "/dashboard/admin/approvals?role=admin",           icon: <NavIcon icon={<UserCircleCheck size={16} weight="fill" />} color="emerald" />, active: active === "approvals",           group: "Operação" },
   { label: "Verificação KYC",     href: "/dashboard/admin/kyc-review?role=admin",          icon: <NavIcon icon={<IdentificationCard size={16} weight="fill" />} color="cyan"  />, active: active === "kyc-review",          group: "Operação" },
   { label: "Candidaturas Médicos", href: "/dashboard/admin/doctor-applications?role=admin", icon: <NavIcon icon={<ClipboardText size={16} weight="fill" />}  color="blue"    />, active: active === "doctor-applications", group: "Operação" },
+  { label: "Funil de Onboarding", href: "/dashboard/admin/onboarding-pipeline?role=admin", icon: <NavIcon icon={<Funnel size={16} weight="fill" />}       color="purple"  />, active: active === "onboarding-pipeline", group: "Operação" },
   { label: "Consultas",           href: "/dashboard/admin/appointments?role=admin",        icon: <NavIcon icon={<CalendarCheck size={16} weight="fill" />}  color="blue"    />, active: active === "appointments",        group: "Operação" },
   { label: "Financeiro",          href: "/dashboard/admin/financial?role=admin",           icon: <NavIcon icon={<Wallet size={16} weight="fill" />}         color="green"   />, active: active === "financial",           group: "Operação" },
   { label: "Repasses",            href: "/dashboard/admin/payouts?role=admin",             icon: <NavIcon icon={<CreditCard size={16} weight="fill" />}     color="green"   />, active: active === "payouts",             group: "Operação" },

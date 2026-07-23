@@ -36,6 +36,8 @@ const DoctorConsultations = lazy(() => import("@/components/doctor/DoctorConsult
 const DoctorCalendar = lazy(() => import("@/components/doctor/DoctorCalendar"));
 const PatientEMR = lazy(() => import("@/components/medical/PatientEMR"));
 const PanelCenter = lazy(() => import("@/components/admin/PanelCenter"));
+const AdminCapacity = lazy(() => import("@/components/admin/AdminCapacity"));
+const AdminOnboardingPipeline = lazy(() => import("@/components/admin/AdminOnboardingPipeline"));
 
 // ── LAZY imports: less-used pages (prefetched on idle) ──
 const BookAppointment = lazy(() => import("@/components/patient/BookAppointment"));
@@ -407,6 +409,8 @@ const Dashboard = () => {
       <Route path="admin/health" element={<RoleGuard allowed={[]} roles={roles}><SystemHealth /></RoleGuard>} />
       <Route path="admin/live" element={<RoleGuard allowed={[]} roles={roles}><AdminLiveConsultations /></RoleGuard>} />
       <Route path="admin/panel-center" element={<RoleGuard allowed={[]} roles={roles}><PanelCenter /></RoleGuard>} />
+      <Route path="admin/capacity" element={<RoleGuard allowed={[]} roles={roles}><AdminCapacity /></RoleGuard>} />
+      <Route path="admin/onboarding-pipeline" element={<RoleGuard allowed={[]} roles={roles}><AdminOnboardingPipeline /></RoleGuard>} />
       <Route path="admin/financial" element={<RoleGuard allowed={[]} roles={roles}><AdminFinancial /></RoleGuard>} />
       <Route path="admin/coupons" element={<RoleGuard allowed={[]} roles={roles}><AdminCoupons /></RoleGuard>} />
       
