@@ -24,7 +24,7 @@ const DoctorAnalyticsCharts = () => {
   const [statusData, setStatusData] = useState<ChartDataPoint[]>([]);
   const [monthlyTrend, setMonthlyTrend] = useState<ChartDataPoint[]>([]);
   const [patientDemographics, setPatientDemographics] = useState<ChartDataPoint[]>([]);
-  const [summaryStats, setSummaryStats] = useState({ completionRate: 0, avgRating: 0, totalEarnings: 0, totalPatients: 0, returnRate: 0 });
+  const [summaryStats, setSummaryStats] = useState({ completionRate: 0, avgRating: 0, totalEarnings: 0, totalPatients: 0, returnRate: 0, noShowRate: 0, cancelRate: 0, avgDurationMin: 0 });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -60,7 +60,7 @@ const DoctorAnalyticsCharts = () => {
     const [apptsRes, surveysRes, allApptsRes, sixMonthRes] = await Promise.all([
       db.from("appointments").select("id, scheduled_at, status, payment_status, price_at_booking").eq("doctor_id", docProfile.id).gte("scheduled_at", startDate.toISOString()),
       db.from("satisfaction_surveys").select("nps_score, created_at").eq("doctor_id", docProfile.id).order("created_at", { ascending: true }).limit(20),
-      db.from("appointments").select("scheduled_at, status, patient_id, payment_status, price_at_booking").eq("doctor_id", docProfile.id).gte("scheduled_at", subDays(new Date(), 60).toISOString()),
+      db.from("appointments").select("id, scheduled_at, status, patient_id, payment_status, price_at_booking").eq("doctor_id", docProfile.id).gte("scheduled_at", subDays(new Date(), 60).toISOString()),
       db.from("appointments").select("scheduled_at, status, patient_id, payment_status, price_at_booking").eq("doctor_id", docProfile.id).gte("scheduled_at", subMonths(new Date(), 6).toISOString()),
     ]);
 
@@ -138,16 +138,38 @@ const DoctorAnalyticsCharts = () => {
     // Summary stats
     const total60 = allApptsRes.data?.length ?? 0;
     const completed60 = (allApptsRes.data ?? []).filter(a => a.status === "completed").length;
+    const noShow60 = (allApptsRes.data ?? []).filter(a => a.status === "no_show").length;
+    const cancelled60 = (allApptsRes.data ?? []).filter(a => a.status === "cancelled").length;
     const uniquePatients = new Set((allApptsRes.data ?? []).filter(a => a.patient_id).map(a => a.patient_id)).size;
     const avgNps = surveysRes.data && surveysRes.data.length > 0
       ? (surveysRes.data.reduce((acc, s) => acc + s.nps_score, 0) / surveysRes.data.length) : 0;
     const returnRate = total60 > 0 ? Math.round((returningPatients / total60) * 100) : 0;
+
+    // Tempo médio de atendimento — real, a partir de video_presence_logs (duração da chamada do médico)
+    let avgDurationMin = 0;
+    const completedApptIds = (allApptsRes.data ?? []).filter(a => a.status === "completed" && a.id).map(a => a.id);
+    if (completedApptIds.length > 0) {
+      const { data: durations } = await db
+        .from("video_presence_logs")
+        .select("duration_seconds")
+        .eq("user_id", user!.id)
+        .in("appointment_id", completedApptIds)
+        .gt("duration_seconds", 60)
+        .limit(100);
+      if (durations && durations.length > 0) {
+        avgDurationMin = Math.round(durations.reduce((s: number, d: any) => s + (Number(d.duration_seconds) || 0), 0) / durations.length / 60);
+      }
+    }
+
     setSummaryStats({
       completionRate: total60 > 0 ? Math.round((completed60 / total60) * 100) : 0,
       avgRating: avgNps,
       totalEarnings: (allApptsRes.data ?? []).filter(a => a.status === "completed" && isPaid(a.payment_status)).reduce((sum, a) => sum + doctorEarn(a), 0),
       totalPatients: uniquePatients,
       returnRate,
+      noShowRate: total60 > 0 ? Math.round((noShow60 / total60) * 100) : 0,
+      cancelRate: total60 > 0 ? Math.round((cancelled60 / total60) * 100) : 0,
+      avgDurationMin,
     });
 
     // Heatmap
@@ -186,6 +208,20 @@ const DoctorAnalyticsCharts = () => {
           { label: "Ganhos (60d)", value: `R$${summaryStats.totalEarnings.toLocaleString("pt-BR")}`, color: "text-emerald-500" },
           { label: "Pacientes Únicos", value: String(summaryStats.totalPatients), color: "text-primary" },
           { label: "Taxa de Retorno", value: `${summaryStats.returnRate}%`, color: summaryStats.returnRate >= 30 ? "text-emerald-500" : "text-amber-500" },
+        ].map((stat) => (
+          <div key={stat.label} className="rounded-2xl bg-card border border-border p-3 text-center">
+            <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Métricas adicionais — faltas, cancelamentos e duração média (dados reais) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {[
+          { label: "Taxa de Falta", value: `${summaryStats.noShowRate}%`, color: summaryStats.noShowRate <= 5 ? "text-emerald-500" : "text-amber-500" },
+          { label: "Taxa de Cancelamento", value: `${summaryStats.cancelRate}%`, color: summaryStats.cancelRate <= 10 ? "text-emerald-500" : "text-amber-500" },
+          { label: "Duração Média", value: summaryStats.avgDurationMin > 0 ? `${summaryStats.avgDurationMin} min` : "—", color: "text-primary" },
         ].map((stat) => (
           <div key={stat.label} className="rounded-2xl bg-card border border-border p-3 text-center">
             <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>

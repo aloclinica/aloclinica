@@ -44,6 +44,57 @@ const COMMON_CID10: { code: string; label: string }[] = [
   { code: "Z00.0", label: "Exame médico geral" },
 ];
 
+// Modelos rápidos de atestado/declaração (pt-BR). Clicar preenche tipo + texto
+// (e dias/CID quando aplicável); tudo continua editável.
+type CertType = "absence" | "attendance" | "fitness";
+const CERT_PRESETS: {
+  label: string;
+  emoji: string;
+  type: CertType;
+  days?: number;
+  cid?: string;
+  text: string;
+}[] = [
+  {
+    label: "Comparecimento",
+    emoji: "🕐",
+    type: "attendance",
+    text: "Compareceu à consulta médica por telemedicina nesta data, permanecendo em atendimento pelo período necessário.",
+  },
+  {
+    label: "Repouso 1 dia",
+    emoji: "🛌",
+    type: "absence",
+    days: 1,
+    text: "Paciente necessita de afastamento de suas atividades habituais por 1 (um) dia, por motivo de saúde.",
+  },
+  {
+    label: "Repouso 3 dias",
+    emoji: "🛌",
+    type: "absence",
+    days: 3,
+    text: "Paciente necessita de afastamento de suas atividades habituais por motivo de saúde.",
+  },
+  {
+    label: "Apto p/ atividade física",
+    emoji: "🏃",
+    type: "fitness",
+    text: "Após avaliação clínica, encontra-se apto(a) para a prática de atividades físicas, sem restrições identificadas nesta avaliação.",
+  },
+  {
+    label: "Acompanhante",
+    emoji: "🤝",
+    type: "attendance",
+    text: "Declara-se, para os devidos fins, que o(a) paciente necessita de acompanhante durante o atendimento e o deslocamento.",
+  },
+  {
+    label: "Comparecimento de acompanhante",
+    emoji: "👥",
+    type: "attendance",
+    text: "Declara-se que o(a) acompanhante do(a) paciente compareceu à consulta médica nesta data, durante o período do atendimento.",
+  },
+];
+
 const MedicalCertificate = () => {
   const { profile, user } = useAuth();
   const { appointmentId } = useParams<{ appointmentId?: string }>();
@@ -112,6 +163,15 @@ const MedicalCertificate = () => {
     absence: { label: "Atestado de Afastamento", title: "ATESTADO MÉDICO" },
     attendance: { label: "Declaração de Comparecimento", title: "DECLARAÇÃO DE COMPARECIMENTO" },
     fitness: { label: "Atestado de Aptidão", title: "ATESTADO DE APTIDÃO FÍSICA" },
+  };
+
+  // Aplica um modelo rápido: preenche tipo + texto (e dias/CID quando houver),
+  // mantendo tudo editável e sem sobrescrever nome/CPF já prefilados.
+  const applyPreset = (p: (typeof CERT_PRESETS)[number]) => {
+    setCertType(p.type);
+    if (p.days) setDays(p.days);
+    if (p.cid) setCid(p.cid);
+    setReason(p.text);
   };
 
   const generateCertificate = async () => {
@@ -356,6 +416,25 @@ const MedicalCertificate = () => {
                       <SelectItem value="fitness">✅ Atestado de Aptidão</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                {/* Modelos rápidos pt-BR — preenchem tipo/texto (e dias/CID), tudo editável */}
+                <div>
+                  <Label className="text-xs text-muted-foreground">Modelos rápidos</Label>
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {CERT_PRESETS.map(p => (
+                      <Button
+                        key={p.label}
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-7 rounded-full px-3 text-[11px] font-medium"
+                        onClick={() => applyPreset(p)}
+                      >
+                        <span className="mr-1">{p.emoji}</span>{p.label}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

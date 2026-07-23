@@ -29,6 +29,10 @@ interface RenewalItem {
   original_prescription_url: string | null;
   health_questionnaire: Json;
   rejection_reason: string | null;
+  // Campos derivados no cliente (não vêm do banco)
+  patientName?: string;
+  medication?: string;
+  isOwnPatient?: boolean;
 }
 
 const RenewalQueue = () => {
@@ -41,22 +45,82 @@ const RenewalQueue = () => {
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
-    if (user) { fetchDoctorProfile(); fetchRenewals(); }
+    if (!user) return;
+    (async () => {
+      const docId = await fetchDoctorProfile();
+      await fetchRenewals(docId);
+    })();
   }, [user]);
 
-  const fetchDoctorProfile = async () => {
-    if (!user) return;
+  const fetchDoctorProfile = async (): Promise<string | null> => {
+    if (!user) return null;
     const { data } = await db.from("doctor_profiles").select("id").eq("user_id", user.id).maybeSingle();
-    if (data) setDoctorProfileId(data.id);
+    if (data) { setDoctorProfileId(data.id); return data.id; }
+    return null;
   };
 
-  const fetchRenewals = async () => {
+  const fetchRenewals = async (docId: string | null = doctorProfileId) => {
     const { data } = await db
       .from("prescription_renewals")
       .select("*")
       .in("status", ["pending", "in_review"])
       .order("created_at", { ascending: true });
-    setRenewals(data ?? []);
+    const rows = (data ?? []) as RenewalItem[];
+
+    // Resolve nomes de pacientes (patient_id → profiles.user_id), medicamentos
+    // solicitados (receita vinculada ou questionário) e a marcação de "paciente próprio".
+    const patientIds = [...new Set(rows.map(r => r.patient_id).filter(Boolean))];
+    const prescriptionIds = [...new Set(rows.map(r => r.prescription_id).filter((id): id is string => !!id))];
+
+    const [profilesRes, prescriptionsRes, ownPatients] = await Promise.all([
+      patientIds.length
+        ? db.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds)
+        : Promise.resolve({ data: [] as any[] }),
+      prescriptionIds.length
+        ? db.from("prescriptions").select("id, medications").in("id", prescriptionIds)
+        : Promise.resolve({ data: [] as any[] }),
+      docId
+        ? db.from("appointments").select("patient_id").eq("doctor_id", docId)
+            .then(({ data: appts }) => new Set((appts ?? []).map((a: any) => a.patient_id).filter(Boolean)))
+        : Promise.resolve(new Set<string>()),
+    ]);
+
+    const nameMap = new Map<string, string>(
+      ((profilesRes as any).data ?? []).map((p: any) => [p.user_id, `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim()])
+    );
+    const medMap = new Map<string, any>(
+      ((prescriptionsRes as any).data ?? []).map((p: any) => [p.id, p.medications])
+    );
+
+    const enriched = rows.map(r => {
+      // Medicamento solicitado: prioriza a receita vinculada; senão, o questionário do paciente.
+      let medication = "";
+      const meds = r.prescription_id ? medMap.get(r.prescription_id) : null;
+      if (Array.isArray(meds) && meds.length) {
+        medication = meds
+          .map((m: any) => (typeof m === "string" ? m : [m?.name, m?.dosage].filter(Boolean).join(" ")))
+          .filter(Boolean)
+          .join(", ");
+      }
+      if (!medication) {
+        const q = (r.health_questionnaire || {}) as any;
+        medication = String(q.current_medications ?? q.medications ?? "").trim();
+      }
+      return {
+        ...r,
+        patientName: nameMap.get(r.patient_id) || "Paciente",
+        medication,
+        isOwnPatient: ownPatients.has(r.patient_id),
+      };
+    });
+
+    // Pacientes próprios primeiro; dentro de cada grupo, mais antigos primeiro (como antes).
+    enriched.sort((a, b) => {
+      if (a.isOwnPatient !== b.isOwnPatient) return a.isOwnPatient ? -1 : 1;
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    });
+
+    setRenewals(enriched);
     setLoading(false);
   };
 
@@ -188,6 +252,8 @@ const RenewalQueue = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Data</TableHead>
+                  <TableHead>Paciente</TableHead>
+                  <TableHead>Medicamento</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Receita</TableHead>
                   <TableHead className="text-right">Ação</TableHead>
@@ -197,6 +263,21 @@ const RenewalQueue = () => {
                 {renewals.map(r => (
                   <TableRow key={r.id}>
                     <TableCell className="text-sm">{format(new Date(r.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</TableCell>
+                    <TableCell className="text-sm">
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium text-foreground">{r.patientName || "Paciente"}</span>
+                        {r.isOwnPatient && (
+                          <Badge variant="secondary" className="w-fit text-[10px] gap-0.5">
+                            <UserCheck className="w-3 h-3" /> Seu paciente
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground max-w-[220px]">
+                      {r.medication
+                        ? <span className="line-clamp-2">{r.medication}</span>
+                        : <span className="italic text-muted-foreground/60">Não informado</span>}
+                    </TableCell>
                     <TableCell>
                       <Badge variant={r.status === "pending" ? "outline" : "default"}>
                         {r.status === "pending" ? "Pendente" : "Em análise"}

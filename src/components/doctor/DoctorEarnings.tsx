@@ -9,13 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { getDoctorNav } from "./doctorNav";
- import { TrendingUp, Wallet, ArrowUpRight, Clock, CheckCircle2, XCircle, Building2, AlertCircle, ArrowLeft, MoreHorizontal, Sparkles, History } from "lucide-react";
+ import { TrendingUp, Wallet, Clock, CheckCircle2, XCircle, Building2, AlertCircle, ArrowLeft, Sparkles, History, FileText, Download } from "lucide-react";
  import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
  import { ptBR } from "date-fns/locale";
  import { cn } from "@/lib/utils";
  import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
  import { toast } from "sonner";
- import { motion, AnimatePresence } from "framer-motion";
+ import { exportToCSV } from "@/lib/csv";
 
 const PLATFORM_PERCENT = 50;
 const DEFAULT_DOCTOR_PERCENT = 50;
@@ -30,6 +30,9 @@ const DoctorEarnings = () => {
   const [withdrawalsHasMore, setWithdrawalsHasMore] = useState(false);
   const [loadingMoreW, setLoadingMoreW] = useState(false);
   const [payouts, setPayouts] = useState<any[]>([]);
+  const [paidPayouts, setPaidPayouts] = useState<any[]>([]);
+  const [irLoading, setIrLoading] = useState(true);
+  const [irYear, setIrYear] = useState<number>(new Date().getFullYear());
   const [loading, setLoading] = useState(true);
   const [pixKey, setPixKey] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
@@ -49,6 +52,51 @@ const DoctorEarnings = () => {
         const f = (data as any)?.payout_frequency;
         if (f === "daily" || f === "weekly" || f === "monthly") setPayoutFreq(f);
       } catch { /* sem deps */ }
+    })();
+  }, [user]);
+
+  // Relatório de renda (IR): busca todos os repasses PAGOS do médico — dados reais (issue #F2)
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      setIrLoading(true);
+      try {
+        const { data: docProfile } = await db.from("doctor_profiles").select("id").eq("user_id", user.id).maybeSingle();
+        if (!docProfile) { setPaidPayouts([]); return; }
+        const { data: rows } = await db
+          .from("doctor_payouts")
+          .select("id, appointment_id, gross_amount, platform_fee, net_amount, status, paid_at, created_at")
+          .eq("doctor_id", (docProfile as any).id)
+          .eq("status", "paid")
+          .order("paid_at", { ascending: true });
+        const list = rows ?? [];
+        // Resolve nomes de pacientes via appointment_id → patient_id → profile (mesmo padrão do extrato)
+        const apptIds = [...new Set(list.map((p: any) => p.appointment_id).filter(Boolean))];
+        const nameByAppt = new Map<string, string>();
+        if (apptIds.length > 0) {
+          const { data: apptRows } = await db.from("appointments").select("id, patient_id").in("id", apptIds as string[]);
+          const patientByAppt = new Map<string, string>();
+          (apptRows ?? []).forEach((a: any) => { if (a.patient_id) patientByAppt.set(a.id, a.patient_id); });
+          const patientIds = [...new Set([...patientByAppt.values()])];
+          if (patientIds.length > 0) {
+            const { data: profs } = await db.from("profiles").select("user_id, first_name, last_name").in("user_id", patientIds);
+            const nameByPatient = new Map<string, string>();
+            (profs ?? []).forEach((pr: any) => {
+              const nm = `${pr.first_name ?? ""} ${pr.last_name ?? ""}`.trim();
+              if (nm) nameByPatient.set(pr.user_id, nm);
+            });
+            patientByAppt.forEach((pid, aid) => {
+              const nm = nameByPatient.get(pid);
+              if (nm) nameByAppt.set(aid, nm);
+            });
+          }
+        }
+        setPaidPayouts(list.map((p: any) => ({
+          ...p,
+          patientName: (p.appointment_id && nameByAppt.get(p.appointment_id)) || "Paciente",
+        })));
+      } catch { setPaidPayouts([]); }
+      finally { setIrLoading(false); }
     })();
   }, [user]);
 
@@ -268,6 +316,45 @@ const DoctorEarnings = () => {
     if (s === "ready") return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-xs gap-1"><Wallet className="w-3 h-3" />Liberado</Badge>;
     if (s === "pending") return <Badge variant="outline" className="text-xs gap-1 border-amber-300 text-amber-600"><Clock className="w-3 h-3" />Aguardando</Badge>;
     return <Badge variant="outline" className="text-xs gap-1"><Clock className="w-3 h-3" />{status}</Badge>;
+  };
+
+  // Relatório de renda (IR) — derivados a partir dos repasses PAGOS reais
+  const irReceivedDate = (p: any) => new Date(p.paid_at ?? p.created_at);
+  const irRows = paidPayouts.filter((p) => irReceivedDate(p).getFullYear() === irYear);
+  const irTotal = irRows.reduce((s, p) => s + Number(p.net_amount || 0), 0);
+  const irMonths = Array.from({ length: 12 }, (_, m) => {
+    const rows = irRows.filter((p) => irReceivedDate(p).getMonth() === m);
+    return {
+      label: format(new Date(irYear, m, 1), "MMMM", { locale: ptBR }),
+      total: rows.reduce((s, p) => s + Number(p.net_amount || 0), 0),
+      count: rows.length,
+    };
+  }).filter((m) => m.count > 0);
+  const currentYear = new Date().getFullYear();
+
+  const downloadIrCSV = () => {
+    if (irRows.length === 0) {
+      toast.error("Sem repasses pagos neste período para exportar.");
+      return;
+    }
+    const rows = irRows
+      .slice()
+      .sort((a, b) => irReceivedDate(a).getTime() - irReceivedDate(b).getTime())
+      .map((p) => ({
+        data: format(irReceivedDate(p), "dd/MM/yyyy", { locale: ptBR }),
+        referencia: p.patientName || p.appointment_id || "—",
+        bruto: Number(p.gross_amount || 0).toFixed(2).replace(".", ","),
+        taxa: Number(p.platform_fee || 0).toFixed(2).replace(".", ","),
+        liquido: Number(p.net_amount || 0).toFixed(2).replace(".", ","),
+      }));
+    exportToCSV(`relatorio-renda-${irYear}.csv`, rows, [
+      { key: "data", label: "Data de recebimento" },
+      { key: "referencia", label: "Paciente/Consulta" },
+      { key: "bruto", label: "Valor bruto (R$)" },
+      { key: "taxa", label: "Taxa da plataforma (R$)" },
+      { key: "liquido", label: "Valor líquido recebido (R$)" },
+    ]);
+    toast.success(`Relatório de ${irYear} baixado (${rows.length} repasse${rows.length !== 1 ? "s" : ""}).`);
   };
 
   return (
@@ -519,6 +606,87 @@ const DoctorEarnings = () => {
                   </div>
                 ))}
               </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Relatório de renda (IR): total recebido + quebra mensal + CSV — issue #F2 */}
+        <Card className="border-border mb-8">
+          <CardHeader>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="w-5 h-5" /> Relatório de renda (IR)
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                {[currentYear, currentYear - 1].map((y) => (
+                  <button
+                    key={y}
+                    type="button"
+                    onClick={() => setIrYear(y)}
+                    aria-pressed={irYear === y}
+                    className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${irYear === y
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-border text-foreground hover:border-primary/40"}`}
+                  >
+                    {y}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {irLoading ? (
+              <div className="space-y-2">{[0, 1, 2].map((i) => <div key={i} className="shimmer-v2 h-14 rounded-2xl" />)}</div>
+            ) : (
+              <>
+                <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-200/40 mb-4">
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Total recebido em {irYear}</p>
+                  <p className="text-2xl font-black text-emerald-600">R$ {irTotal.toFixed(2)}</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    {irRows.length} repasse{irRows.length !== 1 ? "s" : ""} com status pago (valor líquido recebido no seu PIX).
+                  </p>
+                </div>
+
+                {irMonths.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <FileText className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
+                    <p className="text-sm font-medium text-foreground">Nenhum repasse pago em {irYear}.</p>
+                    <p className="text-xs text-muted-foreground">Quando os repasses forem pagos, aparecem aqui por mês.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5 mb-4">
+                    {irMonths.map((m) => (
+                      <div key={m.label} className="flex items-center justify-between px-3 py-2 rounded-xl border border-border/60">
+                        <span className="text-sm text-foreground capitalize">{m.label}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-[11px] text-muted-foreground">{m.count} repasse{m.count !== 1 ? "s" : ""}</span>
+                          <span className="text-sm font-black text-emerald-600">R$ {m.total.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <Button
+                  variant="outline"
+                  onClick={downloadIrCSV}
+                  disabled={irRows.length === 0}
+                  className="w-full h-11 rounded-2xl gap-2 font-bold"
+                >
+                  <Download className="w-4 h-4" /> Baixar relatório (CSV)
+                </Button>
+
+                <div className="mt-4 pt-3 border-t border-border/30 space-y-1.5 text-[11px] text-muted-foreground">
+                  <p className="flex items-start gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                    Reflete valores <strong className="text-foreground">efetivamente recebidos</strong> (repasses com status pago), para seus próprios controles de Imposto de Renda.
+                  </p>
+                  <p className="flex items-start gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0" />
+                    Não é documento fiscal. A emissão de <strong className="text-foreground">NFS-e</strong> e demais documentos oficiais é separada e feita fora da plataforma.
+                  </p>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
