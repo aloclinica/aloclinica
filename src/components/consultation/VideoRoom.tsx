@@ -72,6 +72,9 @@ const VideoRoom = () => {
   const [jitsiRoomId, setJitsiRoomId] = useState<string | null>(null);
   const [showSummary, setShowSummary] = useState(false);
 
+  // Alergias / condições crônicas do paciente — faixa de alerta sempre visível p/ o médico
+  const [patientAlerts, setPatientAlerts] = useState<{ allergies: string[]; chronic: string[] } | null>(null);
+
   const [elapsed, setElapsed] = useState(0);
   const [showChat, setShowChat] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
@@ -212,9 +215,9 @@ const VideoRoom = () => {
     // Registra o consentimento de gravação (trilha CFM/LGPD) — antes era só um
     // window.confirm sem registro. Best-effort: não bloqueia a gravação se falhar.
     try {
-      if (patientId) {
+      if (appointment?.patient_id) {
         await db.from("patient_consents").insert({
-          patient_id: patientId,
+          patient_id: appointment.patient_id,
           appointment_id: appointmentId ?? null,
           consent_type: "recording",
           version: "1.0",
@@ -286,6 +289,29 @@ const VideoRoom = () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [appointmentId]);
+
+  // ─── Alergias / condições crônicas do paciente (faixa de alerta do médico) ───
+  // Mesma fonte do PatientInfoPanel (profiles.allergies / chronic_conditions).
+  // Carrega uma vez quando a chamada do médico abre; a faixa não é renderizada se vazio.
+  useEffect(() => {
+    if (!isDoctor || !appointment?.patient_id) return;
+    const pid = appointment.patient_id;
+    let cancelled = false;
+    (async () => {
+      const { data } = await db
+        .from("profiles")
+        .select("allergies, chronic_conditions")
+        .eq("user_id", pid)
+        .single();
+      if (!cancelled && data) {
+        setPatientAlerts({
+          allergies: (data.allergies as string[]) ?? [],
+          chronic: (data.chronic_conditions as string[]) ?? [],
+        });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isDoctor, appointment?.patient_id]);
 
   // ─── Queue position check (patients only) — realtime + polling fallback ───
   useEffect(() => {
@@ -1240,7 +1266,7 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
           size="sm"
           variant="outline"
           className="rounded-xl border-[hsl(220,15%,18%)] text-[hsl(220,15%,60%)] hover:bg-[hsl(220,20%,12%)]"
-          onClick={() => window.open(`/dashboard/prescribe/${appointmentId}`, '_blank')}
+          onClick={() => setToolOverlay({ url: `/dashboard/prescribe/${appointmentId}?embed=1`, title: "Receita / Prescrição" })}
         >
           <Pill className="w-3.5 h-3.5" />
         </Button>
@@ -1497,6 +1523,21 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
       {!isOnline && (
         <div className="bg-destructive text-destructive-foreground px-4 py-2 text-xs font-semibold text-center shrink-0">
           ⚠️ Sem conexão — a consulta vai retomar quando sua internet voltar.
+        </div>
+      )}
+
+      {/* Faixa clínica sempre visível (médico): alergias e, se couber, condições crônicas.
+          Só renderiza quando há ao menos uma alergia registrada. */}
+      {isDoctor && patientAlerts && patientAlerts.allergies.length > 0 && (
+        <div className="flex items-center gap-2 px-3 md:px-5 py-1.5 bg-destructive/10 border-b border-destructive/25 shrink-0 overflow-hidden">
+          <p className="flex-1 min-w-0 text-[11px] md:text-xs text-destructive font-semibold truncate">
+            ⚠️ <span className="font-bold">Alergias:</span> {patientAlerts.allergies.join(", ")}
+            {patientAlerts.chronic.length > 0 && (
+              <span className="text-amber-400/90 font-medium hidden sm:inline">
+                {" · Condições: "}{patientAlerts.chronic.join(", ")}
+              </span>
+            )}
+          </p>
         </div>
       )}
 
@@ -1808,7 +1849,7 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
             <ToolbarBtn
               icon={<Pill className="w-5 h-5" />}
               label="Rx"
-              onClick={() => window.open(`/dashboard/prescribe/${appointmentId}`, '_blank')}
+              onClick={() => setToolOverlay({ url: `/dashboard/prescribe/${appointmentId}?embed=1`, title: "Receita / Prescrição" })}
             />
           )}
         </div>
