@@ -17,6 +17,7 @@ import {
   Search,
   ShieldCheck,
   SlidersHorizontal,
+  Stethoscope,
   Syringe,
   UploadCloud,
   UserRound,
@@ -68,6 +69,7 @@ export const getPatientNav = (active: string, t: Translator = fallback) => {
     { label: t("patientNav.appointments"), href: "/dashboard/appointments?role=patient", icon: <NavIcon icon={<CalendarCheck size={18} strokeWidth={2.4} />} color="blue" />, active: active === "appointments", group: main },
     { label: t("patientNav.urgentCare"), href: "/dashboard/urgent-care?role=patient", icon: <NavIcon icon={<Zap size={18} strokeWidth={2.5} />} color="amber" />, active: active === "urgent-care", group: main },
     { label: t("patientNav.schedule"), href: "/dashboard/schedule?role=patient", icon: <NavIcon icon={<Search size={18} strokeWidth={2.4} />} color="cyan" />, active: active === "schedule" || active === "doctors", group: main },
+    { label: "Triagem por sintomas", href: "/dashboard/triage?role=patient", icon: <NavIcon icon={<Stethoscope size={18} strokeWidth={2.4} />} color="rose" />, active: active === "triage", group: main },
 
     // ── Saúde Digital ──
     { label: t("patientNav.health"), href: "/dashboard/patient/health?role=patient", icon: <NavIcon icon={<HeartPulse size={18} strokeWidth={2.4} />} color="rose" />, active: active === "health", group: health },
