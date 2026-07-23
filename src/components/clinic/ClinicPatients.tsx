@@ -6,10 +6,14 @@ import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Users, Search, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Users, Search, Calendar, Download, MessageCircle, Phone, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
+import { exportToCSV } from "@/lib/csv";
 import { getClinicNav } from "./clinicNav";
 
 const fadeUp = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const } } };
@@ -27,6 +31,7 @@ const ClinicPatients = () => {
   const [patients, setPatients] = useState<PatientRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<PatientRow | null>(null);
 
   useEffect(() => { if (user) fetchData(); }, [user]);
 
@@ -80,12 +85,44 @@ const ClinicPatients = () => {
 
   const filtered = patients.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || (p.phone ?? "").includes(search));
 
+  const exportCsv = () => {
+    if (filtered.length === 0) { toast.error("Nenhum paciente para exportar."); return; }
+    const rows = filtered.map(p => ({
+      nome: p.name,
+      telefone: p.phone ?? "",
+      consultas: p.totalAppts,
+      ultima_visita: p.lastVisit ? new Date(p.lastVisit).toLocaleDateString("pt-BR") : "",
+    }));
+    exportToCSV("pacientes-clinica.csv", rows, [
+      { key: "nome", label: "Nome" },
+      { key: "telefone", label: "Telefone" },
+      { key: "consultas", label: "Consultas" },
+      { key: "ultima_visita", label: "Última visita" },
+    ]);
+    toast.success(`${rows.length} paciente${rows.length !== 1 ? "s" : ""} exportado${rows.length !== 1 ? "s" : ""}`);
+  };
+
+  // Abre o WhatsApp com o telefone do paciente (fallback: avisa quando indisponível).
+  const openWhatsApp = (p: PatientRow, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (!p.phone) { toast.error("Telefone não disponível para este paciente."); return; }
+    const digits = p.phone.replace(/\D/g, "");
+    const withCountry = digits.startsWith("55") ? digits : `55${digits}`;
+    const msg = encodeURIComponent(`Olá ${p.name.split(" ")[0]}, aqui é da clínica. `);
+    window.open(`https://wa.me/${withCountry}?text=${msg}`, "_blank");
+  };
+
   return (
     <DashboardLayout title="Pacientes" nav={getClinicNav("patients")} role="clinic">
       <motion.div initial="hidden" animate="show" variants={{ hidden: {}, show: { transition: { staggerChildren: 0.05 } } }} className="max-w-4xl space-y-5">
-        <motion.div variants={fadeUp}>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">Pacientes da Clínica</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{patients.length} pacientes atendidos</p>
+        <motion.div variants={fadeUp} className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">Pacientes da Clínica</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">{patients.length} pacientes atendidos</p>
+          </div>
+          <Button variant="outline" size="sm" className="rounded-xl shrink-0" onClick={exportCsv} disabled={filtered.length === 0}>
+            <Download className="w-4 h-4 sm:mr-1.5" /><span className="hidden sm:inline">Exportar CSV</span>
+          </Button>
         </motion.div>
 
         <motion.div variants={fadeUp} className="relative">
@@ -107,7 +144,7 @@ const ClinicPatients = () => {
               ) : (
                 <div className="divide-y divide-border/40">
                   {filtered.map(patient => (
-                    <div key={patient.user_id} className="flex items-center gap-4 p-4 hover:bg-muted/20 transition-colors">
+                    <div key={patient.user_id} role="button" tabIndex={0} onClick={() => setSelected(patient)} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(patient); } }} className="flex items-center gap-4 p-4 hover:bg-muted/20 transition-colors cursor-pointer focus:outline-none focus:bg-muted/30">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                         <Users className="w-5 h-5 text-primary" />
                       </div>
@@ -126,6 +163,9 @@ const ClinicPatients = () => {
                           </p>
                         )}
                       </div>
+                      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg shrink-0" onClick={e => openWhatsApp(patient, e)} title="Enviar mensagem no WhatsApp" aria-label="Enviar mensagem no WhatsApp">
+                        <MessageCircle className="w-4 h-4 text-success" />
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -133,6 +173,42 @@ const ClinicPatients = () => {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Patient detail drawer */}
+        <Sheet open={!!selected} onOpenChange={open => { if (!open) setSelected(null); }}>
+          <SheetContent side="right" className="w-full sm:max-w-md">
+            <SheetHeader>
+              <SheetTitle>{selected?.name ?? "Paciente"}</SheetTitle>
+              <SheetDescription>Detalhes do paciente</SheetDescription>
+            </SheetHeader>
+            {selected && (
+              <div className="mt-6 space-y-4">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30">
+                  <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-muted-foreground">Contato</p>
+                    <p className="text-sm font-medium text-foreground truncate">{selected.phone ?? "Não informado"}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-xl bg-muted/30">
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><Calendar className="w-3 h-3" /> Consultas</div>
+                    <p className="text-lg font-bold text-foreground mt-0.5">{selected.totalAppts}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-muted/30">
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><Clock className="w-3 h-3" /> Última visita</div>
+                    <p className="text-sm font-medium text-foreground mt-1">
+                      {selected.lastVisit ? formatDistanceToNow(new Date(selected.lastVisit), { addSuffix: true, locale: ptBR }) : "—"}
+                    </p>
+                  </div>
+                </div>
+                <Button className="w-full rounded-xl" onClick={() => openWhatsApp(selected)}>
+                  <MessageCircle className="w-4 h-4 mr-1.5" /> Mensagem no WhatsApp
+                </Button>
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
       </motion.div>
     </DashboardLayout>
   );

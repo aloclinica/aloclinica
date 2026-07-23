@@ -4,10 +4,13 @@ import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Clock, Stethoscope, Timer, Sparkles } from "lucide-react";
+import { Clock, Stethoscope, Timer, Sparkles, UserCheck, UserX, Bell } from "lucide-react";
 import { format, differenceInMinutes } from "date-fns";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
+import { notify } from "@/lib/notifications";
 import { getClinicNav } from "./clinicNav";
 
 const fadeUp = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const } } };
@@ -17,6 +20,8 @@ const ClinicWaitingRoom = () => {
   const [waiting, setWaiting] = useState<any[]>([]);
   const [doctors, setDoctors] = useState<Map<string, string>>(new Map());
   const [patients, setPatients] = useState<Map<string, string>>(new Map());
+  const [doctorIds, setDoctorIds] = useState<string[]>([]);
+  const [acting, setActing] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const now = new Date();
 
@@ -40,6 +45,7 @@ const ClinicWaitingRoom = () => {
 
     const { data: affiliations } = await db.from("clinic_affiliations").select("doctor_id").eq("clinic_id", clinic.id).eq("status", "active");
     const doctorIds = (affiliations ?? []).map(a => a.doctor_id);
+    setDoctorIds(doctorIds);
     if (doctorIds.length === 0) { setLoading(false); setWaiting([]); return; }
 
     // Fetch doctor names
@@ -62,7 +68,7 @@ const ClinicWaitingRoom = () => {
       .in("doctor_id", doctorIds)
       .gte("scheduled_at", `${todayStr}T00:00:00`)
       .lte("scheduled_at", `${todayStr}T23:59:59`)
-      .in("status", ["scheduled", "confirmed"])
+      .in("status", ["scheduled", "confirmed", "waiting"])
       .order("scheduled_at", { ascending: true });
 
     setWaiting(appts ?? []);
@@ -84,6 +90,48 @@ const ClinicWaitingRoom = () => {
     if (diff <= 0) return { label: "Atrasado", urgent: true };
     if (diff <= 15) return { label: `${diff}min`, urgent: false };
     return { label: `${diff}min`, urgent: false };
+  };
+
+  // Registra chegada do paciente (check-in). O guard `.in("doctor_id", doctorIds)`
+  // garante que a clínica só age em consultas dos seus médicos vinculados.
+  const checkIn = async (appt: any) => {
+    setActing(appt.id);
+    const { error } = await db.from("appointments").update({ status: "waiting" }).eq("id", appt.id).in("doctor_id", doctorIds);
+    setActing(null);
+    if (error) { toast.error("Não foi possível registrar a chegada."); return; }
+    setWaiting(prev => prev.map(w => (w.id === appt.id ? { ...w, status: "waiting" } : w)));
+    toast.success(`Chegada registrada — ${patients.get(appt.patient_id) ?? "paciente"}`);
+    fetchData();
+  };
+
+  const markNoShow = async (appt: any) => {
+    setActing(appt.id);
+    const { error } = await db.from("appointments").update({ status: "no_show" }).eq("id", appt.id).in("doctor_id", doctorIds);
+    setActing(null);
+    if (error) { toast.error("Não foi possível marcar a falta."); return; }
+    setWaiting(prev => prev.filter(w => w.id !== appt.id));
+    toast.success(`Falta registrada — ${patients.get(appt.patient_id) ?? "paciente"}`);
+    fetchData();
+  };
+
+  const notifyPatient = async (appt: any) => {
+    if (!appt.patient_id) { toast.error("Paciente sem cadastro para avisar."); return; }
+    setActing(appt.id);
+    try {
+      const doctorName = doctors.get(appt.doctor_id) ?? "O médico";
+      await notify(
+        appt.patient_id,
+        "🔔 A clínica está pronta para você",
+        `${doctorName} já está pronto(a) para o seu atendimento. Dirija-se à recepção.`,
+        "appointment",
+        { link: "/dashboard/appointments?role=patient" },
+      );
+      toast.success(`Paciente avisado — ${patients.get(appt.patient_id) ?? ""}`.trim());
+    } catch {
+      toast.error("Não foi possível avisar o paciente.");
+    } finally {
+      setActing(null);
+    }
   };
 
   return (
@@ -146,10 +194,29 @@ const ClinicWaitingRoom = () => {
                         </div>
                         <div className="text-right shrink-0">
                           <p className="text-sm font-mono font-semibold text-foreground">{format(new Date(appt.scheduled_at), "HH:mm")}</p>
-                          <Badge variant="outline" className={`text-[10px] mt-0.5 ${wait.urgent ? "border-destructive/30 text-destructive bg-destructive/5" : "border-border text-muted-foreground"}`}>
-                            {wait.urgent && <Timer className="w-2.5 h-2.5 mr-0.5" />}
-                            {wait.label}
-                          </Badge>
+                          {appt.status === "waiting" ? (
+                            <Badge variant="outline" className="text-[10px] mt-0.5 border-success/30 text-success bg-success/5">
+                              <UserCheck className="w-2.5 h-2.5 mr-0.5" />Chegou
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className={`text-[10px] mt-0.5 ${wait.urgent ? "border-destructive/30 text-destructive bg-destructive/5" : "border-border text-muted-foreground"}`}>
+                              {wait.urgent && <Timer className="w-2.5 h-2.5 mr-0.5" />}
+                              {wait.label}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          {appt.status !== "waiting" && (
+                            <Button variant="ghost" size="sm" className="h-8 rounded-lg text-xs px-2" disabled={acting === appt.id} onClick={() => checkIn(appt)} title="Marcar chegada / check-in" aria-label="Marcar chegada / check-in">
+                              <UserCheck className="w-3.5 h-3.5 sm:mr-1 text-success" /><span className="hidden sm:inline">Chegada</span>
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="sm" className="h-8 rounded-lg text-xs px-2" disabled={acting === appt.id} onClick={() => notifyPatient(appt)} title="Avisar paciente" aria-label="Avisar paciente">
+                            <Bell className="w-3.5 h-3.5 sm:mr-1 text-primary" /><span className="hidden sm:inline">Avisar</span>
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8 rounded-lg text-xs px-2" disabled={acting === appt.id} onClick={() => markNoShow(appt)} title="Marcar falta" aria-label="Marcar falta">
+                            <UserX className="w-3.5 h-3.5 sm:mr-1 text-destructive" /><span className="hidden sm:inline">Falta</span>
+                          </Button>
                         </div>
                       </div>
                     );

@@ -7,17 +7,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, User, Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, User, Search, Filter, ChevronLeft, ChevronRight, MoreVertical, Check, X, UserX, Stethoscope } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { format, addDays, subDays, startOfDay, endOfDay, isToday, isTomorrow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { getClinicNav } from "./clinicNav";
 
 const statusLabels: Record<string, { label: string; class: string }> = {
   scheduled: { label: "Agendada", class: "bg-primary/10 text-primary border-primary/20" },
   confirmed: { label: "Confirmada", class: "bg-success/10 text-success border-success/20" },
+  waiting: { label: "Em espera", class: "bg-secondary/10 text-secondary border-secondary/20" },
   completed: { label: "Concluída", class: "bg-muted text-muted-foreground border-border" },
   cancelled: { label: "Cancelada", class: "bg-destructive/10 text-destructive border-destructive/20" },
   no_show: { label: "Não compareceu", class: "bg-warning/10 text-warning border-warning/20" },
@@ -30,10 +34,14 @@ const ClinicSchedules = () => {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [doctors, setDoctors] = useState<Map<string, string>>(new Map());
   const [patients, setPatients] = useState<Map<string, string>>(new Map());
+  const [doctorIds, setDoctorIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [doctorFilter, setDoctorFilter] = useState("all");
+  const [acting, setActing] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<{ appt: any; status: string; label: string } | null>(null);
 
   useEffect(() => {
     if (user) fetchData();
@@ -46,6 +54,7 @@ const ClinicSchedules = () => {
 
     const { data: affiliations } = await db.from("clinic_affiliations").select("doctor_id").eq("clinic_id", clinic.id).eq("status", "active");
     const doctorIds = (affiliations ?? []).map(a => a.doctor_id);
+    setDoctorIds(doctorIds);
     if (doctorIds.length === 0) { setLoading(false); return; }
 
     // Fetch doctor names
@@ -90,8 +99,29 @@ const ClinicSchedules = () => {
     const doctorName = doctors.get(a.doctor_id) ?? "";
     const matchSearch = `${patientName} ${doctorName}`.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "all" || a.status === statusFilter;
-    return matchSearch && matchStatus;
+    const matchDoctor = doctorFilter === "all" || a.doctor_id === doctorFilter;
+    return matchSearch && matchStatus && matchDoctor;
   });
+
+  // Atualiza o status da consulta. O guard `.in("doctor_id", doctorIds)` garante
+  // que a clínica só altera consultas dos seus médicos vinculados.
+  const updateStatus = async (appt: any, status: string, successMsg: string) => {
+    setActing(appt.id);
+    const { error } = await db.from("appointments").update({ status }).eq("id", appt.id).in("doctor_id", doctorIds);
+    setActing(null);
+    if (error) { toast.error("Não foi possível atualizar a consulta."); return; }
+    setAppointments(prev => prev.map(a => (a.id === appt.id ? { ...a, status } : a)));
+    toast.success(successMsg);
+    fetchData();
+  };
+
+  const confirmPending = async () => {
+    if (!pendingAction) return;
+    const { appt, status } = pendingAction;
+    setPendingAction(null);
+    const msg = status === "cancelled" ? "Consulta cancelada" : "Falta registrada";
+    await updateStatus(appt, status, msg);
+  };
 
   const dateLabel = isToday(selectedDate) ? "Hoje" : isTomorrow(selectedDate) ? "Amanhã" : format(selectedDate, "dd 'de' MMMM", { locale: ptBR });
 
@@ -136,6 +166,15 @@ const ClinicSchedules = () => {
               <SelectItem value="confirmed">Confirmadas</SelectItem>
               <SelectItem value="completed">Concluídas</SelectItem>
               <SelectItem value="cancelled">Canceladas</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={doctorFilter} onValueChange={setDoctorFilter}>
+            <SelectTrigger className="w-[190px] rounded-xl h-9"><Stethoscope className="w-3.5 h-3.5 mr-1.5" /><SelectValue placeholder="Médico" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os médicos</SelectItem>
+              {[...doctors.entries()].map(([id, name]) => (
+                <SelectItem key={id} value={id}>{name}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </motion.div>
@@ -185,6 +224,28 @@ const ClinicSchedules = () => {
                           <p className="text-xs text-muted-foreground truncate">{doctors.get(appt.doctor_id) ?? "Médico"}</p>
                         </div>
                         <Badge variant="outline" className={`text-[10px] shrink-0 ${st.class}`}>{st.label}</Badge>
+                        {["scheduled", "confirmed", "waiting"].includes(appt.status) && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg shrink-0" disabled={acting === appt.id} aria-label="Ações da consulta">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {appt.status === "scheduled" && (
+                                <DropdownMenuItem onClick={() => updateStatus(appt, "confirmed", "Consulta confirmada")}>
+                                  <Check className="w-4 h-4 mr-2 text-success" /> Confirmar
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setPendingAction({ appt, status: "cancelled", label: "cancelar esta consulta" })}>
+                                <X className="w-4 h-4 mr-2" /> Cancelar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-warning focus:text-warning" onClick={() => setPendingAction({ appt, status: "no_show", label: "marcar falta nesta consulta" })}>
+                                <UserX className="w-4 h-4 mr-2" /> Marcar falta
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </div>
                     );
                   })}
@@ -193,6 +254,24 @@ const ClinicSchedules = () => {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Confirmação de ações destrutivas */}
+        <AlertDialog open={!!pendingAction} onOpenChange={open => { if (!open) setPendingAction(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar ação</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja {pendingAction?.label}? Esta ação altera o status da consulta.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Voltar</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Confirmar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </motion.div>
     </DashboardLayout>
   );
