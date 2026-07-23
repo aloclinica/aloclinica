@@ -50,7 +50,7 @@ const bottomCards = [
     image: medicalRecordsImg,
     title: "Prontuário completo",
     description: "Todo seu histórico de consultas, exames e receitas sempre à mão.",
-    cta: { label: "Ver detalhes", href: "/sobre/tecnologia" },
+    cta: { label: "Ver detalhes", href: "/seguranca" },
   },
 ];
 

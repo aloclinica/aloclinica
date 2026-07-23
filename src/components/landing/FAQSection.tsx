@@ -141,7 +141,7 @@ const FAQSection = forwardRef<HTMLElement>((_, ref) => {
           </p>
           <Button
             size="sm"
-            onClick={() => navigate("/suporte")}
+            onClick={() => navigate("/contato")}
             className="rounded-full px-5 font-bold"
           >
             Falar com suporte <ArrowRight className="w-4 h-4 ml-1" weight="bold" />

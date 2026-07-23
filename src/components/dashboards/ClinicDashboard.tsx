@@ -87,17 +87,16 @@ const ClinicDashboard = () => {
 
       // Calculate total slots from availability_slots table
       const monthStart = startOfMonth(new Date());
-      const { data: slots, error: slotsError } = await db
+      const { count: slotCount, error: slotsError } = await db
         .from("availability_slots")
         .select("id", { count: "exact", head: true })
         .in("doctor_id", doctorIds)
         .gte("date", monthStart.toISOString());
 
-      if (!slotsError && slots) {
-        setTotalSlots(slots.length > 0 ? slots.length : doctorIds.length * 20);
-      } else {
-        setTotalSlots(doctorIds.length * 20);
-      }
+      // Ocupação real = consultas / vagas configuradas. Sem vagas cadastradas,
+      // não inventamos denominador (antes: doctorIds×20 fabricado, pois head:true
+      // retorna data=null e o slots.length caía sempre no fallback).
+      setTotalSlots(!slotsError ? (slotCount ?? 0) : 0);
     } else {
       setTotalSlots(0);
     }
@@ -108,7 +107,7 @@ const ClinicDashboard = () => {
   const monthStart = startOfMonth(now);
   const thisMonthAppts = appointments.filter(a => new Date(a.scheduled_at) >= monthStart);
   const completed = thisMonthAppts.filter(a => a.status === "completed");
-  const revenue = completed.reduce((sum, a) => sum + (a.doctor_profiles?.consultation_price ?? 89), 0);
+  const revenue = completed.reduce((sum, a) => sum + (a.doctor_profiles?.consultation_price ?? 0), 0);
   const activeDoctors = doctors.filter(d => d.status === "active").length;
   const occupancy = totalSlots > 0 ? Math.round((thisMonthAppts.length / totalSlots) * 100) : 0;
   const upcomingAppts = appointments.filter(a => new Date(a.scheduled_at) >= now && a.status !== "cancelled").slice(0, 5);
@@ -118,14 +117,16 @@ const ClinicDashboard = () => {
     const ms = startOfMonth(month);
     const me = startOfMonth(subMonths(now, 4 - i));
     const ma = appointments.filter(a => { const d = new Date(a.scheduled_at); return d >= ms && (i < 5 ? d < me : true); });
-    return { month: format(month, "MMM", { locale: ptBR }), consultas: ma.length, receita: ma.filter(a => a.status === "completed").reduce((s, a) => s + (a.doctor_profiles?.consultation_price ?? 89), 0) };
+    return { month: format(month, "MMM", { locale: ptBR }), consultas: ma.length, receita: ma.filter(a => a.status === "completed").reduce((s, a) => s + (a.doctor_profiles?.consultation_price ?? 0), 0) };
   });
 
   const doctorPerformance = doctors.filter(d => d.status === "active").map(d => {
     const profile = d.doctor_profiles?.profiles;
     const name = profile ? `Dr(a). ${profile.first_name}` : "Médico";
     const docAppts = appointments.filter(a => a.doctor_id === d.doctor_id);
-    return { name, consultas: docAppts.length, completadas: docAppts.filter(a => a.status === "completed").length };
+    const docCompleted = docAppts.filter(a => a.status === "completed");
+    const receita = docCompleted.reduce((s, a) => s + (a.doctor_profiles?.consultation_price ?? 0), 0);
+    return { name, consultas: docAppts.length, completadas: docCompleted.length, receita };
   }).sort((a, b) => b.consultas - a.consultas);
 
   const statusCounts = [
@@ -211,8 +212,8 @@ const ClinicDashboard = () => {
           liveColor="green"
           bubble={{
             greeting: "🏥 Gestão da clínica",
-            name: "Clínica VidaSaúde",
-            sub: "12 médicos ativos hoje",
+            name: clinicProfile?.name || "Sua clínica",
+            sub: `${activeDoctors} médico${activeDoctors === 1 ? "" : "s"} ativo${activeDoctors === 1 ? "" : "s"}`,
           }}
           kpis={[
             { label: "Médicos", value: activeDoctors },
@@ -242,9 +243,9 @@ const ClinicDashboard = () => {
 
         {/* ── Bento Stats ── */}
         <StatBento loading={loading} stats={[
-          { label: "Médicos ativos", value: activeDoctors, icon: "🩺", iconBg: "bg-indigo-50 dark:bg-indigo-950/30", valueClass: "text-indigo-700 dark:text-indigo-400", trend: 5 , accentClass: "bg-indigo-500" },
-          { label: "Receita do mês", value: `R$${(revenue / 1000).toFixed(1)}k`, icon: "💰", iconBg: "bg-emerald-50 dark:bg-emerald-950/30", valueClass: "text-emerald-700 dark:text-emerald-400", trend: 12 , accentClass: "bg-emerald-500" },
-          { label: "Consultas/mês", value: thisMonthAppts.length, icon: "📅", iconBg: "bg-blue-50 dark:bg-blue-950/30", valueClass: "text-[#1255C8] dark:text-blue-400", trend: 18 , accentClass: "bg-blue-500" },
+          { label: "Médicos ativos", value: activeDoctors, icon: "🩺", iconBg: "bg-indigo-50 dark:bg-indigo-950/30", valueClass: "text-indigo-700 dark:text-indigo-400", accentClass: "bg-indigo-500" },
+          { label: "Receita do mês", value: `R$${(revenue / 1000).toFixed(1)}k`, icon: "💰", iconBg: "bg-emerald-50 dark:bg-emerald-950/30", valueClass: "text-emerald-700 dark:text-emerald-400", accentClass: "bg-emerald-500" },
+          { label: "Consultas/mês", value: thisMonthAppts.length, icon: "📅", iconBg: "bg-blue-50 dark:bg-blue-950/30", valueClass: "text-[#1255C8] dark:text-blue-400", accentClass: "bg-blue-500" },
           { label: "Taxa de ocupação", value: `${occupancy}%`, icon: "📊", iconBg: "bg-amber-50 dark:bg-amber-950/30", valueClass: "text-amber-600 dark:text-amber-400" },
         ]} />
 
@@ -269,7 +270,7 @@ const ClinicDashboard = () => {
               name: d.name,
               initials: d.name.split(" ").map((n: string) => n[0]).slice(0, 2).join(""),
               consultations: d.consultas,
-              revenue: d.consultas * 89,
+              revenue: d.receita,
               pct: doctorPerformance[0]?.consultas > 0 ? Math.round((d.consultas / doctorPerformance[0].consultas) * 100) : 0,
               avatarBg: ["bg-indigo-100 dark:bg-indigo-950/40", "bg-emerald-100 dark:bg-emerald-950/40", "bg-amber-100 dark:bg-amber-950/40", "bg-blue-100 dark:bg-blue-950/40", "bg-violet-100 dark:bg-violet-950/40"][i % 5],
               avatarColor: ["text-indigo-700 dark:text-indigo-300", "text-emerald-700 dark:text-emerald-300", "text-amber-700 dark:text-amber-300", "text-blue-700 dark:text-blue-300", "text-violet-700 dark:text-violet-300"][i % 5],
