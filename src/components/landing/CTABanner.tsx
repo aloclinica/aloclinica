@@ -2,7 +2,7 @@ import { forwardRef } from "react";
 import { BannerCTA } from "@/components/ui/banner-cta";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { ArrowRight, ShieldCheck, Clock, Star, Check, Heart, Lightning, Sparkle } from "@phosphor-icons/react";
+import { ArrowRight, ShieldCheck, Clock, Star, Check, Heart, Lightning } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
 import mascotThumbsup from "@/assets/mascot-thumbsup.png";
 

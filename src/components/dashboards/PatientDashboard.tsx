@@ -431,7 +431,7 @@ const PatientHomeReference = ({ firstName, stats, nextAppt, timelineEvents, navi
     { label: "Consultas", sub: "realizadas", value: stats?.total ?? 0, icon: ShieldCheck, color: "text-blue-600" },
     { label: "Receitas", sub: "emitidas", value: stats?.prescriptions ?? 0, icon: FileText, color: "text-teal-600" },
     { label: "Exames", sub: "realizados", value: stats?.documents ?? 0, icon: Pill, color: "text-indigo-600" },
-    { label: "Bem-estar", sub: "geral", value: "92%", icon: Heartbeat, color: "text-orange-500" },
+    { label: "Bem-estar", sub: "geral", value: "—", icon: Heartbeat, color: "text-orange-500" },
   ];
 
   return (
@@ -844,7 +844,7 @@ const HeroSection = ({ firstName, nextAppt, upcoming, stats, getGreeting, getAva
         <span className="hidden sm:inline opacity-30">·</span>
         <span className="inline-flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-emerald-500" /> Dados criptografados</span>
         <span className="hidden sm:inline opacity-30">·</span>
-        <span className="inline-flex items-center gap-1.5"><Sparkle weight="fill" className="w-3.5 h-3.5 text-amber-500" /> 4.9 ★ avaliação</span>
+        <span className="inline-flex items-center gap-1.5"><Sparkle weight="fill" className="w-3.5 h-3.5 text-amber-500" /> Receita digital válida</span>
       </div>
     </div>
   </section>
@@ -883,7 +883,7 @@ const DoctorSearchHero = ({ navigate, hasNextAppt }: { navigate: any; hasNextApp
             {hasNextAppt ? "Precisa de outro especialista?" : "Encontre um médico em segundos"}
           </h3>
           <p className="text-xs md:text-sm text-muted-foreground mt-1">
-            Mais de 100 especialistas verificados pelo CFM. Atendimento em até 15 min.
+            Médicos verificados pelo CFM.
           </p>
         </div>
       </div>
