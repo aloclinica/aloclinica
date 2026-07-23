@@ -78,7 +78,7 @@ const AdminLogs = () => {
     // Busca full-text simples em action OR entity_type OR entity_id
     if (debouncedSearch.trim()) {
       const term = debouncedSearch.trim();
-      q = q.or(`action.ilike.%${term}%,entity_type.ilike.%${term}%,entity_id.ilike.%${term}%`);
+      q = q.or(`action.ilike.%${term}%,entity_type.ilike.%${term}%`);
     }
 
     // Paginação server-side
@@ -121,7 +121,7 @@ const AdminLogs = () => {
     if (filterAction !== "all") q = q.ilike("action", `%${filterAction}%`);
     if (debouncedSearch.trim()) {
       const term = debouncedSearch.trim();
-      q = q.or(`action.ilike.%${term}%,entity_type.ilike.%${term}%,entity_id.ilike.%${term}%`);
+      q = q.or(`action.ilike.%${term}%,entity_type.ilike.%${term}%`);
     }
     const { data } = await q;
     if (!data || data.length === 0) {
@@ -136,7 +136,7 @@ const AdminLogs = () => {
         tipo: l.entity_type,
         entity_id: l.entity_id ?? "",
         user_id: l.user_id ?? "",
-        detalhes: l.details ? JSON.stringify(l.details) : "",
+        detalhes: l.metadata ? JSON.stringify(l.metadata) : "",
       })),
       [
         { key: "data", label: "Data" },
@@ -248,7 +248,7 @@ const AdminLogs = () => {
                       {l.entity_id ? l.entity_id.slice(0, 12) + "…" : "—"}
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-xs text-muted-foreground max-w-xs truncate">
-                      {l.details ? JSON.stringify(l.details).slice(0, 80) : "—"}
+                      {l.metadata ? JSON.stringify(l.metadata).slice(0, 80) : "—"}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setDetail(l)} aria-label="Ver detalhes">
@@ -300,7 +300,7 @@ const AdminLogs = () => {
                 <div>
                   <span className="text-muted-foreground text-xs">Payload:</span>
                   <pre className="mt-1 p-3 rounded bg-muted text-[11px] overflow-x-auto font-mono">
-                    {detail.details ? JSON.stringify(detail.details, null, 2) : "(vazio)"}
+                    {detail.metadata ? JSON.stringify(detail.metadata, null, 2) : "(vazio)"}
                   </pre>
                 </div>
               </div>

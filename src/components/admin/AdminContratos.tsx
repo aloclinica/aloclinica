@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { db } from "@/integrations/supabase/untyped";
 import DashboardLayout from "@/components/dashboards/DashboardLayout";
 import { getAdminNav } from "./adminNav";
+import { maskCPF } from "@/lib/maskPII";
 import { AdminPageHeader } from "./AdminPageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,7 @@ const AdminContratos = () => {
   const nav = getAdminNav("contratos");
   const confirm = useConfirm();
   const [contratos, setContratos] = useState<Contrato[]>([]);
+  const [totalVidas, setTotalVidas] = useState(0);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -84,6 +86,9 @@ const AdminContratos = () => {
     setLoading(true);
     const { data } = await db.from("contratos").select("*").order("created_at", { ascending: false });
     setContratos((data ?? []) as Contrato[]);
+    // Total de vidas = contagem REAL de beneficiários (antes era um número fixo, 4520).
+    const { count } = await db.from("contrato_beneficiarios").select("id", { count: "exact", head: true });
+    setTotalVidas(count ?? 0);
     setLoading(false);
   };
 
@@ -112,10 +117,12 @@ const AdminContratos = () => {
   const totalAtivos = contratos.filter((c) => c.status === "ativo").length;
   const totalConsumido = contratos.reduce((s, c) => s + (c.cota_utilizada || 0), 0);
   const totalContratado = contratos.reduce((s, c) => s + (c.cota_total || 0), 0);
-  const totalVidas = 4520; // Simulated total beneficiaries
+  // totalVidas agora vem da contagem real de contrato_beneficiarios (state acima).
 
+  // Receita mensal recorrente: só contratos MENSAIS ativos. Pré-pago não é receita
+  // recorrente mensal (a cota_total é do contrato inteiro) — somar todos superestimava.
   const valorPrevistoMes = contratos
-    .filter((c) => c.status === "ativo" && c.valor_consulta)
+    .filter((c) => c.status === "ativo" && c.valor_consulta && c.modelo_cobranca === "mensal")
     .reduce((s, c) => s + Number(c.valor_consulta) * (c.cota_total || 0), 0);
   const vencendo30d = contratos.filter((c) => {
     if (!c.vigencia_fim) return false;
@@ -315,7 +322,7 @@ const AdminContratos = () => {
 
         <TabsContent value="overview">
           <div className="text-sm text-muted-foreground mb-2">
-            Valor previsto (cota × valor/consulta dos ativos): <strong className="text-foreground">R$ {valorPrevistoMes.toFixed(2).replace(".", ",")}</strong>
+            Receita mensal recorrente (contratos mensais ativos): <strong className="text-foreground">R$ {valorPrevistoMes.toFixed(2).replace(".", ",")}</strong>
           </div>
           <Tabela lista={filtrar(contratos)} mostrarProcesso vazio="Nenhum contrato cadastrado ainda." />
         </TabsContent>
@@ -477,7 +484,7 @@ function BeneficiariosDialog({ open, onOpenChange, contrato }: { open: boolean; 
               <TableBody>
                 {list.map((b) => (
                   <TableRow key={b.id}>
-                    <TableCell>{b.email}</TableCell><TableCell>{b.cpf}</TableCell><TableCell>{b.nome}</TableCell>
+                    <TableCell>{b.email}</TableCell><TableCell>{maskCPF(b.cpf)}</TableCell><TableCell>{b.nome}</TableCell>
                     <TableCell><Button size="sm" variant="ghost" onClick={() => remover(b.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
                   </TableRow>
                 ))}

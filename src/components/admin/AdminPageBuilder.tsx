@@ -22,7 +22,8 @@ export default function AdminPageBuilder() {
   const save = () => {
     try {
       JSON.parse(pageConfig);
-      toast.success("Configuração salva com sucesso!");
+      // NB: esta tela ainda não persiste no site — não fingir "salvo com sucesso".
+      toast.info("JSON válido. Atenção: este editor ainda não publica no site — use o Studio para páginas reais.");
     } catch (e) {
       toast.error("JSON inválido");
     }
@@ -43,6 +44,10 @@ export default function AdminPageBuilder() {
             </Button>
           }
         />
+
+        <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
+          🚧 <strong>Em desenvolvimento.</strong> Esta tela ainda não salva no site. Para criar e publicar páginas de verdade (com rascunho e publicação), use o <strong>Studio</strong>.
+        </div>
 
         <div className="grid md:grid-cols-2 gap-6">
           <Card className="h-[600px] flex flex-col">

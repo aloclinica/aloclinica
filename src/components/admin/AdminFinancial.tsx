@@ -97,6 +97,7 @@ const CHART_COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--wa
 const AdminFinancial = () => {
   const [appointments, setAppointments] = useState<AppointmentPayment[]>([]);
   const [commissionData, setCommissionData] = useState<{ doctor_name: string; count: number; revenue: number; commission: number }[]>([]);
+  const [docSpecialtyMap, setDocSpecialtyMap] = useState<Map<string, string>>(new Map());
   const [monthlyTrend, setMonthlyTrend] = useState<{ month: string; revenue: number; count: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
@@ -143,9 +144,16 @@ const AdminFinancial = () => {
     const doctorIds = [...new Set(appts.map(a => a.doctor_id))];
     const { data: docProfiles } = await db
       .from("doctor_profiles")
-      .select("id, user_id, consultation_price")
+      .select("id, user_id, consultation_price, specialty_id")
       .in("id", doctorIds);
     const docPriceMap = new Map(docProfiles?.map(d => [d.id, Number(d.consultation_price) || 89]) ?? []);
+    // Mapa medico -> especialidade (real), para o grafico de "Receita por Especialidade".
+    const specIds = [...new Set((docProfiles ?? []).map((d: any) => d.specialty_id).filter(Boolean))];
+    const { data: specs } = specIds.length
+      ? await db.from("specialties").select("id, name").in("id", specIds as string[])
+      : { data: [] as { id: string; name: string }[] };
+    const specNameMap = new Map((specs ?? []).map((s: any) => [s.id, s.name]));
+    setDocSpecialtyMap(new Map((docProfiles ?? []).map((d: any) => [d.id, specNameMap.get(d.specialty_id) ?? "Sem especialidade"])));
 
     const userIds = [...new Set([
       ...(docProfiles?.map(d => d.user_id) ?? []),
@@ -197,7 +205,8 @@ const AdminFinancial = () => {
     });
     setCommissionData(
       Array.from(doctorRevenue.values())
-        .map(d => ({ doctor_name: d.name, count: d.count, revenue: d.revenue, commission: d.revenue * 0.5 }))
+        // Taxa da plataforma = 20% (regra real do fn_create_payout_on_completion: fee = pago * 0.20).
+        .map(d => ({ doctor_name: d.name, count: d.count, revenue: d.revenue, commission: d.revenue * 0.20 }))
         .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 10)
     );
@@ -333,22 +342,17 @@ const AdminFinancial = () => {
   const avgDailyRevenue = confirmedPayments > 0 ? totalRevenue / confirmedPayments : 0;
 
 
-  // Specialties revenue
+  // Receita por especialidade (REAL): agrega o preço pago por especialidade do médico.
   const specialtyRevenueData = useMemo(() => {
     const map = new Map<string, number>();
     appointments.filter(a => a.payment_status === "approved" || a.payment_status === "confirmed").forEach(a => {
-      const price = a.consultation_price ?? 89;
-      // We don't have specialty directly in appointment here, so we'd need to fetch it
-      // For now, let's simulate it based on doctor_id or just use top 5
+      const spec = docSpecialtyMap.get(a.doctor_id) ?? "Sem especialidade";
+      map.set(spec, (map.get(spec) ?? 0) + (a.consultation_price ?? 0));
     });
-    return [
-      { name: "Clínico Geral", value: totalRevenue * 0.4 },
-      { name: "Cardiologia", value: totalRevenue * 0.2 },
-      { name: "Dermatologia", value: totalRevenue * 0.15 },
-      { name: "Pediatria", value: totalRevenue * 0.15 },
-      { name: "Outros", value: totalRevenue * 0.1 },
-    ];
-  }, [appointments, totalRevenue]);
+    return Array.from(map.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [appointments, docSpecialtyMap]);
 
   // Daily revenue (last 7 days)
   const last7days = Array.from({ length: 7 }, (_, i) => {
@@ -359,14 +363,14 @@ const AdminFinancial = () => {
 
   const dailyData = last7days.map(day => {
     const dayStr = format(day, "yyyy-MM-dd");
-    const count = appointments.filter(a =>
+    const dayAppts = appointments.filter(a =>
       a.created_at.startsWith(dayStr) &&
       (a.payment_status === "approved" || a.payment_status === "confirmed")
-    ).length;
+    );
     return {
       day: format(day, "dd/MM", { locale: ptBR }),
-      receita: count * 89.9,
-      consultas: count,
+      receita: dayAppts.reduce((sum, a) => sum + (a.consultation_price ?? 0), 0),
+      consultas: dayAppts.length,
     };
   });
 
@@ -474,7 +478,7 @@ const AdminFinancial = () => {
             <CardContent className="pt-4 pb-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                 <DollarSign className="w-4 h-4 text-emerald-500" />
-                Receita Estimada (30d)
+                Receita Estimada ({period}d)
               </div>
               <div className="text-2xl font-black">R$ {totalRevenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
               <p className="text-xs text-emerald-600 flex items-center gap-1 mt-1">
@@ -634,7 +638,7 @@ const AdminFinancial = () => {
           <Card variant="elevated">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-primary" /> Comissões por Médico (Top 10)
+                <CreditCard className="w-4 h-4 text-primary" /> Comissão da Plataforma — 20% (Top 10)
               </CardTitle>
             </CardHeader>
             <CardContent>
