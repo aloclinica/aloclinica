@@ -81,3 +81,7 @@ verify_jwt = false
 
 [functions.post-consultation-survey]
 verify_jwt = false
+
+# Avisos proativos ao paciente (retorno grátis fechando, receita vencendo) — cron diário.
+[functions.patient-nudges]
+verify_jwt = false
