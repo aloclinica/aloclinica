@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
-import { Users, Calendar, BarChart3, Settings, Plus, Check, X, Search, Mail, MessageCircle, Percent } from "lucide-react";
+import { Users, Plus, Check, X, Search, Mail, MessageCircle, Percent } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,13 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
-const nav = [
-  { label: "Início", href: "/dashboard", icon: <BarChart3 className="w-4 h-4" />, active: true },
-  { label: "Médicos", href: "/dashboard/clinic/doctors", icon: <Users className="w-4 h-4" /> },
-  { label: "Consultas", href: "/dashboard/appointments", icon: <Calendar className="w-4 h-4" /> },
-  { label: "Configurações", href: "/dashboard/settings", icon: <Settings className="w-4 h-4" /> },
-];
+import { getClinicNav } from "./clinicNav";
 
 interface ClinicDoctor {
   affiliation_id: string;
@@ -220,7 +214,7 @@ const ClinicDoctorsManagement = () => {
   };
 
   return (
-    <DashboardLayout title="Clínica" nav={nav.map(n => ({ ...n, active: n.href === "/dashboard/clinic/doctors" }))}>
+    <DashboardLayout title="Clínica" nav={getClinicNav("doctors")} role="clinic">
       <div className="w-full mx-auto max-w-3xl pb-24 md:pb-6">
         <div className="flex items-center justify-between mb-6">
           <div>

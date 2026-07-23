@@ -84,6 +84,8 @@ const ClinicDoctorsManagement = lazy(() => import("@/components/clinic/ClinicDoc
 const ClinicSchedules = lazy(() => import("@/components/clinic/ClinicSchedules"));
 const ClinicPatients = lazy(() => import("@/components/clinic/ClinicPatients"));
 const ClinicWaitingRoom = lazy(() => import("@/components/clinic/ClinicWaitingRoom"));
+const ClinicFinance = lazy(() => import("@/components/clinic/ClinicFinance"));
+const ClinicReports = lazy(() => import("@/components/clinic/ClinicReports"));
 const AdminDoctors = lazy(() => import("@/components/admin/AdminDoctors"));
 const AdminPatients = lazy(() => import("@/components/admin/AdminPatients"));
 const AdminClinics = lazy(() => import("@/components/admin/AdminClinics"));
@@ -350,8 +352,8 @@ const Dashboard = () => {
       <Route path="clinic/patients" element={<RoleGuard allowed={["clinic"]} roles={roles}><ContextGuard panel="clinic" forceRole={forceRole} roles={roles}><ClinicPatients /></ContextGuard></RoleGuard>} />
       <Route path="clinic/waiting-room" element={<RoleGuard allowed={["clinic"]} roles={roles}><ContextGuard panel="clinic" forceRole={forceRole} roles={roles}><ClinicWaitingRoom /></ContextGuard></RoleGuard>} />
       <Route path="clinic/financial" element={<Navigate to={`/dashboard/clinic/finance${forceRole ? `?role=${forceRole}` : ""}`} replace />} />
-      <Route path="clinic/finance" element={<RoleGuard allowed={["clinic"]} roles={roles}><ContextGuard panel="clinic" forceRole={forceRole} roles={roles}><AdminFinancial /></ContextGuard></RoleGuard>} />
-      <Route path="clinic/reports" element={<RoleGuard allowed={["clinic"]} roles={roles}><ContextGuard panel="clinic" forceRole={forceRole} roles={roles}><AdminReports /></ContextGuard></RoleGuard>} />
+      <Route path="clinic/finance" element={<RoleGuard allowed={["clinic"]} roles={roles}><ContextGuard panel="clinic" forceRole={forceRole} roles={roles}><ClinicFinance /></ContextGuard></RoleGuard>} />
+      <Route path="clinic/reports" element={<RoleGuard allowed={["clinic"]} roles={roles}><ContextGuard panel="clinic" forceRole={forceRole} roles={roles}><ClinicReports /></ContextGuard></RoleGuard>} />
       <Route path="clinic/my-exams" element={<RoleGuard allowed={["clinic"]} roles={roles}><ContextGuard panel="clinic" forceRole={forceRole} roles={roles}><ClinicDashboard /></ContextGuard></RoleGuard>} />
       <Route path="clinic/exam-request" element={<RoleGuard allowed={["clinic"]} roles={roles}><ContextGuard panel="clinic" forceRole={forceRole} roles={roles}><ClinicDashboard /></ContextGuard></RoleGuard>} />
 

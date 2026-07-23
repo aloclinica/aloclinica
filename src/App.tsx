@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ContratoProvider } from "@/contexts/ContratoContext";
 import MaintenanceBanner from "@/components/MaintenanceBanner";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
 import ThemeApplier from "@/components/ThemeApplier";
 import { ThemeProvider } from "next-themes";
 import { I18nProvider } from "@/i18n";
@@ -329,6 +330,7 @@ const App = () => {
                     <KeyboardShortcutsProvider />
                     <SubdomainRedirectProvider />
                     <MaintenanceBanner />
+                    <AnnouncementBanner />
                     <ThemeApplier />
                   </Suspense>
                   <ScrollToTop />

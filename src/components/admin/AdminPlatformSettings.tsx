@@ -22,22 +22,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
-  Settings, Save, RefreshCw, AlertTriangle, Globe, FileText,
+  Settings, Save, RefreshCw, AlertTriangle, Globe, FileText, Megaphone,
 } from "lucide-react";
 import { warn } from "@/lib/logger";
 
 const adminNav = getAdminNav("platform-settings");
 
 type Maint = { enabled: boolean; message: string; expected_back_at: string | null; allow_admin: boolean };
+type Announcement = { active: boolean; message: string };
 type Seo = { site_name: string; default_title: string; default_description: string; twitter_handle: string };
 type Robots = { content: string };
 
 const defaultMaint: Maint = { enabled: false, message: "", expected_back_at: null, allow_admin: true };
+const defaultAnnouncement: Announcement = { active: false, message: "" };
 const defaultSeo: Seo = { site_name: "AloClínica", default_title: "", default_description: "", twitter_handle: "" };
 const defaultRobots: Robots = { content: "User-agent: *\nAllow: /\nSitemap: https://aloclinica.com.br/sitemap.xml\n" };
 
 const AdminPlatformSettings = () => {
   const [maint, setMaint] = useState<Maint>(defaultMaint);
+  const [announcement, setAnnouncement] = useState<Announcement>(defaultAnnouncement);
   const [seo, setSeo] = useState<Seo>(defaultSeo);
   const [robots, setRobots] = useState<Robots>(defaultRobots);
   const [loading, setLoading] = useState(true);
@@ -48,7 +51,7 @@ const AdminPlatformSettings = () => {
     const { data, error } = await db
       .from("app_settings")
       .select("key, value")
-      .in("key", ["maintenance_mode", "seo", "robots_txt"]);
+      .in("key", ["maintenance_mode", "global_announcement", "seo", "robots_txt"]);
     if (error) {
       toast.error("Erro carregando configurações", { description: error.message });
       setLoading(false);
@@ -56,6 +59,7 @@ const AdminPlatformSettings = () => {
     }
     const map = Object.fromEntries((data ?? []).map((r: any) => [r.key, r.value]));
     setMaint({ ...defaultMaint, ...(map.maintenance_mode ?? {}) });
+    setAnnouncement({ ...defaultAnnouncement, ...(map.global_announcement ?? {}) });
     setSeo({ ...defaultSeo, ...(map.seo ?? {}) });
     setRobots({ ...defaultRobots, ...(map.robots_txt ?? {}) });
     setLoading(false);
@@ -97,6 +101,10 @@ const AdminPlatformSettings = () => {
             <TabsTrigger value="maintenance" className="gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5" /> Manutenção
               {maint.enabled && <span className="text-[10px] font-bold bg-amber-500 text-white px-1.5 py-0.5 rounded-full">ON</span>}
+            </TabsTrigger>
+            <TabsTrigger value="announcement" className="gap-1.5">
+              <Megaphone className="w-3.5 h-3.5" /> Anúncio
+              {announcement.active && <span className="text-[10px] font-bold bg-sky-500 text-white px-1.5 py-0.5 rounded-full">ON</span>}
             </TabsTrigger>
             <TabsTrigger value="seo" className="gap-1.5">
               <Globe className="w-3.5 h-3.5" /> SEO
@@ -158,6 +166,51 @@ const AdminPlatformSettings = () => {
                   <Button onClick={() => saveKey("maintenance_mode", maint)} disabled={saving === "maintenance_mode"} className="gap-2">
                     {saving === "maintenance_mode" ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                     Salvar manutenção
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="announcement" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Anúncio global</CardTitle>
+                <CardDescription>
+                  Quando ativado, todos os usuários veem um banner azul dispensável no topo do site.
+                  Ideal para avisos gerais (novidades, campanhas, mudanças). Diferente do modo
+                  manutenção, não sugere indisponibilidade do sistema.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div>
+                    <Label className="text-base">Ativar anúncio</Label>
+                    <p className="text-xs text-muted-foreground">Mostra banner global pra todos.</p>
+                  </div>
+                  <Switch
+                    checked={announcement.active}
+                    onCheckedChange={(v) => setAnnouncement({ ...announcement, active: v })}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Mensagem</Label>
+                  <Textarea
+                    value={announcement.message}
+                    onChange={(e) => setAnnouncement({ ...announcement, message: e.target.value })}
+                    placeholder="Ex: Novidade! Agora você pode agendar consultas de retorno com 1 clique."
+                    rows={3}
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    O banner só aparece se estiver ativado e com mensagem preenchida.
+                  </p>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button onClick={() => saveKey("global_announcement", announcement)} disabled={saving === "global_announcement"} className="gap-2">
+                    {saving === "global_announcement" ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    Salvar anúncio
                   </Button>
                 </div>
               </CardContent>

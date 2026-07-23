@@ -307,8 +307,8 @@ const AdminDashboard = () => {
 
         {/* ── Bento Stats ── */}
         <StatBento loading={loading} stats={[
-          { label: "Receita mensal", value: `R$${(stats.total_revenue / 1000).toFixed(1)}k`, icon: "💰", iconBg: "bg-emerald-50 dark:bg-emerald-950/30", valueClass: "text-emerald-700 dark:text-emerald-400", trend: 18 , accentClass: "bg-emerald-500" },
-          { label: "Consultas/mês", value: stats.monthly_appts, icon: "📅", iconBg: "bg-blue-50 dark:bg-blue-950/30", valueClass: "text-[#1255C8] dark:text-blue-400", trend: 24 , accentClass: "bg-blue-500" },
+          { label: "Receita mensal", value: `R$${(stats.total_revenue / 1000).toFixed(1)}k`, icon: "💰", iconBg: "bg-emerald-50 dark:bg-emerald-950/30", valueClass: "text-emerald-700 dark:text-emerald-400", accentClass: "bg-emerald-500" },
+          { label: "Consultas/mês", value: stats.monthly_appts, icon: "📅", iconBg: "bg-blue-50 dark:bg-blue-950/30", valueClass: "text-[#1255C8] dark:text-blue-400", accentClass: "bg-blue-500" },
           { label: "Avaliação média", value: stats.avg_rating > 0 ? stats.avg_rating.toFixed(1) : "—", icon: "⭐", iconBg: "bg-amber-50 dark:bg-amber-950/30", valueClass: "text-amber-600 dark:text-amber-400" },
         ]} />
 
@@ -348,19 +348,22 @@ const AdminDashboard = () => {
             <Button size="sm" variant="outline" className="h-9 rounded-xl gap-1.5 bg-background text-xs" onClick={exportAdminPDF} disabled={loading}>
               <FileText className="w-3.5 h-3.5" /> PDF
             </Button>
-            <Button size="sm" variant="outline" className="h-9 rounded-xl gap-1.5 bg-background text-xs" onClick={async () => {
-              toast.loading("Criando usuários de teste...");
-              try {
-                const { data, error } = await db.functions.invoke("seed-test-users");
-                toast.dismiss();
-                if (error) { toast.error("Erro: " + error.message); return; }
-                const created = data?.users?.filter((u: any) => u.status === "created").length ?? 0;
-                const existing = data?.users?.filter((u: any) => u.status === "already_exists").length ?? 0;
-                toast.success(`${created} criados, ${existing} já existiam`);
-              } catch (e: unknown) { toast.dismiss(); toast.error(e instanceof Error ? e.message : "Erro"); }
-            }}>
-              <UserPlus className="w-3.5 h-3.5" /> Seed
-            </Button>
+            {/* Dev-only: nunca renderiza em build de produção */}
+            {import.meta.env.DEV && (
+              <Button size="sm" variant="outline" className="h-9 rounded-xl gap-1.5 bg-background text-xs" onClick={async () => {
+                toast.loading("Criando usuários de teste...");
+                try {
+                  const { data, error } = await db.functions.invoke("seed-test-users");
+                  toast.dismiss();
+                  if (error) { toast.error("Erro: " + error.message); return; }
+                  const created = data?.users?.filter((u: any) => u.status === "created").length ?? 0;
+                  const existing = data?.users?.filter((u: any) => u.status === "already_exists").length ?? 0;
+                  toast.success(`${created} criados, ${existing} já existiam`);
+                } catch (e: unknown) { toast.dismiss(); toast.error(e instanceof Error ? e.message : "Erro"); }
+              }}>
+                <UserPlus className="w-3.5 h-3.5" /> Seed
+              </Button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="sm" className="h-9 rounded-xl gap-1.5 bg-gradient-to-r from-foreground to-foreground/80 text-background hover:opacity-90 text-xs font-semibold">
