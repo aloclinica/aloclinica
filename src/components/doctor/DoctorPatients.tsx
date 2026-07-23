@@ -14,8 +14,10 @@ import { getDoctorNav } from "./doctorNav";
 import {
   ArrowRight,
   CalendarDays,
+  CalendarPlus,
   FileText,
   HeartPulse,
+  MessageCircle,
   Search,
   ShieldCheck,
   UserRoundCheck,
@@ -51,12 +53,16 @@ function PatientCard({
   active,
   onOpen,
   onFocus,
+  onSchedule,
+  onMessage,
 }: {
   patient: Patient;
   index: number;
   active: boolean;
   onOpen: () => void;
   onFocus: () => void;
+  onSchedule: () => void;
+  onMessage: () => void;
 }) {
   const lastDate = patientLastDate(patient);
   const recent = lastDate ? isAfter(lastDate, subDays(new Date(), 45)) : false;
@@ -102,15 +108,37 @@ function PatientCard({
             </Badge>
           </div>
 
-          <div className="mt-4 flex items-center justify-between gap-3">
+          <div className="mt-4 flex items-center justify-between gap-2">
             <div className="min-w-0">
               <p className="text-lg font-black leading-none text-foreground">{patient.total_appointments}</p>
               <p className="mt-1 text-[10px] font-black uppercase tracking-[0.12em] text-muted-foreground">consultas</p>
             </div>
-            <Button size="sm" onClick={onOpen} className="h-10 rounded-2xl px-3 text-xs font-black">
-              Prontuario
-              <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={onSchedule}
+                aria-label="Agendar retorno"
+                title="Agendar retorno"
+                className="h-10 w-10 rounded-2xl"
+              >
+                <CalendarPlus className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={onMessage}
+                aria-label="Mensagem"
+                title="Mensagem"
+                className="h-10 w-10 rounded-2xl"
+              >
+                <MessageCircle className="h-4 w-4" />
+              </Button>
+              <Button size="sm" onClick={onOpen} className="h-10 rounded-2xl px-3 text-xs font-black">
+                Prontuario
+                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -207,6 +235,10 @@ const DoctorPatients = () => {
     .sort((a, b) => b!.getTime() - a!.getTime())[0];
 
   const openPatient = (patient: Patient) => navigate(`/dashboard/patients/${patient.user_id}/emr?role=doctor`);
+  // Agendar retorno: leva o médico à agenda; passa o paciente como contexto (?patient=)
+  const scheduleReturn = (patient: Patient) => navigate(`/dashboard/doctor/calendar?role=doctor&patient=${patient.user_id}`);
+  // Mensagem: abre o chat do médico (inbox) — mesmo padrão usado no restante do app
+  const messagePatient = (_patient: Patient) => navigate(`/dashboard/chat?role=doctor`);
 
   const stats = [
     { label: "Pacientes", value: patients.length, icon: Users },
@@ -343,6 +375,8 @@ const DoctorPatients = () => {
                       active={focusedPatient?.user_id === patient.user_id}
                       onFocus={() => setFocusedId(patient.user_id)}
                       onOpen={() => openPatient(patient)}
+                      onSchedule={() => scheduleReturn(patient)}
+                      onMessage={() => messagePatient(patient)}
                     />
                   ))}
                 </AnimatePresence>
@@ -388,6 +422,16 @@ const DoctorPatients = () => {
                     Abrir prontuario
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <Button variant="outline" className="h-11 rounded-2xl text-xs font-bold" onClick={() => scheduleReturn(focusedPatient)}>
+                      <CalendarPlus className="mr-1.5 h-4 w-4" />
+                      Retorno
+                    </Button>
+                    <Button variant="outline" className="h-11 rounded-2xl text-xs font-bold" onClick={() => messagePatient(focusedPatient)}>
+                      <MessageCircle className="mr-1.5 h-4 w-4" />
+                      Mensagem
+                    </Button>
+                  </div>
                 </>
               ) : (
                 <p className="mt-4 text-sm leading-6 text-muted-foreground">

@@ -27,6 +27,7 @@ import FaqChatWidget from "@/components/support/FaqChatWidget";
 import useNotificationTitle from "@/hooks/use-notification-title";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useSessionSecurity } from "@/hooks/use-session-security";
+import { useDoctorAlerts } from "@/hooks/useDoctorAlerts";
 
 interface NavItem {
   label: string; href: string; icon: ReactNode;
@@ -214,6 +215,11 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
 
   // Detectar role: se passado via props, use; se admin, use "admin"; senão detecte pela query string ou padrão
   const role = propsRole || (isAdmin ? "admin" : forceRole || "patient");
+
+  // App-wide "patient arrived / new booking" alerts — runs on every doctor
+  // screen (this shell wraps all of them), only when acting as a doctor.
+  const { pendingCount } = useDoctorAlerts(role === "doctor");
+
   const grad = ROLE_GRADIENT[role] ?? ROLE_GRADIENT.patient;
   const service = SERVICE_MAP[role] || SERVICE_MAP.patient;
   const roleLabel = ROLE_LABELS[role] ?? title;
@@ -228,11 +234,20 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
   const fullName = profile ? `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() : "Usuário";
   const handleSignOut = async () => { await signOut(); navigate("/"); };
 
+  // Inject the live pending-arrivals badge onto the doctor's waiting-room item.
+  const effectiveNav = useMemo(() => {
+    if (!nav) return nav;
+    if (role !== "doctor" || pendingCount <= 0) return nav;
+    return nav.map(item =>
+      item.href.includes("waiting-room") ? { ...item, badge: pendingCount } : item,
+    );
+  }, [nav, role, pendingCount]);
+
   const navGroups = useMemo(() => {
-    if (!nav) return [];
+    if (!effectiveNav) return [];
     const groups: { label: string; items: NavItem[] }[] = [];
     let cur: { label: string; items: NavItem[] } = { label: "", items: [] };
-    nav.forEach(item => {
+    effectiveNav.forEach(item => {
       if (item.group && item.group !== cur.label) {
         if (cur.items.length) groups.push(cur);
         cur = { label: item.group, items: [item] };
@@ -240,7 +255,7 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
     });
     if (cur.items.length) groups.push(cur);
     return groups;
-  }, [nav]);
+  }, [effectiveNav]);
 
    // Mobile-Specific Bottom Nav Resolution
    const bottomNav = useMemo(() => {
@@ -267,7 +282,8 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
           label: "Sala",
           href: "/dashboard/doctor/waiting-room?role=doctor",
           icon: <Timer size={22} weight={currentPath.includes("waiting-room") ? "fill" : "regular"} />,
-          active: currentPath.includes("waiting-room")
+          active: currentPath.includes("waiting-room"),
+          badge: pendingCount > 0 ? pendingCount : undefined,
         },
         {
           label: "Pacientes",
@@ -327,7 +343,7 @@ const DashboardLayout = ({ children, title, nav, role: propsRole }: DashboardLay
      });
  
      return items;
-   }, [role, location.pathname, forceRole]);
+   }, [role, location.pathname, forceRole, pendingCount]);
 
   // CSS-only entrance — no GSAP import needed, saves ~30KB dynamic load
   useEffect(() => {

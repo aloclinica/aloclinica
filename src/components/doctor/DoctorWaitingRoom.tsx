@@ -164,6 +164,15 @@ const DoctorWaitingRoom = () => {
     return { level: "info" as const, triage };
   };
 
+  // Marca falta (no-show). Em consulta paga, a função de payout no banco gera o
+  // repasse de 50% do médico automaticamente (paciente pagou e não compareceu).
+  const markNoShow = async (id: string, name: string) => {
+    const { error } = await db.from("appointments").update({ status: "no_show" }).eq("id", id).eq("status", "scheduled");
+    if (error) { toast.error("Não foi possível marcar a falta."); return; }
+    setWaitingPatients(prev => prev.filter(p => p.id !== id));
+    toast.success(`Falta registrada — ${name}`, { description: "Se a consulta foi paga, seu repasse de 50% é gerado automaticamente." });
+  };
+
   const waitingCount = waitingPatients.filter(p => p.status === "waiting").length;
   const inProgressCount = waitingPatients.filter(p => p.status === "in_progress").length;
   const criticalCount = waitingPatients.filter(p => getTriageAlert(p.id)?.level === "critical").length;
@@ -348,6 +357,16 @@ const DoctorWaitingRoom = () => {
                         </span>
                       </div>
                       {renderTriageBadge(p.id)}
+                      <div className="mt-2 flex justify-end">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 text-xs text-muted-foreground hover:text-destructive"
+                          onClick={() => markNoShow(p.id, p.patient_name)}
+                        >
+                          Marcar falta
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 );

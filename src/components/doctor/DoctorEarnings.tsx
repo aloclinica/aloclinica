@@ -29,6 +29,7 @@ const DoctorEarnings = () => {
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [withdrawalsHasMore, setWithdrawalsHasMore] = useState(false);
   const [loadingMoreW, setLoadingMoreW] = useState(false);
+  const [payouts, setPayouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [pixKey, setPixKey] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
@@ -178,6 +179,48 @@ const DoctorEarnings = () => {
       });
     }
     setMonthlyData(chartData);
+
+    // Extrato de consultas: itemized payout ledger — real rows only (issue #F1)
+    const { data: payoutRows } = await db
+      .from("doctor_payouts")
+      .select("id, appointment_id, gross_amount, net_amount, status, created_at, release_at, paid_at")
+      .eq("doctor_id", docProfile.id)
+      .order("created_at", { ascending: false })
+      .limit(30);
+
+    const payoutList = payoutRows ?? [];
+    // Resolve patient names via appointment_id → patient_id → profile (graceful fallback)
+    const payoutApptIds = [...new Set(payoutList.map((p: any) => p.appointment_id).filter(Boolean))];
+    const nameByAppt = new Map<string, string>();
+    if (payoutApptIds.length > 0) {
+      const { data: apptRows } = await db
+        .from("appointments")
+        .select("id, patient_id")
+        .in("id", payoutApptIds as string[]);
+      const patientByAppt = new Map<string, string>();
+      (apptRows ?? []).forEach((a: any) => { if (a.patient_id) patientByAppt.set(a.id, a.patient_id); });
+      const patientIds = [...new Set([...patientByAppt.values()])];
+      if (patientIds.length > 0) {
+        const { data: profs } = await db
+          .from("profiles")
+          .select("user_id, first_name, last_name")
+          .in("user_id", patientIds);
+        const nameByPatient = new Map<string, string>();
+        (profs ?? []).forEach((pr: any) => {
+          const nm = `${pr.first_name ?? ""} ${pr.last_name ?? ""}`.trim();
+          if (nm) nameByPatient.set(pr.user_id, nm);
+        });
+        patientByAppt.forEach((pid, aid) => {
+          const nm = nameByPatient.get(pid);
+          if (nm) nameByAppt.set(aid, nm);
+        });
+      }
+    }
+    setPayouts(payoutList.map((p: any) => ({
+      ...p,
+      patientName: (p.appointment_id && nameByAppt.get(p.appointment_id)) || "Paciente",
+    })));
+
     setLoading(false);
   };
 
@@ -217,6 +260,14 @@ const DoctorEarnings = () => {
     if (status === "approved") return <Badge className="bg-secondary/10 text-secondary border-secondary/20 text-xs gap-1"><CheckCircle2 className="w-3 h-3" />Aprovado</Badge>;
     if (status === "rejected") return <Badge variant="destructive" className="text-xs gap-1"><XCircle className="w-3 h-3" />Rejeitado</Badge>;
     return <Badge variant="outline" className="text-xs gap-1"><Clock className="w-3 h-3" />Pendente</Badge>;
+  };
+
+  const payoutStatusBadge = (status: string) => {
+    const s = String(status ?? "").toLowerCase();
+    if (s === "paid") return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs gap-1"><CheckCircle2 className="w-3 h-3" />Pago</Badge>;
+    if (s === "ready") return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-xs gap-1"><Wallet className="w-3 h-3" />Liberado</Badge>;
+    if (s === "pending") return <Badge variant="outline" className="text-xs gap-1 border-amber-300 text-amber-600"><Clock className="w-3 h-3" />Aguardando</Badge>;
+    return <Badge variant="outline" className="text-xs gap-1"><Clock className="w-3 h-3" />{status}</Badge>;
   };
 
   return (
@@ -434,6 +485,40 @@ const DoctorEarnings = () => {
                   <Bar dataKey="valor" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Extrato de consultas: line-item por consulta com repasse (issue #F1) */}
+        <Card className="border-border mb-8">
+          <CardHeader><CardTitle className="text-lg flex items-center gap-2"><History className="w-5 h-5" /> Extrato de consultas</CardTitle></CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-2">{[0, 1, 2].map(i => <div key={i} className="shimmer-v2 h-16 rounded-2xl" />)}</div>
+            ) : payouts.length === 0 ? (
+              <div className="py-10 text-center">
+                <History className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
+                <p className="text-sm font-medium text-foreground">Nenhuma consulta com repasse ainda.</p>
+                <p className="text-xs text-muted-foreground">Cada consulta concluída com pagamento aparece aqui com o seu repasse.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {payouts.map(p => (
+                  <div key={p.id} className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border hover:bg-muted/30 transition-colors">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{p.patientName}</p>
+                      <p className="text-xs text-muted-foreground">{format(new Date(p.created_at), "dd/MM/yyyy", { locale: ptBR })}</p>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="text-right">
+                        <p className="text-sm font-black leading-none text-emerald-600">R$ {Number(p.net_amount).toFixed(2)}</p>
+                        <p className="mt-1 text-[10px] text-muted-foreground">Bruto R$ {Number(p.gross_amount).toFixed(2)} · seu repasse 50%</p>
+                      </div>
+                      {payoutStatusBadge(p.status)}
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>

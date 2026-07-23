@@ -198,9 +198,11 @@ const DoctorDashboard = () => {
 
   const loadOnlineStatus = async () => {
     try {
+      // Canonical online flag: `available_now` — the column read by the
+      // patient-facing "médicos disponíveis agora" list and by DoctorAvailability.
       const { data: doctor, error } = await db
         .from("doctor_profiles")
-        .select("available_for_on_demand")
+        .select("available_now")
         .eq("user_id", user!.id)
         .maybeSingle();
 
@@ -209,7 +211,7 @@ const DoctorDashboard = () => {
         return;
       }
 
-      setIsOnline((doctor as any)?.available_for_on_demand ?? false);
+      setIsOnline((doctor as any)?.available_now ?? false);
     } catch (error) {
       logError("Error loading online status:", error);
     }
@@ -220,9 +222,15 @@ const DoctorDashboard = () => {
     setOnlineLoading(true);
 
     try {
+      // Write the canonical flag (+ companion timestamp) so the dashboard
+      // "Plantão" toggle and the DoctorAvailability "Disponível para Agora"
+      // switch stay in sync and patients see a consistent status.
       const { error } = await db
         .from("doctor_profiles")
-        .update({ available_for_on_demand: newStatus } as any)
+        .update({
+          available_now: newStatus,
+          available_now_since: newStatus ? new Date().toISOString() : null,
+        } as any)
         .eq("user_id", user!.id);
 
       if (error) {
