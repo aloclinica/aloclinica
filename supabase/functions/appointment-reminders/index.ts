@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // SECURITY: gate cron/internal-only function against public callers
 import { isInternalOrService } from "../_shared/auth.ts";
+import { wppAutomationEnabled } from "../_shared/wpp-settings.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,6 +24,9 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+    // Toggles de lembrete do painel admin (respeitados no envio de WhatsApp por janela).
+    const reminder1hOn = await wppAutomationEnabled(supabase, "wpp_appointment_reminder_1h");
+    const reminder15mOn = await wppAutomationEnabled(supabase, "wpp_appointment_reminder_15m");
 
     const now = new Date();
 
@@ -115,6 +119,9 @@ serve(async (req) => {
         : _diffMin <= 33 ? "30min"
         : "1h";
 
+      // Toggles do painel (1h/15min) gatam SÓ o WhatsApp desta janela (email/push seguem).
+      const wppAllowed = !((windowLabel === "1h" && !reminder1hOn) || (windowLabel === "15min" && !reminder15mOn));
+
       // Atomic lock: insert into log; if duplicate, skip entirely
       const { error: lockErr } = await supabase
         .from("appointment_reminder_log")
@@ -176,7 +183,7 @@ serve(async (req) => {
       }
 
       // 2. WhatsApp reminder to patient
-      if (patient?.phone) {
+      if (patient?.phone && wppAllowed) {
         try {
           const msg = `⏰ *Lembrete: consulta em ${timeUntil}!*\n\nOlá ${patient.first_name},\nSua consulta com ${doctorName} ${diffMin <= 18 ? "está prestes a começar" : `é em ${timeUntil}`}.\n\n📹 Sala: ${jitsiLink}\n\nEntre com antecedência. 🏥`;
           await fetch(sendWhatsAppUrl, { method: "POST", headers, body: JSON.stringify({ phone: patient.phone, message: msg }) });
@@ -187,7 +194,7 @@ serve(async (req) => {
 
       // 3. WhatsApp reminder to doctor
       const docProfile = docProfileMap.get(appt.doctor_id);
-      if (docProfile?.phone) {
+      if (docProfile?.phone && wppAllowed) {
         try {
           const msg = `⏰ *Lembrete: consulta em ${timeUntil}!*\n\nDr(a). ${docProfile.first_name},\nSua consulta com ${patientName} ${diffMin <= 18 ? "está prestes a começar" : `é em ${timeUntil}`}.\n\n📹 Sala: ${jitsiLink}`;
           await fetch(sendWhatsAppUrl, { method: "POST", headers, body: JSON.stringify({ phone: docProfile.phone, message: msg }) });

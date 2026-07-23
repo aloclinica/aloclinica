@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // SECURITY: gate cron/internal-only function against public callers
 import { isInternalOrService } from "../_shared/auth.ts";
+import { wppAutomationEnabled } from "../_shared/wpp-settings.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,6 +25,9 @@ serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
+
+    // Respeita o toggle da automação "Pós-consulta" do painel admin.
+    const wppSurveyOn = await wppAutomationEnabled(supabase, "wpp_post_consultation");
 
     const now = new Date();
     // Find consultations completed between 1h and 1h10m ago
@@ -115,7 +119,7 @@ serve(async (req) => {
       }
 
       // Send WhatsApp
-      if (profile?.phone) {
+      if (profile?.phone && wppSurveyOn) {
         try {
           const msg = `⭐ *AloClinica - Como foi sua consulta?*\n\nOlá ${patientName}!\nSua consulta com ${drName} foi finalizada.\n\nGostaríamos de saber como foi! Avalie em poucos segundos:\n${surveyLink}\n\nSua opinião nos ajuda a melhorar! 💚`;
           await fetch(`${supabaseUrl}/functions/v1/send-whatsapp`, {

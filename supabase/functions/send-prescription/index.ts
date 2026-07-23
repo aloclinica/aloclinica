@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { wppAutomationEnabled } from "../_shared/wpp-settings.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -57,6 +58,8 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Respeita o toggle da automação "Receita pronta" do painel admin.
+    const wppRxOn = await wppAutomationEnabled(supabase, "wpp_prescription_ready");
 
     // Fetch appointment and verify caller is the doctor
     const { data: appt } = await supabase
@@ -152,7 +155,7 @@ serve(async (req) => {
       }
     }
 
-    if (phone) {
+    if (phone && wppRxOn) {
       try {
         const whatsappMessage = [
           `🏥 *AloClinica — Receita Médica*`,
