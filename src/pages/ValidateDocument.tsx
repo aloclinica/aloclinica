@@ -73,10 +73,13 @@ const ValidateDocument = () => {
       return;
     }
 
-    // Then try prescriptions by ID
+    // Fallback: receita pelo ID. Um VALIDADOR confirma AUTENTICIDADE (médico, CRM,
+    // data), não conteúdo clínico — NÃO expomos diagnóstico/medicamentos aqui (dado
+    // sensível LGPD). Terceiros (empregador, farmácia) validam via assinatura
+    // ICP-Brasil (prioridade 1); o RLS de prescriptions só deixa o dono/médico ler.
     const { data: prescription } = await db
       .from("prescriptions")
-      .select("id, created_at, diagnosis, medications, doctor_id, patient_id")
+      .select("id, created_at, doctor_id")
       .eq("id", docId)
       .maybeSingle();
 
@@ -94,8 +97,6 @@ const ValidateDocument = () => {
         doctor_name: doctorName,
         crm: doc?.crm ? `${doc.crm}/${doc.crm_state ?? ""}` : null,
         created_at: prescription.created_at,
-        diagnosis: prescription.diagnosis,
-        medications: prescription.medications,
       });
       setLoading(false);
       return;
@@ -229,18 +230,6 @@ const ValidateDocument = () => {
                   <div className="p-2 rounded-lg bg-destructive/10 border border-destructive/30">
                     <p className="text-destructive text-xs font-semibold mb-1">Revogada em {format(new Date(result.revoked_at), "dd/MM/yyyy", { locale: ptBR })}</p>
                     {result.revoke_reason && <p className="text-xs text-muted-foreground">{result.revoke_reason}</p>}
-                  </div>
-                )}
-                {result.diagnosis && (
-                  <div className="flex justify-between p-2 rounded-lg bg-background/60">
-                    <span className="text-muted-foreground">Diagnóstico</span>
-                    <span className="font-medium text-foreground">{result.diagnosis}</span>
-                  </div>
-                )}
-                {result.medications && (
-                  <div className="flex justify-between p-2 rounded-lg bg-background/60">
-                    <span className="text-muted-foreground">Medicamentos</span>
-                    <Badge variant="secondary">{Array.isArray(result.medications) ? result.medications.length : 0} item(s)</Badge>
                   </div>
                 )}
               </div>
