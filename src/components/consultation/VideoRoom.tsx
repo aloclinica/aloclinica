@@ -925,19 +925,22 @@ const VideoRoom = () => {
         duration_seconds: elapsedRef.current,
       }).eq("id", presenceLogId.current);
     }
-    // Save SOAP notes if doctor has unsaved changes
-    if (isDoctor && soap.isDirty) {
-      await soap.saveNotes();
-    }
-    await db.from("appointments").update({ status: "completed" }).eq("id", appointmentId ?? '');
-
-    // Notify patient that consultation is completed
+    // CFM/dinheiro: só o MÉDICO conclui o ato (marca 'completed', o que dispara o
+    // repasse). Se o PACIENTE encerra (ou cai a rede), ele apenas sai — a consulta
+    // segue 'in_progress' e o médico conclui; se o médico esquecer, o cron
+    // auto-complete-stale finaliza após 2h. Antes, o paciente encerrando finalizava
+    // a consulta prematuramente e disparava o repasse.
     if (isDoctor) {
+      if (soap.isDirty) await soap.saveNotes();
+      await db.from("appointments")
+        .update({ status: "completed", ended_at: new Date().toISOString() })
+        .eq("id", appointmentId ?? '');
+
       const docName = user?.user_metadata?.first_name ? `Dr(a). ${user.user_metadata.first_name} ${user.user_metadata.last_name || ""}`.trim() : "Seu médico";
       notifyConsultationCompleted(appointmentId!, docName).catch(err => logError("notifyConsultationCompleted failed", err));
     }
 
-    toast.success("Consulta encerrada");
+    toast.success(isDoctor ? "Consulta encerrada" : "Você saiu da consulta");
     setShowSummary(true);
   }, [isDoctor, appointmentId, soap.isDirty]);
 
@@ -1391,10 +1394,10 @@ SOAP atual: S=${soap.notes.subjective}, O=${soap.notes.objective}, A=${soap.note
             onClick={endCall}
             size="sm"
             className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl gap-1.5 shadow-lg shadow-destructive/20 hover:shadow-destructive/30 transition-all hover:scale-105 active:scale-95 h-9 md:h-9 px-3 md:px-4 min-w-[44px]"
-            aria-label="Encerrar consulta"
+            aria-label={isDoctor ? "Encerrar consulta" : "Sair da consulta"}
           >
             <PhoneOff className="w-4 h-4" aria-hidden="true" />
-            {!isMobile && <span className="text-xs font-semibold">Encerrar</span>}
+            {!isMobile && <span className="text-xs font-semibold">{isDoctor ? "Encerrar" : "Sair"}</span>}
           </Button>
         </div>
       </div>
