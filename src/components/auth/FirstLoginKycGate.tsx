@@ -1,7 +1,9 @@
 /**
- * FirstLoginKycGate — força a verificação biométrica de identidade no
- * primeiro acesso de pacientes e médicos. Enquanto kyc_status !== 'approved',
- * redireciona automaticamente para /kyc?return=<rota atual>.
+ * FirstLoginKycGate — exige verificação biométrica antes do painel apenas para o
+ * MÉDICO (que não faz nada sem KYC/aprovação). O PACIENTE pode explorar o painel
+ * sem KYC; a verificação é exigida só nos pontos regulados (agendar, urgência e
+ * entrar na consulta), já protegidos por KycRequiredGate — menos fricção no 1º
+ * acesso, sem abrir mão da exigência do CFM onde ela importa.
  *
  * - Admin / support / clinic / partner / receptionist passam direto
  * - Já está em /kyc, /kyc-mobile ou rotas públicas → não redireciona
@@ -50,19 +52,9 @@ export function FirstLoginKycGate({ children }: { children: React.ReactNode }) {
             navigate(`/kyc?return=${encodeURIComponent(path + location.search)}`, { replace: true });
             return;
           }
-        } else {
-          // Paciente
-          const { data: prof } = await db
-            .from("profiles")
-            .select("kyc_status")
-            .eq("user_id", user.id)
-            .maybeSingle();
-          const status = (prof as any)?.kyc_status;
-          if (status !== "approved") {
-            navigate(`/kyc?return=${encodeURIComponent(path + location.search)}`, { replace: true });
-            return;
-          }
         }
+        // Paciente: não bloqueia o painel inteiro — o KYC é exigido só nos pontos
+        // regulados (agendar, urgência e entrar na consulta), via KycRequiredGate.
       } catch {
         // Em caso de falha, não bloqueia — deixa o restante do app continuar
       } finally {
