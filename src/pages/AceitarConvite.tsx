@@ -25,15 +25,14 @@ const AceitarConvite = () => {
     if (!token) return;
     (async () => {
       setLoading(true);
-      const { data, error } = await db.from("contract_manager_invites")
-        .select("email, expires_at, used_at, contrato_id, contratos!inner(nome)")
-        .eq("token", token)
-        .maybeSingle();
-      if (error || !data) { setError("Convite não encontrado."); setLoading(false); return; }
+      // SECURITY: preview via RPC por token (não SELECT direto, que expunha TODOS
+      // os convites/tokens). A RPC retorna só o convite deste token.
+      const { data, error } = await db.rpc("get_contract_invite_by_token", { p_token: token } as any);
       const i: any = data;
+      if (error || !i) { setError("Convite não encontrado."); setLoading(false); return; }
       if (i.used_at) { setError("Este convite já foi usado."); setLoading(false); return; }
       if (new Date(i.expires_at).getTime() < Date.now()) { setError("Este convite expirou. Solicite um novo."); setLoading(false); return; }
-      setInviteInfo({ email: i.email, contrato_nome: i.contratos?.nome ?? "Contrato", expires_at: i.expires_at });
+      setInviteInfo({ email: i.email, contrato_nome: i.contrato_nome ?? "Contrato", expires_at: i.expires_at });
       setLoading(false);
     })();
   }, [token]);
