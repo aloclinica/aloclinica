@@ -49,6 +49,7 @@ export default function AwaitingApproval() {
   const [emailConfirmed, setEmailConfirmed] = useState<boolean>(false);
   const [cooldown, setCooldown] = useState(0);
   const [resending, setResending] = useState(false);
+  const [approved, setApproved] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -63,6 +64,33 @@ export default function AwaitingApproval() {
     const t = setInterval(() => setCooldown((s) => Math.max(0, s - 1)), 1000);
     return () => clearInterval(t);
   }, [cooldown]);
+
+  // Detecta a aprovação (na carga + realtime) e avança o profissional sozinho,
+  // em vez de deixá-lo parado nesta tela após ser aprovado.
+  useEffect(() => {
+    let channel: ReturnType<typeof db.channel> | null = null;
+    (async () => {
+      const { data: u } = await db.auth.getUser();
+      const uid = u?.user?.id;
+      if (!uid) return;
+      const table = roleParam === "clinic" ? "clinic_profiles" : "doctor_profiles";
+      const { data } = await db.from(table).select("is_approved").eq("user_id", uid).maybeSingle();
+      if ((data as { is_approved?: boolean } | null)?.is_approved) { setApproved(true); return; }
+      channel = db
+        .channel(`approval-${uid}`)
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table, filter: `user_id=eq.${uid}` },
+          (payload) => { if ((payload.new as { is_approved?: boolean })?.is_approved) setApproved(true); })
+        .subscribe();
+    })();
+    return () => { if (channel) db.removeChannel(channel); };
+  }, [roleParam]);
+
+  useEffect(() => {
+    if (!approved) return;
+    toast.success("Cadastro aprovado! 🎉", { description: "Levando você para o seu painel…" });
+    const t = setTimeout(() => navigate("/dashboard"), 2500);
+    return () => clearTimeout(t);
+  }, [approved, navigate]);
 
   const handleResend = async () => {
     if (!email || cooldown > 0) return;
@@ -123,6 +151,21 @@ export default function AwaitingApproval() {
 
           {/* Body */}
           <div className="p-6 sm:p-10 space-y-7">
+            {/* Aprovado — avança sozinho */}
+            {approved && (
+              <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5 flex items-start gap-4">
+                <span className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center shrink-0">
+                  <CheckCircle className="w-5 h-5" weight="fill" />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">Cadastro aprovado! 🎉</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Levando você para o painel…</p>
+                  <Button size="sm" className="mt-3" onClick={() => navigate("/dashboard")}>
+                    Entrar agora <ArrowRight className="w-4 h-4 ml-1.5" />
+                  </Button>
+                </div>
+              </div>
+            )}
             {/* Email status */}
             <div className="rounded-2xl border border-border bg-muted/30 p-5 flex items-start gap-4">
               <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
