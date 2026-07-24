@@ -217,6 +217,7 @@ const DoctorSearch = () => {
       .from("doctor_profiles")
       .select(richCols, { count: "exact" })
       .eq("is_approved", true)
+      .eq("is_active", true)
       .eq("doctor_type" as any, doctorType)
       .order("rating", { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1);
@@ -225,6 +226,7 @@ const DoctorSearch = () => {
         .from("doctor_profiles")
         .select("id, user_id, crm, crm_state, bio, consultation_price, rating, total_reviews, experience_years, available_now, available_now_since, display_name, crm_verified", { count: "exact" })
         .eq("is_approved", true)
+        .eq("is_active", true)
         .eq("doctor_type" as any, doctorType)
         .order("rating", { ascending: false })
         .range(offset, offset + PAGE_SIZE - 1);
