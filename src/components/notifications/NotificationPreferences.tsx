@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, BellOff, Calendar, CreditCard, FileText, MessageSquare, Heart, Stethoscope, Sparkles, ShieldCheck } from "lucide-react";
+import { Bell, BellOff, Calendar, CreditCard, FileText, MessageSquare, MessageCircle, Heart, Stethoscope, Sparkles, ShieldCheck } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { motion } from "framer-motion";
 import PushNotificationToggle from "./PushNotificationToggle";
@@ -128,6 +128,25 @@ const NotificationPreferences = () => {
           {allOn ? "Silenciar todas" : "Ativar todas"}
         </span>
       </button>
+
+      {/* Canal WhatsApp — opt-out de canal (LGPD). Desligar aqui bloqueia TODA
+          mensagem de WhatsApp no servidor, independentemente das categorias. */}
+      <div className="flex items-center gap-3 px-5 py-3.5 border-b border-border/60 bg-emerald-500/[0.03]">
+        <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+          <MessageCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-foreground leading-tight">Mensagens no WhatsApp</p>
+          <p className="text-[11.5px] text-muted-foreground mt-0.5 leading-snug">
+            Receber avisos da AloClínica no WhatsApp. Desligue para não receber nenhuma mensagem por lá.
+          </p>
+        </div>
+        <Switch
+          checked={prefs["channel_whatsapp"] !== false}
+          onCheckedChange={(v) => persist({ ...prefs, channel_whatsapp: v })}
+          aria-label="Ativar ou desativar mensagens no WhatsApp"
+        />
+      </div>
 
       {/* Categories */}
       <ul className="divide-y divide-border/50">

@@ -1,10 +1,16 @@
 import { db } from "@/integrations/supabase/untyped";
 import { warn } from "@/lib/logger";
 
-export const sendWhatsApp = async (phone: string, message: string) => {
+export const sendWhatsApp = async (
+  phone: string,
+  message: string,
+  // LGPD: informe o destinatário (userId) e a categoria para respeitar o opt-out
+  // de WhatsApp. Sem userId, o envio não passa pela checagem de consentimento.
+  opts?: { userId?: string; category?: string },
+) => {
   try {
     const { data, error } = await db.functions.invoke("send-whatsapp", {
-      body: { phone, message },
+      body: { phone, message, user_id: opts?.userId, category: opts?.category },
     });
     if (error) {
       warn("WhatsApp send error:", error);

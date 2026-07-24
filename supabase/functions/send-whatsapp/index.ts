@@ -27,6 +27,10 @@ const fetchEvo = async (url: string, opts: RequestInit = {}): Promise<Response> 
 interface WhatsAppRequest {
   phone: string;
   message: string;
+  /** Se informado, respeita o consentimento/opt-out de WhatsApp do usuário (LGPD). */
+  user_id?: string;
+  /** Categoria (appointment/document/payment/...) para o opt-out por categoria. */
+  category?: string;
 }
 
 serve(async (req) => {
@@ -90,13 +94,29 @@ serve(async (req) => {
     const instanceName = connectedInstance.instance.instanceName;
 
     const body: WhatsAppRequest = await req.json();
-    const { phone, message } = body;
+    const { phone, message, user_id, category } = body;
 
     if (!phone || !message) {
       return new Response(JSON.stringify({ error: "phone and message are required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // LGPD: se o destinatário é um usuário conhecido e ele desligou o WhatsApp
+    // (canal ou categoria), NÃO envia. Sem user_id (broadcast admin, número avulso
+    // de convidado), mantém o comportamento atual. Fail-open em erro de checagem
+    // para não derrubar avisos transacionais por uma falha transitória.
+    if (user_id) {
+      try {
+        const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+        const { data: allowed } = await sb.rpc("fn_whatsapp_allowed", { p_user_id: user_id, p_category: category ?? null });
+        if (allowed === false) {
+          return new Response(JSON.stringify({ success: true, skipped: "user_opt_out" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      } catch (_e) { /* fail-open */ }
     }
 
     // Clean phone number - keep only digits

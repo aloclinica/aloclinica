@@ -99,8 +99,9 @@ serve(async (req) => {
     const { data: prefRow } = await supabase
       .from("notification_preferences").select("prefs").eq("user_id", user_id).maybeSingle();
     const prefs = ((prefRow as any)?.prefs ?? {}) as Record<string, boolean>;
-    // Default: ligado. Só bloqueia se a categoria estiver explicitamente desligada.
-    if (cat && prefs[cat] === false) {
+    // Default: ligado. Bloqueia se o usuário desligou o CANAL WhatsApp (opt-out
+    // total, LGPD) OU a categoria específica.
+    if (prefs["channel_whatsapp"] === false || (cat && prefs[cat] === false)) {
       await supabase.from("notification_logs").insert({
         user_id, tipo, canal: "whatsapp", status: "skipped",
         mensagem: "Silenciado pela preferencia do usuario",

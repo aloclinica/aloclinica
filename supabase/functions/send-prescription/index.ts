@@ -175,7 +175,8 @@ serve(async (req) => {
         const whatsRes = await fetch(`${supabaseUrl}/functions/v1/send-whatsapp`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${supabaseServiceKey}` },
-          body: JSON.stringify({ phone, message: whatsappMessage }),
+          // LGPD: respeita o opt-out de WhatsApp do paciente (categoria documento).
+          body: JSON.stringify({ phone, message: whatsappMessage, user_id: appt.patient_id ?? undefined, category: "document" }),
         });
         results.whatsapp = await whatsRes.json();
       } catch (error: any) {

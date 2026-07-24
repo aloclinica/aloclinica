@@ -168,7 +168,8 @@ export const notifyAppointmentCancelled = async (
 
     if (patientPhone) {
       sendWhatsApp(patientPhone,
-        `❌ *Consulta Cancelada*\n\nOlá ${patientName},\nSua consulta com ${doctorName} em ${dateStr} às ${timeStr} foi cancelada.\n${reasonText}\nDeseja reagendar? Acesse a plataforma. 💚`);
+        `❌ *Consulta Cancelada*\n\nOlá ${patientName},\nSua consulta com ${doctorName} em ${dateStr} às ${timeStr} foi cancelada.\n${reasonText}\nDeseja reagendar? Acesse a plataforma. 💚`,
+        { userId: patientUserId ?? undefined, category: "appointment" });
     }
     if (doctor?.phone) {
       sendWhatsApp(doctor.phone,
@@ -222,7 +223,8 @@ export const notifyCertificateSent = async (
     });
     if (profile.phone) {
       sendWhatsApp(profile.phone,
-        `📋 *Atestado Médico Emitido*\n\nOlá ${patientName},\n${doctorName} emitiu um ${certType} para você.\n\n🔐 Código de verificação: ${verificationCode}\n${days ? `📅 Dias de afastamento: ${days}\n` : ""}\nAcesse a plataforma para baixar o PDF. 💚`);
+        `📋 *Atestado Médico Emitido*\n\nOlá ${patientName},\n${doctorName} emitiu um ${certType} para você.\n\n🔐 Código de verificação: ${verificationCode}\n${days ? `📅 Dias de afastamento: ${days}\n` : ""}\nAcesse a plataforma para baixar o PDF. 💚`,
+        { userId: profile.user_id, category: "document" });
     }
     insertNotification(profile.user_id, "📋 Atestado Emitido",
       `${doctorName} emitiu um ${certType}. Código: ${verificationCode}`,
@@ -280,7 +282,8 @@ export const notifyConsultationStarted = async (
       const patientName = profile?.first_name ?? "Paciente";
       if (profile?.phone) {
         sendWhatsApp(profile.phone,
-          `📹 *${doctorName} está na sala!*\n\nOlá ${patientName}, seu médico já está aguardando na sala de consulta.\n\n🔗 Acesse agora: ${consultationUrl}\n\nEntre o mais rápido possível! 💚`);
+          `📹 *${doctorName} está na sala!*\n\nOlá ${patientName}, seu médico já está aguardando na sala de consulta.\n\n🔗 Acesse agora: ${consultationUrl}\n\nEntre o mais rápido possível! 💚`,
+          { userId: appt.patient_id, category: "consultation" });
       }
       sendPush(appt.patient_id, `📹 ${doctorName} está na sala!`, "Seu médico já está aguardando. Acesse agora!", link);
       insertNotification(appt.patient_id, `📹 ${doctorName} está na sala!`,
@@ -320,7 +323,8 @@ export const notifyDocumentUploaded = async (
     });
     if (profile?.phone) {
       sendWhatsApp(profile.phone,
-        `📎 *Novo Documento Disponível*\n\nOlá ${patientName},\n${doctorName} enviou um novo documento: ${fileName}\n${description ? `📝 ${description}\n` : ""}\nAcesse a plataforma para baixar. 💚`);
+        `📎 *Novo Documento Disponível*\n\nOlá ${patientName},\n${doctorName} enviou um novo documento: ${fileName}\n${description ? `📝 ${description}\n` : ""}\nAcesse a plataforma para baixar. 💚`,
+        { userId: patientId, category: "document" });
     }
     insertNotification(patientId, "📎 Novo Documento",
       `${doctorName} enviou: ${fileName}`,
@@ -348,7 +352,8 @@ export const notifyPrescriptionSent = async (
     });
     if (profile?.phone) {
       sendWhatsApp(profile.phone,
-        `💊 *Nova Receita Médica*\n\nOlá ${patientName},\n${doctorName} emitiu uma nova receita para você.\n\nAcesse a plataforma para visualizar e baixar o PDF com segurança. 💚`);
+        `💊 *Nova Receita Médica*\n\nOlá ${patientName},\n${doctorName} emitiu uma nova receita para você.\n\nAcesse a plataforma para visualizar e baixar o PDF com segurança. 💚`,
+        { userId: patientId, category: "document" });
     }
     sendPush(patientId, `💊 Nova Receita de ${doctorName}`,
       "Uma nova receita médica foi emitida. Acesse para visualizar.",
@@ -402,7 +407,8 @@ export const notifyAppointmentRescheduled = async (
     });
     if (patientPhone) {
       sendWhatsApp(patientPhone,
-        `🔄 *Consulta Reagendada*\n\nOlá ${patientName},\nSua consulta com ${doctorName} foi reagendada.\n\n📅 Nova data: *${newDate}*\n⏰ Novo horário: *${newTime}*\n\nAcesse a plataforma para mais detalhes. 💚`);
+        `🔄 *Consulta Reagendada*\n\nOlá ${patientName},\nSua consulta com ${doctorName} foi reagendada.\n\n📅 Nova data: *${newDate}*\n⏰ Novo horário: *${newTime}*\n\nAcesse a plataforma para mais detalhes. 💚`,
+        { userId: patientUserId ?? undefined, category: "appointment" });
     }
     if (patientUserId) {
       insertNotification(patientUserId, "🔄 Consulta Reagendada",
@@ -467,7 +473,8 @@ export const notifyPaymentConfirmed = async (
     const amountText = amount ? ` de R$ ${amount}` : "";
     if (profile?.phone) {
       sendWhatsApp(profile.phone,
-        `✅ *Pagamento Confirmado*\n\nOlá ${patientName},\nSeu pagamento${amountText} para a consulta com ${doctorName} em ${dateStr} foi confirmado!\n\nSua consulta está garantida. 💚`);
+        `✅ *Pagamento Confirmado*\n\nOlá ${patientName},\nSeu pagamento${amountText} para a consulta com ${doctorName} em ${dateStr} foi confirmado!\n\nSua consulta está garantida. 💚`,
+        { userId: patientId, category: "payment" });
     }
     insertNotification(patientId, "✅ Pagamento Confirmado",
       `Pagamento${amountText} confirmado para consulta com ${doctorName}.`,
@@ -526,7 +533,8 @@ export const notifyConsultationCompleted = async (
     });
     if (profile?.phone) {
       sendWhatsApp(profile.phone,
-        `🎉 *Consulta Finalizada*\n\nOlá ${patientName},\nSua consulta com ${doctorName} foi concluída!\n\n⭐ Avalie sua experiência na plataforma.\n📋 Receitas e documentos já estão disponíveis no seu painel.\n\nObrigado por usar a AloClinica! 💚`);
+        `🎉 *Consulta Finalizada*\n\nOlá ${patientName},\nSua consulta com ${doctorName} foi concluída!\n\n⭐ Avalie sua experiência na plataforma.\n📋 Receitas e documentos já estão disponíveis no seu painel.\n\nObrigado por usar a AloClinica! 💚`,
+        { userId: appt.patient_id, category: "consultation" });
     }
     sendPush(appt.patient_id, "🎉 Consulta Finalizada",
       `Avalie sua consulta com ${doctorName}!`, rateLink);
