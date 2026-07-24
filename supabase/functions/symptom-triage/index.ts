@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { callClaude, FAST_CLAUDE_MODEL } from "../_shared/anthropic.ts";
+import { checkRateLimit } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,8 +10,24 @@ const corsHeaders = {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  // Triagem é pública (sem login). Rate-limit por IP para conter abuso de custo
+  // de LLM (chamadas ilimitadas ao Claude por um atacante).
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (!await checkRateLimit(ip, "symptom-triage", 8, 10)) {
+    return new Response(JSON.stringify({ error: "Muitas solicitações. Aguarde um momento." }), {
+      status: 429, headers: { ...corsHeaders, "Content-Type": "application/json", "Retry-After": "60" },
+    });
+  }
+
   try {
-    const { symptoms } = await req.json();
+    const body = await req.json();
+    // Limita o tamanho do input enviado ao LLM (controle de custo/abuso).
+    const symptoms = String(body?.symptoms ?? "").slice(0, 1000);
+    if (!symptoms.trim()) {
+      return new Response(JSON.stringify({ error: "symptoms é obrigatório" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const systemPrompt = `Você é um assistente de triagem médica da plataforma AloClínica. Com base nos sintomas descritos pelo paciente, sugira UMA especialidade médica adequada. Responda APENAS em JSON válido com este formato:
 {"specialty": "nome da especialidade", "reason": "explicação curta de 1-2 frases", "urgency": "low|medium|high"}
