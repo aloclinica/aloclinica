@@ -325,8 +325,7 @@ const templates: Record<string, (d: Record<string, string>) => { subject: string
       <h2 style="color:${BRAND.color};margin:0 0 16px;">Nova Receita Médica</h2>
       <p>Olá <strong>${d.patient_name}</strong>,</p>
       <p>O(a) <strong>${d.doctor_name}</strong> emitiu uma nova receita para você.</p>
-      ${d.diagnosis ? `<div style="background:#fff8f0;padding:12px;border-radius:8px;margin:12px 0;"><strong>Diagnóstico:</strong> ${d.diagnosis}</div>` : ""}
-      ${d.medications ? card(`<strong>Medicamentos:</strong><pre style="white-space:pre-wrap;font-family:sans-serif;font-size:14px;margin-top:8px;">${d.medications}</pre>`) : ""}
+      <p style="color:#555;">Por segurança, o conteúdo clínico não é enviado por e-mail. Acesse a plataforma para ver a receita completa e baixar o PDF.</p>
       ${btn(URLS.patientPrescriptions, "Ver Minha Receita")}
     `, "prescription_sent"),
   }),

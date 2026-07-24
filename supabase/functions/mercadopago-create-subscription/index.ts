@@ -79,6 +79,22 @@ Deno.serve(async (req) => {
     const email = payer_email || user.email || "";
     if (!email) return json({ error: "email obrigatório" }, 400);
 
+    // TRAVA DE DUPLICIDADE: uma assinatura ativa por usuário (por tabela). Sem isto,
+    // duplo clique / replay cria vários preapprovals 'authorized' que cobram em
+    // paralelo (cobrança dobrada). A idempotencyKey abaixo cobre o replay de rede;
+    // esta trava cobre o duplo submit com tokens diferentes.
+    const subTable = plan_table === "pingo_card_plans" ? "pingo_card_subscriptions" : "subscriptions";
+    const { data: existingActive } = await (admin as any)
+      .from(subTable)
+      .select("id, status")
+      .eq("user_id", user.id)
+      .in("status", ["active", "authorized", "pending"])
+      .limit(1)
+      .maybeSingle();
+    if (existingActive) {
+      return json({ error: "Você já possui uma assinatura ativa ou em processamento.", subscription_id: existingActive.id }, 409);
+    }
+
     // Pre-approval body
     const startDate = new Date();
     startDate.setSeconds(0, 0);
@@ -102,7 +118,11 @@ Deno.serve(async (req) => {
       notification_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/mercadopago-webhook`,
     };
 
-    const res = await mpRequest<any>("POST", "/preapproval", preapprovalBody);
+    // Idempotência: chave estável derivada do card_token (uso único por
+    // tokenização) — retry de rede da MESMA requisição não cria 2º preapproval.
+    const res = await mpRequest<any>("POST", "/preapproval", preapprovalBody, {
+      idempotencyKey: `preapproval-${user.id}-${plan_id}-${billing_cycle}-${card_token}`.slice(0, 120),
+    });
 
     if (!res.ok) {
       return json({

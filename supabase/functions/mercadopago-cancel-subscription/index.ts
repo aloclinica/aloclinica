@@ -59,10 +59,17 @@ Deno.serve(async (req) => {
     const gateway = sub.gateway ?? "mercadopago";
 
     if (gateway === "mercadopago" && preapprovalId) {
-      const cancel = await mpRequest("PUT", `/preapproval/${preapprovalId}`, { status: "cancelled" });
+      const cancel = await mpRequest<any>("PUT", `/preapproval/${preapprovalId}`, { status: "cancelled" });
       if (!cancel.ok) {
-        console.error("[mp-cancel-sub] falha ao cancelar no MP", cancel.data);
-        // Continua atualizando local mesmo se MP falhou — pode estar já cancelado lá
+        // "Já cancelado" (ou não encontrado) no MP conta como sucesso. Qualquer
+        // outra falha (rede/transitória) NÃO deve marcar cancelado local — senão
+        // o usuário acha que cancelou e o Mercado Pago continua cobrando.
+        const body = JSON.stringify(cancel.data ?? "").toLowerCase();
+        const alreadyCancelled = cancel.status === 404 || body.includes("already") || body.includes("cancel");
+        if (!alreadyCancelled) {
+          console.error("[mp-cancel-sub] falha ao cancelar no MP", cancel.status, cancel.data);
+          return json({ error: "Não foi possível cancelar no Mercado Pago agora. Tente novamente em instantes." }, 502);
+        }
       }
     }
 

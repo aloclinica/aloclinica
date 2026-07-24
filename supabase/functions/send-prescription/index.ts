@@ -140,11 +140,13 @@ serve(async (req) => {
           body: JSON.stringify({
             type: "prescription_sent",
             to: email,
+            // LGPD/PHI: NÃO enviar diagnóstico/medicamentos por e-mail/WhatsApp.
+            // A receita completa fica na plataforma (canal autenticado); aqui só
+            // avisamos + link. Reduz risco de vazar dado clínico por canal externo
+            // ou número/e-mail incorreto.
             data: {
               patient_name: recipientName,
               doctor_name: String(doctor_name).slice(0, 200),
-              medications: medList,
-              diagnosis: String(diagnosis || "Não especificado").slice(0, 500),
             },
           }),
         });
@@ -157,20 +159,18 @@ serve(async (req) => {
 
     if (phone && wppRxOn) {
       try {
+        // LGPD/PHI: não incluir medicamentos nem diagnóstico no corpo do WhatsApp.
         const whatsappMessage = [
           `🏥 *AloClinica — Receita Médica*`,
           ``,
           `Olá, *${recipientName}*!`,
           ``,
-          `O(a) *${doctor_name}* prescreveu os seguintes medicamentos:`,
+          `O(a) *${doctor_name}* emitiu uma nova receita para você.`,
           ``,
-          medList,
-          diagnosis ? `\n📋 *Diagnóstico:* ${diagnosis}` : "",
-          ``,
-          `Acesse a plataforma para ver a receita completa e baixar o PDF.`,
+          `Acesse a plataforma para ver a receita completa e baixar o PDF com segurança.`,
           ``,
           `_Receita digital emitida pela AloClinica_`,
-        ].filter(Boolean).join("\n");
+        ].join("\n");
 
         const whatsRes = await fetch(`${supabaseUrl}/functions/v1/send-whatsapp`, {
           method: "POST",

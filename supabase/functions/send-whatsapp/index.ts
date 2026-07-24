@@ -35,9 +35,13 @@ serve(async (req) => {
   }
 
   try {
-    // Trigger/cron and cross-function calls (internal secret or service role)
-    // bypass per-user limits. Everyone else must be an authenticated user and
-    // is rate-limited to curb arbitrary-recipient spam.
+    // SECURITY: esta função envia {phone, message} ARBITRÁRIOS pelo número oficial
+    // da AloClínica. Se qualquer usuário autenticado pudesse chamá-la, teria um
+    // vetor de phishing/impersonação (mandar texto livre de um número confiável
+    // para qualquer telefone). Os fluxos legítimos de usuário passam por funções
+    // dedicadas (que resolvem o destinatário internamente e mandam via service
+    // role); o único chamador de front é o painel admin. Logo: só admin ou
+    // chamadas internas/serviço (cron, outras edge functions) podem enviar texto livre.
     if (!isInternalOrService(req)) {
       const caller = await getCaller(req);
       if (!caller.user) {
@@ -46,12 +50,9 @@ serve(async (req) => {
         });
       }
       if (!caller.isAdmin) {
-        const allowed = await checkRateLimit(`user:${caller.user.id}`, "send-whatsapp", 30, 10);
-        if (!allowed) {
-          return new Response(JSON.stringify({ error: "Muitas mensagens. Aguarde um momento." }), {
-            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json", "Retry-After": "60" },
-          });
-        }
+        return new Response(JSON.stringify({ error: "Acesso restrito a administradores" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
     }
 

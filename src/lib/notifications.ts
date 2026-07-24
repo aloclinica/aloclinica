@@ -338,21 +338,23 @@ export const notifyPrescriptionSent = async (
   medicationsSummary?: string,
 ) => {
   try {
+    // LGPD/PHI: diagnóstico e medicamentos NÃO vão por e-mail/WhatsApp/notificação —
+    // só um aviso + link. O conteúdo clínico fica na plataforma (canal autenticado).
+    void diagnosis; void medicationsSummary;
     const profile = await getProfile(patientId);
     const patientName = profile?.first_name ?? "Paciente";
     sendEmail("prescription_sent", "resolve-from-user", {
       patient_name: patientName, doctor_name: doctorName,
-      diagnosis: diagnosis ?? "", medications: medicationsSummary ?? "",
     });
     if (profile?.phone) {
       sendWhatsApp(profile.phone,
-        `💊 *Nova Receita Médica*\n\nOlá ${patientName},\n${doctorName} emitiu uma nova receita para você.\n${diagnosis ? `📋 Diagnóstico: ${diagnosis}\n` : ""}\nAcesse a plataforma para baixar o PDF. 💚`);
+        `💊 *Nova Receita Médica*\n\nOlá ${patientName},\n${doctorName} emitiu uma nova receita para você.\n\nAcesse a plataforma para visualizar e baixar o PDF com segurança. 💚`);
     }
     sendPush(patientId, `💊 Nova Receita de ${doctorName}`,
       "Uma nova receita médica foi emitida. Acesse para visualizar.",
       "/dashboard/patient/health?role=patient");
     insertNotification(patientId, "💊 Nova Receita Médica",
-      `${doctorName} emitiu uma nova receita.${diagnosis ? ` Diagnóstico: ${diagnosis}` : ""}`,
+      `${doctorName} emitiu uma nova receita.`,
       "prescription", "/dashboard/patient/health?role=patient");
   } catch (err) {
     logError("notifyPrescriptionSent failed", err, { patientId });

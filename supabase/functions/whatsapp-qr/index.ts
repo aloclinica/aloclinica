@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
+import { getCaller } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -47,6 +48,14 @@ serve(async (req) => {
   }
 
   try {
+    // SECURITY: gerenciar a instância do WhatsApp (create/delete/qrcode/status/list)
+    // é ação de ADMIN. Sem isto, qualquer portador da anon key (pública) podia
+    // apagar a instância e derrubar todo o envio da plataforma (DoS/takeover).
+    const caller = await getCaller(req);
+    if (!caller.isAdmin) {
+      return jsonResponse({ success: false, error: "Acesso restrito a administradores" }, 403);
+    }
+
     const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
     const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
 
