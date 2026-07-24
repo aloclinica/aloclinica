@@ -142,6 +142,29 @@ Deno.serve(async (req) => {
       } as any)
       .eq("id", tx.id);
 
+    // MONEY-INTEGRITY: num estorno TOTAL, cancela o repasse do médico ainda não
+    // sacado — senão a plataforma devolve ao paciente E paga o médico (both sides).
+    // Repasse 'pending'/'ready' sem withdrawal_id → cancela. Se já foi sacado
+    // (withdrawal_id preenchido / status 'paid'), não dá pra estornar aqui: sinaliza.
+    let payoutClawback: "cancelled" | "already_withdrawn" | "none" = "none";
+    if (tx.resource_type === "appointment" && tx.resource_id && !isPartial) {
+      const { data: payouts } = await admin
+        .from("doctor_payouts")
+        .select("id, status, withdrawal_id")
+        .eq("appointment_id", tx.resource_id);
+      const list = (payouts ?? []) as Array<{ id: string; status: string; withdrawal_id: string | null }>;
+      const cancellable = list.filter((p) => !p.withdrawal_id && ["pending", "ready"].includes(p.status));
+      const locked = list.filter((p) => p.withdrawal_id || ["paid", "processing"].includes(p.status));
+      if (cancellable.length) {
+        await admin
+          .from("doctor_payouts")
+          .update({ status: "cancelled", notes: "Cancelado por estorno do pagamento", updated_at: new Date().toISOString() } as any)
+          .in("id", cancellable.map((p) => p.id));
+        payoutClawback = "cancelled";
+      }
+      if (locked.length) payoutClawback = "already_withdrawn";
+    }
+
     // Atualiza recurso relacionado
     if (tx.resource_type === "appointment" && tx.resource_id) {
       await admin
@@ -161,6 +184,7 @@ Deno.serve(async (req) => {
       refund_id: String(refund.data.id),
       amount: refund.data.amount,
       is_partial: isPartial,
+      payout_clawback: payoutClawback,
     });
   } catch (e) {
     console.error("[mp-refund] error:", e);

@@ -230,7 +230,12 @@ const AdminAppointments = () => {
         try { const b = await (error as { context?: Response }).context?.json?.(); if (b?.error) errMsg = b.error; } catch { /* ignora */ }
       }
       if ((data as { ok?: boolean } | null)?.ok) {
-        toast.success("Estorno realizado", { description: "O valor será devolvido ao paciente pelo Mercado Pago." });
+        const clawback = (data as { payout_clawback?: string } | null)?.payout_clawback;
+        if (clawback === "already_withdrawn") {
+          toast.warning("Estorno feito — atenção ao repasse", { description: "O paciente será reembolsado, mas o repasse ao médico já foi sacado. Ajuste o acerto com o médico manualmente." });
+        } else {
+          toast.success("Estorno realizado", { description: "Valor devolvido ao paciente; repasse do médico cancelado quando ainda pendente." });
+        }
         fetchAppointments();
       } else if (errMsg && /já estornad|em processamento|em andamento/i.test(errMsg)) {
         toast.success("Estorno já processado");
