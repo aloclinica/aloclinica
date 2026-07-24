@@ -85,3 +85,8 @@ verify_jwt = false
 # Avisos proativos ao paciente (retorno grátis fechando, receita vencendo) — cron diário.
 [functions.patient-nudges]
 verify_jwt = false
+
+# Lembrete extra anti-no-show (cron horário). Sem esta entrada o gateway rejeitava
+# a chamada do cron (que manda só x-tick-secret) e a automação nunca rodava.
+[functions.no-show-reminder-tick]
+verify_jwt = false

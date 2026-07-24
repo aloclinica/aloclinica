@@ -8,6 +8,7 @@
  * Idempotente: marca em appointments.lembrete_enviado para não duplicar.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { safeEqual } from "../_shared/auth.ts";
 
 const DAY_MS = 86_400_000;
 
@@ -52,7 +53,9 @@ async function computeRisk(sb: any, appt: Appt) {
 Deno.serve(async (req) => {
   try {
     const expected = Deno.env.get("AUTO_PAYOUT_TICK_SECRET"); // reaproveita o mesmo secret de cron
-    if (!expected || req.headers.get("x-tick-secret") !== expected) {
+    // Comparação timing-safe: a função é verify_jwt=false (pública no gateway),
+    // então o segredo é a única barreira e não pode vazar por early-exit.
+    if (!safeEqual(req.headers.get("x-tick-secret"), expected)) {
       return json({ error: "Unauthorized" }, 401);
     }
 
