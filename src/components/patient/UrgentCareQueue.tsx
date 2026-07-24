@@ -100,7 +100,8 @@ const UrgentCareQueue = () => {
   const [shiftInfo, setShiftInfo] = useState<{ shift: string; price: number; label: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
-  const [myEntry, setMyEntry] = useState<{ id: string; status: string; position?: number; created_at: string } | null>(null);
+  const [myEntry, setMyEntry] = useState<{ id: string; status: string; position?: number; created_at: string; payment_id?: string } | null>(null);
+  const [refunding, setRefunding] = useState(false);
   const [queuePosition, setQueuePosition] = useState(0);
   const [elapsed, setElapsed] = useState(0);
 
@@ -243,7 +244,7 @@ const UrgentCareQueue = () => {
   const fetchMyEntry = async () => {
     if (!user) return;
     const { data } = await db.from("on_demand_queue").select("*").eq("patient_id", user.id).in("status", ["waiting", "assigned", "in_progress"]).order("created_at", { ascending: false }).limit(1).maybeSingle();
-    if (data) setMyEntry({ id: data.id, status: data.status, position: data.position ?? undefined, created_at: data.created_at });
+    if (data) setMyEntry({ id: data.id, status: data.status, position: data.position ?? undefined, created_at: data.created_at, payment_id: data.payment_id ?? undefined });
     if (data?.status === "waiting") {
       const { count } = await db.from("on_demand_queue").select("*", { count: "exact", head: true }).eq("status", "waiting").lt("created_at", data.created_at);
       setQueuePosition((count ?? 0) + 1);
@@ -367,9 +368,38 @@ const UrgentCareQueue = () => {
   };
 
   const handleRequestRefund = async () => {
-    if (!myEntry) return;
-    await db.from("on_demand_queue").update({ status: "refunded", completed_at: new Date().toISOString() }).eq("id", myEntry.id);
-    toast.success("Reembolso solicitado com sucesso."); setMyEntry(null);
+    if (!myEntry || refunding) return;
+    setRefunding(true);
+    try {
+      // Sem cobrança associada (entrada sem pagamento): apenas sai da fila.
+      if (!myEntry.payment_id) {
+        await db.from("on_demand_queue").update({ status: "cancelled", completed_at: new Date().toISOString() }).eq("id", myEntry.id);
+        toast.success("Você saiu da fila."); setMyEntry(null); return;
+      }
+      // Estorno REAL no Mercado Pago (a função valida dono + janela de 24h e
+      // devolve o dinheiro de fato; antes só marcávamos status='refunded').
+      const { data, error } = await db.functions.invoke("mercadopago-refund", { body: { mp_payment_id: myEntry.payment_id } });
+      // Mensagem de erro pode vir no corpo (200 c/ error) ou no context da resposta 4xx.
+      let errMsg: string | null = (data as { error?: string } | null)?.error ?? null;
+      if (!errMsg && error) {
+        errMsg = error.message;
+        try { const b = await (error as { context?: Response }).context?.json?.(); if (b?.error) errMsg = b.error; } catch { /* ignora */ }
+      }
+      if ((data as { ok?: boolean } | null)?.ok) {
+        toast.success("Estorno realizado com sucesso.", { description: "O valor será devolvido pelo Mercado Pago em alguns dias úteis." });
+        setMyEntry(null); return;
+      }
+      // "Já estornado" é sucesso do ponto de vista do paciente.
+      if (errMsg && /já estornad|em processamento|em andamento/i.test(errMsg)) {
+        toast.success("Estorno já processado."); setMyEntry(null); return;
+      }
+      toast.error("Não foi possível estornar", { description: errMsg || "Tente novamente ou fale com o suporte." });
+    } catch (err: unknown) {
+      logError("UrgentCareQueue refund error", err);
+      toast.error("Erro no estorno", { description: err instanceof Error ? err.message : "Tente novamente." });
+    } finally {
+      setRefunding(false);
+    }
   };
 
   const formatTime = (s: number) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
@@ -445,7 +475,7 @@ const UrgentCareQueue = () => {
                   {elapsed > 900 && (
                     <div className="mb-4">
                       <div className="flex items-center justify-center gap-2 text-destructive mb-2"><AlertTriangle className="w-4 h-4" /><span className="text-sm font-medium">Espera acima de 15 minutos</span></div>
-                      <Button variant="destructive" className="rounded-full" onClick={handleRequestRefund}>Solicitar Reembolso</Button>
+                      <Button variant="destructive" className="rounded-full" onClick={handleRequestRefund} disabled={refunding}>{refunding ? "Estornando…" : "Solicitar Reembolso"}</Button>
                     </div>
                   )}
                   <Button variant="outline" onClick={() => fetchMyEntry()} className="mt-2 rounded-full"><RefreshCw className="w-4 h-4 mr-1" /> Atualizar</Button>

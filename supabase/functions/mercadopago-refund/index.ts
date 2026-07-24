@@ -36,17 +36,31 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { transaction_id, mp_payment_id, amount } = await req.json();
+    const { transaction_id, mp_payment_id, reference_id, amount } = await req.json();
 
-    if (!transaction_id && !mp_payment_id) {
-      return json({ error: "transaction_id ou mp_payment_id obrigatório" }, 400);
+    if (!transaction_id && !mp_payment_id && !reference_id) {
+      return json({ error: "transaction_id, mp_payment_id ou reference_id obrigatório" }, 400);
     }
 
-    // Resolve transação
-    let txQuery = admin.from("payment_transactions").select("*");
-    if (transaction_id) txQuery = txQuery.eq("id", transaction_id);
-    else txQuery = txQuery.eq("mp_payment_id", mp_payment_id);
-    const { data: tx } = await txQuery.single();
+    // Resolve transação. Por id direto (transaction_id/mp_payment_id) ou, quando o
+    // chamador só conhece o recurso, por reference_id ("appointment_<id>"/"queue_<id>")
+    // → pega a transação mais recente daquele recurso.
+    let tx: any = null;
+    if (transaction_id || mp_payment_id) {
+      let txQuery = admin.from("payment_transactions").select("*");
+      txQuery = transaction_id ? txQuery.eq("id", transaction_id) : txQuery.eq("mp_payment_id", mp_payment_id);
+      tx = (await txQuery.maybeSingle()).data;
+    } else {
+      const i = String(reference_id).indexOf("_");
+      const rtype = i > 0 ? String(reference_id).slice(0, i) : "";
+      const rid = i > 0 ? String(reference_id).slice(i + 1) : "";
+      if (!rtype || !rid) return json({ error: "reference_id inválido" }, 400);
+      const { data } = await admin
+        .from("payment_transactions").select("*")
+        .eq("resource_type", rtype).eq("resource_id", rid)
+        .order("created_at", { ascending: false }).limit(1).maybeSingle();
+      tx = data;
+    }
 
     if (!tx) return json({ error: "Transação não encontrada" }, 404);
 
@@ -57,8 +71,11 @@ Deno.serve(async (req) => {
       const isAdmin = (roles ?? []).some((r: any) => r.role === "admin");
       if (!isAdmin) return json({ error: "Sem permissão" }, 403);
     } else {
-      // Owner só pode estornar dentro de 24h
-      const paidAt = tx.paid_at ? new Date(tx.paid_at).getTime() : 0;
+      // Owner só pode estornar dentro de 24h. Fallback para created_at quando
+      // paid_at é nulo (transações antigas / aprovação imediata sem webhook),
+      // senão um reembolso legítimo seria bloqueado por hoursSince = Infinity.
+      const refAt = tx.paid_at ?? tx.created_at ?? null;
+      const paidAt = refAt ? new Date(refAt).getTime() : 0;
       const hoursSince = paidAt ? (Date.now() - paidAt) / 3_600_000 : Infinity;
       if (hoursSince > 24) {
         return json({ error: "Refund só disponível em até 24h após pagamento. Entre em contato com o suporte." }, 403);
@@ -130,6 +147,12 @@ Deno.serve(async (req) => {
       await admin
         .from("appointments")
         .update({ payment_status: isPartial ? "partially_refunded" : "refunded" } as any)
+        .eq("id", tx.resource_id);
+    } else if (tx.resource_type === "queue" && tx.resource_id && !isPartial) {
+      // Estorno de plantão/urgência: tira o paciente da fila e marca a entrada.
+      await admin
+        .from("on_demand_queue")
+        .update({ status: "refunded", completed_at: new Date().toISOString() } as any)
         .eq("id", tx.resource_id);
     }
 

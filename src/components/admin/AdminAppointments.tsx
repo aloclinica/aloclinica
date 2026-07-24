@@ -211,6 +211,43 @@ const AdminAppointments = () => {
     await applyStatus(a, "no_show", "appointment.no_show");
   };
 
+  // Estorno REAL no Mercado Pago via edge function (valida a transação e devolve o
+  // dinheiro de fato). A função marca a transação + o appointment como refunded.
+  const refundAppt = async (a: AdminAppointmentRow) => {
+    const ok = await confirm({
+      title: "Estornar pagamento?",
+      description: "Devolve o valor pago ao paciente pelo Mercado Pago (estorno total). A consulta fica marcada como reembolsada. Ação irreversível.",
+      confirmLabel: "Estornar",
+      destructive: true,
+    });
+    if (!ok) return;
+    setActing(true);
+    try {
+      const { data, error } = await db.functions.invoke("mercadopago-refund", { body: { reference_id: `appointment_${a.id}` } });
+      let errMsg: string | null = (data as { error?: string } | null)?.error ?? null;
+      if (!errMsg && error) {
+        errMsg = error.message;
+        try { const b = await (error as { context?: Response }).context?.json?.(); if (b?.error) errMsg = b.error; } catch { /* ignora */ }
+      }
+      if ((data as { ok?: boolean } | null)?.ok) {
+        toast.success("Estorno realizado", { description: "O valor será devolvido ao paciente pelo Mercado Pago." });
+        fetchAppointments();
+      } else if (errMsg && /já estornad|em processamento|em andamento/i.test(errMsg)) {
+        toast.success("Estorno já processado");
+        fetchAppointments();
+      } else if (errMsg && /não encontrada/i.test(errMsg)) {
+        toast.error("Sem pagamento para estornar", { description: "Esta consulta não tem transação de pagamento registrada." });
+      } else {
+        toast.error("Não foi possível estornar", { description: errMsg || "Tente novamente ou verifique no painel do Mercado Pago." });
+      }
+    } catch (e) {
+      logError("AdminAppointments refund error", e);
+      toast.error("Erro no estorno", { description: e instanceof Error ? e.message : "Tente novamente." });
+    } finally {
+      setActing(false);
+    }
+  };
+
   // Abre o diálogo de reatribuição e carrega médicos candidatos (mesma especialidade quando possível).
   const openReassign = async (a: AdminAppointmentRow) => {
     setReassignAppt(a);
@@ -408,6 +445,8 @@ const AdminAppointments = () => {
                   const canCancel = !["cancelled", "completed"].includes(a.status);
                   const canComplete = !["cancelled", "completed"].includes(a.status);
                   const canNoShow = !["cancelled", "completed", "no_show"].includes(a.status);
+                  // Só oferece estorno quando há pagamento aprovado e ainda não reembolsado.
+                  const canRefund = ["approved", "paid"].includes(String(a.payment_status));
                   return (
                   <TableRow key={a.id} className={a.status === "in_progress" ? "bg-primary/5" : a.status === "waiting" ? "bg-secondary/5" : ""}>
                     <TableCell data-label="Paciente" className="font-medium text-foreground">{a.patient_name}</TableCell>
@@ -456,9 +495,12 @@ const AdminAppointments = () => {
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
-                          {/* Reembolso real exige edge function do Mercado Pago (fluxo dedicado). Desabilitado para não simular estorno. */}
-                          <DropdownMenuItem disabled>
-                            <RotateCcw className="w-4 h-4 mr-2" /> Reembolsar (fluxo dedicado)
+                          <DropdownMenuItem
+                            disabled={!canRefund || acting}
+                            onClick={() => refundAppt(a)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <RotateCcw className="w-4 h-4 mr-2" /> {canRefund ? "Estornar pagamento" : "Estornar (sem pgto.)"}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

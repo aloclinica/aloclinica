@@ -221,6 +221,11 @@ Deno.serve(async (req) => {
       currency: "BRL",
       payment_method: payment_method.toUpperCase(),
       status: internalStatus,
+      // paid_at é usado pela janela de estorno de 24h do dono (mercadopago-refund).
+      // Sem isso, um pagamento aprovado por cartão ficava com paid_at nulo e o
+      // reembolso legítimo do paciente era bloqueado. PIX/boleto recebem paid_at
+      // depois, via webhook, quando compensam.
+      paid_at: internalStatus === "approved" ? new Date().toISOString() : null,
       resource_id: extractResourceId(reference_id),
       resource_type: extractResourceType(reference_id),
       raw_response: mpRes.data,
